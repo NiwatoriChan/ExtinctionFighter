@@ -240,6 +240,56 @@ function updateBattleHUD() {
 
     document.getElementById('hudP1Rounds').innerHTML = '💀'.repeat(fighter1.roundsWon);
     document.getElementById('hudP2Rounds').innerHTML = '💀'.repeat(fighter2.roundsWon);
+
+    updateBattleHUDCooldowns();
+}
+
+function updateBattleHUDCooldowns() {
+    if (!fighter1 || !fighter1.cooldowns) return;
+
+    const btnConfigs = [
+        { id: 'uiBtnLight', type: 'light', label: '⚡ Léger', key: '[F / J]' },
+        { id: 'uiBtnHeavy', type: 'heavy', label: '💥 Lourd', key: '[G / K]' },
+        { id: 'uiBtnSpecial', type: 'special', label: '🔥 Spécial', key: '[H / L]' },
+        { id: 'uiBtnSpecial2', type: 'special2', label: '🌪️ Ultra', key: '[T / U]' }
+    ];
+
+    btnConfigs.forEach(cfg => {
+        const btn = document.getElementById(cfg.id);
+        if (!btn) return;
+        const cd = fighter1.cooldowns[cfg.type] || 0;
+        if (cd > 0.05) {
+            btn.classList.add('btn-on-cooldown');
+            btn.innerHTML = `<span class="flex items-center gap-1 justify-center text-xs"><span class="animate-spin text-[10px]">⏳</span> <span class="font-extrabold text-amber-200">${cd.toFixed(1)}s</span></span><span class="block text-[9px] font-bold opacity-75">${cfg.label}</span>`;
+        } else {
+            if (btn.classList.contains('btn-on-cooldown')) {
+                btn.classList.remove('btn-on-cooldown');
+                btn.classList.add('cooldown-ready-flash');
+                setTimeout(() => btn.classList.remove('cooldown-ready-flash'), 350);
+            }
+            btn.innerHTML = `${cfg.label} <span class="block text-[10px] font-bold opacity-80">${cfg.key}</span>`;
+        }
+    });
+
+    // Bouton X-Ray / Fatalité : Strictement verrouillé tant que la Rage n'est pas à 100%
+    const xrayBtn = document.getElementById('btnRageFatality');
+    if (xrayBtn) {
+        const xrayCd = (fighter1.cooldowns && fighter1.cooldowns['xray']) || 0;
+        const rage = fighter1.rage || 0;
+
+        if (rage < 100) {
+            xrayBtn.classList.add('btn-rage-locked');
+            xrayBtn.classList.remove('finish-pulse', 'border-amber-300');
+            xrayBtn.innerHTML = `🔒 X-Ray / Fatal <span class="block text-[9px] font-extrabold text-zinc-300">[RAGE ${Math.floor(rage)}%/100%]</span>`;
+        } else if (xrayCd > 0.05) {
+            xrayBtn.classList.remove('btn-rage-locked', 'finish-pulse');
+            xrayBtn.innerHTML = `⏳ X-Ray (${xrayCd.toFixed(1)}s) <span class="block text-[9px] font-bold opacity-80">[Recharge]</span>`;
+        } else {
+            xrayBtn.classList.remove('btn-rage-locked');
+            xrayBtn.classList.add('finish-pulse', 'border-amber-300');
+            xrayBtn.innerHTML = `💀 X-RAY ACTIF ! <span class="block text-[10px] font-black text-amber-300">[R / Espace]</span>`;
+        }
+    }
 }
 
 function initBattleScreenMenu() {

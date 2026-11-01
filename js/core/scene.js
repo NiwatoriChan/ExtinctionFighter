@@ -149,6 +149,11 @@ function updateArenaPreview(time) {
         arenaPreview.camera.lookAt(0, 1.5, 0);
     }
 
+    // Animation dynamique du décor dans l'aperçu de l'arène
+    if (typeof updateArenaDynamics === 'function' && arenaPreview.group) {
+        updateArenaDynamics(currentArena, arenaPreview.group, arenaPreview.scene, time * 0.001, 0.016);
+    }
+
     arenaPreview.renderer.render(arenaPreview.scene, arenaPreview.camera);
 }
 

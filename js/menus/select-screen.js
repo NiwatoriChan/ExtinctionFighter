@@ -272,13 +272,14 @@ const SELECT_SCREEN_HTML = `
                         <h2 id="p1NameDisplay" class="mk-title text-xl sm:text-2xl font-black text-white mt-1.5">T-REX</h2>
                         <p id="p1TitleDisplay" class="text-xs text-red-400/90 font-medium italic">« Le Roi Sanglant du Crétacé »</p>
 
-                        <!-- 3D Canvas Box -->
-                        <div class="w-full h-44 my-2.5 rounded-xl bg-black/60 relative overflow-hidden border border-white/5">
-                            <canvas id="p1PreviewCanvas"></canvas>
-                            <div class="absolute top-2 left-2 right-2 flex items-center justify-between bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-xs">
-                                <button id="btnP1PrevSkin" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-amber-300 font-bold transition">&lt;</button>
+                        <!-- 3D Preview (Prend plus de place dans la boîte, visage en focus, surplus masqué) -->
+                        <div class="w-full h-64 sm:h-76 my-1 relative flex items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-white/[0.04] via-black/20 to-black/60 shadow-inner">
+                            <canvas id="p1PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
+                            <img id="p1PreviewImg" alt="P1 Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-0" />
+                            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs shadow-lg z-20">
+                                <button id="btnP1PrevSkin" class="px-1.5 py-0.5 rounded text-amber-300 font-bold hover:text-white transition">&lt;</button>
                                 <span id="p1SkinName" class="font-bold text-amber-300 tracking-wide text-[11px] truncate">Skin: Primal</span>
-                                <button id="btnP1NextSkin" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-amber-300 font-bold transition">&gt;</button>
+                                <button id="btnP1NextSkin" class="px-1.5 py-0.5 rounded text-amber-300 font-bold hover:text-white transition">&gt;</button>
                             </div>
                         </div>
 
@@ -349,13 +350,14 @@ const SELECT_SCREEN_HTML = `
                         <h2 id="p2NameDisplay" class="mk-title text-xl sm:text-2xl font-black text-white mt-1.5">PACHYRHINOSAURE</h2>
                         <p id="p2TitleDisplay" class="text-xs text-blue-400/90 font-medium italic">« Le Colosse à Bosse d'Acier »</p>
 
-                        <!-- 3D Canvas Box -->
-                        <div class="w-full h-44 my-2.5 rounded-xl bg-black/60 relative overflow-hidden border border-white/5">
-                            <canvas id="p2PreviewCanvas"></canvas>
-                            <div id="p2SkinSelector" class="absolute top-2 left-2 right-2 flex items-center justify-between bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-xs">
-                                <button id="btnP2PrevSkin" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-blue-300 font-bold transition">&lt;</button>
+                        <!-- 3D Preview (Prend plus de place dans la boîte, visage en focus, surplus masqué) -->
+                        <div class="w-full h-64 sm:h-76 my-1 relative flex items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-white/[0.04] via-black/20 to-black/60 shadow-inner">
+                            <canvas id="p2PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
+                            <img id="p2PreviewImg" alt="P2 Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-0" />
+                            <div id="p2SkinSelector" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs shadow-lg z-20">
+                                <button id="btnP2PrevSkin" class="px-1.5 py-0.5 rounded text-blue-300 font-bold hover:text-white transition">&lt;</button>
                                 <span id="p2SkinName" class="font-bold text-blue-300 tracking-wide text-[11px] truncate">Skin: Primal</span>
-                                <button id="btnP2NextSkin" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-blue-300 font-bold transition">&gt;</button>
+                                <button id="btnP2NextSkin" class="px-1.5 py-0.5 rounded text-blue-300 font-bold hover:text-white transition">&gt;</button>
                             </div>
                         </div>
 
@@ -387,37 +389,125 @@ const SELECT_SCREEN_HTML = `
 
 document.getElementById('appMain').insertAdjacentHTML('beforeend', SELECT_SCREEN_HTML);
 
-// Aperçus 3D pour P1 et P2 dans le menu de sélection
-let preview1 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null };
-let preview2 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null };
+// Générateur d'aperçus 3D réels pour chaque combattant du roster (modèle entier)
+const DINO_3D_THUMBNAILS = {};
+let offscreen3DRenderer = null;
+let offscreen3DScene = null;
+let offscreen3DCamera = null;
+
+function getDino3DThumbnail(dino, skinIndex = 0) {
+    const key = `${dino.id}_${skinIndex}`;
+    if (DINO_3D_THUMBNAILS[key]) return DINO_3D_THUMBNAILS[key];
+
+    try {
+        if (!offscreen3DRenderer) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 180;
+            canvas.height = 180;
+            offscreen3DRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
+            offscreen3DRenderer.setPixelRatio(1);
+            offscreen3DRenderer.setSize(180, 180, false);
+
+            offscreen3DScene = new THREE.Scene();
+            offscreen3DCamera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
+
+            offscreen3DScene.add(new THREE.AmbientLight(0xffffff, 1.15));
+            const sun = new THREE.DirectionalLight(0xffedd5, 1.6);
+            sun.position.set(5, 7, 5);
+            offscreen3DScene.add(sun);
+
+            const fill = new THREE.DirectionalLight(0x93c5fd, 0.85);
+            fill.position.set(-4, -1, 3);
+            offscreen3DScene.add(fill);
+
+            const rim = new THREE.DirectionalLight(0xffffff, 1.3);
+            rim.position.set(-4, 6, -4);
+            offscreen3DScene.add(rim);
+        }
+
+        const rig = createDino3DRig(dino, skinIndex);
+        offscreen3DScene.add(rig.root);
+        rig.root.rotation.y = -0.44; // Vue 3/4 profil héroïque montrant tête, corps, pattes et queue
+        rig.root.updateMatrixWorld(true);
+
+        animateDino3DRig({
+            dino,
+            rig,
+            action: 'idle',
+            actionDuration: 0,
+            hitStun: 0,
+            isBlocking: false
+        }, 0.5, 0.016);
+        rig.root.updateMatrixWorld(true);
+
+        // Focalisation sur le visage : le modèle prend une place majeure, le surplus dépasse
+        const headBox = new THREE.Box3().setFromObject(rig.headGroup || rig.root);
+        const headCenter = new THREE.Vector3();
+        headBox.getCenter(headCenter);
+        const headSize = new THREE.Vector3();
+        headBox.getSize(headSize);
+
+        const headDim = Math.max(headSize.x, headSize.y, headSize.z, 0.95);
+        let dist = Math.max(2.35, Math.min(headDim * 2.15, 4.5));
+
+        const target = headCenter.clone();
+        target.y -= headSize.y * 0.08;
+
+        offscreen3DCamera.position.set(
+            target.x + dist * 0.60,
+            target.y + dist * 0.28,
+            target.z + dist * 0.68
+        );
+        offscreen3DCamera.lookAt(target.x, target.y, target.z);
+
+        offscreen3DRenderer.render(offscreen3DScene, offscreen3DCamera);
+        const dataUrl = offscreen3DRenderer.domElement.toDataURL('image/png');
+        offscreen3DScene.remove(rig.root);
+
+        DINO_3D_THUMBNAILS[key] = dataUrl;
+        return dataUrl;
+    } catch (e) {
+        console.log('DINO_THUMB_ERROR:', dino.name, e.message, e.stack);
+        return '';
+    }
+}
+
+// Aperçus 3D pour P1 et P2 dans le menu de sélection (idling libre sans boîte artificielle)
+let preview1 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, rimLight: null, targetDist: 6.8, targetY: 1.3 };
+let preview2 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, rimLight: null, targetDist: 6.8, targetY: 1.3 };
 
 function setupPreviewScene(previewObj, canvasId) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(40, 1.6, 0.1, 100);
-    camera.position.set(0, 2.3, 6.2);
-    camera.lookAt(0, 1.6, 0);
+    const camera = new THREE.PerspectiveCamera(36, 1.4, 0.1, 100);
+    camera.position.set(0, 1.8, 6.8);
+    camera.lookAt(0, 1.25, 0);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-    const dirLight = new THREE.DirectionalLight(0xffedd5, 1.3);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+    const dirLight = new THREE.DirectionalLight(0xffedd5, 1.4);
     dirLight.position.set(4, 7, 5);
     scene.add(dirLight);
 
-    // Socle rocheux 3D
-    const pedestal = new THREE.Mesh(
-        new THREE.CylinderGeometry(1.85, 2.1, 0.35, 24),
-        new THREE.MeshStandardMaterial({ color: 0x1f1f23, roughness: 0.6 })
-    );
-    pedestal.position.y = -0.18;
-    scene.add(pedestal);
+    const rimLight = new THREE.DirectionalLight(0xef4444, 0.9);
+    rimLight.position.set(-4, 5, -4);
+    scene.add(rimLight);
+
+    // Ombre de contact discrète au sol (pas de socle lourd ni de boîte)
+    const shadowGeo = new THREE.CircleGeometry(2.4, 32);
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
+    const contactShadow = new THREE.Mesh(shadowGeo, shadowMat);
+    contactShadow.rotation.x = -Math.PI / 2;
+    contactShadow.position.y = 0.01;
+    scene.add(contactShadow);
 
     previewObj.renderer = renderer;
     previewObj.scene = scene;
     previewObj.camera = camera;
+    previewObj.rimLight = rimLight;
 }
 
 function getP2EffectiveDino() {
@@ -444,20 +534,22 @@ function updatePreviewModels(time) {
     const p2Skin = (gameMode === 'campaign' && campaignStage === 6) ? 0 : p2SkinIndex;
 
     [
-        { p: preview1, dino: p1Dino, skinIndex: p1SkinIndex, canvasId: 'p1PreviewCanvas', dir: 1 },
-        { p: preview2, dino: p2Dino, skinIndex: p2Skin, canvasId: 'p2PreviewCanvas', dir: -1 }
+        { p: preview1, dino: p1Dino, skinIndex: p1SkinIndex, canvasId: 'p1PreviewCanvas', imgId: 'p1PreviewImg', dir: 1 },
+        { p: preview2, dino: p2Dino, skinIndex: p2Skin, canvasId: 'p2PreviewCanvas', imgId: 'p2PreviewImg', dir: -1 }
     ].forEach(item => {
         if (!item.p.renderer) return;
         const canvas = document.getElementById(item.canvasId);
         if (!canvas || !canvas.parentElement) return;
 
         const rect = canvas.parentElement.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-            if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
-                item.p.renderer.setSize(rect.width, rect.height, false);
-                item.p.camera.aspect = rect.width / rect.height;
-                item.p.camera.updateProjectionMatrix();
-            }
+        const w = rect.width > 0 ? rect.width : (canvas.clientWidth || 320);
+        const h = rect.height > 0 ? rect.height : (canvas.clientHeight || 280);
+        if (item.p.lastW !== Math.floor(w) || item.p.lastH !== Math.floor(h)) {
+            item.p.lastW = Math.floor(w);
+            item.p.lastH = Math.floor(h);
+            item.p.renderer.setSize(w, h, false);
+            item.p.camera.aspect = w / h;
+            item.p.camera.updateProjectionMatrix();
         }
 
         if (item.p.dinoId !== item.dino.id || item.p.skinIndex !== item.skinIndex) {
@@ -466,10 +558,17 @@ function updatePreviewModels(time) {
             item.p.scene.add(item.p.rig.root);
             item.p.dinoId = item.dino.id;
             item.p.skinIndex = item.skinIndex;
+
+            // Cadrage héroïque : le personnage prend plus de place dans la boîte, le visage est en focus, le surplus dépasse
+            item.p.rig.root.updateMatrixWorld(true);
         }
 
         if (item.p.rig) {
-            item.p.rig.root.rotation.y = time * 0.0008 * item.dir + (item.dir === 1 ? -0.35 : 0.35);
+            // Orientation vivante : P1 regarde vers la droite/centre, P2 regarde vers la gauche/centre
+            const baseRot = item.dir === 1 ? -0.42 : (Math.PI + 0.42);
+            const sway = Math.sin(time * 0.0012) * 0.05;
+            item.p.rig.root.rotation.y = baseRot + sway * item.dir;
+
             animateDino3DRig({
                 dino: item.dino,
                 rig: item.p.rig,
@@ -478,9 +577,36 @@ function updatePreviewModels(time) {
                 hitStun: 0,
                 isBlocking: false
             }, time * 0.001, 0.016);
+            item.p.rig.root.updateMatrixWorld(true);
+
+            // Cible centrée sur le visage / la tête APRÈS orientation et animation
+            const headWorld = new THREE.Vector3();
+            item.p.rig.headGroup.getWorldPosition(headWorld);
+            const target = new THREE.Vector3(headWorld.x * 0.9, headWorld.y - 0.12, headWorld.z * 0.9);
+
+            const dist = 4.4;
+            item.p.camera.position.set(target.x + item.dir * 0.22, target.y + 0.16, target.z + dist);
+            item.p.camera.lookAt(target.x, target.y, target.z);
+        }
+
+        if (item.p.rimLight) {
+            item.p.rimLight.color.setHex(item.dino.accentColor || (item.dir === 1 ? 0xef4444 : 0x38bdf8));
         }
 
         item.p.renderer.render(item.p.scene, item.p.camera);
+
+        // Synchroniser l'image de prévisualisation (pour affichage instantané et capture sans perte)
+        if (!item.p.hasSyncedImg || item.p.lastDinoForImg !== item.dino.id || item.p.lastSkinForImg !== item.skinIndex) {
+            item.p.hasSyncedImg = true;
+            item.p.lastDinoForImg = item.dino.id;
+            item.p.lastSkinForImg = item.skinIndex;
+            const img = document.getElementById(item.imgId);
+            if (img) {
+                try {
+                    img.src = item.p.renderer.domElement.toDataURL('image/png');
+                } catch (err) {}
+            }
+        }
     });
 }
 
@@ -491,28 +617,28 @@ function initRosterUI() {
 
     DINO_ROSTER.forEach((dino, idx) => {
         const card = document.createElement('div');
-        card.className = `stone-card rounded-xl p-2 cursor-pointer flex flex-col items-center text-center relative ${
+        card.className = `stone-card rounded-xl p-2 cursor-pointer flex flex-col items-center justify-between text-center relative overflow-hidden ${
             idx === p1ChoiceIndex ? 'selected-p1' : ''
         } ${idx === p2ChoiceIndex ? 'selected-p2' : ''}`;
         card.dataset.index = idx;
 
-        const portraitSvg = FIGHTER_PORTRAITS[dino.id] || `
+        // Aperçu 3D du visage du monstre (visage en focus, prend plus de place, surplus masqué)
+        const thumb3D = getDino3DThumbnail(dino, 0);
+        const portraitVisual = thumb3D ? `
+            <img src="${thumb3D}" alt="${dino.name}" class="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] transform scale-110 transition-transform duration-200" />
+        ` : (FIGHTER_PORTRAITS[dino.id] || `
             <div class="w-14 h-14 rounded-full flex items-center justify-center border border-white/10" style="background:${dino.cssPrimary}44">
                 <span class="mk-title text-base font-black text-white">${dino.name.substring(0, 2)}</span>
             </div>
-        `;
+        `);
 
+        // Le visage du monstre prend plus de place dans la boîte, surplus masqué, nom centré au bas
         card.innerHTML = `
-            <div class="w-full flex justify-between items-center text-[10px] font-bold mb-1">
-                <span class="px-1.5 py-0.2 rounded bg-black/40 text-amber-300 border border-white/5 text-[9px]">${dino.role}</span>
-                <span class="badge-slot text-[10px] font-black"></span>
+            <span class="badge-slot absolute top-1.5 right-1.5 text-[10px] font-black z-10"></span>
+            <div class="w-full h-24 sm:h-28 mx-auto my-0.5 flex items-center justify-center relative dino-face-slot overflow-hidden rounded-lg">
+                ${portraitVisual}
             </div>
-            <!-- Visuel aperçu du combattant (au lieu des deux lettres) -->
-            <div class="w-14 h-14 my-1 flex items-center justify-center transition-transform hover:scale-105">
-                ${portraitSvg}
-            </div>
-            <div class="mk-title text-xs font-black text-white tracking-wide mt-0.5">${dino.name}</div>
-            <div class="text-[9px] text-zinc-400 line-clamp-1">${dino.fullName}</div>
+            <div class="mk-title text-[10px] sm:text-[11px] font-black text-zinc-100 tracking-wider uppercase text-center w-full mt-auto px-0.5 truncate z-10 drop-shadow-md">${dino.name}</div>
         `;
 
         card.addEventListener('click', () => {
@@ -675,6 +801,8 @@ function returnToSelect() {
     document.getElementById('selectScreen').classList.remove('hidden');
     document.getElementById('btnBackToSelect').classList.add('hidden');
     document.getElementById('btnResetCam').classList.add('hidden');
+    const pmm = document.getElementById('postMatchMenu');
+    if (pmm) pmm.classList.add('hidden');
     updateSelectScreenUI();
 }
 

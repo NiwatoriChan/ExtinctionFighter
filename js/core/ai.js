@@ -12,8 +12,12 @@ function updateAI(ai, target, dt) {
         ai.action = 'walk';
 
         if (dist > 5.0 && Math.random() < aggr * 0.45 && aiDecisionCooldown <= 0) {
-            ai.startAttack(Math.random() > 0.5 ? 'special2' : 'special');
-            aiDecisionCooldown = 0.7;
+            const availRanged = ['special2', 'special'].filter(m => !ai.cooldowns || ai.cooldowns[m] <= 0);
+            if (availRanged.length > 0) {
+                const pick = availRanged[Math.floor(Math.random() * availRanged.length)];
+                ai.startAttack(pick);
+                aiDecisionCooldown = 0.7;
+            }
         }
     } else {
         if (target.actionDuration > 0 && Math.random() < (aiDifficulty === 'brutal' ? 0.55 : 0.25)) {
@@ -24,13 +28,23 @@ function updateAI(ai, target, dt) {
         ai.isBlocking = false;
 
         if (aiDecisionCooldown <= 0) {
-            if (ai.rage >= 100 && Math.random() < 0.5) {
+            // Le X-Ray Fatal requiert strictement une rage à 100%
+            if (ai.rage >= 100 && (!ai.cooldowns || ai.cooldowns['xray'] <= 0) && Math.random() < 0.6) {
                 executeXRayMove(ai, target);
+                if (ai.cooldowns && ai.maxCooldowns) ai.cooldowns['xray'] = ai.maxCooldowns['xray'];
             } else {
-                const r = Math.random();
-                if (r < 0.45) ai.startAttack('light');
-                else if (r < 0.78) ai.startAttack('heavy');
-                else ai.startAttack('special');
+                const moves = ['light', 'heavy', 'special', 'special2'];
+                const readyMoves = moves.filter(m => !ai.cooldowns || ai.cooldowns[m] <= 0);
+                if (readyMoves.length > 0) {
+                    // Choisir un coup disponible en favorisant les coups rapides au corps à corps
+                    const r = Math.random();
+                    let chosen = readyMoves[0];
+                    if (r < 0.45 && readyMoves.includes('light')) chosen = 'light';
+                    else if (r < 0.75 && readyMoves.includes('heavy')) chosen = 'heavy';
+                    else if (readyMoves.includes('special')) chosen = 'special';
+                    else chosen = readyMoves[Math.floor(Math.random() * readyMoves.length)];
+                    ai.startAttack(chosen);
+                }
             }
             aiDecisionCooldown = aiDifficulty === 'brutal' ? 0.28 : (aiDifficulty === 'normal' ? 0.52 : 0.85);
         }

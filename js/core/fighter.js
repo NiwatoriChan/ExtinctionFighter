@@ -47,6 +47,23 @@ class Fighter3D {
         this.bufferedAction = null;
         this.bufferTimer = 0;
         this.rig.headGroup.scale.setScalar(1);
+
+        // Cooldowns d'attaque : plus l'attaque est puissante, plus le cooldown est long
+        this.cooldowns = {
+            light: 0,
+            heavy: 0,
+            special: 0,
+            special2: 0,
+            xray: 0
+        };
+        const spdMod = Math.max(0.85, Math.min(1.15, 1.25 - (this.dino.stats.spd / 100) * 0.35));
+        this.maxCooldowns = {
+            light: 0.45 * spdMod,    // Coup léger : 0.45s (rapide)
+            heavy: 1.10 * spdMod,    // Coup lourd : 1.10s (moyen)
+            special: 2.80 * spdMod,  // Coup spécial 1 : 2.80s (long)
+            special2: 4.50 * spdMod, // Coup spécial 2 / Ultra : 4.50s (très long)
+            xray: 8.00 * spdMod      // X-Ray / Fatal : 8.00s + 100% Rage
+        };
     }
 
     canCancelInto(nextType) {
@@ -83,6 +100,22 @@ class Fighter3D {
         if (xrayCinematicTimer > 0 || this.hitStun > 0 || this.isDizzy || this.isDead) return;
         if (this.action === 'xray' || this.action === 'fatality') return;
 
+        // Vérification stricte du cooldown d'attaque
+        if (this.cooldowns && this.cooldowns[type] > 0) {
+            if (this.isP1 || gameMode === 'pvp') {
+                sfx.playCooldownWarning();
+                const labels = {
+                    light: 'LÉGER',
+                    heavy: 'LOURD',
+                    special: this.dino.special1Name ? this.dino.special1Name.replace(/ \(.*?\)/, '').toUpperCase() : 'SPÉCIAL',
+                    special2: this.dino.special2Name ? this.dino.special2Name.replace(/ \(.*?\)/, '').toUpperCase() : 'ULTRA',
+                    xray: 'X-RAY'
+                };
+                spawnFloatingPopup(this.x, `⏳ ${labels[type] || type.toUpperCase()} EN RECHARGE (${this.cooldowns[type].toFixed(1)}s)`, '#94a3b8');
+            }
+            return;
+        }
+
         // Gestion du Combo Cancel ou mise en mémoire tampon (Input Buffer)
         if (this.action === 'light' || this.action === 'heavy' || this.action === 'special' || this.action === 'special2') {
             if (!this.canCancelInto(type)) {
@@ -98,6 +131,11 @@ class Fighter3D {
         this.actionTimer = 0;
         this.bufferedAction = null;
 
+        // Déclencher le cooldown dès le lancement de l'attaque
+        if (this.cooldowns && this.maxCooldowns && this.maxCooldowns[type]) {
+            this.cooldowns[type] = this.maxCooldowns[type];
+        }
+
         // Léger pas d'engagement en avant pour dynamiser les coups au corps à corps
         if (type === 'light') {
             this.actionDuration = 0.26;
@@ -109,9 +147,11 @@ class Fighter3D {
             sfx.playRoar(95, 0.25);
         } else if (type === 'special') {
             this.actionDuration = 0.54;
+            this.vx = this.facing * 5.2;
             sfx.playRoar(80, 0.38);
         } else if (type === 'special2') {
             this.actionDuration = 0.60;
+            this.vx = this.facing * 3.5;
             sfx.playRoar(115, 0.42);
         }
     }
@@ -134,4 +174,5 @@ let fatalityFocusFighter = null;
 
 const keys = {};
 const touchState = { left: false, right: false, up: false, down: false };
+const p2TouchState = { left: false, right: false, up: false, down: false };
 const lastTapTime = { left: 0, right: 0, p2Left: 0, p2Right: 0 };

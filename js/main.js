@@ -4,6 +4,11 @@ function mainGameLoop(now) {
     const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
     lastFrameTime = now;
 
+    // Sondage manette pour TOUTES les interfaces (Menus, Modales, Roster, Combat, etc.)
+    if (typeof pollGamepadInputs === 'function') {
+        pollGamepadInputs(dt, now);
+    }
+
     if (matchState === 'select') {
         updatePreviewModels(now);
     } else if (matchState === 'arena_select') {
@@ -19,7 +24,10 @@ function mainGameLoop(now) {
 }
 
 // 14. INITIALISATION DU JEU & ÉVÉNEMENTS UI
-window.onload = function () {
+function bootGame() {
+    if (window._gameBooted) return;
+    window._gameBooted = true;
+
     // Initialisation des modules de menus
     initMainMenu();
     initArenaChooser();
@@ -30,6 +38,9 @@ window.onload = function () {
     initPostMatchMenu();
     initBattleScreenMenu();
     initMovesModal();
+    if (typeof initGamepadSystem === 'function') {
+        initGamepadSystem();
+    }
 
     // Appliquer les paramètres graphiques initiaux (par défaut "high")
     if (typeof applyGraphicsSettings === 'function') {
@@ -40,11 +51,17 @@ window.onload = function () {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('screen') === 'select') {
         goToSelectScreen();
+        updatePreviewModels(16);
     } else if (urlParams.get('screen') === 'arena') {
         openArenaChooser();
+        updateArenaPreview(16);
     } else {
         goToMainMenu();
     }
 
     requestAnimationFrame(mainGameLoop);
-};
+}
+
+// Exécuter l'initialisation immédiatement (le DOM est déjà parsé au niveau de ce script)
+console.log("JS/MAIN.JS EXECUTED - CALLING bootGame()");
+bootGame();

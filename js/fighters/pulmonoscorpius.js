@@ -43,20 +43,22 @@ registerFighter({
         const { hips, rig, addMesh, bodyMat, darkMat, accentMat, boneMat, eyeMat } = ctx;
         // PULMONOSCORPIUS : Scorpion géant à 8 pattes, prosoma, métasoma articulé et aiguillon
         hips.position.y = 0.95;
-        // Prosoma (céphalothorax chitineux aplati)
+        // Prosoma & Tête (céphalothorax chitineux aplati)
+        rig.headGroup.position.set(0.3, 0.05, 0);
+        rig.torso.add(rig.headGroup);
         addMesh(new THREE.BoxGeometry(1.6, 0.55, 1.3), bodyMat, rig.torso, 0, 0, 0);
         addMesh(new THREE.BoxGeometry(1.2, 0.35, 1.1), darkMat, rig.torso, 0.1, 0.18, 0);
-        // Yeux médians et latéraux bioluminescents
+        // Yeux médians et latéraux bioluminescents sur la tête
         [-0.15, 0.15].forEach(z => {
-            addMesh(new THREE.SphereGeometry(0.065, 8, 8), eyeMat, rig.torso, 0.65, 0.28, z);
+            addMesh(new THREE.SphereGeometry(0.065, 8, 8), eyeMat, rig.headGroup, 0.35, 0.23, z);
         });
         for (let o = -0.35; o <= 0.35; o += 0.7) {
-            addMesh(new THREE.SphereGeometry(0.04, 6, 6), accentMat, rig.torso, 0.75, 0.12, o);
+            addMesh(new THREE.SphereGeometry(0.04, 6, 6), accentMat, rig.headGroup, 0.45, 0.07, o);
         }
 
         // Chélicères
-        addMesh(new THREE.ConeGeometry(0.08, 0.35, 4), boneMat, rig.torso, 0.95, -0.05, 0.12, 0, 0, -Math.PI / 2);
-        addMesh(new THREE.ConeGeometry(0.08, 0.35, 4), boneMat, rig.torso, 0.95, -0.05, -0.12, 0, 0, -Math.PI / 2);
+        addMesh(new THREE.ConeGeometry(0.08, 0.35, 4), boneMat, rig.headGroup, 0.65, -0.1, 0.12, 0, 0, -Math.PI / 2);
+        addMesh(new THREE.ConeGeometry(0.08, 0.35, 4), boneMat, rig.headGroup, 0.65, -0.1, -0.12, 0, 0, -Math.PI / 2);
 
         // Deux Pédipalpes (immenses pinces chitineuses articulées)
         [-0.85, 0.85].forEach((zOff, pIdx) => {

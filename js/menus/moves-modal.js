@@ -12,10 +12,11 @@ const MOVES_MODAL_HTML = `
             </div>
             <div class="p-4 overflow-y-auto space-y-3 text-xs sm:text-sm">
                 <div class="p-3 rounded-xl bg-zinc-900/90 border border-zinc-700">
-                    <h4 class="font-black text-amber-400 uppercase mb-1">Commandes Pro, Enchaînements & Esquives</h4>
+                    <h4 class="font-black text-amber-400 uppercase mb-1">Commandes Pro, Temps de Recharge (Cooldown) & Jauge de Rage</h4>
                     <p class="text-zinc-300">
                         • <strong>Joueur 1 :</strong> <code class="text-amber-300">A/D</code> ou <code class="text-amber-300">Q/D</code> (Déplacement), <code class="text-amber-300">E</code> ou <strong>Double-Direction</strong> (Dash rapide avant/arrière), <code class="text-amber-300">W/Z</code> (Saut + Attaques sautées), <code class="text-amber-300">S</code> (Garde), <code class="text-amber-300">F</code> (Léger), <code class="text-amber-300">G</code> (Lourd), <code class="text-amber-300">H</code> (Spécial 1), <code class="text-amber-300">T</code> (Ultra), <code class="text-amber-300">R</code> / <code class="text-amber-300">Espace</code> (X-Ray ou <strong>FATALITÉ</strong>).<br>
-                        • <strong>Chaînes de Combos (Cancel) :</strong> Vous pouvez enchaîner sans délai <span class="text-amber-300 font-bold">Léger (F) ➔ Lourd (G) ➔ Spécial (H ou T) ➔ X-Ray (R)</span> !<br>
+                        • <strong>Système de Cooldown :</strong> Plus l'attaque est puissante, plus son temps de recharge est long : <span class="text-amber-300">Léger (0.45s)</span> &lt; <span class="text-orange-400">Lourd (1.10s)</span> &lt; <span class="text-purple-400">Spécial (2.80s)</span> &lt; <span class="text-emerald-400">Ultra (4.50s)</span>.<br>
+                        • <strong>X-Ray & Fatalité Ultime :</strong> Le coup destructeur X-Ray et les Fatalités sont <span class="text-red-400 font-extrabold uppercase">uniquement débloqués lorsque la jauge de rage atteint 100%</span> !<br>
                         • <strong>Joueur 2 (Mode 2J Local) :</strong> Flèches directionnelles + Pavé Numérique <code class="text-blue-300">1/I</code> (Léger), <code class="text-blue-300">2/O</code> (Lourd), <code class="text-blue-300">3/P</code> (Spécial 1), <code class="text-blue-300">4</code> (Ultra), <code class="text-blue-300">5</code> (Dash), <code class="text-blue-300">0/M</code> (X-Ray / Fatalité). Compatible manettes USB/Bluetooth !
                     </p>
                 </div>

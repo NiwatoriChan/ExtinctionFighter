@@ -4,6 +4,13 @@ function triggerPlayerAction(attacker, defender, type) {
     if (xrayCinematicTimer > 0) return;
 
     if (matchState === 'finish_him' && defender.isDizzy) {
+        if (attacker.rage < 100) {
+            if (attacker.isP1 || gameMode === 'pvp') {
+                sfx.playCooldownWarning();
+                spawnFloatingPopup(attacker.x, '⚡ RAGE INSUFFISANTE POUR LA FATALITÉ (100%) !', '#ef4444');
+            }
+            return;
+        }
         executeUnique3DFatality(attacker, defender);
         return;
     }
@@ -12,20 +19,34 @@ function triggerPlayerAction(attacker, defender, type) {
     if (type === 'dash') {
         const moveLeft = attacker.isP1
             ? (keys['KeyA'] || keys['KeyQ'] || (gameMode !== 'pvp' && keys['ArrowLeft']) || touchState.left)
-            : keys['ArrowLeft'];
+            : (keys['ArrowLeft'] || p2TouchState.left);
         const moveRight = attacker.isP1
             ? (keys['KeyD'] || (gameMode !== 'pvp' && keys['ArrowRight']) || touchState.right)
-            : keys['ArrowRight'];
+            : (keys['ArrowRight'] || p2TouchState.right);
         const dir = moveLeft ? -1 : (moveRight ? 1 : attacker.facing);
         attacker.startDash(dir);
         return;
     }
 
     if (type === 'xray') {
-        if (attacker.rage >= 100) {
-            executeXRayMove(attacker, defender);
-        } else {
-            attacker.startAttack('heavy');
+        // Le X-Ray Fatal est UNIQUEMENT disponible lorsque la jauge de rage est à 100%
+        if (attacker.rage < 100) {
+            if (attacker.isP1 || gameMode === 'pvp') {
+                sfx.playCooldownWarning();
+                spawnFloatingPopup(attacker.x, '⚡ RAGE INSUFFISANTE (100% REQUIS) !', '#ef4444');
+            }
+            return;
+        }
+        if (attacker.cooldowns && attacker.cooldowns['xray'] > 0) {
+            if (attacker.isP1 || gameMode === 'pvp') {
+                sfx.playCooldownWarning();
+                spawnFloatingPopup(attacker.x, `⏳ X-RAY EN RECHARGE (${attacker.cooldowns['xray'].toFixed(1)}s)`, '#94a3b8');
+            }
+            return;
+        }
+        executeXRayMove(attacker, defender);
+        if (attacker.cooldowns && attacker.maxCooldowns) {
+            attacker.cooldowns['xray'] = attacker.maxCooldowns['xray'];
         }
         return;
     }

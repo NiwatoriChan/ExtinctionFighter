@@ -183,6 +183,16 @@ function handleKnockout(winner, loser) {
 
         showAnnouncer('ACHEVEZ-LE !', `APPUYEZ SUR [R] OU [ESPACE] POUR LA FATALITÉ DE ${winner.dino.name}`);
         if (winner.isP1 || gameMode === 'pvp') {
+            const fatBtn = document.getElementById('btnTriggerFatalityNow');
+            if (fatBtn) {
+                if (winner.rage >= 100) {
+                    fatBtn.className = 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-800 via-red-600 to-amber-500 text-white font-black text-sm sm:text-lg uppercase tracking-wider border-2 border-amber-300 shadow-2xl finish-pulse cursor-pointer';
+                    fatBtn.innerHTML = `💀 EXÉCUTER LA FATALITÉ ! (Touche R ou Espace)`;
+                } else {
+                    fatBtn.className = 'px-6 py-2.5 rounded-xl bg-zinc-900 text-zinc-400 font-bold text-xs sm:text-sm uppercase tracking-wider border border-zinc-700 shadow-lg cursor-not-allowed opacity-75';
+                    fatBtn.innerHTML = `🔒 FATALITÉ INDISPONIBLE (RAGE ${Math.floor(winner.rage)}%/100% REQUISE)`;
+                }
+            }
             document.getElementById('fatalityPromptBox').classList.remove('hidden');
         }
     } else {
@@ -196,7 +206,10 @@ function handleKnockout(winner, loser) {
 }
 
 function updateBattle3D(dt, nowSec) {
-    pollGamepadInputs();
+    // Dynamisme en temps réel du décor de l'arène 3D
+    if (typeof updateArenaDynamics === 'function') {
+        updateArenaDynamics(currentArena, arenaGroup, battleScene, nowSec, dt);
+    }
 
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 1.5);
     if (xrayCinematicTimer > 0) {
@@ -294,6 +307,15 @@ function updateBattle3D(dt, nowSec) {
         if (f.bufferTimer > 0) {
             f.bufferTimer -= dt;
             if (f.bufferTimer <= 0) f.bufferedAction = null;
+        }
+
+        // Décrémenter les cooldowns d'attaque
+        if (f.cooldowns) {
+            for (const key in f.cooldowns) {
+                if (f.cooldowns[key] > 0) {
+                    f.cooldowns[key] = Math.max(0, f.cooldowns[key] - dt);
+                }
+            }
         }
 
         // Si les positions sont verrouillées par le X-Ray, on ne déplace pas les combattants
@@ -414,6 +436,10 @@ function updateBattle3D(dt, nowSec) {
             fxGroup.remove(pt.mesh);
             particles3D.splice(i, 1);
         }
+    }
+
+    if (typeof updateBattleHUDCooldowns === 'function') {
+        updateBattleHUDCooldowns();
     }
 }
 

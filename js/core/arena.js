@@ -45,7 +45,15 @@ function buildArena3D(arenaType, customGroup = null, customScene = null) {
         // Temporairement affecter arenaGroup à group si customGroup est passé
         const oldArenaGroup = arenaGroup;
         arenaGroup = group;
-        arena.buildDecor();
+        group.arenaDecor = arena.buildDecor(group, scene) || {};
         arenaGroup = oldArenaGroup;
+    }
+}
+
+function updateArenaDynamics(arenaType, group, scene, time, dt) {
+    if (!group) return;
+    const arena = ARENAS[arenaType] || ARENAS['volcano'];
+    if (arena && arena.animate && group.arenaDecor) {
+        arena.animate(group.arenaDecor, group, scene, time, dt);
     }
 }
