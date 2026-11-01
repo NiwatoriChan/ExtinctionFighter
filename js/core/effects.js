@@ -38,6 +38,13 @@ function spawn3DProjectile(owner, kind) {
     } else if (kind === 'feather') {
         geo = new THREE.ConeGeometry(0.25, 1.2, 4);
         mat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    } else if (kind === 'dragon_fire') {
+        geo = new THREE.SphereGeometry(0.68, 12, 12);
+        mat = new THREE.MeshStandardMaterial({
+            color: 0xef4444,
+            emissive: 0xf97316,
+            emissiveIntensity: 1.2
+        });
     } else {
         geo = new THREE.DodecahedronGeometry(0.55, 1);
         mat = new THREE.MeshStandardMaterial({
@@ -55,8 +62,8 @@ function spawn3DProjectile(owner, kind) {
         owner,
         mesh,
         kind,
-        vx: dir * (kind === 'sonic' ? 19.5 : 15.5),
-        damage: kind === 'xray_wave' ? 165 : 85,
+        vx: dir * (kind === 'sonic' ? 19.5 : (kind === 'dragon_fire' ? 18.0 : 15.5)),
+        damage: kind === 'xray_wave' ? 165 : (kind === 'dragon_fire' ? 120 : 85),
         life: 1.5
     });
 }

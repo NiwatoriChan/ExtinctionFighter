@@ -4,18 +4,53 @@ function startMatch() {
     sfx.playGong();
     initBattle3DScene();
 
-    currentArena = document.getElementById('arenaSelect').value;
-    aiDifficulty = document.getElementById('aiDifficulty').value;
+    // En mode campagne étape 6, l'arène est obligatoirement l'Antre de Drak'Zul
+    if (gameMode === 'campaign' && campaignStage === 6) {
+        currentArena = 'dragonlair';
+    } else {
+        const arenaSelectEl = document.getElementById('arenaSelect');
+        if (arenaSelectEl && arenaSelectEl.value && !currentArena) {
+            currentArena = arenaSelectEl.value;
+        }
+        if (!currentArena) currentArena = 'volcano';
+    }
+
+    // Gestion de la difficulté IA (progression en campagne ou choix libre)
+    if (gameMode === 'campaign') {
+        if (campaignStage <= 2) aiDifficulty = 'easy';
+        else if (campaignStage <= 4) aiDifficulty = 'normal';
+        else aiDifficulty = 'brutal';
+    } else {
+        const aiDiffEl = document.getElementById('aiDifficulty');
+        if (aiDiffEl) aiDifficulty = aiDiffEl.value;
+    }
+
     buildArena3D(currentArena);
 
     if (fighter1) fighter1.destroy();
     if (fighter2) fighter2.destroy();
 
-    fighter1 = new Fighter3D(DINO_ROSTER[p1ChoiceIndex], true, p1SkinIndex);
-    fighter2 = new Fighter3D(DINO_ROSTER[p2ChoiceIndex], false, p2SkinIndex);
+    const p1Dino = DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0];
+    let p2Dino = DINO_ROSTER[p2ChoiceIndex] || DINO_ROSTER[1];
+    let p2Skin = p2SkinIndex;
+
+    if (gameMode === 'campaign') {
+        if (campaignStage === 6 && typeof DRAGON_BOSS !== 'undefined' && DRAGON_BOSS) {
+            p2Dino = DRAGON_BOSS;
+            p2Skin = 0;
+        } else if (campaignOpponents && campaignOpponents[campaignStage - 1] !== undefined) {
+            p2Dino = DINO_ROSTER[campaignOpponents[campaignStage - 1]];
+            p2Skin = 0;
+        }
+    }
+
+    fighter1 = new Fighter3D(p1Dino, true, p1SkinIndex);
+    fighter2 = new Fighter3D(p2Dino, false, p2Skin);
     roundNumber = 1;
 
     document.getElementById('selectScreen').classList.add('hidden');
+    document.getElementById('arenaScreen').classList.add('hidden');
+    document.getElementById('mainMenu').classList.add('hidden');
     document.getElementById('battleScreen').classList.remove('hidden');
     document.getElementById('battleScreen').classList.add('flex');
     document.getElementById('btnBackToSelect').classList.remove('hidden');
@@ -209,19 +244,14 @@ function updateBattle3D(dt, nowSec) {
         if (stateTimer <= 0) {
             const winner = fighter1.roundsWon >= 2 ? fighter1 : fighter2;
             const loser = winner === fighter1 ? fighter2 : fighter1;
-            loser.isDizzy = false;
-            loser.isDead = true;
-            loser.hp = 0;
-            document.getElementById('fatalityPromptBox').classList.add('hidden');
-            matchState = 'match_over';
-            showAnnouncer(`${winner.dino.name} VICTORIEUX`, 'VICTOIRE TOTALE !');
-            document.getElementById('postMatchMenu').classList.remove('hidden');
+            finishMatch(winner, loser);
         }
     } else if (matchState === 'fatality_anim') {
         stateTimer -= dt;
         if (stateTimer <= 0) {
-            matchState = 'match_over';
-            document.getElementById('postMatchMenu').classList.remove('hidden');
+            const winner = fighter1.roundsWon >= 2 ? fighter1 : fighter2;
+            const loser = winner === fighter1 ? fighter2 : fighter1;
+            finishMatch(winner, loser);
         }
     } else if (matchState === 'round_over') {
         stateTimer -= dt;
@@ -385,4 +415,33 @@ function updateBattle3D(dt, nowSec) {
             particles3D.splice(i, 1);
         }
     }
+}
+
+function finishMatch(winner, loser) {
+    if (loser) {
+        loser.isDizzy = false;
+        loser.isDead = true;
+        loser.hp = 0;
+    }
+    document.getElementById('fatalityPromptBox').classList.add('hidden');
+    matchState = 'match_over';
+
+    if (gameMode === 'campaign') {
+        if (winner && winner.isP1) {
+            if (campaignStage < 6) {
+                showAnnouncer('ÉTAPE REMPORTÉE !', `${winner.dino.name} ACCÈDE À L'ÉTAPE ${campaignStage + 1} / 6`);
+            } else {
+                showAnnouncer('👑 VICTOIRE DE LA CAMPAGNE !', "VOUS AVEZ TERRASSÉ DRAK'ZUL LE DRAGON SUPRÊME !");
+            }
+        } else {
+            showAnnouncer('DÉFAITE...', `ÉCHEC À L'ÉTAPE ${campaignStage} / 6`);
+        }
+    } else {
+        showAnnouncer(`${winner ? winner.dino.name : 'VAINQUEUR'} VICTORIEUX`, 'VICTOIRE TOTALE !');
+    }
+
+    if (typeof updatePostMatchMenuUI === 'function') {
+        updatePostMatchMenuUI(winner);
+    }
+    document.getElementById('postMatchMenu').classList.remove('hidden');
 }

@@ -1,15 +1,24 @@
 /* ============================================================================
- * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS COMPLET (13 COMBATTANTS, SKINS & ARÈNES ÉPIQUES)
+ * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS COMPLET (13 COMBATTANTS, BOSS DRAGON & ARÈNES)
  * ============================================================================ */
 
-// 1. BASE DE DONNÉES DES 13 COMBATTANTS AVEC ANIMATIONS, SKINS & FATALITÉS 3D DISTINCTES
-// Chaque combattant est déclaré dans son propre fichier (js/fighters/*.js) via registerFighter().
-// L'ordre de chargement des <script> détermine l'ordre du roster.
+// 1. BASE DE DONNÉES DES COMBATTANTS AVEC ANIMATIONS, SKINS & FATALITÉS 3D DISTINCTES
 const DINO_ROSTER = [];
 const FIGHTER_IMPLS = {};
+let DRAGON_BOSS = null;
 
 function registerFighter(data, impl) {
-    DINO_ROSTER.push(data);
+    if (data.isBoss) {
+        DRAGON_BOSS = data;
+    } else {
+        DINO_ROSTER.push(data);
+    }
+    FIGHTER_IMPLS[data.id] = impl || {};
+}
+
+function registerBoss(data, impl) {
+    data.isBoss = true;
+    DRAGON_BOSS = data;
     FIGHTER_IMPLS[data.id] = impl || {};
 }
 
