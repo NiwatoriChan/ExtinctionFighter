@@ -1,0 +1,69 @@
+:root {
+    --mk-gold: #f59e0b;
+    --mk-red: #dc2626;
+    --mk-blood: #7f1d1d;
+    --mk-dark: #090a0f;
+}
+* {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+}
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #050508;
+    color: #f8fafc;
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+}
+.mk-title {
+    font-family: 'Cinzel Decorative', serif;
+    text-shadow: 0 0 15px rgba(220, 38, 38, 0.85), 0 4px 0 #450a0a;
+}
+.mk-banner {
+    font-family: 'Cinzel Decorative', serif;
+    text-shadow: 0 0 25px #ef4444, 0 0 8px #f59e0b, 0 5px 0 #000;
+}
+.stone-panel {
+    background: linear-gradient(145deg, #18181b 0%, #09090b 100%);
+    border: 2px solid #3f3f46;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 8px 25px rgba(0,0,0,0.8);
+}
+.stone-card {
+    background: radial-gradient(circle at center, #27272a 0%, #09090b 100%);
+    border: 2px solid #52525b;
+    transition: all 0.2s ease;
+}
+.stone-card:hover {
+    border-color: #f59e0b;
+    transform: translateY(-2px);
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
+}
+.stone-card.selected-p1 {
+    border-color: #ef4444;
+    box-shadow: 0 0 22px rgba(239, 68, 68, 0.75), inset 0 0 15px rgba(239, 68, 68, 0.35);
+}
+.stone-card.selected-p2 {
+    border-color: #3b82f6;
+    box-shadow: 0 0 22px rgba(59, 130, 246, 0.75), inset 0 0 15px rgba(59, 130, 246, 0.35);
+}
+.arcade-btn {
+    transition: transform 0.08s ease, box-shadow 0.12s ease;
+    touch-action: manipulation;
+}
+.arcade-btn:active, .arcade-btn.active-press {
+    transform: scale(0.92) translateY(2px);
+}
+@keyframes pulseGlow {
+    0%, 100% { filter: drop-shadow(0 0 8px #ef4444); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 22px #f59e0b); transform: scale(1.05); }
+}
+.finish-pulse {
+    animation: pulseGlow 0.7s infinite ease-in-out;
+}
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
