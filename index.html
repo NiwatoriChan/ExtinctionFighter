@@ -147,7 +147,7 @@
                 </div>
             </div>
 
-            <!-- Fighter Preview, Color Picker & Roster Grid -->
+            <!-- Fighter Preview & Roster Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
                 <!-- P1 Preview Card -->
                 <div class="lg:col-span-3 stone-panel rounded-xl p-3 flex flex-col justify-between border-t-4 border-t-red-600">
@@ -159,20 +159,12 @@
                         <h2 id="p1NameDisplay" class="mk-title text-2xl font-black text-white mt-1">T-REX</h2>
                         <p id="p1TitleDisplay" class="text-xs text-red-400 font-semibold italic">« Le Roi Sanglant du Crétacé »</p>
 
-                        <div class="w-full h-32 my-1.5 rounded-lg bg-gradient-to-b from-red-950/40 to-black border border-zinc-800 relative overflow-hidden">
+                        <div class="w-full h-36 my-2 rounded-lg bg-gradient-to-b from-red-950/40 to-black border border-zinc-800 relative overflow-hidden">
                             <canvas id="p1PreviewCanvas"></canvas>
                         </div>
 
-                        <!-- Color Customizer J1 -->
-                        <div class="mt-1">
-                            <div class="text-[11px] font-bold text-zinc-400 uppercase mb-1">Peinture Armure J1 :</div>
-                            <div id="p1ColorPalette" class="flex items-center justify-between gap-1.5">
-                                <!-- Populated dynamically -->
-                            </div>
-                        </div>
-
                         <!-- Stats -->
-                        <div class="space-y-1 text-xs mt-2">
+                        <div class="space-y-1.5 text-xs mt-2">
                             <div>
                                 <div class="flex justify-between font-bold"><span>PUISSANCE</span><span id="p1StatPow" class="text-red-400">95%</span></div>
                                 <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div id="p1BarPow" class="h-full bg-gradient-to-r from-amber-500 to-red-600" style="width:95%"></div></div>
@@ -188,24 +180,24 @@
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1 border-t border-zinc-800 text-[11px] space-y-0.5">
+                    <div class="mt-3 pt-2 border-t border-zinc-800 text-[11px] space-y-1">
                         <div class="text-amber-400 font-bold">⚡ Spécial : <span id="p1SpecName" class="text-zinc-200">Morsure Sismique & Rugissement</span></div>
                         <div class="text-red-500 font-bold">💀 Fatalité : <span id="p1FatalityName" class="text-zinc-200">Dévoration Royale</span></div>
                     </div>
                 </div>
 
-                <!-- Center 10-Dino Grid -->
+                <!-- Center 9-Dino Grid -->
                 <div class="lg:col-span-6 stone-panel rounded-xl p-3 flex flex-col justify-between">
-                    <div class="text-center mb-1">
-                        <h3 class="mk-title text-base sm:text-xl text-amber-400 font-black tracking-wider uppercase">CHOISISSEZ VOTRE ESPÈCE (10 LÉGENDES)</h3>
-                        <p id="selectPromptText" class="text-xs text-zinc-400">Cliquez pour assigner le Joueur 1, puis l'Adversaire</p>
+                    <div class="text-center mb-2">
+                        <h3 class="mk-title text-base sm:text-xl text-amber-400 font-black tracking-wider uppercase">CHOISISSEZ VOTRE COMBATTANT (9 LÉGENDES)</h3>
+                        <p id="selectPromptText" class="text-xs text-zinc-400">Cliquez pour assigner le Joueur 1, puis l'Adversaire (ou utilisez Aléatoire)</p>
                     </div>
 
-                    <div id="rosterGrid" class="grid grid-cols-5 gap-1.5 my-auto">
+                    <div id="rosterGrid" class="grid grid-cols-3 gap-2 my-auto">
                         <!-- Populated dynamically by JS -->
                     </div>
 
-                    <div class="mt-2 flex flex-wrap items-center justify-center gap-2">
+                    <div class="mt-3 flex flex-wrap items-center justify-center gap-2.5">
                         <button id="btnSelectSlotP1" class="px-3 py-1.5 rounded-lg bg-red-900/60 border border-red-500 text-xs font-extrabold text-white uppercase">
                             Sélection : Joueur 1
                         </button>
@@ -215,7 +207,7 @@
                         <button id="btnRandomFighters" class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-xs font-bold text-amber-300 uppercase">
                             🎲 Aléatoire
                         </button>
-                        <button id="btnStartKomBat" class="w-full sm:w-auto px-6 py-2 rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-black text-sm uppercase tracking-widest shadow-lg shadow-red-900/60 border border-amber-300 finish-pulse">
+                        <button id="btnStartKomBat" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-black text-sm uppercase tracking-widest shadow-lg shadow-red-900/60 border border-amber-300 finish-pulse">
                             🔥 LANCER LE KOMBAT !
                         </button>
                     </div>
@@ -231,20 +223,12 @@
                         <h2 id="p2NameDisplay" class="mk-title text-2xl font-black text-white mt-1">ANKYLOSAURE</h2>
                         <p id="p2TitleDisplay" class="text-xs text-blue-400 font-semibold italic">« Le Briseur d'Os Blindé »</p>
 
-                        <div class="w-full h-32 my-1.5 rounded-lg bg-gradient-to-b from-blue-950/40 to-black border border-zinc-800 relative overflow-hidden">
+                        <div class="w-full h-36 my-2 rounded-lg bg-gradient-to-b from-blue-950/40 to-black border border-zinc-800 relative overflow-hidden">
                             <canvas id="p2PreviewCanvas"></canvas>
                         </div>
 
-                        <!-- Color Customizer J2 -->
-                        <div class="mt-1">
-                            <div class="text-[11px] font-bold text-zinc-400 uppercase mb-1">Peinture Armure J2 :</div>
-                            <div id="p2ColorPalette" class="flex items-center justify-between gap-1.5">
-                                <!-- Populated dynamically -->
-                            </div>
-                        </div>
-
                         <!-- Stats -->
-                        <div class="space-y-1 text-xs mt-2">
+                        <div class="space-y-1.5 text-xs mt-2">
                             <div>
                                 <div class="flex justify-between font-bold"><span>PUISSANCE</span><span id="p2StatPow" class="text-red-400">90%</span></div>
                                 <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div id="p2BarPow" class="h-full bg-gradient-to-r from-amber-500 to-red-600" style="width:90%"></div></div>
@@ -260,7 +244,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1 border-t border-zinc-800 text-[11px] space-y-0.5">
+                    <div class="mt-3 pt-2 border-t border-zinc-800 text-[11px] space-y-1">
                         <div class="text-amber-400 font-bold">⚡ Spécial : <span id="p2SpecName" class="text-zinc-200">Marteau d'Os & Bouclier</span></div>
                         <div class="text-red-500 font-bold">💀 Fatalité : <span id="p2FatalityName" class="text-zinc-200">Brise-Fossile</span></div>
                     </div>
@@ -473,10 +457,10 @@
 
     <script>
         /* ============================================================================
-         * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS (10 COMBATTANTS & PERSONNALISATION)
+         * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS COMPLET (9 COMBATTANTS & X-RAY 2.0)
          * ============================================================================ */
 
-        // 1. BASE DE DONNÉES DES 10 COMBATTANTS AVEC PALETTES DE COULEURS CUSTOMISABLES
+        // 1. BASE DE DONNÉES DES 9 COMBATTANTS AVEC ANIMATIONS & FATALITÉS 3D DISTINCTES
         const DINO_ROSTER = [
             {
                 id: 'trex',
@@ -484,10 +468,10 @@
                 fullName: 'Tyrannosaurus Rex',
                 role: 'Apex Carnivore',
                 title: '« Le Roi Sanglant du Crétacé »',
-                defaultColor: 0xdc2626,
+                primaryColor: 0xdc2626,
                 secondaryColor: 0x7f1d1d,
                 accentColor: 0xf59e0b,
-                palettes: [0xdc2626, 0x1d4ed8, 0x15803d, 0x9333ea, 0xb45309, 0xf43f5e],
+                cssPrimary: '#dc2626',
                 scale: 1.05,
                 stats: { pow: 96, spd: 72, def: 85 },
                 maxHp: 1050,
@@ -500,14 +484,14 @@
             },
             {
                 id: 'pachyrhino',
-                name: 'PACHYRHINO',
+                name: 'PACHYRHINOSAURE',
                 fullName: 'Pachyrhinosaurus',
                 role: 'Bélier Blindé',
                 title: '« Le Colosse à Bosse d’Acier »',
-                defaultColor: 0xd97706,
+                primaryColor: 0xd97706,
                 secondaryColor: 0x78350f,
                 accentColor: 0x38bdf8,
-                palettes: [0xd97706, 0x475569, 0x15803d, 0x9a3412, 0x374151, 0x0284c7],
+                cssPrimary: '#d97706',
                 scale: 1.0,
                 stats: { pow: 88, spd: 76, def: 92 },
                 maxHp: 1100,
@@ -524,10 +508,10 @@
                 fullName: 'Ankylosaurus Magniventris',
                 role: 'Forteresse Vivante',
                 title: '« Le Briseur d’Os Blindé »',
-                defaultColor: 0x4d7c0f,
+                primaryColor: 0x4d7c0f,
                 secondaryColor: 0x1a2e05,
                 accentColor: 0xfacc15,
-                palettes: [0x4d7c0f, 0x1e293b, 0xb45309, 0x0f766e, 0x581c87, 0x334155],
+                cssPrimary: '#4d7c0f',
                 scale: 1.0,
                 stats: { pow: 92, spd: 58, def: 100 },
                 maxHp: 1200,
@@ -544,10 +528,10 @@
                 fullName: 'Apatosaurus Ajax',
                 role: 'Titan Tonnerre',
                 title: '« Le Géant qui Fait Trembler la Terre »',
-                defaultColor: 0x0f766e,
+                primaryColor: 0x0f766e,
                 secondaryColor: 0x134e4a,
                 accentColor: 0x2dd4bf,
-                palettes: [0x0f766e, 0x3b82f6, 0x84cc16, 0xd97706, 0x475569, 0x6366f1],
+                cssPrimary: '#0f766e',
                 scale: 1.16,
                 stats: { pow: 98, spd: 52, def: 98 },
                 maxHp: 1250,
@@ -564,10 +548,10 @@
                 fullName: 'Maiasaura Peeblesorum',
                 role: 'Furie Véloce',
                 title: '« La Gardienne aux Cris Ultrasoniques »',
-                defaultColor: 0x9333ea,
+                primaryColor: 0x9333ea,
                 secondaryColor: 0x581c87,
                 accentColor: 0xf472b6,
-                palettes: [0x9333ea, 0xec4899, 0x06b6d4, 0xf59e0b, 0x10b981, 0x3b82f6],
+                cssPrimary: '#9333ea',
                 scale: 0.98,
                 stats: { pow: 78, spd: 92, def: 78 },
                 maxHp: 980,
@@ -584,10 +568,10 @@
                 fullName: 'Phorusrhacos (Oiseau-Terreur)',
                 role: 'Bec Exécuteur',
                 title: '« La Faucheuse à Plumes de Sang »',
-                defaultColor: 0xe11d48,
+                primaryColor: 0xe11d48,
                 secondaryColor: 0x4c0519,
                 accentColor: 0xfb7185,
-                palettes: [0xe11d48, 0xd97706, 0x1e293b, 0x047857, 0x7c3aed, 0xb91c1c],
+                cssPrimary: '#e11d48',
                 scale: 0.98,
                 stats: { pow: 86, spd: 100, def: 70 },
                 maxHp: 940,
@@ -604,10 +588,10 @@
                 fullName: 'Postosuchus Kirkpatricki',
                 role: 'Archosaure Trias',
                 title: '« Le Crocodile Blindé de l’Enfer »',
-                defaultColor: 0xb45309,
+                primaryColor: 0xb45309,
                 secondaryColor: 0x451a03,
                 accentColor: 0xfef08a,
-                palettes: [0xb45309, 0x1e293b, 0x3f3f46, 0x15803d, 0x7c2d12, 0x1d4ed8],
+                cssPrimary: '#b45309',
                 scale: 1.04,
                 stats: { pow: 94, spd: 82, def: 88 },
                 maxHp: 1120,
@@ -624,10 +608,10 @@
                 fullName: 'Spinosaurus Aegyptiacus',
                 role: 'Léviathan à Voile',
                 title: '« L’Empereur aux Griffes et Voile de Feu »',
-                defaultColor: 0x0284c7,
+                primaryColor: 0x0284c7,
                 secondaryColor: 0x0c4a6e,
                 accentColor: 0xf97316,
-                palettes: [0x0284c7, 0xdc2626, 0x059669, 0x7c3aed, 0xd97706, 0x334155],
+                cssPrimary: '#0284c7',
                 scale: 1.12,
                 stats: { pow: 97, spd: 76, def: 86 },
                 maxHp: 1140,
@@ -640,14 +624,14 @@
             },
             {
                 id: 'therizino',
-                name: 'THÉRIZINO',
+                name: 'THÉRIZINOSAURE',
                 fullName: 'Therizinosaurus Cheloniformis',
                 role: 'Maître des Faux',
                 title: '« Les 6 Lames d’Obsidienne d’Un Mètre »',
-                defaultColor: 0x10b981,
+                primaryColor: 0x10b981,
                 secondaryColor: 0x064e3b,
                 accentColor: 0xa7f3d0,
-                palettes: [0x10b981, 0x3b82f6, 0xf59e0b, 0x8b5cf6, 0xef4444, 0x64748b],
+                cssPrimary: '#10b981',
                 scale: 1.06,
                 stats: { pow: 93, spd: 85, def: 80 },
                 maxHp: 1040,
@@ -657,39 +641,8 @@
                 fatalityName: 'Découpe Chirurgicale (R)',
                 moveStyle: 'Posture droite de bretteur préhistorique, grands coups de faux croisés et tourbillon tranchant.',
                 fatalityDesc: 'Croise ses griffes géantes d’un mètre et exécute trois entailles fulgurantes en X qui découpent la cible et font voler sa tête.'
-            },
-            {
-                id: 'pulmonoscorpius',
-                name: 'PULMONOSCORPIUS',
-                fullName: 'Pulmonoscorpius Gigantus',
-                role: 'Scorpion de l’Ombre',
-                title: '« Le Tueur Venimeux du Carbonifère »',
-                defaultColor: 0x3f3f46,
-                secondaryColor: 0x18181b,
-                accentColor: 0xa855f7,
-                palettes: [0x3f3f46, 0x7c2d12, 0x1e3a8a, 0x064e3b, 0x581c87, 0x9a3412],
-                scale: 0.95,
-                stats: { pow: 89, spd: 94, def: 75 },
-                maxHp: 920,
-                walkSpeed: 10.2,
-                special1Name: 'Pince Faucheuse (H)',
-                special2Name: 'Dard Neurotoxique (T)',
-                fatalityName: 'Piqure Mortelle (R)',
-                moveStyle: 'Marche de scorpion géant, pinces menaçantes et dard venimeux dressé au-dessus du corps.',
-                fatalityDesc: 'Saisit l’adversaire entre ses pinces géantes, le soulève et lui plante son dard venimeux en plein crâne pour le dissoudre.'
             }
         ];
-
-        // État de sélection des couleurs pour J1 et J2
-        let p1ColorIndex = 0;
-        let p2ColorIndex = 0;
-
-        function getActiveColor(fighterOrIndex, isP1) {
-            const rosterIdx = isP1 ? p1ChoiceIndex : p2ChoiceIndex;
-            const colIdx = isP1 ? p1ColorIndex : p2ColorIndex;
-            const dino = DINO_ROSTER[rosterIdx];
-            return dino.palettes[colIdx % dino.palettes.length];
-        }
 
         // 2. SYNTHÉTISEUR AUDIO WEB API (ZÉRO FICHIER EXTERNE)
         class SoundEngine {
@@ -795,23 +748,22 @@
 
         const sfx = new SoundEngine();
 
-        // 3. ÉTAT GLOBAL
+        // 3. ÉTAT GLOBAL DE L'APPLICATION
         let gameMode = 'cpu';
         let aiDifficulty = 'normal';
         let currentArena = 'volcano';
         let activeSelectSlot = 1;
-        let p1ChoiceIndex = 0;
-        let p2ChoiceIndex = 2;
+        let p1ChoiceIndex = 0; // T-Rex
+        let p2ChoiceIndex = 1; // Pachyrhinosaure
 
-        // 4. CONSTRUCTEUR DE MODÈLES 3D (AVEC CORRECTION DES GRIFFES DU THÉRIZINO & PULMONOSCORPIUS)
-        function createDino3DRig(dino, colorOverride = null) {
+        // 4. CONSTRUCTEUR DE MODÈLES 3D ARTICULÉS (THREE.JS) POUR CHAQUE ESPÈCE
+        function createDino3DRig(dino) {
             const root = new THREE.Group();
             const hips = new THREE.Group();
             root.add(hips);
 
-            const activeColor = colorOverride !== null ? colorOverride : dino.defaultColor;
             const bodyMat = new THREE.MeshStandardMaterial({
-                color: activeColor,
+                color: dino.primaryColor,
                 roughness: 0.55,
                 metalness: 0.15
             });
@@ -851,6 +803,7 @@
                 return m;
             }
 
+            // Structure des articulations communes et spécifiques
             const rig = {
                 root,
                 hips,
@@ -859,7 +812,7 @@
                 headGroup: new THREE.Group(),
                 jaw: new THREE.Group(),
                 tailSegments: [],
-                legs: [],
+                legs: [], // [frontLeft/left, frontRight/right, backLeft, backRight]
                 arms: [],
                 specialParts: {},
                 skeletonGroup: new THREE.Group(),
@@ -873,12 +826,13 @@
 
             hips.add(rig.torso);
 
+            // Bouclier de garde 3D
             rig.shieldMesh = new THREE.Mesh(new THREE.SphereGeometry(2.2, 16, 12), shieldMat);
             rig.shieldMesh.position.set(0.6, 2.0, 0);
             rig.shieldMesh.visible = false;
             root.add(rig.shieldMesh);
 
-            // --- SQUELETTE 3D X-RAY ---
+            // --- SQUELETTE 3D HAUTE DÉFINITION POUR LE MODE X-RAY 2.0 ---
             const xrayBoneMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
             const xrayCyanMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee, wireframe: true });
             const xraySkullMat = new THREE.MeshBasicMaterial({ color: 0xf0f9ff });
@@ -886,6 +840,7 @@
             const xraySpineMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
             const xrayOrganMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
 
+            // Colonne vertébrale + Moelle épinière lumineuse
             const spineGroup = new THREE.Group();
             for (let i = 0; i < 8; i++) {
                 const vert = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 0.26), xraySpineMat);
@@ -894,6 +849,7 @@
             }
             rig.skeletonGroup.add(spineGroup);
 
+            // Cage thoracique détaillée + Cœur interne battant
             const ribCageGroup = new THREE.Group();
             for (let i = 0; i < 6; i++) {
                 const ribL = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.045, 8, 14, Math.PI * 0.85), xrayRibMat);
@@ -911,6 +867,7 @@
             ribCageGroup.add(internalHeart);
             rig.skeletonGroup.add(ribCageGroup);
 
+            // Bassin & Fémurs
             const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.42, 0.78), xrayCyanMat);
             pelvis.position.set(-0.65, 0.05, 0);
             rig.skeletonGroup.add(pelvis);
@@ -920,6 +877,7 @@
                 rig.skeletonGroup.add(femur);
             });
 
+            // Crâne anatomique + Mâchoire + Orbites
             const skullBoneGroup = new THREE.Group();
             skullBoneGroup.position.set(1.45, 0.78, 0);
             const cranium = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.48, 0.58), xraySkullMat);
@@ -946,28 +904,37 @@
             rig.skeletonGroup.visible = false;
             hips.add(rig.skeletonGroup);
 
-            // --- MODÈLES 3D DES 10 ESPÈCES ---
+            // --- CONSTRUCTION 3D PAR ESPÈCE ---
             if (dino.id === 'trex') {
                 hips.position.y = 2.1;
+                // Torse massif incliné
                 addMesh(new THREE.BoxGeometry(2.3, 1.35, 1.3), bodyMat, rig.torso, 0, 0.2, 0, 0, 0, 0.18);
                 addMesh(new THREE.BoxGeometry(2.0, 0.35, 1.1), darkMat, rig.torso, 0, 0.85, 0, 0, 0, 0.18);
+
+                // Crêtes dorsales
                 for (let i = 0; i < 6; i++) {
                     addMesh(new THREE.ConeGeometry(0.14, 0.38, 5), accentMat, rig.torso, -0.9 + i * 0.36, 1.05 + i * 0.05, 0);
                 }
+
+                // Cou & Tête géante articulée
                 rig.neck.position.set(1.05, 0.65, 0);
                 rig.torso.add(rig.neck);
                 addMesh(new THREE.BoxGeometry(0.8, 0.9, 0.95), bodyMat, rig.neck, 0.2, 0.3, 0, 0, 0, -0.3);
 
                 rig.headGroup.position.set(0.55, 0.75, 0);
                 rig.neck.add(rig.headGroup);
+                // Crâne supérieur
                 addMesh(new THREE.BoxGeometry(1.45, 0.68, 0.95), bodyMat, rig.headGroup, 0.45, 0.15, 0);
                 addMesh(new THREE.BoxGeometry(0.5, 0.25, 0.98), darkMat, rig.headGroup, 0.15, 0.45, 0);
+                // Yeux
                 addMesh(new THREE.SphereGeometry(0.1, 8, 8), eyeMat, rig.headGroup, 0.35, 0.28, 0.48);
                 addMesh(new THREE.SphereGeometry(0.1, 8, 8), eyeMat, rig.headGroup, 0.35, 0.28, -0.48);
+                // Dents supérieures
                 for (let t = 0; t < 5; t++) {
                     addMesh(new THREE.ConeGeometry(0.06, 0.22, 4), boneMat, rig.headGroup, 0.25 + t * 0.2, -0.22, 0.38, Math.PI, 0, 0);
                     addMesh(new THREE.ConeGeometry(0.06, 0.22, 4), boneMat, rig.headGroup, 0.25 + t * 0.2, -0.22, -0.38, Math.PI, 0, 0);
                 }
+                // Mâchoire inférieure
                 rig.jaw.position.set(0.0, -0.18, 0);
                 rig.headGroup.add(rig.jaw);
                 addMesh(new THREE.BoxGeometry(1.3, 0.32, 0.82), darkMat, rig.jaw, 0.45, -0.1, 0);
@@ -975,6 +942,8 @@
                     addMesh(new THREE.ConeGeometry(0.05, 0.18, 4), boneMat, rig.jaw, 0.3 + t * 0.2, 0.12, 0.32);
                     addMesh(new THREE.ConeGeometry(0.05, 0.18, 4), boneMat, rig.jaw, 0.3 + t * 0.2, 0.12, -0.32);
                 }
+
+                // Petits bras de T-Rex
                 [-0.55, 0.55].forEach(zOff => {
                     const arm = new THREE.Group();
                     arm.position.set(0.95, 0.0, zOff);
@@ -982,6 +951,8 @@
                     rig.torso.add(arm);
                     rig.arms.push(arm);
                 });
+
+                // Queue segmentée (4 segments)
                 let parentTail = rig.torso;
                 for (let s = 0; s < 4; s++) {
                     const seg = new THREE.Group();
@@ -992,6 +963,8 @@
                     rig.tailSegments.push(seg);
                     parentTail = seg;
                 }
+
+                // 2 Jambes musclées
                 [-0.58, 0.58].forEach(zOff => {
                     const leg = new THREE.Group();
                     leg.position.set(-0.15, 0, zOff);
@@ -1004,22 +977,34 @@
 
             } else if (dino.id === 'pachyrhino') {
                 hips.position.y = 1.65;
+                // Corps quadrupède massif
                 addMesh(new THREE.BoxGeometry(2.4, 1.35, 1.45), bodyMat, rig.torso, 0, 0.15, 0);
                 addMesh(new THREE.BoxGeometry(2.1, 0.3, 1.5), darkMat, rig.torso, 0, 0.75, 0);
+
+                // Cou & Tête à collerette + BOSSE NASALE
                 rig.neck.position.set(1.15, 0.3, 0);
                 rig.torso.add(rig.neck);
                 rig.headGroup.position.set(0.25, 0.1, 0);
                 rig.neck.add(rig.headGroup);
-                addMesh(new THREE.BoxGeometry(0.28, 1.65, 1.75), darkMat, rig.headGroup, -0.15, 0.55, 0, 0, 0, 0.35);
+
+                // Grande collerette osseuse (Frill)
+                const frill = addMesh(new THREE.BoxGeometry(0.28, 1.65, 1.75), darkMat, rig.headGroup, -0.15, 0.55, 0, 0, 0, 0.35);
                 addMesh(new THREE.BoxGeometry(0.32, 1.45, 1.55), accentMat, rig.headGroup, -0.12, 0.55, 0, 0, 0, 0.35);
+                // Cornes du sommet de la collerette
                 addMesh(new THREE.ConeGeometry(0.16, 0.75, 6), boneMat, rig.headGroup, -0.25, 1.45, 0.55, 0, 0, -0.45);
                 addMesh(new THREE.ConeGeometry(0.16, 0.75, 6), boneMat, rig.headGroup, -0.25, 1.45, -0.55, 0, 0, -0.45);
+
+                // Museau & Bec
                 addMesh(new THREE.BoxGeometry(1.25, 0.68, 0.88), bodyMat, rig.headGroup, 0.55, -0.05, 0);
+                // BOSSE NASALE MASSIVE (Pachyrhinosaure !)
                 const boss = addMesh(new THREE.SphereGeometry(0.44, 12, 10), boneMat, rig.headGroup, 0.78, 0.34, 0);
                 boss.scale.set(1.25, 0.75, 0.95);
                 rig.specialParts.nasalBoss = boss;
+
                 addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.35, 0.15, 0.46);
                 addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.35, 0.15, -0.46);
+
+                // Queue (3 segments)
                 let pTail = rig.torso;
                 for (let s = 0; s < 3; s++) {
                     const seg = new THREE.Group();
@@ -1030,6 +1015,8 @@
                     rig.tailSegments.push(seg);
                     pTail = seg;
                 }
+
+                // 4 Pattes robustes
                 [
                     { x: 0.85, z: -0.62 }, { x: 0.85, z: 0.62 },
                     { x: -0.85, z: -0.62 }, { x: -0.85, z: 0.62 }
@@ -1044,15 +1031,20 @@
 
             } else if (dino.id === 'ankylo') {
                 hips.position.y = 1.35;
+                // Carapace blindée bombée
                 const shell = addMesh(new THREE.SphereGeometry(1.45, 14, 10), darkMat, rig.torso, 0, 0.15, 0);
                 shell.scale.set(1.15, 0.65, 0.95);
                 addMesh(new THREE.BoxGeometry(2.5, 0.55, 1.65), bodyMat, rig.torso, 0, -0.05, 0);
+
+                // Rangées d'épines dorées sur la carapace
                 for (let r = -0.9; r <= 0.9; r += 0.45) {
                     for (let side of [-1, 1]) {
                         addMesh(new THREE.ConeGeometry(0.16, 0.52, 5), accentMat, rig.torso, r, 0.48, side * 0.72, side * 0.45, 0, 0);
                         addMesh(new THREE.ConeGeometry(0.14, 0.45, 5), boneMat, rig.torso, r, 0.08, side * 0.92, side * 1.1, 0, 0);
                     }
                 }
+
+                // Tête blindée
                 rig.neck.position.set(1.25, 0.05, 0);
                 rig.torso.add(rig.neck);
                 rig.headGroup.position.set(0.2, 0, 0);
@@ -1062,6 +1054,8 @@
                 addMesh(new THREE.ConeGeometry(0.13, 0.4, 4), accentMat, rig.headGroup, 0.1, 0.32, -0.35, 0.3, 0, 0.3);
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.4, 0.08, 0.4);
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.4, 0.08, -0.4);
+
+                // Queue + MASSUE D'OS GÉANTE (Tail Club)
                 let pTail = rig.torso;
                 for (let s = 0; s < 3; s++) {
                     const seg = new THREE.Group();
@@ -1071,6 +1065,7 @@
                     rig.tailSegments.push(seg);
                     pTail = seg;
                 }
+                // Massue au bout du dernier segment
                 const clubGroup = new THREE.Group();
                 clubGroup.position.set(-0.75, 0, 0);
                 addMesh(new THREE.SphereGeometry(0.48, 12, 10), accentMat, clubGroup, 0, 0, 0.25);
@@ -1078,6 +1073,8 @@
                 addMesh(new THREE.ConeGeometry(0.2, 0.5, 5), boneMat, clubGroup, -0.35, 0, 0, 0, 0, Math.PI / 2);
                 pTail.add(clubGroup);
                 rig.specialParts.tailClub = clubGroup;
+
+                // 4 Pattes courtes et trapues
                 [
                     { x: 0.82, z: -0.68 }, { x: 0.82, z: 0.68 },
                     { x: -0.82, z: -0.68 }, { x: -0.82, z: 0.68 }
@@ -1091,8 +1088,11 @@
 
             } else if (dino.id === 'apato') {
                 hips.position.y = 2.05;
+                // Corps monumental de Sauropode
                 addMesh(new THREE.BoxGeometry(2.6, 1.65, 1.55), bodyMat, rig.torso, 0, 0.25, 0);
                 addMesh(new THREE.BoxGeometry(2.2, 0.4, 1.35), darkMat, rig.torso, 0.1, 1.0, 0);
+
+                // Long cou articulé en 3 segments
                 let pNeck = rig.torso;
                 const neckSegments = [];
                 for (let n = 0; n < 3; n++) {
@@ -1107,11 +1107,15 @@
                 }
                 rig.neck = neckSegments[0];
                 rig.specialParts.neckSegments = neckSegments;
+
+                // Tête tout en haut du cou
                 rig.headGroup.position.set(0.65, 0.65, 0);
                 pNeck.add(rig.headGroup);
                 addMesh(new THREE.BoxGeometry(0.85, 0.48, 0.55), darkMat, rig.headGroup, 0.3, 0, 0);
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.35, 0.1, 0.28);
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.35, 0.1, -0.28);
+
+                // Longue queue fouet (5 segments)
                 let pTail = rig.torso;
                 for (let s = 0; s < 5; s++) {
                     const seg = new THREE.Group();
@@ -1122,6 +1126,8 @@
                     rig.tailSegments.push(seg);
                     pTail = seg;
                 }
+
+                // 4 Piliers massifs
                 [
                     { x: 0.92, z: -0.62 }, { x: 0.92, z: 0.62 },
                     { x: -0.92, z: -0.62 }, { x: -0.92, z: 0.62 }
@@ -1135,19 +1141,29 @@
 
             } else if (dino.id === 'maiasaura') {
                 hips.position.y = 1.95;
+                // Corps athlétique d'Hadrosaure
                 addMesh(new THREE.BoxGeometry(2.15, 1.2, 1.15), bodyMat, rig.torso, 0, 0.15, 0, 0, 0, 0.12);
+                // Bandes bioluminescentes sur les flancs
                 addMesh(new THREE.BoxGeometry(1.75, 0.18, 1.22), accentMat, rig.torso, 0, 0.25, 0, 0, 0, 0.12);
+
+                // Cou & Tête à bec de canard + Crête acoustique
                 rig.neck.position.set(0.95, 0.55, 0);
                 rig.torso.add(rig.neck);
                 addMesh(new THREE.BoxGeometry(0.6, 0.85, 0.65), darkMat, rig.neck, 0.15, 0.35, 0, 0, 0, -0.35);
+
                 rig.headGroup.position.set(0.35, 0.78, 0);
                 rig.neck.add(rig.headGroup);
                 addMesh(new THREE.BoxGeometry(0.85, 0.48, 0.65), bodyMat, rig.headGroup, 0.2, 0.05, 0);
+                // Bec de canard plat
                 addMesh(new THREE.BoxGeometry(0.65, 0.22, 0.58), accentMat, rig.headGroup, 0.72, -0.05, 0);
+                // Crête acoustique lumineuse
                 const crest = addMesh(new THREE.ConeGeometry(0.18, 0.55, 5), accentMat, rig.headGroup, 0.15, 0.48, 0, 0, 0, 0.35);
                 rig.specialParts.sonicCrest = crest;
+
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.28, 0.14, 0.34);
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.28, 0.14, -0.34);
+
+                // Bras agiles
                 [-0.52, 0.52].forEach(zOff => {
                     const arm = new THREE.Group();
                     arm.position.set(0.78, -0.1, zOff);
@@ -1155,6 +1171,8 @@
                     rig.torso.add(arm);
                     rig.arms.push(arm);
                 });
+
+                // Queue équilibrante
                 let pTail = rig.torso;
                 for (let s = 0; s < 4; s++) {
                     const seg = new THREE.Group();
@@ -1165,6 +1183,8 @@
                     rig.tailSegments.push(seg);
                     pTail = seg;
                 }
+
+                // Jambes de sprinteuse
                 [-0.5, 0.5].forEach(zOff => {
                     const leg = new THREE.Group();
                     leg.position.set(-0.15, 0, zOff);
@@ -1177,8 +1197,11 @@
 
             } else if (dino.id === 'terabird') {
                 hips.position.y = 2.25;
+                // Corps d'oiseau-terreur profilé
                 addMesh(new THREE.BoxGeometry(1.75, 1.15, 1.05), bodyMat, rig.torso, 0, 0.15, 0, 0, 0, 0.25);
-                [-0.58, 0.58].forEach(zOff => {
+
+                // Ailes griffues articulées
+                [-0.58, 0.58].forEach((zOff, idx) => {
                     const wing = new THREE.Group();
                     wing.position.set(0.2, 0.3, zOff);
                     addMesh(new THREE.BoxGeometry(1.15, 0.65, 0.12), darkMat, wing, -0.25, -0.1, 0);
@@ -1186,19 +1209,26 @@
                     rig.torso.add(wing);
                     rig.arms.push(wing);
                 });
+
+                // Long cou vertical de rapace + ÉNORME BEC CROCHU
                 rig.neck.position.set(0.75, 0.55, 0);
                 rig.torso.add(rig.neck);
                 addMesh(new THREE.BoxGeometry(0.48, 1.25, 0.48), bodyMat, rig.neck, 0.1, 0.55, 0, 0, 0, -0.12);
+
                 rig.headGroup.position.set(0.18, 1.22, 0);
                 rig.neck.add(rig.headGroup);
                 addMesh(new THREE.BoxGeometry(0.72, 0.62, 0.58), bodyMat, rig.headGroup, 0.1, 0.1, 0);
+                // Crête de plumes écarlates
                 for (let f = 0; f < 4; f++) {
                     addMesh(new THREE.ConeGeometry(0.1, 0.55, 4), accentMat, rig.headGroup, -0.15 - f * 0.1, 0.48, 0, 0, 0, 0.75);
                 }
+                // Bec de hache géant crochu
                 addMesh(new THREE.BoxGeometry(0.95, 0.45, 0.42), boneMat, rig.headGroup, 0.72, 0.12, 0);
                 addMesh(new THREE.ConeGeometry(0.22, 0.55, 4), boneMat, rig.headGroup, 1.15, -0.15, 0, 0, 0, Math.PI * 0.92);
                 addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.25, 0.18, 0.3);
                 addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.25, 0.18, -0.3);
+
+                // Éventail de plumes caudales
                 const tailFan = new THREE.Group();
                 tailFan.position.set(-0.9, 0.15, 0);
                 for (let z = -0.35; z <= 0.35; z += 0.35) {
@@ -1206,6 +1236,8 @@
                 }
                 rig.torso.add(tailFan);
                 rig.tailSegments.push(tailFan);
+
+                // Longues pattes d'échassier tueur avec serres
                 [-0.45, 0.45].forEach(zOff => {
                     const leg = new THREE.Group();
                     leg.position.set(0, 0, zOff);
@@ -1218,21 +1250,29 @@
 
             } else if (dino.id === 'postosuchus') {
                 hips.position.y = 1.48;
+                // Corps long et blindé d'Archosaure Rauisuchien (Postosuchus)
                 addMesh(new THREE.BoxGeometry(2.65, 1.05, 1.25), bodyMat, rig.torso, 0, 0.1, 0);
                 addMesh(new THREE.BoxGeometry(2.4, 0.25, 1.32), darkMat, rig.torso, 0, -0.35, 0);
+
+                // Double rangée d'ostéodermes dorsaux blindés
                 for (let i = -1.1; i <= 1.1; i += 0.36) {
                     addMesh(new THREE.ConeGeometry(0.14, 0.38, 4), accentMat, rig.torso, i, 0.72, 0.25);
                     addMesh(new THREE.ConeGeometry(0.14, 0.38, 4), accentMat, rig.torso, i, 0.72, -0.25);
                 }
+
+                // Cou musclé & Crâne rectangulaire profond de Postosuchus
                 rig.neck.position.set(1.25, 0.2, 0);
                 rig.torso.add(rig.neck);
                 addMesh(new THREE.BoxGeometry(0.65, 0.75, 0.85), darkMat, rig.neck, 0.15, 0.05, 0);
+
                 rig.headGroup.position.set(0.45, 0.15, 0);
                 rig.neck.add(rig.headGroup);
                 addMesh(new THREE.BoxGeometry(1.45, 0.56, 0.82), bodyMat, rig.headGroup, 0.5, 0.12, 0);
                 addMesh(new THREE.BoxGeometry(1.3, 0.18, 0.86), darkMat, rig.headGroup, 0.45, 0.38, 0);
                 addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.3, 0.25, 0.42);
                 addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.3, 0.25, -0.42);
+
+                // Dents carnassières
                 for (let t = 0; t < 5; t++) {
                     addMesh(new THREE.ConeGeometry(0.05, 0.2, 4), boneMat, rig.headGroup, 0.2 + t * 0.22, -0.18, 0.35, Math.PI, 0, 0);
                     addMesh(new THREE.ConeGeometry(0.05, 0.2, 4), boneMat, rig.headGroup, 0.2 + t * 0.22, -0.18, -0.35, Math.PI, 0, 0);
@@ -1240,6 +1280,8 @@
                 rig.jaw.position.set(0, -0.15, 0);
                 rig.headGroup.add(rig.jaw);
                 addMesh(new THREE.BoxGeometry(1.35, 0.26, 0.72), darkMat, rig.jaw, 0.48, -0.08, 0);
+
+                // Longue queue crocodilienne crantée (4 segments)
                 let pTail = rig.torso;
                 for (let s = 0; s < 4; s++) {
                     const seg = new THREE.Group();
@@ -1251,6 +1293,8 @@
                     rig.tailSegments.push(seg);
                     pTail = seg;
                 }
+
+                // 4 Pattes d'Archosaure (pattes arrière plus longues que pattes avant)
                 [
                     { x: 0.9, z: -0.62, h: 1.25 }, { x: 0.9, z: 0.62, h: 1.25 },
                     { x: -0.88, z: -0.62, h: 1.45 }, { x: -0.88, z: 0.62, h: 1.45 }
@@ -1265,7 +1309,10 @@
 
             } else if (dino.id === 'spinosaurus') {
                 hips.position.y = 2.15;
+                // Torse puissant de Spinosaure
                 addMesh(new THREE.BoxGeometry(2.55, 1.32, 1.22), bodyMat, rig.torso, 0, 0.18, 0, 0, 0, 0.12);
+
+                // GRANDE VOILE DORSALE (Neural Sail) emblématique du Spinosaure
                 const sailGroup = new THREE.Group();
                 const sailHeights = [0.85, 1.45, 1.95, 2.15, 1.95, 1.5, 0.95];
                 sailHeights.forEach((h, idx) => {
@@ -1277,18 +1324,25 @@
                 });
                 rig.torso.add(sailGroup);
                 rig.specialParts.sailGroup = sailGroup;
+
+                // Cou & Long museau étroit de crocodile (Baryonychine snout)
                 rig.neck.position.set(1.18, 0.58, 0);
                 rig.torso.add(rig.neck);
                 addMesh(new THREE.BoxGeometry(0.75, 0.85, 0.72), darkMat, rig.neck, 0.2, 0.25, 0, 0, 0, -0.28);
+
                 rig.headGroup.position.set(0.5, 0.68, 0);
                 rig.neck.add(rig.headGroup);
                 addMesh(new THREE.BoxGeometry(1.75, 0.42, 0.56), bodyMat, rig.headGroup, 0.65, 0.08, 0);
+                // Crête nasale de Spinosaure
                 addMesh(new THREE.ConeGeometry(0.12, 0.42, 4), accentMat, rig.headGroup, 0.35, 0.42, 0, 0, 0, -0.3);
                 addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.28, 0.18, 0.3);
                 addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.28, 0.18, -0.3);
+
                 rig.jaw.position.set(0.05, -0.14, 0);
                 rig.headGroup.add(rig.jaw);
                 addMesh(new THREE.BoxGeometry(1.65, 0.22, 0.48), darkMat, rig.jaw, 0.6, -0.06, 0);
+
+                // Bras puissants armés de griffes d'éventration
                 [-0.62, 0.62].forEach(zOff => {
                     const arm = new THREE.Group();
                     arm.position.set(0.95, 0.0, zOff);
@@ -1297,6 +1351,8 @@
                     rig.torso.add(arm);
                     rig.arms.push(arm);
                 });
+
+                // Queue en rame aquatique (Paddle Tail)
                 let pTail = rig.torso;
                 for (let s = 0; s < 4; s++) {
                     const seg = new THREE.Group();
@@ -1306,6 +1362,8 @@
                     rig.tailSegments.push(seg);
                     pTail = seg;
                 }
+
+                // 2 Jambes robustes
                 [-0.56, 0.56].forEach(zOff => {
                     const leg = new THREE.Group();
                     leg.position.set(-0.18, 0, zOff);
@@ -1317,11 +1375,12 @@
                 });
 
             } else if (dino.id === 'therizino') {
-                // --- CORRECTION DES GRIFFES DU THÉRIZINOSAURE ---
                 hips.position.y = 2.15;
+                // Torse dressé très haut de Thérizinosaure
                 addMesh(new THREE.BoxGeometry(1.95, 1.55, 1.35), bodyMat, rig.torso, 0, 0.35, 0, 0, 0, 0.52);
                 addMesh(new THREE.BoxGeometry(1.65, 1.25, 1.42), darkMat, rig.torso, -0.1, 0.25, 0, 0, 0, 0.52);
 
+                // Long cou dressé & petite tête à bec
                 rig.neck.position.set(0.65, 1.05, 0);
                 rig.torso.add(rig.neck);
                 addMesh(new THREE.BoxGeometry(0.48, 1.25, 0.52), bodyMat, rig.neck, 0.15, 0.55, 0, 0, 0, -0.18);
@@ -1330,24 +1389,25 @@
                 rig.neck.add(rig.headGroup);
                 addMesh(new THREE.BoxGeometry(0.78, 0.44, 0.48), darkMat, rig.headGroup, 0.2, 0.05, 0);
                 addMesh(new THREE.ConeGeometry(0.15, 0.48, 4), boneMat, rig.headGroup, 0.65, 0.0, 0, 0, 0, -Math.PI / 2);
+                // Crête de plumes émeraude
                 addMesh(new THREE.BoxGeometry(0.55, 0.28, 0.12), accentMat, rig.headGroup, -0.05, 0.32, 0, 0, 0, 0.4);
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.25, 0.12, 0.26);
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.25, 0.12, -0.26);
 
-                // AVANT-BRAS & 6 GRIFFES GÉANTES D'UN MÈTRE CORRECTEMENT ORIENTÉES VERS L'AVANT
+                // BRAS + LES 6 GRIFFES FAUX D'UN MÈTRE (Iconic Scythe Claws)
                 [-0.72, 0.72].forEach(zOff => {
                     const arm = new THREE.Group();
                     arm.position.set(0.55, 0.65, zOff);
-                    addMesh(new THREE.BoxGeometry(0.88, 0.3, 0.3), darkMat, arm, 0.42, -0.15, 0, 0, 0, -0.15);
-                    // 3 Griffes par main pointant vers l'avant (axe X+) et courbées vers le bas
-                    [-0.12, 0, 0.12].forEach(cZ => {
-                        const claw = addMesh(new THREE.ConeGeometry(0.065, 1.35, 5), boneMat, arm, 1.12, -0.38, cZ, 0, 0, -Math.PI / 2.2);
-                        claw.scale.set(1, 1.2, 1);
+                    addMesh(new THREE.BoxGeometry(0.95, 0.28, 0.28), darkMat, arm, 0.38, -0.12, 0, 0, 0, -0.2);
+                    // 3 Griffes géantes courbées par main
+                    [-0.14, 0, 0.14].forEach(cZ => {
+                        addMesh(new THREE.ConeGeometry(0.075, 1.45, 5), boneMat, arm, 1.32, -0.38, cZ, 0, 0, -1.35);
                     });
                     rig.torso.add(arm);
                     rig.arms.push(arm);
                 });
 
+                // Queue à plumes
                 let pTail = rig.torso;
                 for (let s = 0; s < 3; s++) {
                     const seg = new THREE.Group();
@@ -1357,6 +1417,8 @@
                     rig.tailSegments.push(seg);
                     pTail = seg;
                 }
+
+                // 2 Jambes solides
                 [-0.54, 0.54].forEach(zOff => {
                     const leg = new THREE.Group();
                     leg.position.set(-0.1, 0, zOff);
@@ -1366,67 +1428,13 @@
                     hips.add(leg);
                     rig.legs.push(leg);
                 });
-
-            } else if (dino.id === 'pulmonoscorpius') {
-                // --- NOUVEAU COMBATTANT : PULMONOSCORPIUS (SCORPION GÉANT 3D) ---
-                hips.position.y = 1.15;
-                // Céphalothorax bas & blindé
-                addMesh(new THREE.BoxGeometry(1.85, 0.85, 1.45), bodyMat, rig.torso, 0.2, 0.1, 0);
-                addMesh(new THREE.BoxGeometry(1.45, 0.35, 1.3), darkMat, rig.torso, 0.2, 0.52, 0);
-
-                // Yeux multiples de scorpion
-                [-0.35, 0.35].forEach(z => {
-                    addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.torso, 0.85, 0.45, z);
-                    addMesh(new THREE.SphereGeometry(0.06, 8, 8), eyeMat, rig.torso, 0.78, 0.45, z * 0.5);
-                });
-
-                // Pinces avant articulées (Pédipalpes armés de pinces faucheuses)
-                [-0.85, 0.85].forEach((zOff, idx) => {
-                    const pincerArm = new THREE.Group();
-                    pincerArm.position.set(0.95, 0.1, zOff);
-                    addMesh(new THREE.BoxGeometry(1.15, 0.28, 0.28), darkMat, pincerArm, 0.5, 0, 0, 0, idx === 0 ? 0.35 : -0.35, 0);
-                    // Pince en 3D
-                    addMesh(new THREE.BoxGeometry(0.75, 0.45, 0.22), accentMat, pincerArm, 1.25, 0.12, idx === 0 ? 0.22 : -0.22);
-                    rig.torso.add(pincerArm);
-                    rig.arms.push(pincerArm);
-                });
-
-                // Queue articulée en segments repliés avec DARD VENIMEUX
-                let pTail = rig.torso;
-                for (let s = 0; s < 5; s++) {
-                    const tailSeg = new THREE.Group();
-                    tailSeg.position.set(s === 0 ? -1.05 : -0.55, s === 0 ? 0.2 : 0.35, 0);
-                    addMesh(new THREE.BoxGeometry(0.65, 0.42, 0.45), s % 2 === 0 ? bodyMat : darkMat, tailSeg, -0.25, 0.15, 0, 0, 0, 0.35);
-                    pTail.add(tailSeg);
-                    rig.tailSegments.push(tailSeg);
-                    pTail = tailSeg;
-                }
-                // Dard terminal acéré (Stinger)
-                const stinger = new THREE.Group();
-                stinger.position.set(-0.55, 0.45, 0);
-                addMesh(new THREE.ConeGeometry(0.18, 0.75, 5), boneMat, stinger, -0.2, 0.35, 0, 0, 0, -Math.PI / 3);
-                pTail.add(stinger);
-                rig.specialParts.stinger = stinger;
-
-                // 8 Pattes articulées de scorpion
-                [
-                    { x: 0.65, z: -0.82 }, { x: 0.35, z: -0.88 }, { x: 0.05, z: -0.92 }, { x: -0.25, z: -0.95 },
-                    { x: 0.65, z: 0.82 }, { x: 0.35, z: 0.88 }, { x: 0.05, z: 0.92 }, { x: -0.25, z: 0.95 }
-                ].forEach((pos, idx) => {
-                    const leg = new THREE.Group();
-                    leg.position.set(pos.x, -0.15, pos.z);
-                    const sideDir = pos.z > 0 ? 1 : -1;
-                    addMesh(new THREE.BoxGeometry(0.28, 1.1, 0.28), darkMat, leg, 0, -0.45, sideDir * 0.35);
-                    hips.add(leg);
-                    rig.legs.push(leg);
-                });
             }
 
             root.scale.setScalar(dino.scale);
             return rig;
         }
 
-        // 5. ANIMATIONS 3D DISTINCTES (INCLUANT LE PULMONOSCORPIUS)
+        // 5. SYSTÈME D'ANIMATION 3D DISTINCT PAR ESPÈCE (MOUVEMENTS, ATTAQUES, X-RAY & FATALITÉS)
         function animateDino3DRig(fighter, time, dt) {
             const rig = fighter.rig;
             if (!rig) return;
@@ -1435,6 +1443,7 @@
             const prog = fighter.actionDuration > 0 ? Math.min(1, fighter.actionTimer / fighter.actionDuration) : 0;
             const swing = Math.sin(prog * Math.PI);
 
+            // Réinitialisation douce des rotations de base
             rig.hips.rotation.set(0, 0, 0);
             rig.torso.rotation.set(0, 0, 0);
             rig.neck.rotation.set(0, 0, 0);
@@ -1442,24 +1451,29 @@
             rig.jaw.rotation.set(0, 0, 0);
             rig.shieldMesh.visible = fighter.isBlocking;
 
-            const baseHipsY = id === 'ankylo' ? 1.35 : (id === 'postosuchus' ? 1.48 : (id === 'pachyrhino' ? 1.65 : (id === 'terabird' ? 2.25 : (id === 'pulmonoscorpius' ? 1.15 : 2.1))));
+            const baseHipsY = id === 'ankylo' ? 1.35 : (id === 'postosuchus' ? 1.48 : (id === 'pachyrhino' ? 1.65 : (id === 'terabird' ? 2.25 : 2.1)));
             rig.hips.position.set(0, baseHipsY, 0);
 
+            // Flash blanc si touché
             rig.bodyMat.emissive.setHex(fighter.hitStun > 0.12 ? 0xffffff : 0x000000);
             rig.bodyMat.emissiveIntensity = fighter.hitStun > 0.12 ? 0.65 : 0;
 
+            // --- ANIMATION DE L'ATTAQUANT PENDANT LE X-RAY (VERROUILLÉ EN 3 PHASES) ---
             if (fighter.isXrayAttacker && xrayCinematicTimer > 0) {
                 const phasePulse = Math.sin(time * 24);
                 if (xrayStage === 1) {
+                    // Phase 1 : Frappe descendante brise-crâne
                     rig.hips.position.x = 0.55;
                     rig.torso.rotation.z = -0.32 + phasePulse * 0.12;
                     rig.headGroup.rotation.z = -0.35;
                     rig.jaw.rotation.z = -0.75;
                 } else if (xrayStage === 2) {
+                    // Phase 2 : Impact thoracique lourd
                     rig.hips.position.x = 0.78;
                     rig.torso.rotation.y = phasePulse * 0.45;
                     rig.torso.rotation.z = 0.22;
                 } else {
+                    // Phase 3 : Cisaillement final de la colonne vertébrale
                     rig.hips.position.x = 0.92;
                     rig.hips.position.y = baseHipsY + 0.35;
                     rig.torso.rotation.z = 0.45;
@@ -1469,26 +1483,33 @@
                 return;
             }
 
+            // --- ANIMATION ANATOMIQUE DU SQUELETTE X-RAY 2.0 EN 3 PHASES (CIBLE VERROUILLÉE) ---
             if (fighter.isXrayTarget) {
                 rig.skeletonGroup.visible = true;
                 rig.skinMeshes.forEach(m => {
                     m.material.transparent = true;
                     m.material.opacity = 0.14;
                 });
+
                 const xp = rig.xrayParts;
                 if (xp) {
+                    // Battement cardiaque accéléré
                     xp.heart.scale.setScalar(1 + Math.sin(time * 28) * 0.28);
                     xp.skullMat.color.setHex(xrayStage === 1 ? 0xef4444 : 0xf0f9ff);
                     xp.ribMat.color.setHex(xrayStage === 2 ? 0xef4444 : 0xe0f2fe);
                     xp.spineMat.color.setHex(xrayStage === 3 ? 0xef4444 : 0xe0f2fe);
+
                     if (xrayStage === 1) {
+                        // Phase 1 : Dislocation de la mâchoire et vibration crânienne
                         xp.skullGroup.rotation.z = Math.sin(time * 55) * 0.28;
                         xp.jawBone.rotation.z = -0.45 + Math.sin(time * 40) * 0.2;
                         rig.headGroup.rotation.z = 0.45;
                     } else if (xrayStage === 2) {
+                        // Phase 2 : Enfoncement de la cage thoracique
                         xp.ribCageGroup.scale.set(0.82 + Math.sin(time * 50) * 0.15, 0.85, 1.2);
                         rig.torso.rotation.z = -0.25;
                     } else if (xrayStage === 3) {
+                        // Phase 3 : Cisaillement de la colonne vertébrale
                         xp.spineGroup.rotation.z = Math.sin(time * 60) * 0.35;
                         rig.hips.position.y = baseHipsY + 0.55;
                         rig.hips.rotation.z = 0.38;
@@ -1508,6 +1529,7 @@
                 });
             }
 
+            // État mort / aplati / décapité
             rig.headGroup.visible = !fighter.decapitated;
             if (fighter.flattened) {
                 rig.root.scale.set(fighter.dino.scale * 1.65, 0.12, fighter.dino.scale * 1.65);
@@ -1522,6 +1544,7 @@
                 return;
             }
 
+            // État étourdi ("ACHEVEZ-LE !")
             if (fighter.isDizzy) {
                 rig.hips.rotation.z = Math.sin(time * 7) * 0.18;
                 rig.hips.rotation.x = Math.cos(time * 5) * 0.12;
@@ -1531,10 +1554,11 @@
                 return;
             }
 
-            // IDLE & WALK ANIMATIONS
+            // --- 1. ANIMATIONS D'ATTENTE (IDLE) & DE MARCHE SPÉCIFIQUES À CHAQUE ESPÈCE ---
             if (act === 'idle' || act === 'walk' || act === 'crouch') {
                 const isWalk = act === 'walk';
                 if (id === 'trex') {
+                    // T-Rex : Foulée bipède lourde, mâchoire qui respire, queue qui contrebalance
                     const freq = isWalk ? 11 : 3.5;
                     rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.22 : 0.06);
                     rig.torso.rotation.z = isWalk ? -0.12 + Math.sin(time * freq) * 0.06 : Math.sin(time * 3) * 0.03;
@@ -1545,6 +1569,7 @@
                         seg.rotation.y = Math.sin(time * freq - i * 0.5) * (isWalk ? 0.22 : 0.1);
                     });
                 } else if (id === 'pachyrhino') {
+                    // Pachyrhinosaure : Trot quadrupède diagonal + secousse de collerette
                     const freq = isWalk ? 13 : 4;
                     rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.15 : 0.04);
                     rig.headGroup.rotation.z = isWalk ? -0.18 + Math.sin(time * freq) * 0.1 : Math.sin(time * 3.5) * 0.08;
@@ -1554,8 +1579,10 @@
                     rig.legs[1].rotation.z = -s;
                     rig.legs[2].rotation.z = -s;
                 } else if (id === 'ankylo') {
+                    // Ankylosaure : Marche blindée basse + balancement menaçant de la massue caudale
                     const freq = isWalk ? 10 : 3;
                     rig.hips.position.y = baseHipsY + Math.sin(time * freq) * 0.05;
+                    rig.torso.rotation.x = isWalk ? Math.sin(time * freq) * 0.08 : 0;
                     const s = isWalk ? Math.sin(time * freq) * 0.38 : 0;
                     rig.legs[0].rotation.z = s;
                     rig.legs[3].rotation.z = s;
@@ -1565,10 +1592,12 @@
                         seg.rotation.y = Math.sin(time * 5 - i * 0.4) * 0.28;
                     });
                 } else if (id === 'apato') {
+                    // Apatosaure : Marche colossale + ondulation en S du long cou et de la queue fouet
                     const freq = isWalk ? 7.5 : 2.5;
                     rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.18 : 0.04);
                     rig.specialParts.neckSegments.forEach((nSeg, i) => {
                         nSeg.rotation.z = Math.sin(time * 3 - i * 0.6) * 0.1;
+                        nSeg.rotation.y = Math.cos(time * 2.5 - i * 0.5) * 0.08;
                     });
                     rig.tailSegments.forEach((seg, i) => {
                         seg.rotation.y = Math.sin(time * 6 - i * 0.6) * 0.22;
@@ -1579,76 +1608,347 @@
                     rig.legs[1].rotation.z = -s;
                     rig.legs[2].rotation.z = -s;
                 } else if (id === 'maiasaura') {
+                    // Maiasaura : Rebond agile de sprinteuse
                     const freq = isWalk ? 14 : 5;
                     rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.28 : 0.08);
+                    rig.neck.rotation.z = Math.sin(time * freq) * 0.1;
                     rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.62 : 0;
                     rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.62 : 0;
                 } else if (id === 'terabird') {
+                    // Terabird : Démarche d'oiseau de proie à grands pas + battements d'ailes nerveux
                     const freq = isWalk ? 15 : 5.5;
                     rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.32 : 0.07);
+                    rig.neck.rotation.z = isWalk ? -0.25 + Math.sin(time * freq * 2) * 0.15 : Math.sin(time * 8) * 0.06;
                     rig.arms[0].rotation.x = -Math.abs(Math.sin(time * 6)) * 0.35;
                     rig.arms[1].rotation.x = Math.abs(Math.sin(time * 6)) * 0.35;
                     rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.72 : 0;
                     rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.72 : 0;
                 } else if (id === 'postosuchus') {
+                    // Postosuchus : Marche reptilienne prédatrice basse avec ondulation latérale de la queue
                     const freq = isWalk ? 12 : 3.5;
                     rig.hips.position.y = baseHipsY + Math.sin(time * freq) * 0.06;
+                    rig.torso.rotation.y = isWalk ? Math.sin(time * freq * 0.5) * 0.12 : 0;
+                    rig.jaw.rotation.z = -0.06 - Math.abs(Math.sin(time * 3)) * 0.14;
                     const s = isWalk ? Math.sin(time * freq) * 0.48 : 0;
                     rig.legs[0].rotation.z = s;
                     rig.legs[3].rotation.z = s;
                     rig.legs[1].rotation.z = -s;
                     rig.legs[2].rotation.z = -s;
+                    rig.tailSegments.forEach((seg, i) => {
+                        seg.rotation.y = Math.sin(time * 7 - i * 0.5) * 0.26;
+                    });
                 } else if (id === 'spinosaurus') {
+                    // Spinosaure : Démarche lourde de léviathan, bras griffus prêts à lacérer, queue aquatique
                     const freq = isWalk ? 10.5 : 3.2;
                     rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.2 : 0.06);
+                    rig.jaw.rotation.z = -0.1 - Math.abs(Math.sin(time * 2.8)) * 0.12;
+                    rig.arms[0].rotation.z = Math.sin(time * 4) * 0.15;
+                    rig.arms[1].rotation.z = -Math.sin(time * 4) * 0.15;
                     rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.52 : 0;
                     rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.52 : 0;
+                    rig.tailSegments.forEach((seg, i) => {
+                        seg.rotation.y = Math.sin(time * 6 - i * 0.5) * 0.25;
+                    });
                 } else if (id === 'therizino') {
+                    // Thérizinosaure : Garde haute intimidante, balancement des 6 griffes faux d'un mètre
                     const freq = isWalk ? 11.5 : 3.8;
                     rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.18 : 0.05);
+                    rig.arms[0].rotation.y = Math.sin(time * 4) * 0.22;
+                    rig.arms[1].rotation.y = -Math.sin(time * 4) * 0.22;
+                    rig.arms[0].rotation.z = 0.15 + Math.sin(time * 3) * 0.1;
+                    rig.arms[1].rotation.z = 0.15 - Math.sin(time * 3) * 0.1;
                     rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.55 : 0;
                     rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.55 : 0;
-                } else if (id === 'pulmonoscorpius') {
-                    const freq = isWalk ? 16 : 4;
-                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * 0.05;
-                    rig.tailSegments.forEach((seg, i) => {
-                        seg.rotation.z = Math.sin(time * 5 - i * 0.5) * 0.22;
-                    });
                 }
+
                 if (act === 'crouch') {
                     rig.hips.position.y = baseHipsY * 0.72;
+                    rig.torso.rotation.z = -0.18;
                 }
                 return;
             }
 
-            // ATTACK & FATALITY ANIMATIONS
-            if (act === 'light' || act === 'heavy' || act === 'special' || act === 'special2' || act === 'xray' || act === 'fatality') {
-                if (act === 'fatality') {
-                    if (id === 'pulmonoscorpius') {
-                        rig.tailSegments.forEach((seg, i) => { seg.rotation.z = -0.45 - i * 0.2; });
+            // --- 2. ANIMATIONS D'ATTAQUES DISTINCTES PAR ESPÈCE ---
+            if (act === 'light' || act === 'heavy' || act === 'special' || act === 'special2' || act === 'xray') {
+                if (id === 'trex') {
+                    if (act === 'light') {
+                        // Morsure plongeante en avant
+                        rig.torso.rotation.z = -swing * 0.35;
+                        rig.neck.rotation.z = -swing * 0.3;
+                        rig.jaw.rotation.z = -swing * 0.65;
+                    } else if (act === 'heavy') {
+                        // Balayage caudal rotatif à 360°
+                        rig.hips.rotation.y = prog * Math.PI * 2;
+                        rig.tailSegments.forEach(s => { s.rotation.y = 0.35; });
+                    } else {
+                        // Rugissement volcanique / Morsure sismique
+                        rig.torso.rotation.z = swing * 0.28;
+                        rig.headGroup.rotation.z = swing * 0.45;
+                        rig.jaw.rotation.z = -0.75;
                     }
-                    return;
+                } else if (id === 'pachyrhino') {
+                    if (act === 'light') {
+                        // Coup de cornes de collerette vers le haut
+                        rig.headGroup.rotation.z = swing * 0.75;
+                    } else if (act === 'heavy' || act === 'special') {
+                        // Coup de bélier de la bosse nasale
+                        rig.hips.position.x = swing * 0.85;
+                        rig.torso.rotation.z = -swing * 0.25;
+                        rig.headGroup.rotation.z = -0.45 + swing * 0.65;
+                    } else {
+                        // Piétinement des pattes avant (Cornes Sismiques)
+                        rig.torso.rotation.z = Math.sin(prog * Math.PI * 2) * 0.38;
+                        rig.legs[0].rotation.z = swing * 0.8;
+                        rig.legs[1].rotation.z = swing * 0.8;
+                    }
+                } else if (id === 'ankylo') {
+                    if (act === 'light') {
+                        // Coup d'épaule épineuse
+                        rig.hips.position.x = swing * 0.75;
+                        rig.torso.rotation.x = swing * 0.45;
+                    } else if (act === 'heavy' || act === 'special') {
+                        // Tourbillon 360° du Marteau d'Os
+                        rig.hips.rotation.y = prog * Math.PI * 2;
+                        rig.tailSegments.forEach(s => { s.rotation.y = 0.42; });
+                    } else {
+                        // Roulade en Boulet Tectonique
+                        rig.hips.position.y = baseHipsY + swing * 0.8;
+                        rig.torso.rotation.z = -prog * Math.PI * 4;
+                    }
+                } else if (id === 'apato') {
+                    if (act === 'light') {
+                        // Grand balayage du long cou
+                        rig.specialParts.neckSegments.forEach((nSeg, i) => {
+                            nSeg.rotation.z = -swing * (0.42 - i * 0.08);
+                            nSeg.rotation.y = Math.sin(prog * Math.PI * 2) * 0.45;
+                        });
+                    } else if (act === 'heavy' || act === 'special2') {
+                        // Cabré titanesque et piétinement sismique
+                        rig.hips.rotation.z = Math.sin(prog * Math.PI) * 0.58;
+                        rig.legs[0].rotation.z = swing * 0.7;
+                        rig.legs[1].rotation.z = swing * 0.7;
+                    } else {
+                        // Claquement de queue Fouet Supersonique
+                        rig.hips.rotation.y = Math.PI * swing;
+                        rig.tailSegments.forEach((s, i) => {
+                            s.rotation.y = Math.sin(prog * Math.PI * 2 - i * 0.3) * 0.55;
+                        });
+                    }
+                } else if (id === 'maiasaura') {
+                    if (act === 'light') {
+                        // Double frappe rapide
+                        rig.arms[0].rotation.z = swing * 1.1;
+                        rig.arms[1].rotation.z = swing * 1.1;
+                        rig.headGroup.rotation.z = -swing * 0.4;
+                    } else if (act === 'heavy' || act === 'special2') {
+                        // Salto / Ruée de coups de pied sautés
+                        rig.hips.position.y = baseHipsY + swing * 1.35;
+                        rig.hips.rotation.z = prog * Math.PI * 2;
+                        rig.legs[0].rotation.z = 0.85;
+                        rig.legs[1].rotation.z = -0.85;
+                    } else {
+                        // Onde Ultrasonique de la crête
+                        rig.neck.rotation.z = -swing * 0.35;
+                        rig.headGroup.rotation.z = swing * 0.25;
+                    }
+                } else if (id === 'terabird') {
+                    if (act === 'light') {
+                        // Coup de bec guillotine ultra-rapide
+                        rig.neck.rotation.z = -swing * 0.85;
+                        rig.headGroup.rotation.z = -swing * 0.45;
+                    } else if (act === 'heavy' || act === 'special2') {
+                        // Saut de rapace toutes serres en avant
+                        rig.hips.position.y = baseHipsY + swing * 1.5;
+                        rig.torso.rotation.z = swing * 0.35;
+                        rig.legs[0].rotation.z = swing * 1.1;
+                        rig.legs[1].rotation.z = swing * 0.9;
+                        rig.arms[0].rotation.x = -0.85;
+                        rig.arms[1].rotation.x = 0.85;
+                    } else {
+                        // Plongeon Guillotine Aviaire
+                        rig.hips.position.y = baseHipsY + Math.sin(prog * Math.PI) * 1.8;
+                        rig.neck.rotation.z = -swing * 0.95;
+                        rig.arms[0].rotation.x = -1.1;
+                        rig.arms[1].rotation.x = 1.1;
+                    }
+                } else if (id === 'postosuchus') {
+                    if (act === 'light') {
+                        // Bond bipède et claquement de mâchoires du Trias
+                        rig.hips.rotation.z = swing * 0.45;
+                        rig.headGroup.rotation.z = -swing * 0.4;
+                        rig.jaw.rotation.z = -swing * 0.75;
+                    } else if (act === 'heavy' || act === 'special') {
+                        // TONNEAU DE LA MORT (Rotation longitudinale Death Roll sur l'axe X !)
+                        rig.hips.position.y = baseHipsY + swing * 0.65;
+                        rig.torso.rotation.x = prog * Math.PI * 4;
+                        rig.jaw.rotation.z = -0.5;
+                    } else {
+                        // Ruée Mâchoire du Trias
+                        rig.hips.position.x = swing * 0.9;
+                        rig.jaw.rotation.z = -0.8;
+                    }
+                } else if (id === 'spinosaurus') {
+                    if (act === 'light') {
+                        // Lacération alternée des griffes géantes
+                        rig.arms[0].rotation.z = swing * 1.35;
+                        rig.arms[1].rotation.z = -swing * 0.95;
+                        rig.torso.rotation.y = Math.sin(prog * Math.PI * 2) * 0.35;
+                    } else if (act === 'heavy') {
+                        // Double coup de griffes plongeant + morsure
+                        rig.torso.rotation.z = -swing * 0.35;
+                        rig.arms[0].rotation.z = swing * 1.45;
+                        rig.arms[1].rotation.z = swing * 1.45;
+                        rig.jaw.rotation.z = -swing * 0.65;
+                    } else {
+                        // Illumination thermique de la voile dorsale + balayage
+                        rig.hips.rotation.y = prog * Math.PI * 2;
+                    }
+                } else if (id === 'therizino') {
+                    if (act === 'light') {
+                        // Entaille croisée rapide des faux d'un mètre
+                        rig.arms[0].rotation.y = swing * 1.15;
+                        rig.arms[1].rotation.y = -swing * 1.15;
+                        rig.arms[0].rotation.z = -swing * 0.65;
+                        rig.arms[1].rotation.z = -swing * 0.65;
+                    } else if (act === 'heavy' || act === 'special') {
+                        // Guillotine en X des 6 lames géantes
+                        rig.torso.rotation.z = -swing * 0.3;
+                        rig.arms[0].rotation.z = Math.cos(prog * Math.PI) * 1.2;
+                        rig.arms[1].rotation.z = Math.cos(prog * Math.PI) * 1.2;
+                    } else {
+                        // Tourbillon de Lames 360°
+                        rig.hips.rotation.y = prog * Math.PI * 4;
+                        rig.arms[0].rotation.x = -0.75;
+                        rig.arms[1].rotation.x = 0.75;
+                    }
                 }
-                if (id === 'pulmonoscorpius') {
-                    rig.arms[0].rotation.y = swing * 0.8;
-                    rig.arms[1].rotation.y = -swing * 0.8;
+                return;
+            }
+
+            // --- 3. CHORÉGRAPHIES DE FATALITÉS 3D UNIQUES PAR ESPÈCE (9 ESPÈCES) ---
+            if (act === 'fatality') {
+                if (id === 'trex') {
+                    // T-REX : Saisit la victime, la secoue violemment de gauche à droite, puis avale sa tête
+                    if (prog < 0.3) {
+                        rig.torso.rotation.z = -0.35;
+                        rig.neck.rotation.z = -0.4;
+                        rig.jaw.rotation.z = -0.7;
+                    } else if (prog < 0.72) {
+                        rig.torso.rotation.z = 0.25;
+                        rig.headGroup.rotation.y = Math.sin(prog * 45) * 0.55;
+                        rig.headGroup.rotation.z = Math.cos(prog * 35) * 0.35;
+                        rig.jaw.rotation.z = -0.25;
+                    } else {
+                        rig.torso.rotation.z = 0.35;
+                        rig.headGroup.rotation.z = 0.65;
+                        rig.jaw.rotation.z = Math.sin(prog * 30) * 0.35 - 0.35;
+                    }
+                } else if (id === 'pachyrhino') {
+                    // PACHYRHINOSAURE : Gratte le sol, charge supersonique et soulève la victime sur ses cornes
+                    if (prog < 0.35) {
+                        rig.hips.position.x = -1.2 * (prog / 0.35);
+                        rig.headGroup.rotation.z = -0.45;
+                        rig.legs[0].rotation.z = Math.sin(prog * 45) * 0.65;
+                    } else if (prog < 0.65) {
+                        const p = (prog - 0.35) / 0.3;
+                        rig.hips.position.x = -1.2 + p * 3.0;
+                        rig.headGroup.rotation.z = -0.5;
+                    } else {
+                        rig.hips.position.x = 1.8;
+                        rig.headGroup.rotation.z = 0.85;
+                    }
+                } else if (id === 'ankylo') {
+                    // ANKYLOSAURE : Frappe basse brise-genoux puis rotation 360° Home-Run qui décapite
+                    if (prog < 0.45) {
+                        rig.hips.rotation.y = Math.sin(prog * Math.PI * 2) * 1.8;
+                    } else {
+                        const p = (prog - 0.45) / 0.55;
+                        rig.hips.rotation.y = p * Math.PI * 4;
+                        rig.tailSegments.forEach(s => { s.rotation.y = 0.5; s.rotation.z = 0.25; });
+                    }
+                } else if (id === 'apato') {
+                    // APATOSAURE : Se cabre très haut sur ses pattes arrière puis écrase l'adversaire au sol
+                    if (prog < 0.58) {
+                        const p = prog / 0.58;
+                        rig.hips.rotation.z = p * 0.95;
+                        rig.hips.position.y = baseHipsY + p * 1.4;
+                        rig.legs[0].rotation.z = 0.8;
+                        rig.legs[1].rotation.z = 0.8;
+                    } else {
+                        rig.hips.rotation.z = -0.18;
+                        rig.hips.position.y = baseHipsY * 0.85;
+                    }
+                } else if (id === 'maiasaura') {
+                    // MAIASAURA : Concentre un faisceau ultrasonique continu qui fait gonfler et exploser la tête ennemie
+                    rig.torso.rotation.z = -0.22;
+                    rig.neck.rotation.z = -0.3 + Math.sin(prog * 60) * 0.08;
+                    rig.specialParts.sonicCrest.scale.setScalar(1 + Math.sin(prog * 50) * 0.4);
+                } else if (id === 'terabird') {
+                    // TERABIRD : Bondit sur la victime et martèle 4 coups de bec avant d'arracher son cœur
+                    if (prog < 0.3) {
+                        rig.hips.position.y = baseHipsY + Math.sin((prog / 0.3) * Math.PI) * 2.5;
+                        rig.arms[0].rotation.x = -1.2;
+                        rig.arms[1].rotation.x = 1.2;
+                    } else if (prog < 0.78) {
+                        rig.neck.rotation.z = -Math.abs(Math.sin(prog * 38)) * 1.05;
+                    } else {
+                        rig.torso.rotation.z = 0.35;
+                        rig.neck.rotation.z = 0.45;
+                        rig.arms[0].rotation.x = -1.1;
+                        rig.arms[1].rotation.x = 1.1;
+                    }
+                } else if (id === 'postosuchus') {
+                    // POSTOSUCHUS : Saisit sa proie dans sa mâchoire puis exécute un Tonneau de la Mort (Death Roll) frénétique
+                    if (prog < 0.25) {
+                        rig.hips.rotation.z = 0.35;
+                        rig.jaw.rotation.z = -0.8;
+                    } else {
+                        rig.hips.position.y = baseHipsY + 0.55;
+                        rig.torso.rotation.x = (prog - 0.25) * Math.PI * 14;
+                        rig.jaw.rotation.z = -0.25;
+                    }
+                } else if (id === 'spinosaurus') {
+                    // SPINOSAURE : Empale et soulève sa victime avec ses griffes pendant que sa voile irradie
+                    if (prog < 0.35) {
+                        rig.torso.rotation.z = -0.3;
+                        rig.arms[0].rotation.z = 1.1;
+                        rig.arms[1].rotation.z = 1.1;
+                    } else if (prog < 0.75) {
+                        rig.torso.rotation.z = 0.38;
+                        rig.arms[0].rotation.z = 1.55;
+                        rig.arms[1].rotation.z = 1.55;
+                        rig.jaw.rotation.z = -0.7;
+                    } else {
+                        rig.arms[0].rotation.y = 0.95;
+                        rig.arms[1].rotation.y = -0.95;
+                    }
+                } else if (id === 'therizino') {
+                    // THÉRIZINOSAURE : 3 entailles chirurgicales ultra-rapides avec ses faux d'un mètre
+                    const slashWave = Math.sin(prog * Math.PI * 6);
+                    rig.torso.rotation.y = slashWave * 0.55;
+                    rig.arms[0].rotation.z = slashWave * 1.3;
+                    rig.arms[1].rotation.z = -slashWave * 1.3;
+                    rig.arms[0].rotation.y = Math.cos(prog * Math.PI * 6) * 0.85;
+                    rig.arms[1].rotation.y = -Math.cos(prog * Math.PI * 6) * 0.85;
                 }
             }
         }
 
-        // 6. SCÈNES THREE.JS
+        // 6. SCÈNES THREE.JS : APERÇUS DE SÉLECTION & ARÈNE DE COMBAT 3D
         let battleRenderer = null;
         let battleScene = null;
         let battleCamera = null;
         let arenaGroup = null;
         let fxGroup = null;
 
+        // Contrôle caméra souris
         let isDraggingCam = false;
         let prevMouse = { x: 0, y: 0 };
         let camOrbit = { yaw: 0, pitch: 0.12 };
 
-        let preview1 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, colorIdx: -1 };
-        let preview2 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, colorIdx: -1 };
+        // Aperçus 3D pour P1 et P2 dans le menu de sélection
+        let preview1 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null };
+        let preview2 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null };
 
         function setupPreviewScene(previewObj, canvasId) {
             const canvas = document.getElementById(canvasId);
@@ -1665,6 +1965,7 @@
             dirLight.position.set(4, 7, 5);
             scene.add(dirLight);
 
+            // Socle rocheux 3D
             const pedestal = new THREE.Mesh(
                 new THREE.CylinderGeometry(1.85, 2.1, 0.35, 20),
                 new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.7 })
@@ -1685,8 +1986,8 @@
             if (!preview2.renderer) setupPreviewScene(preview2, 'p2PreviewCanvas');
 
             [
-                { p: preview1, dino: DINO_ROSTER[p1ChoiceIndex], canvasId: 'p1PreviewCanvas', dir: 1, colIdx: p1ColorIndex },
-                { p: preview2, dino: DINO_ROSTER[p2ChoiceIndex], canvasId: 'p2PreviewCanvas', dir: -1, colIdx: p2ColorIndex }
+                { p: preview1, dino: DINO_ROSTER[p1ChoiceIndex], canvasId: 'p1PreviewCanvas', dir: 1 },
+                { p: preview2, dino: DINO_ROSTER[p2ChoiceIndex], canvasId: 'p2PreviewCanvas', dir: -1 }
             ].forEach(item => {
                 const canvas = document.getElementById(item.canvasId);
                 const rect = canvas.parentElement.getBoundingClientRect();
@@ -1698,12 +1999,11 @@
                     }
                 }
 
-                if (item.p.dinoId !== item.dino.id || item.p.colorIdx !== item.colIdx) {
+                if (item.p.dinoId !== item.dino.id) {
                     if (item.p.rig) item.p.scene.remove(item.p.rig.root);
-                    item.p.rig = createDino3DRig(item.dino, item.dino.palettes[item.colIdx % item.dino.palettes.length]);
+                    item.p.rig = createDino3DRig(item.dino);
                     item.p.scene.add(item.p.rig.root);
                     item.p.dinoId = item.dino.id;
-                    item.p.colorIdx = item.colIdx;
                 }
 
                 if (item.p.rig) {
@@ -1732,17 +2032,24 @@
             battleScene = new THREE.Scene();
             battleCamera = new THREE.PerspectiveCamera(45, 2, 0.1, 250);
 
-            battleScene.add(new THREE.AmbientLight(0xffffff, 0.65));
+            const ambLight = new THREE.AmbientLight(0xffffff, 0.65);
+            battleScene.add(ambLight);
+
             const sunLight = new THREE.DirectionalLight(0xfff7ed, 1.35);
             sunLight.position.set(8, 18, 12);
             sunLight.castShadow = true;
             battleScene.add(sunLight);
+
+            const rimLight = new THREE.PointLight(0xef4444, 1.2, 35);
+            rimLight.position.set(0, 6, -8);
+            battleScene.add(rimLight);
 
             arenaGroup = new THREE.Group();
             fxGroup = new THREE.Group();
             battleScene.add(arenaGroup);
             battleScene.add(fxGroup);
 
+            // Événements souris pour tourner la caméra 3D
             canvas.addEventListener('mousedown', (e) => {
                 isDraggingCam = true;
                 prevMouse = { x: e.clientX, y: e.clientY };
@@ -1762,6 +2069,7 @@
             while (arenaGroup.children.length > 0) {
                 arenaGroup.remove(arenaGroup.children[0]);
             }
+
             let skyColor = 0x1a0505;
             let floorColor = 0x18181b;
             let accentColor = 0xea580c;
@@ -1779,47 +2087,97 @@
             battleScene.background = new THREE.Color(skyColor);
             battleScene.fog = new THREE.FogExp2(skyColor, 0.022);
 
-            const stageMesh = new THREE.Mesh(
-                new THREE.BoxGeometry(28, 2, 10),
-                new THREE.MeshStandardMaterial({ color: floorColor, roughness: 0.8 })
-            );
+            // Sol principal de l'arène
+            const stageGeo = new THREE.BoxGeometry(28, 2, 10);
+            const stageMat = new THREE.MeshStandardMaterial({ color: floorColor, roughness: 0.8 });
+            const stageMesh = new THREE.Mesh(stageGeo, stageMat);
             stageMesh.position.set(0, -1, 0);
             stageMesh.receiveShadow = true;
             arenaGroup.add(stageMesh);
+
+            // Bordure lumineuse de lave / acide / os
+            const rimGeo = new THREE.BoxGeometry(28.2, 0.18, 10.2);
+            const rimMat = new THREE.MeshBasicMaterial({ color: accentColor });
+            const rimMesh = new THREE.Mesh(rimGeo, rimMat);
+            rimMesh.position.set(0, -0.05, 0);
+            arenaGroup.add(rimMesh);
+
+            // Éléments de décor 3D en arrière-plan
+            if (arenaType === 'volcano') {
+                const lavaSea = new THREE.Mesh(
+                    new THREE.PlaneGeometry(120, 80),
+                    new THREE.MeshBasicMaterial({ color: 0x991b1b })
+                );
+                lavaSea.rotation.x = -Math.PI / 2;
+                lavaSea.position.y = -1.8;
+                arenaGroup.add(lavaSea);
+
+                // Volcans 3D et Météore du Chicxulub
+                for (let x of [-14, -4, 7, 16]) {
+                    const cone = new THREE.Mesh(
+                        new THREE.ConeGeometry(4.5, 9, 7),
+                        new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.9 })
+                    );
+                    cone.position.set(x, 3.2, -12);
+                    arenaGroup.add(cone);
+                }
+                const meteor = new THREE.Mesh(
+                    new THREE.SphereGeometry(2.6, 16, 16),
+                    new THREE.MeshBasicMaterial({ color: 0xf59e0b })
+                );
+                meteor.position.set(0, 11, -22);
+                arenaGroup.add(meteor);
+            } else if (arenaType === 'boneyard') {
+                // Côtes géantes de Titanosaure en arche 3D
+                const boneMat = new THREE.MeshStandardMaterial({ color: 0xe4e4e7, roughness: 0.5 });
+                for (let x = -10; x <= 10; x += 4) {
+                    const rib = new THREE.Mesh(new THREE.TorusGeometry(5.5, 0.38, 8, 20, Math.PI), boneMat);
+                    rib.position.set(x, 0, -4.5);
+                    arenaGroup.add(rib);
+                }
+            } else {
+                // Piliers et cristaux acides
+                const crysMat = new THREE.MeshStandardMaterial({ color: 0x84cc16, emissive: 0x3f6212 });
+                for (let x = -11; x <= 11; x += 4.5) {
+                    const crys = new THREE.Mesh(new THREE.ConeGeometry(0.9, 5.5, 5), crysMat);
+                    crys.position.set(x, 2.2, -5.5);
+                    crys.rotation.z = (x % 2 === 0 ? 0.15 : -0.15);
+                    arenaGroup.add(crys);
+                }
+            }
         }
 
-        // 7. GESTION DE LA SÉLECTION ET PALETTES DE COULEURS
+        // 7. GESTION DE L'ÉCRAN DE SÉLECTION DES PERSONNAGES
         function initRosterUI() {
             const grid = document.getElementById('rosterGrid');
             grid.innerHTML = '';
 
             DINO_ROSTER.forEach((dino, idx) => {
                 const card = document.createElement('div');
-                card.className = `stone-card rounded-xl p-2 cursor-pointer flex flex-col items-center text-center relative ${
+                card.className = `stone-card rounded-xl p-2.5 cursor-pointer flex flex-col items-center text-center relative ${
                     idx === p1ChoiceIndex ? 'selected-p1' : ''
                 } ${idx === p2ChoiceIndex ? 'selected-p2' : ''}`;
                 card.dataset.index = idx;
 
                 card.innerHTML = `
-                    <div class="w-full flex justify-between items-center text-[9px] font-black mb-0.5">
-                        <span class="px-1 rounded bg-zinc-900 text-amber-400 border border-zinc-700">${dino.role}</span>
+                    <div class="w-full flex justify-between items-center text-[10px] font-black mb-1">
+                        <span class="px-1.5 py-0.5 rounded bg-zinc-900 text-amber-400 border border-zinc-700">${dino.role}</span>
                         <span class="badge-slot text-xs font-black"></span>
                     </div>
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center my-1 border-2" style="background: radial-gradient(circle, #${dino.defaultColor.toString(16)}55, #09090b); border-color:#${dino.defaultColor.toString(16)}">
-                        <span class="mk-title text-base font-black text-white">${dino.name.substring(0, 2)}</span>
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center my-1 border-2" style="background: radial-gradient(circle, ${dino.cssPrimary}55, #09090b); border-color:${dino.cssPrimary}">
+                        <span class="mk-title text-lg font-black text-white">${dino.name.substring(0, 2)}</span>
                     </div>
-                    <div class="mk-title text-[11px] font-black text-white tracking-wide truncate w-full">${dino.name}</div>
+                    <div class="mk-title text-xs sm:text-sm font-black text-white tracking-wide">${dino.name}</div>
+                    <div class="text-[10px] text-zinc-400 line-clamp-1">${dino.fullName}</div>
                 `;
 
                 card.addEventListener('click', () => {
                     sfx.playHit(false);
                     if (activeSelectSlot === 1) {
                         p1ChoiceIndex = idx;
-                        p1ColorIndex = 0;
                         activeSelectSlot = 2;
                     } else {
                         p2ChoiceIndex = idx;
-                        p2ColorIndex = 0;
                         activeSelectSlot = 1;
                     }
                     updateSelectScreenUI();
@@ -1827,6 +2185,22 @@
 
                 grid.appendChild(card);
             });
+
+            const modalList = document.getElementById('modalRosterMoves');
+            modalList.innerHTML = DINO_ROSTER.map(d => `
+                <div class="p-3 rounded-xl bg-zinc-900/70 border border-zinc-700">
+                    <div class="flex items-center justify-between">
+                        <span class="mk-title font-black text-amber-400 text-sm">${d.name}</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">${d.role}</span>
+                    </div>
+                    <p class="text-xs text-zinc-300 mt-1"><strong>Animation 3D :</strong> ${d.moveStyle}</p>
+                    <ul class="mt-2 space-y-0.5 text-xs">
+                        <li>⚡ <strong>Spécial 1 :</strong> <span class="text-amber-300">${d.special1Name}</span></li>
+                        <li>🌪️ <strong>Spécial 2 :</strong> <span class="text-emerald-300">${d.special2Name}</span></li>
+                        <li>💀 <strong>Fatalité 3D (${d.fatalityName}) :</strong> <span class="text-red-400">${d.fatalityDesc}</span></li>
+                    </ul>
+                </div>
+            `).join('');
 
             updateSelectScreenUI();
         }
@@ -1847,20 +2221,6 @@
             document.getElementById('p1SpecName').textContent = `${p1.special1Name} • ${p1.special2Name}`;
             document.getElementById('p1FatalityName').textContent = p1.fatalityName;
 
-            // Palette de couleurs J1
-            const p1Palette = document.getElementById('p1ColorPalette');
-            p1Palette.innerHTML = '';
-            p1.palettes.forEach((colHex, cIdx) => {
-                const btn = document.createElement('button');
-                btn.className = `w-6 h-6 rounded-full border-2 transition ${cIdx === p1ColorIndex ? 'border-amber-400 scale-110 shadow' : 'border-zinc-700 opacity-70'}`;
-                btn.style.backgroundColor = '#' + colHex.toString(16).padStart(6, '0');
-                btn.addEventListener('click', () => {
-                    p1ColorIndex = cIdx;
-                    updateSelectScreenUI();
-                });
-                p1Palette.appendChild(btn);
-            });
-
             document.getElementById('p2NameDisplay').textContent = p2.name;
             document.getElementById('p2RoleBadge').textContent = p2.role;
             document.getElementById('p2TitleDisplay').textContent = p2.title;
@@ -1873,26 +2233,12 @@
             document.getElementById('p2SpecName').textContent = `${p2.special1Name} • ${p2.special2Name}`;
             document.getElementById('p2FatalityName').textContent = p2.fatalityName;
 
-            // Palette de couleurs J2
-            const p2Palette = document.getElementById('p2ColorPalette');
-            p2Palette.innerHTML = '';
-            p2.palettes.forEach((colHex, cIdx) => {
-                const btn = document.createElement('button');
-                btn.className = `w-6 h-6 rounded-full border-2 transition ${cIdx === p2ColorIndex ? 'border-amber-400 scale-110 shadow' : 'border-zinc-700 opacity-70'}`;
-                btn.style.backgroundColor = '#' + colHex.toString(16).padStart(6, '0');
-                btn.addEventListener('click', () => {
-                    p2ColorIndex = cIdx;
-                    updateSelectScreenUI();
-                });
-                p2Palette.appendChild(btn);
-            });
-
             document.querySelectorAll('#rosterGrid .stone-card').forEach((card, i) => {
                 card.classList.toggle('selected-p1', i === p1ChoiceIndex);
                 card.classList.toggle('selected-p2', i === p2ChoiceIndex);
                 const badge = card.querySelector('.badge-slot');
                 if (i === p1ChoiceIndex && i === p2ChoiceIndex) {
-                    badge.textContent = 'J1/J2';
+                    badge.textContent = 'J1 & J2';
                     badge.className = 'badge-slot text-amber-400 font-black';
                 } else if (i === p1ChoiceIndex) {
                     badge.textContent = 'J1';
@@ -1904,18 +2250,28 @@
                     badge.textContent = '';
                 }
             });
+
+            const btnSlot1 = document.getElementById('btnSelectSlotP1');
+            const btnSlot2 = document.getElementById('btnSelectSlotP2');
+            if (activeSelectSlot === 1) {
+                btnSlot1.className = 'px-3 py-1.5 rounded-lg bg-red-700 border-2 border-amber-300 text-xs font-extrabold text-white uppercase shadow';
+                btnSlot2.className = 'px-3 py-1.5 rounded-lg bg-zinc-800 border border-blue-500/60 text-xs font-extrabold text-blue-300 uppercase';
+            } else {
+                btnSlot1.className = 'px-3 py-1.5 rounded-lg bg-zinc-800 border border-red-500/60 text-xs font-extrabold text-red-300 uppercase';
+                btnSlot2.className = 'px-3 py-1.5 rounded-lg bg-blue-700 border-2 border-amber-300 text-xs font-extrabold text-white uppercase shadow';
+            }
         }
 
-        // 8. COMBATTANTS ET COMBAT 3D
+        // 8. MOTEUR DE COMBAT 3D (POSITIONS X EN UNITÉS 3D : -11 À +11)
         const STAGE_LEFT_3D = -11.0;
         const STAGE_RIGHT_3D = 11.0;
 
         class Fighter3D {
-            constructor(dino, isP1, colorOverride) {
+            constructor(dino, isP1) {
                 this.dino = dino;
                 this.isP1 = isP1;
                 this.roundsWon = 0;
-                this.rig = createDino3DRig(dino, colorOverride);
+                this.rig = createDino3DRig(dino);
                 battleScene.add(this.rig.root);
                 this.resetForRound();
             }
@@ -1959,38 +2315,68 @@
             canCancelInto(nextType) {
                 if (this.actionDuration <= 0) return true;
                 const progress = this.actionTimer / this.actionDuration;
+                // Fenêtre de Combo Cancel dès 42% de l'animation en cours
                 if (progress < 0.42) return false;
-                if (this.action === 'light' && (nextType === 'heavy' || nextType === 'special' || nextType === 'special2' || nextType === 'xray')) return true;
-                if (this.action === 'heavy' && (nextType === 'special' || nextType === 'special2' || nextType === 'xray')) return true;
+                if (this.action === 'light' && (nextType === 'heavy' || nextType === 'special' || nextType === 'special2' || nextType === 'xray')) {
+                    return true;
+                }
+                if (this.action === 'heavy' && (nextType === 'special' || nextType === 'special2' || nextType === 'xray')) {
+                    return true;
+                }
                 return false;
             }
 
             startDash(dir) {
                 if (xrayCinematicTimer > 0 || this.hitStun > 0 || this.isDizzy || this.isDead || this.dashCooldown > 0) return;
+                if (this.action === 'xray' || this.action === 'fatality') return;
+
+                this.isBlocking = false;
                 this.dashTimer = 0.18;
                 this.dashCooldown = 0.42;
                 const dashDir = dir !== 0 ? dir : this.facing;
                 this.vx = dashDir * (this.dino.walkSpeed * 2.45);
                 this.action = 'walk';
+                this.actionDuration = 0;
+                this.actionTimer = 0;
                 sfx.playHit(false);
+                spawnFloatingPopup(this.x, dashDir === this.facing ? '💨 DASH !' : '💨 ESQUIVE !', '#38bdf8');
             }
 
             startAttack(type) {
                 if (xrayCinematicTimer > 0 || this.hitStun > 0 || this.isDizzy || this.isDead) return;
-                if (this.action === 'light' || this.action === 'heavy' || this.action === 'special') {
+                if (this.action === 'xray' || this.action === 'fatality') return;
+
+                // Gestion du Combo Cancel ou mise en mémoire tampon (Input Buffer)
+                if (this.action === 'light' || this.action === 'heavy' || this.action === 'special' || this.action === 'special2') {
                     if (!this.canCancelInto(type)) {
                         this.bufferedAction = type;
                         this.bufferTimer = 0.24;
                         return;
                     }
                 }
+
                 this.isBlocking = false;
                 this.action = type;
                 this.hasHitCurrentAttack = false;
                 this.actionTimer = 0;
                 this.bufferedAction = null;
-                this.actionDuration = type === 'light' ? 0.26 : (type === 'heavy' ? 0.44 : 0.54);
-                sfx.playRoar(100, 0.2);
+
+                // Léger pas d'engagement en avant pour dynamiser les coups au corps à corps
+                if (type === 'light') {
+                    this.actionDuration = 0.26;
+                    this.vx = this.facing * 4.2;
+                    sfx.playRoar(150, 0.14);
+                } else if (type === 'heavy') {
+                    this.actionDuration = 0.44;
+                    this.vx = this.facing * 6.5;
+                    sfx.playRoar(95, 0.25);
+                } else if (type === 'special') {
+                    this.actionDuration = 0.54;
+                    sfx.playRoar(80, 0.38);
+                } else if (type === 'special2') {
+                    this.actionDuration = 0.60;
+                    sfx.playRoar(115, 0.42);
+                }
             }
         }
 
@@ -2011,72 +2397,187 @@
 
         const keys = {};
         const touchState = { left: false, right: false, up: false, down: false };
-        const lastTapTime = { left: 0, right: 0 };
+        const lastTapTime = { left: 0, right: 0, p2Left: 0, p2Right: 0 };
 
         function flashArcadeButton(btnId, active) {
             const el = document.getElementById(btnId);
-            if (el) el.classList.toggle('active-press', active);
+            if (!el) return;
+            el.classList.toggle('active-press', active);
         }
 
         window.addEventListener('keydown', (e) => {
-            if (matchState !== 'select' && ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+            // Empêcher le défilement de la page avec Espace ou les Flèches pendant un combat
+            if (matchState !== 'select' && ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                e.preventDefault();
+            }
             if (e.repeat) return;
+
+            const now = performance.now();
             keys[e.code] = true;
+
+            // Retour visuel sur les boutons Arcade
+            if (e.code === 'KeyA' || e.code === 'KeyQ' || (gameMode !== 'pvp' && e.code === 'ArrowLeft')) flashArcadeButton('uiBtnLeft', true);
+            if (e.code === 'KeyD' || (gameMode !== 'pvp' && e.code === 'ArrowRight')) flashArcadeButton('uiBtnRight', true);
+            if (e.code === 'KeyW' || e.code === 'KeyZ' || (gameMode !== 'pvp' && e.code === 'ArrowUp')) flashArcadeButton('uiBtnUp', true);
+            if (e.code === 'KeyS' || (gameMode !== 'pvp' && e.code === 'ArrowDown')) flashArcadeButton('uiBtnDown', true);
+
+            // Bloquer tous les contrôles si une cinématique X-Ray est en cours
             if (xrayCinematicTimer > 0) return;
 
             if (matchState === 'fight' || matchState === 'finish_him') {
-                if (e.code === 'KeyF' || e.code === 'KeyJ') triggerPlayerAction(fighter1, fighter2, 'light');
-                if (e.code === 'KeyG' || e.code === 'KeyK') triggerPlayerAction(fighter1, fighter2, 'heavy');
-                if (e.code === 'KeyH' || e.code === 'KeyL') triggerPlayerAction(fighter1, fighter2, 'special');
-                if (e.code === 'KeyT' || e.code === 'KeyU') triggerPlayerAction(fighter1, fighter2, 'special2');
-                if (e.code === 'KeyR' || e.code === 'Space') triggerPlayerAction(fighter1, fighter2, 'xray');
+                // Double-tap Gauche/Droite ou touche E pour Dash J1
+                if (e.code === 'KeyA' || e.code === 'KeyQ' || (gameMode !== 'pvp' && e.code === 'ArrowLeft')) {
+                    if (now - lastTapTime.left < 240 && fighter1) fighter1.startDash(-1);
+                    lastTapTime.left = now;
+                }
+                if (e.code === 'KeyD' || (gameMode !== 'pvp' && e.code === 'ArrowRight')) {
+                    if (now - lastTapTime.right < 240 && fighter1) fighter1.startDash(1);
+                    lastTapTime.right = now;
+                }
+                if (e.code === 'KeyE') {
+                    flashArcadeButton('uiBtnDash', true);
+                    triggerPlayerAction(fighter1, fighter2, 'dash');
+                }
+
+                if (e.code === 'KeyF' || e.code === 'KeyJ') { flashArcadeButton('uiBtnLight', true); triggerPlayerAction(fighter1, fighter2, 'light'); }
+                if (e.code === 'KeyG' || e.code === 'KeyK') { flashArcadeButton('uiBtnHeavy', true); triggerPlayerAction(fighter1, fighter2, 'heavy'); }
+                if (e.code === 'KeyH' || e.code === 'KeyL') { flashArcadeButton('uiBtnSpecial', true); triggerPlayerAction(fighter1, fighter2, 'special'); }
+                if (e.code === 'KeyT' || e.code === 'KeyU') { flashArcadeButton('uiBtnSpecial2', true); triggerPlayerAction(fighter1, fighter2, 'special2'); }
+                if (e.code === 'KeyR' || e.code === 'Space') { flashArcadeButton('btnRageFatality', true); triggerPlayerAction(fighter1, fighter2, 'xray'); }
+
+                if (gameMode === 'pvp') {
+                    if (e.code === 'ArrowLeft') {
+                        if (now - lastTapTime.p2Left < 240 && fighter2) fighter2.startDash(-1);
+                        lastTapTime.p2Left = now;
+                    }
+                    if (e.code === 'ArrowRight') {
+                        if (now - lastTapTime.p2Right < 240 && fighter2) fighter2.startDash(1);
+                        lastTapTime.p2Right = now;
+                    }
+                    if (e.code === 'Numpad5') triggerPlayerAction(fighter2, fighter1, 'dash');
+                    if (e.code === 'Numpad1' || e.code === 'KeyI') triggerPlayerAction(fighter2, fighter1, 'light');
+                    if (e.code === 'Numpad2' || e.code === 'KeyO') triggerPlayerAction(fighter2, fighter1, 'heavy');
+                    if (e.code === 'Numpad3' || e.code === 'KeyP') triggerPlayerAction(fighter2, fighter1, 'special');
+                    if (e.code === 'Numpad4') triggerPlayerAction(fighter2, fighter1, 'special2');
+                    if (e.code === 'Numpad0' || e.code === 'KeyM') triggerPlayerAction(fighter2, fighter1, 'xray');
+                }
             }
         });
 
-        window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+            if (e.code === 'KeyA' || e.code === 'KeyQ' || e.code === 'ArrowLeft') flashArcadeButton('uiBtnLeft', false);
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') flashArcadeButton('uiBtnRight', false);
+            if (e.code === 'KeyW' || e.code === 'KeyZ' || e.code === 'ArrowUp') flashArcadeButton('uiBtnUp', false);
+            if (e.code === 'KeyS' || e.code === 'ArrowDown') flashArcadeButton('uiBtnDown', false);
+            if (e.code === 'KeyE') flashArcadeButton('uiBtnDash', false);
+            if (e.code === 'KeyF' || e.code === 'KeyJ') flashArcadeButton('uiBtnLight', false);
+            if (e.code === 'KeyG' || e.code === 'KeyK') flashArcadeButton('uiBtnHeavy', false);
+            if (e.code === 'KeyH' || e.code === 'KeyL') flashArcadeButton('uiBtnSpecial', false);
+            if (e.code === 'KeyT' || e.code === 'KeyU') flashArcadeButton('uiBtnSpecial2', false);
+            if (e.code === 'KeyR' || e.code === 'Space') flashArcadeButton('btnRageFatality', false);
+        });
 
         function spawnFloatingPopup(worldX, text, colorHex = '#fde047') {
             const layer = document.getElementById('damagePopupLayer');
             if (!layer) return;
             const el = document.createElement('div');
-            el.style.left = Math.max(12, Math.min(88, 50 + (worldX / 12) * 42)) + '%';
+            const pctLeft = Math.max(12, Math.min(88, 50 + (worldX / 12) * 42));
+            el.style.left = pctLeft + '%';
             el.style.top = '32%';
             el.style.color = colorHex;
-            el.className = 'mk-title absolute -translate-x-1/2 font-black text-base sm:text-2xl drop-shadow';
+            el.className = 'mk-title absolute -translate-x-1/2 font-black text-base sm:text-2xl drop-shadow-[0_3px_3px_rgba(0,0,0,0.95)] transition-all duration-700';
             el.textContent = text;
             layer.appendChild(el);
+            requestAnimationFrame(() => {
+                el.style.top = '18%';
+                el.style.opacity = '0';
+            });
             setTimeout(() => el.remove(), 700);
         }
 
-        function spawn3DBloodAndBones(x, y, count = 20, includeBones = false) {
+        function spawn3DBloodAndBones(x, y, count = 24, includeBones = false) {
             for (let i = 0; i < count; i++) {
-                const isB = includeBones && i % 4 === 0;
-                const mesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.2, 0.2, 0.2),
-                    new THREE.MeshStandardMaterial({ color: isB ? 0xfef3c7 : 0xdc2626 })
-                );
+                const isBone = includeBones && i % 4 === 0;
+                const geo = isBone ? new THREE.BoxGeometry(0.18, 0.42, 0.18) : new THREE.BoxGeometry(0.22, 0.22, 0.22);
+                const mat = new THREE.MeshStandardMaterial({
+                    color: isBone ? 0xfef3c7 : (Math.random() > 0.3 ? 0xdc2626 : 0x7f1d1d),
+                    roughness: 0.4
+                });
+                const mesh = new THREE.Mesh(geo, mat);
                 mesh.position.set(x, y, (Math.random() - 0.5) * 1.2);
                 fxGroup.add(mesh);
+
+                const angle = Math.random() * Math.PI * 2;
+                const spd = 2.5 + Math.random() * 8.5;
                 particles3D.push({
                     mesh,
-                    vx: (Math.random() - 0.5) * 7,
-                    vy: Math.random() * 6 + 3,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.abs(Math.sin(angle)) * spd + 3.5,
                     vz: (Math.random() - 0.5) * 4,
-                    life: 1.0
+                    life: 0.85 + Math.random() * 0.5
                 });
             }
         }
 
+        function spawn3DProjectile(owner, kind) {
+            const dir = owner.facing;
+            let geo, mat;
+            if (kind === 'sonic') {
+                geo = new THREE.TorusGeometry(0.65, 0.12, 8, 20);
+                mat = new THREE.MeshBasicMaterial({ color: 0xf472b6 });
+            } else {
+                geo = new THREE.DodecahedronGeometry(0.55, 1);
+                mat = new THREE.MeshStandardMaterial({
+                    color: owner.dino.accentColor,
+                    emissive: owner.dino.accentColor,
+                    emissiveIntensity: 0.65
+                });
+            }
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(owner.x + dir * 2.1, 2.0, 0);
+            if (kind === 'sonic') mesh.rotation.y = Math.PI / 2;
+            fxGroup.add(mesh);
+
+            projectiles3D.push({
+                owner,
+                mesh,
+                kind,
+                vx: dir * (kind === 'sonic' ? 19.5 : 15.5),
+                damage: kind === 'xray_wave' ? 165 : 85,
+                life: 1.5
+            });
+        }
+
         function triggerPlayerAction(attacker, defender, type) {
-            if (!attacker || !defender || xrayCinematicTimer > 0) return;
+            if (!attacker || !defender) return;
+            // Verrouillage strict pendant toute l'animation X-Ray
+            if (xrayCinematicTimer > 0) return;
+
             if (matchState === 'finish_him' && defender.isDizzy) {
                 executeUnique3DFatality(attacker, defender);
                 return;
             }
             if (matchState !== 'fight') return;
+
+            if (type === 'dash') {
+                const moveLeft = attacker.isP1
+                    ? (keys['KeyA'] || keys['KeyQ'] || (gameMode !== 'pvp' && keys['ArrowLeft']) || touchState.left)
+                    : keys['ArrowLeft'];
+                const moveRight = attacker.isP1
+                    ? (keys['KeyD'] || (gameMode !== 'pvp' && keys['ArrowRight']) || touchState.right)
+                    : keys['ArrowRight'];
+                const dir = moveLeft ? -1 : (moveRight ? 1 : attacker.facing);
+                attacker.startDash(dir);
+                return;
+            }
+
             if (type === 'xray') {
-                if (attacker.rage >= 100) executeXRayMove(attacker, defender);
-                else attacker.startAttack('heavy');
+                if (attacker.rage >= 100) {
+                    executeXRayMove(attacker, defender);
+                } else {
+                    attacker.startAttack('heavy');
+                }
                 return;
             }
             attacker.startAttack(type);
@@ -2085,64 +2586,353 @@
         function executeXRayMove(attacker, defender) {
             if (xrayCinematicTimer > 0) return;
             attacker.rage = 0;
-            const lockDefX = Math.max(STAGE_LEFT_3D + 3.0, Math.min(STAGE_RIGHT_3D - 3.0, defender.x));
-            const lockAttX = lockDefX - attacker.facing * 2.25;
 
-            attacker.x = lockAttX;
-            attacker.y = 0;
-            attacker.vx = 0;
-            attacker.vy = 0;
-            attacker.action = 'xray';
-            attacker.actionDuration = 2.35;
-            attacker.isXrayAttacker = true;
+            const dist = Math.abs(attacker.x - defender.x);
+            if (dist < 10.5) {
+                // Verrouillage complet des 2 dinosaures face à face pour toute la durée du X-Ray
+                const lockDefX = Math.max(STAGE_LEFT_3D + 3.0, Math.min(STAGE_RIGHT_3D - 3.0, defender.x));
+                const lockAttX = lockDefX - attacker.facing * 2.25;
 
-            defender.x = lockDefX;
-            defender.y = 0;
-            defender.vx = 0;
-            defender.vy = 0;
-            defender.hitStun = 2.45;
-            defender.isXrayTarget = true;
+                attacker.x = lockAttX;
+                attacker.y = 0;
+                attacker.vx = 0;
+                attacker.vy = 0;
+                attacker.isBlocking = false;
+                attacker.bufferedAction = null;
+                attacker.action = 'xray';
+                attacker.actionTimer = 0;
+                attacker.actionDuration = 2.35;
+                attacker.isXrayAttacker = true;
 
-            xrayLockPositions = { attacker, defender, attX: lockAttX, defX: lockDefX, attFacing: attacker.facing, defFacing: -attacker.facing };
-            xrayCinematicTimer = 2.35;
-            xrayStage = 1;
+                defender.x = lockDefX;
+                defender.y = 0;
+                defender.vx = 0;
+                defender.vy = 0;
+                defender.isBlocking = false;
+                defender.bufferedAction = null;
+                defender.action = 'idle';
+                defender.actionTimer = 0;
+                defender.actionDuration = 0;
+                defender.hitStun = 2.45;
+                defender.isXrayTarget = true;
 
-            const hud = document.getElementById('xrayOverlayHud');
-            hud.classList.remove('hidden');
-            sfx.playBoneCrack();
+                xrayLockPositions = {
+                    attacker,
+                    defender,
+                    attX: lockAttX,
+                    defX: lockDefX,
+                    attFacing: attacker.facing,
+                    defFacing: -attacker.facing
+                };
 
-            setTimeout(() => { if (xrayCinematicTimer > 0) xrayStage = 2; }, 750);
-            setTimeout(() => {
-                if (xrayCinematicTimer > 0) {
+                xrayCinematicTimer = 2.35;
+                xrayStage = 1;
+
+                const hud = document.getElementById('xrayOverlayHud');
+                const titleEl = document.getElementById('xrayBoneTitle');
+                const psiEl = document.getElementById('xrayPsiDetail');
+                const phaseEl = document.getElementById('xrayPhaseCounter');
+                const targetEl = document.getElementById('xrayTargetLabel');
+
+                hud.classList.remove('hidden');
+                targetEl.textContent = `CIBLE VERROUILLÉE : ${defender.dino.fullName.toUpperCase()}`;
+
+                const totalDmg = Math.round(attacker.dino.stats.pow * 2.55);
+                const hit1 = Math.round(totalDmg * 0.30);
+                const hit2 = Math.round(totalDmg * 0.35);
+                const hit3 = totalDmg - hit1 - hit2;
+
+                // PHASE 1 : FRACTURE DU CRÂNE & MÂCHOIRE (Mouvement bloqué)
+                phaseEl.textContent = 'IMPACT 1 / 3 • CRÂNE';
+                titleEl.textContent = '💀 FRACTURE MAXILLO-CRÂNIENNE';
+                psiEl.textContent = 'PRESSION : 4 950 PSI • DENTS & OS TEMPORAL BROYÉS';
+                sfx.playBoneCrack();
+                screenShake = 0.55;
+                spawn3DBloodAndBones(defender.x, 2.8, 22, true);
+                applyDamage(attacker, defender, hit1, true, '☢ X-RAY : CRÂNE BROYÉ !', true);
+
+                // PHASE 2 : CAGE THORACIQUE & ORGANES INTERNES (Mouvement bloqué)
+                setTimeout(() => {
+                    if (xrayCinematicTimer <= 0 || matchState !== 'fight') return;
+                    xrayStage = 2;
+                    phaseEl.textContent = 'IMPACT 2 / 3 • THORAX';
+                    titleEl.textContent = '🫀 PERFORATION DE LA CAGE THORACIQUE';
+                    psiEl.textContent = 'PRESSION : 6 400 PSI • 6 CÔTES BRISÉES & HÉMORRAGIE';
+                    sfx.playBoneCrack();
+                    sfx.playHit(true);
+                    screenShake = 0.7;
+                    spawn3DBloodAndBones(defender.x, 2.1, 28, true);
+                    applyDamage(attacker, defender, hit2, true, '☢ X-RAY : CÔTES PULVÉRISÉES !', true);
+                }, 750);
+
+                // PHASE 3 : RUPTURE DE LA COLONNE VERTÉBRALE & PROJECTION FINALE
+                setTimeout(() => {
+                    if (xrayCinematicTimer <= 0 || matchState !== 'fight') return;
                     xrayStage = 3;
+                    phaseEl.textContent = 'IMPACT 3 / 3 • VERTÈBRES';
+                    titleEl.textContent = '⚡ RUPTURE VERTÉBRALE CRITIQUE';
+                    psiEl.textContent = 'PRESSION : 8 900 PSI • DISLOCATION CERVICALE TOTALE';
+                    sfx.playBoneCrack();
+                    sfx.playRoar(62, 0.65);
+                    screenShake = 0.95;
+                    spawn3DBloodAndBones(defender.x, 2.3, 38, true);
+                    // Libérer le verrouillage sur l'impact final pour projeter la victime et autoriser le KO
                     xrayLockPositions = null;
+                    applyDamage(attacker, defender, hit3, true, `💥 TOTAL X-RAY : -${totalDmg} PV !`, false);
                     defender.vx = attacker.facing * 13.5;
                     defender.vy = 6.8;
-                }
-            }, 1500);
+                }, 1500);
+            } else {
+                attacker.action = 'xray';
+                attacker.actionTimer = 0;
+                attacker.actionDuration = 0.65;
+                spawn3DProjectile(attacker, 'xray_wave');
+            }
         }
 
+        // 9. LES 9 FATALITÉS 3D DISTINCTES EN TEMPS RÉEL
         function executeUnique3DFatality(winner, loser) {
             matchState = 'fatality_anim';
             stateTimer = 3.8;
             fatalityFocusFighter = winner;
             document.getElementById('fatalityPromptBox').classList.add('hidden');
-            winner.action = 'fatality';
-            winner.x = loser.x - winner.facing * 2.8;
 
+            winner.action = 'fatality';
+            winner.actionTimer = 0;
+            winner.actionDuration = 3.5;
+            winner.x = loser.x - winner.facing * 2.8;
+            winner.facing = loser.x >= winner.x ? 1 : -1;
+
+            const id = winner.dino.id;
+            showAnnouncer(winner.dino.fatalityName.replace(' (R)', ''), 'FATALITÉ 3D EN COURS !');
             sfx.playGong();
             sfx.playRoar(65, 0.8);
-            setTimeout(() => {
-                loser.decapitated = true;
-                loser.isDead = true;
-                loser.hp = 0;
-                spawn3DBloodAndBones(loser.x, 2.5, 60, true);
-            }, 1800);
+            screenShake = 0.5;
+
+            if (id === 'trex') {
+                // 1) T-REX : Saisit la victime, la secoue violemment et avale sa tête
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    spawn3DBloodAndBones(loser.x, 2.5, 35, true);
+                    spawnFloatingPopup(loser.x, 'MÂCHOIRE ROYALE !', '#ef4444');
+                }, 950);
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    sfx.playRoar(52, 0.9);
+                    loser.decapitated = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 2.8, 65, true);
+                    screenShake = 0.9;
+                    showAnnouncer('FATALITY !', 'T-REX DÉVORE SA PROIE');
+                }, 2200);
+
+            } else if (id === 'pachyrhino') {
+                // 2) PACHYRHINOSAURE : Charge supersonique avec sa bosse nasale qui pulvérise et empale
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playRoar(85, 0.5);
+                    spawnFloatingPopup(winner.x, 'CHARGE POLAIRE !', '#38bdf8');
+                }, 800);
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    loser.vx = winner.facing * 14;
+                    loser.vy = 9;
+                    loser.decapitated = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 2.2, 70, true);
+                    screenShake = 0.95;
+                    showAnnouncer('FATALITY !', 'PACHYRHINOSAURE PULVÉRISE L’ENNEMI');
+                }, 1850);
+
+            } else if (id === 'ankylo') {
+                // 3) ANKYLOSAURE : Frappe les genoux puis Home-Run 360° qui expédie la tête dans les airs
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    loser.kneeling = true;
+                    spawn3DBloodAndBones(loser.x, 1.0, 28, true);
+                    spawnFloatingPopup(loser.x, 'GENOUX BRISÉS !', '#facc15');
+                }, 1050);
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    sfx.playRoar(60, 0.8);
+                    loser.decapitated = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    // Crâne expulsé en orbite
+                    const flyingHead = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.95, 0.75, 0.75),
+                        new THREE.MeshStandardMaterial({ color: loser.dino.primaryColor })
+                    );
+                    flyingHead.position.set(loser.x, 2.2, 0);
+                    fxGroup.add(flyingHead);
+                    particles3D.push({ mesh: flyingHead, vx: winner.facing * 18, vy: 14, vz: 5, life: 1.5 });
+
+                    spawn3DBloodAndBones(loser.x, 2.2, 65, true);
+                    screenShake = 0.95;
+                    showAnnouncer('FATALITY !', 'HOME-RUN DE L’ANKYLOSAURE');
+                }, 2150);
+
+            } else if (id === 'apato') {
+                // 4) APATOSAURE : Se cabre très haut puis écrase l'adversaire comme une crêpe
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playRoar(50, 0.9);
+                    spawnFloatingPopup(winner.x, 'TITAN EN HAUTEUR !', '#2dd4bf');
+                }, 900);
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    loser.flattened = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 0.6, 80, true);
+                    screenShake = 1.2;
+                    showAnnouncer('FATALITY !', 'ÉCRASEMENT TITANESQUE');
+                }, 2050);
+
+            } else if (id === 'maiasaura') {
+                // 5) MAIASAURA : Salves d'anneaux ultrasoniques qui font gonfler et exploser le crâne
+                const sonicInterval = setInterval(() => {
+                    if (matchState !== 'fatality_anim') { clearInterval(sonicInterval); return; }
+                    spawn3DProjectile(winner, 'sonic');
+                    loser.rig.headGroup.scale.multiplyScalar(1.22);
+                }, 320);
+
+                setTimeout(() => {
+                    clearInterval(sonicInterval);
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    loser.decapitated = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 2.8, 75, true);
+                    screenShake = 0.9;
+                    showAnnouncer('FATALITY !', 'EXPLOSION ULTRASONIQUE');
+                }, 2150);
+
+            } else if (id === 'terabird') {
+                // 6) TERABIRD : Martèle 4 coups de bec rapides puis arrache le cœur battant 3D
+                [900, 1250, 1600].forEach(delay => {
+                    setTimeout(() => {
+                        if (matchState !== 'fatality_anim') return;
+                        sfx.playHit(true);
+                        spawn3DBloodAndBones(loser.x, 2.1, 18, false);
+                    }, delay);
+                });
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    sfx.playRoar(130, 0.7);
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    // Cœur 3D arraché au bout du bec
+                    const heart = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.38, 10, 10),
+                        new THREE.MeshStandardMaterial({ color: 0xdc2626, emissive: 0x991b1b })
+                    );
+                    heart.position.set(winner.x + winner.facing * 1.3, 3.8, 0);
+                    fxGroup.add(heart);
+                    particles3D.push({ mesh: heart, vx: 0, vy: 1.2, vz: 0, life: 1.5 });
+
+                    spawn3DBloodAndBones(loser.x, 2.3, 65, true);
+                    screenShake = 0.85;
+                    showAnnouncer('FATALITY !', 'CŒUR ARRACHÉ PAR LE TERABIRD');
+                }, 2100);
+
+            } else if (id === 'postosuchus') {
+                // 7) POSTOSUCHUS : Vrille Déchiqueteuse (Death Roll à 1000 tours/minute)
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    spawnFloatingPopup(loser.x, 'MÂCHOIRE VERROUILLÉE !', '#fef08a');
+                    spawn3DBloodAndBones(loser.x, 2.0, 30, true);
+                }, 850);
+                const rollInterval = setInterval(() => {
+                    if (matchState !== 'fatality_anim') { clearInterval(rollInterval); return; }
+                    sfx.playHit(true);
+                    loser.rig.hips.rotation.x += 1.4;
+                    spawn3DBloodAndBones(loser.x, 2.1, 20, true);
+                }, 320);
+                setTimeout(() => {
+                    clearInterval(rollInterval);
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    sfx.playRoar(58, 0.85);
+                    loser.decapitated = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 2.2, 80, true);
+                    screenShake = 1.0;
+                    showAnnouncer('FATALITY !', 'TONNEAU DE LA MORT DU POSTOSUCHUS');
+                }, 2200);
+
+            } else if (id === 'spinosaurus') {
+                // 8) SPINOSAURE : Empale la cible, la soulève dans les airs et la déchire dans un geyser thermique
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    loser.vy = 8.5;
+                    spawnFloatingPopup(loser.x, 'EMPALEMENT ABYSSAL !', '#f97316');
+                    spawn3DBloodAndBones(loser.x, 2.5, 35, true);
+                }, 950);
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    sfx.playRoar(54, 0.95);
+                    loser.decapitated = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 2.8, 85, true);
+                    screenShake = 1.1;
+                    showAnnouncer('FATALITY !', 'ÉVENTRATION DU SPINOSAURE');
+                }, 2150);
+
+            } else if (id === 'therizino') {
+                // 9) THÉRIZINOSAURE : 3 entailles laser avec ses 6 griffes faux d'un mètre
+                [750, 1250, 1750].forEach((delay, idx) => {
+                    setTimeout(() => {
+                        if (matchState !== 'fatality_anim') return;
+                        sfx.playBoneCrack();
+                        // Faisceau lumineux d'entaille 3D
+                        const slashGeo = new THREE.BoxGeometry(3.8, 0.14, 0.14);
+                        const slashMat = new THREE.MeshBasicMaterial({ color: 0xa7f3d0 });
+                        const slashMesh = new THREE.Mesh(slashGeo, slashMat);
+                        slashMesh.position.set(loser.x, 2.2, 0.8);
+                        slashMesh.rotation.z = (idx - 1) * 0.65;
+                        fxGroup.add(slashMesh);
+                        particles3D.push({ mesh: slashMesh, vx: 0, vy: 0.5, vz: 0, life: 0.45 });
+                        spawn3DBloodAndBones(loser.x, 2.3, 25, true);
+                    }, delay);
+                });
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playRoar(95, 0.8);
+                    loser.decapitated = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 2.6, 75, true);
+                    screenShake = 0.95;
+                    showAnnouncer('FATALITY !', 'DÉCOUPE CHIRURGICALE DU THÉRIZINOSAURE');
+                }, 2200);
+            }
         }
 
         function showAnnouncer(mainText, subText = '') {
-            document.getElementById('announcerMain').textContent = mainText;
-            document.getElementById('announcerSub').textContent = subText;
+            const mainEl = document.getElementById('announcerMain');
+            const subEl = document.getElementById('announcerSub');
+            mainEl.textContent = mainText;
+            subEl.textContent = subText;
+            mainEl.style.transform = 'scale(1.25)';
+            setTimeout(() => {
+                mainEl.style.transform = 'scale(1)';
+            }, 180);
         }
 
         function clearAnnouncer() {
@@ -2150,6 +2940,7 @@
             document.getElementById('announcerSub').textContent = '';
         }
 
+        // 10. DÉMARRAGE DU MATCH ET GESTION DES ROUNDS
         function startMatch() {
             sfx.init();
             sfx.playGong();
@@ -2162,8 +2953,8 @@
             if (fighter1) fighter1.destroy();
             if (fighter2) fighter2.destroy();
 
-            fighter1 = new Fighter3D(DINO_ROSTER[p1ChoiceIndex], true, getActiveColor(p1ChoiceIndex, true));
-            fighter2 = new Fighter3D(DINO_ROSTER[p2ChoiceIndex], false, getActiveColor(p2ChoiceIndex, false));
+            fighter1 = new Fighter3D(DINO_ROSTER[p1ChoiceIndex], true);
+            fighter2 = new Fighter3D(DINO_ROSTER[p2ChoiceIndex], false);
             roundNumber = 1;
 
             document.getElementById('selectScreen').classList.add('hidden');
@@ -2175,12 +2966,14 @@
 
             document.getElementById('hudP1Name').textContent = fighter1.dino.name;
             document.getElementById('hudP2Name').textContent = fighter2.dino.name;
+
             startNewRound();
         }
 
         function startNewRound() {
             fighter1.resetForRound();
             fighter2.resetForRound();
+
             while (fxGroup.children.length > 0) fxGroup.remove(fxGroup.children[0]);
             projectiles3D = [];
             particles3D = [];
@@ -2189,6 +2982,7 @@
             xrayCinematicTimer = 0;
             xrayStage = 0;
             xrayLockPositions = null;
+            fatalityFocusFighter = null;
 
             document.getElementById('hudRoundText').textContent = `ROUND ${roundNumber}`;
             document.getElementById('xrayOverlayHud').classList.add('hidden');
@@ -2199,115 +2993,552 @@
             stateTimer = 1.6;
             showAnnouncer(`ROUND ${roundNumber}`, `${fighter1.dino.name} VS ${fighter2.dino.name}`);
             updateBattleHUD();
+
+            setTimeout(() => {
+                if (matchState === 'intro') {
+                    showAnnouncer('KOMBAT !', 'AFFRONTEZ-VOUS EN 3D !');
+                    sfx.playRoar(90, 0.35);
+                }
+            }, 900);
         }
 
-        function applyDamage(attacker, defender, rawDamage, isHeavy) {
+        function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLockedXrayHit = false) {
             if (defender.isDead) return;
-            sfx.playHit(isHeavy);
-            defender.hp = Math.max(0, defender.hp - rawDamage);
-            spawn3DBloodAndBones(defender.x, 2.0, 15, isHeavy);
+
+            let finalDamage = rawDamage;
+            if (defender.isBlocking && !defender.isDizzy && !isLockedXrayHit && !defender.isXrayTarget) {
+                finalDamage = Math.max(8, Math.round(rawDamage * 0.22));
+                sfx.playHit(false);
+                spawnFloatingPopup(defender.x, '🛡️ BLOQUÉ !', '#fbbf24');
+            } else {
+                sfx.playHit(isHeavy);
+                defender.hitStun = isLockedXrayHit ? 1.2 : (isHeavy ? 0.36 : 0.2);
+                // Ne pas repousser les personnages pendant que le X-Ray verrouille leurs positions
+                if (!isLockedXrayHit && !xrayLockPositions) {
+                    defender.vx = attacker.facing * (isHeavy ? 8.5 : 4.5);
+                    if (isHeavy) defender.vy = 4.2;
+                } else {
+                    defender.vx = 0;
+                    defender.vy = 0;
+                }
+                screenShake = isHeavy ? 0.38 : 0.16;
+                spawn3DBloodAndBones(defender.x, 2.0, isHeavy ? 18 : 8, isHeavy);
+
+                attacker.comboCount++;
+                const textLabel = label || (attacker.comboCount > 1 ? `${attacker.comboCount} HITS ! -${finalDamage}` : `-${finalDamage}`);
+                spawnFloatingPopup(defender.x, textLabel, isHeavy ? '#ef4444' : '#fde047');
+            }
+
+            if (gameMode === 'practice' && !defender.isP1) {
+                defender.hp = Math.max(150, defender.hp - finalDamage);
+                setTimeout(() => { defender.hp = defender.maxHp; updateBattleHUD(); }, 1800);
+            } else if (isLockedXrayHit) {
+                // Garder au moins 1 PV pendant les phases 1 et 2 du X-Ray pour que l'animation complète se joue
+                defender.hp = Math.max(1, defender.hp - finalDamage);
+            } else {
+                defender.hp = Math.max(0, defender.hp - finalDamage);
+            }
+
+            if (!attacker.isXrayAttacker) {
+                attacker.rage = Math.min(100, attacker.rage + (isHeavy ? 18 : 11));
+            }
+            defender.rage = Math.min(100, defender.rage + (isHeavy ? 22 : 14));
+
             updateBattleHUD();
-            if (defender.hp <= 0 && matchState === 'fight') handleKnockout(attacker, defender);
+
+            if (defender.hp <= 0 && matchState === 'fight' && !isLockedXrayHit) {
+                xrayCinematicTimer = 0;
+                xrayStage = 0;
+                xrayLockPositions = null;
+                fighter1.isXrayTarget = false;
+                fighter2.isXrayTarget = false;
+                fighter1.isXrayAttacker = false;
+                fighter2.isXrayAttacker = false;
+                document.getElementById('xrayOverlayHud').classList.add('hidden');
+                handleKnockout(attacker, defender);
+            }
         }
 
         function handleKnockout(winner, loser) {
+            if (matchState !== 'fight') return;
+
             winner.roundsWon++;
+            winner.action = 'idle';
+            winner.actionDuration = 0;
+            winner.actionTimer = 0;
+            winner.bufferedAction = null;
+
+            loser.action = 'idle';
+            loser.actionDuration = 0;
+            loser.actionTimer = 0;
+            loser.bufferedAction = null;
+            loser.isBlocking = false;
+            loser.hitStun = 0;
+
+            sfx.playGong();
+            sfx.playRoar(70, 0.65);
             updateBattleHUD();
+
             if (winner.roundsWon >= 2) {
+                // Balle de match : Déclenche la séquence "ACHEVEZ-LE !" pour la Fatalité
                 matchState = 'finish_him';
                 stateTimer = 6.5;
                 loser.hp = 1;
                 loser.isDizzy = true;
-                showAnnouncer('ACHEVEZ-LE !', 'APPUYEZ SUR [R] POUR LA FATALITÉ');
-                if (winner.isP1 || gameMode === 'pvp') document.getElementById('fatalityPromptBox').classList.remove('hidden');
+                loser.vx = 0;
+                loser.vy = 0;
+
+                showAnnouncer('ACHEVEZ-LE !', `APPUYEZ SUR [R] OU [ESPACE] POUR LA FATALITÉ DE ${winner.dino.name}`);
+                if (winner.isP1 || gameMode === 'pvp') {
+                    document.getElementById('fatalityPromptBox').classList.remove('hidden');
+                }
             } else {
+                // Fin du 1er round : l'adversaire tombe K.O. et le round suivant se lance
                 matchState = 'round_over';
                 stateTimer = 2.6;
+                loser.hp = 0;
                 loser.isDead = true;
-                showAnnouncer('K.O. !', `${winner.dino.name} REMPORTE LE ROUND`);
+                showAnnouncer('K.O. !', `${winner.dino.name} REMPORTE LE ROUND ${roundNumber}`);
             }
         }
 
+        // 11. BOUCLE DE MISE À JOUR PHYSIQUE 3D, CONTRÔLES & IA
+        function pollGamepadInputs() {
+            if (!navigator.getGamepads || xrayCinematicTimer > 0) return;
+            const pads = navigator.getGamepads();
+            const pad = pads && pads[0];
+            if (!pad || !fighter1 || !fighter2) return;
+
+            const axX = pad.axes[0] || 0;
+            touchState.left = axX < -0.35 || (pad.buttons[14] && pad.buttons[14].pressed);
+            touchState.right = axX > 0.35 || (pad.buttons[15] && pad.buttons[15].pressed);
+            touchState.up = (pad.axes[1] || 0) < -0.45 || (pad.buttons[12] && pad.buttons[12].pressed);
+            touchState.down = (pad.axes[1] || 0) > 0.45 || (pad.buttons[13] && pad.buttons[13].pressed);
+
+            if (pad.buttons[0] && pad.buttons[0].pressed && !pad._b0) triggerPlayerAction(fighter1, fighter2, 'light');
+            if (pad.buttons[2] && pad.buttons[2].pressed && !pad._b2) triggerPlayerAction(fighter1, fighter2, 'heavy');
+            if (pad.buttons[3] && pad.buttons[3].pressed && !pad._b3) triggerPlayerAction(fighter1, fighter2, 'special');
+            if (pad.buttons[1] && pad.buttons[1].pressed && !pad._b1) triggerPlayerAction(fighter1, fighter2, 'special2');
+            if (pad.buttons[5] && pad.buttons[5].pressed && !pad._b5) triggerPlayerAction(fighter1, fighter2, 'dash');
+            if (pad.buttons[7] && pad.buttons[7].pressed && !pad._b7) triggerPlayerAction(fighter1, fighter2, 'xray');
+
+            pad._b0 = pad.buttons[0]?.pressed;
+            pad._b1 = pad.buttons[1]?.pressed;
+            pad._b2 = pad.buttons[2]?.pressed;
+            pad._b3 = pad.buttons[3]?.pressed;
+            pad._b5 = pad.buttons[5]?.pressed;
+            pad._b7 = pad.buttons[7]?.pressed;
+        }
+
         function updateBattle3D(dt, nowSec) {
+            pollGamepadInputs();
+
+            if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 1.5);
             if (xrayCinematicTimer > 0) {
                 xrayCinematicTimer -= dt;
+                // Tant que la cinématique X-Ray est active, figer les positions des 2 combattants
                 if (xrayLockPositions) {
-                    xrayLockPositions.attacker.x = xrayLockPositions.attX;
-                    xrayLockPositions.defender.x = xrayLockPositions.defX;
+                    const { attacker, defender, attX, defX, attFacing, defFacing } = xrayLockPositions;
+                    attacker.x = attX;
+                    attacker.y = 0;
+                    attacker.vx = 0;
+                    attacker.vy = 0;
+                    attacker.facing = attFacing;
+
+                    defender.x = defX;
+                    defender.y = 0;
+                    defender.vx = 0;
+                    defender.vy = 0;
+                    defender.facing = defFacing;
                 }
                 if (xrayCinematicTimer <= 0) {
+                    xrayStage = 0;
                     xrayLockPositions = null;
-                    fighter1.isXrayTarget = fighter2.isXrayTarget = false;
-                    fighter1.isXrayAttacker = fighter2.isXrayAttacker = false;
+                    fighter1.isXrayTarget = false;
+                    fighter2.isXrayTarget = false;
+                    fighter1.isXrayAttacker = false;
+                    fighter2.isXrayAttacker = false;
+                    if (fighter1.action === 'xray') { fighter1.action = 'idle'; fighter1.actionDuration = 0; }
+                    if (fighter2.action === 'xray') { fighter2.action = 'idle'; fighter2.actionDuration = 0; }
                     document.getElementById('xrayOverlayHud').classList.add('hidden');
                 }
             }
 
             if (matchState === 'intro') {
                 stateTimer -= dt;
-                if (stateTimer <= 0) { matchState = 'fight'; clearAnnouncer(); }
+                if (stateTimer <= 0) {
+                    matchState = 'fight';
+                    clearAnnouncer();
+                }
             } else if (matchState === 'finish_him') {
+                stateTimer -= dt;
+                if (fighter2.roundsWon >= 2 && gameMode === 'cpu' && stateTimer < 4.8) {
+                    executeUnique3DFatality(fighter2, fighter1);
+                    return;
+                }
+                if (stateTimer <= 0) {
+                    const winner = fighter1.roundsWon >= 2 ? fighter1 : fighter2;
+                    const loser = winner === fighter1 ? fighter2 : fighter1;
+                    loser.isDizzy = false;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    document.getElementById('fatalityPromptBox').classList.add('hidden');
+                    matchState = 'match_over';
+                    showAnnouncer(`${winner.dino.name} VICTORIEUX`, 'VICTOIRE TOTALE !');
+                    document.getElementById('postMatchMenu').classList.remove('hidden');
+                }
+            } else if (matchState === 'fatality_anim') {
                 stateTimer -= dt;
                 if (stateTimer <= 0) {
                     matchState = 'match_over';
-                    showAnnouncer('VICTOIRE');
                     document.getElementById('postMatchMenu').classList.remove('hidden');
+                }
+            } else if (matchState === 'round_over') {
+                stateTimer -= dt;
+                if (stateTimer <= 0) {
+                    roundNumber++;
+                    startNewRound();
                 }
             }
 
-            if (matchState === 'fight' && xrayCinematicTimer <= 0) {
+            // Pause du chronomètre pendant la cinématique X-Ray
+            if (matchState === 'fight' && gameMode !== 'practice' && xrayCinematicTimer <= 0) {
+                roundTimerAccum += dt;
+                if (roundTimerAccum >= 1) {
+                    roundTimerAccum = 0;
+                    roundTimer = Math.max(0, roundTimer - 1);
+                    document.getElementById('hudTimer').textContent = roundTimer;
+                    if (roundTimer === 0) {
+                        const winner = fighter1.hp >= fighter2.hp ? fighter1 : fighter2;
+                        const loser = winner === fighter1 ? fighter2 : fighter1;
+                        handleKnockout(winner, loser);
+                    }
+                }
+            }
+
+            // Bloquer tous les inputs de déplacement et d'IA pendant le X-Ray
+            if ((matchState === 'fight' || matchState === 'finish_him') && xrayCinematicTimer <= 0) {
                 handlePlayer1Inputs(dt);
-                if (gameMode === 'pvp') handlePlayer2Inputs(dt);
-                else updateAI(fighter2, fighter1, dt);
+                if (gameMode === 'pvp') {
+                    handlePlayer2Inputs(dt);
+                } else if (gameMode === 'cpu' && matchState === 'fight') {
+                    updateAI(fighter2, fighter1, dt);
+                }
             }
 
             [fighter1, fighter2].forEach(f => {
                 const other = f === fighter1 ? fighter2 : fighter1;
+
+                if (f.dashCooldown > 0) f.dashCooldown = Math.max(0, f.dashCooldown - dt);
+                if (f.dashTimer > 0) f.dashTimer = Math.max(0, f.dashTimer - dt);
+                if (f.bufferTimer > 0) {
+                    f.bufferTimer -= dt;
+                    if (f.bufferTimer <= 0) f.bufferedAction = null;
+                }
+
+                // Si les positions sont verrouillées par le X-Ray, on ne déplace pas les combattants
+                if (xrayLockPositions) {
+                    f.rig.root.position.set(f.x, f.y, 0);
+                    const targetRotY = f.facing === 1 ? 0 : Math.PI;
+                    f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * 0.35;
+                    animateDino3DRig(f, nowSec, dt);
+                    return;
+                }
+
+                if (!f.isDead && f.action !== 'special' && f.action !== 'fatality' && f.dashTimer <= 0) {
+                    f.facing = f.x <= other.x ? 1 : -1;
+                }
+
+                if (f.hitStun > 0) {
+                    f.hitStun -= dt;
+                    if (f.hitStun <= 0) f.comboCount = 0;
+                }
+
                 f.x += f.vx * dt;
                 f.y += f.vy * dt;
-                f.vx *= 0.82;
-                if (f.y > 0) f.vy -= 26 * dt; else { f.y = 0; f.vy = 0; }
+                f.vx *= f.dashTimer > 0 ? 0.94 : 0.82;
+
+                if (f.y > 0) {
+                    f.vy -= 26 * dt;
+                } else {
+                    f.y = 0;
+                    f.vy = 0;
+                }
+
                 f.x = Math.max(STAGE_LEFT_3D, Math.min(STAGE_RIGHT_3D, f.x));
+
+                if (f.actionDuration > 0) {
+                    f.actionTimer += dt;
+                    const progress = f.actionTimer / f.actionDuration;
+
+                    if (f.action !== 'fatality' && f.action !== 'xray' && !f.hasHitCurrentAttack && progress >= 0.30 && progress <= 0.75) {
+                        f.hasHitCurrentAttack = true;
+                        checkAttackCollision3D(f, other);
+                    }
+
+                    // Exécuter automatiquement l'action mise en mémoire tampon (Input Buffer) dès la fenêtre de cancel
+                    if (f.bufferedAction && f.canCancelInto(f.bufferedAction)) {
+                        const nextAct = f.bufferedAction;
+                        f.bufferedAction = null;
+                        triggerPlayerAction(f, other, nextAct);
+                    } else if (f.actionTimer >= f.actionDuration && f.action !== 'fatality') {
+                        f.action = 'idle';
+                        f.actionTimer = 0;
+                        f.actionDuration = 0;
+                        if (f.bufferedAction) {
+                            const nextAct = f.bufferedAction;
+                            f.bufferedAction = null;
+                            triggerPlayerAction(f, other, nextAct);
+                        }
+                    }
+                }
+
+                // Synchroniser position et orientation du modèle 3D
                 f.rig.root.position.set(f.x, f.y, 0);
-                f.rig.root.rotation.y = f.facing === 1 ? 0 : Math.PI;
+                const targetRotY = f.facing === 1 ? 0 : Math.PI;
+                f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * 0.25;
+
                 animateDino3DRig(f, nowSec, dt);
             });
-        }
 
-        function handlePlayer1Inputs(dt) {
-            if (fighter1.hitStun > 0 || fighter1.isDead) return;
-            const moveLeft = keys['KeyA'] || keys['KeyQ'] || keys['ArrowLeft'];
-            const moveRight = keys['KeyD'] || keys['ArrowRight'];
-            if (moveLeft) { fighter1.x -= fighter1.dino.walkSpeed * dt; fighter1.facing = -1; fighter1.action = 'walk'; }
-            else if (moveRight) { fighter1.x += fighter1.dino.walkSpeed * dt; fighter1.facing = 1; fighter1.action = 'walk'; }
-            else fighter1.action = 'idle';
-        }
+            // Collision physique entre les 2 dinosaures
+            const minSep = 2.25;
+            const dx = fighter2.x - fighter1.x;
+            if (Math.abs(dx) < minSep && Math.abs(fighter1.y - fighter2.y) < 1.8 && matchState !== 'fatality_anim') {
+                const push = (minSep - Math.abs(dx)) * 0.5;
+                if (dx >= 0) {
+                    fighter1.x = Math.max(STAGE_LEFT_3D, fighter1.x - push);
+                    fighter2.x = Math.min(STAGE_RIGHT_3D, fighter2.x + push);
+                } else {
+                    fighter1.x = Math.min(STAGE_RIGHT_3D, fighter1.x + push);
+                    fighter2.x = Math.max(STAGE_LEFT_3D, fighter2.x - push);
+                }
+            }
 
-        function handlePlayer2Inputs(dt) {
-            if (fighter2.hitStun > 0 || fighter2.isDead) return;
-            if (keys['ArrowLeft']) { fighter2.x -= fighter2.dino.walkSpeed * dt; fighter2.facing = -1; fighter2.action = 'walk'; }
-            else if (keys['ArrowRight']) { fighter2.x += fighter2.dino.walkSpeed * dt; fighter2.facing = 1; fighter2.action = 'walk'; }
-            else fighter2.action = 'idle';
-        }
+            // Mise à jour des projectiles 3D
+            for (let i = projectiles3D.length - 1; i >= 0; i--) {
+                const p = projectiles3D[i];
+                p.mesh.position.x += p.vx * dt;
+                p.mesh.rotation.z += 8 * dt;
+                p.life -= dt;
+                const target = p.owner === fighter1 ? fighter2 : fighter1;
 
-        function updateAI(ai, target, dt) {
-            const dist = Math.abs(ai.x - target.x);
-            if (dist > 3.0) {
-                ai.x += ai.facing * ai.dino.walkSpeed * dt * 0.9;
-                ai.action = 'walk';
-            } else {
-                ai.startAttack('light');
+                if (Math.abs(p.mesh.position.x - target.x) < 1.55 && Math.abs(target.y) < 2.2 && matchState === 'fight') {
+                    applyDamage(p.owner, target, p.damage, true, '🔥 IMPACT SPÉCIAL !');
+                    fxGroup.remove(p.mesh);
+                    projectiles3D.splice(i, 1);
+                    continue;
+                }
+                if (p.life <= 0) {
+                    fxGroup.remove(p.mesh);
+                    projectiles3D.splice(i, 1);
+                }
+            }
+
+            // Mise à jour des particules 3D de sang et d'os
+            for (let i = particles3D.length - 1; i >= 0; i--) {
+                const pt = particles3D[i];
+                pt.mesh.position.x += pt.vx * dt;
+                pt.mesh.position.y += pt.vy * dt;
+                pt.mesh.position.z += pt.vz * dt;
+                pt.mesh.rotation.x += 6 * dt;
+                pt.mesh.rotation.y += 6 * dt;
+                pt.vy -= 22 * dt;
+                if (pt.mesh.position.y < 0.15) {
+                    pt.mesh.position.y = 0.15;
+                    pt.vx *= 0.6;
+                    pt.vy = 0;
+                }
+                pt.life -= dt;
+                if (pt.life <= 0) {
+                    fxGroup.remove(pt.mesh);
+                    particles3D.splice(i, 1);
+                }
             }
         }
 
+        function checkAttackCollision3D(attacker, defender) {
+            const dist = Math.abs(attacker.x - defender.x);
+            const basePow = attacker.dino.stats.pow;
+
+            if (attacker.action === 'special') {
+                if (attacker.dino.id === 'apato') {
+                    if (dist < 6.4) {
+                        applyDamage(attacker, defender, Math.round(basePow * 1.15), true, 'FOUET SUPERSONIQUE !');
+                    }
+                    return;
+                }
+                attacker.vx = attacker.facing * 22;
+                if (dist < 4.6) {
+                    applyDamage(attacker, defender, Math.round(basePow * 1.1), true, attacker.dino.special1Name.replace(' (H)', ''));
+                }
+                return;
+            }
+
+            if (attacker.action === 'special2') {
+                if (attacker.dino.id === 'maiasaura') {
+                    spawn3DProjectile(attacker, 'sonic');
+                } else if (attacker.dino.id === 'apato' || attacker.dino.id === 'pachyrhino') {
+                    screenShake = 0.45;
+                    spawn3DBloodAndBones(defender.x, 0.3, 14, true);
+                    if (dist < 7.5) {
+                        applyDamage(attacker, defender, Math.round(basePow * 1.08), true, 'SÉISME TECTONIQUE !');
+                    }
+                } else {
+                    spawn3DProjectile(attacker, 'boulder');
+                }
+                return;
+            }
+
+            const reach = (attacker.dino.id === 'apato' ? 4.3 : 3.45) + (attacker.action === 'heavy' ? 0.55 : 0);
+            if (dist <= reach && Math.abs(attacker.y - defender.y) < 2.5) {
+                if (attacker.action === 'light') {
+                    applyDamage(attacker, defender, Math.round(basePow * 0.48), false);
+                } else if (attacker.action === 'heavy') {
+                    applyDamage(attacker, defender, Math.round(basePow * 0.88), true);
+                }
+            }
+        }
+
+        function handlePlayer1Inputs(dt) {
+            if (xrayCinematicTimer > 0 || fighter1.hitStun > 0 || fighter1.isDead || fighter1.isDizzy) return;
+
+            const moveLeft = keys['KeyA'] || keys['KeyQ'] || (gameMode !== 'pvp' && keys['ArrowLeft']) || touchState.left;
+            const moveRight = keys['KeyD'] || (gameMode !== 'pvp' && keys['ArrowRight']) || touchState.right;
+            const jump = keys['KeyW'] || keys['KeyZ'] || (gameMode !== 'pvp' && keys['ArrowUp']) || touchState.up;
+            const block = keys['KeyS'] || keys['ShiftLeft'] || (gameMode !== 'pvp' && keys['ArrowDown']) || touchState.down;
+
+            // Permettre le contrôle aérien même pendant une attaque sautée
+            if (fighter1.y > 0.05 && fighter1.dashTimer <= 0) {
+                if (moveLeft) fighter1.x -= fighter1.dino.walkSpeed * 0.85 * dt;
+                if (moveRight) fighter1.x += fighter1.dino.walkSpeed * 0.85 * dt;
+            }
+
+            if (fighter1.actionDuration > 0 || fighter1.dashTimer > 0) return;
+
+            fighter1.isBlocking = block && fighter1.y <= 0.01;
+            if (fighter1.isBlocking) {
+                fighter1.action = 'crouch';
+                return;
+            }
+            if (jump && fighter1.y <= 0.01) {
+                fighter1.vy = 11.8;
+                if (moveLeft) fighter1.vx = -fighter1.dino.walkSpeed * 0.65;
+                if (moveRight) fighter1.vx = fighter1.dino.walkSpeed * 0.65;
+            }
+            if (moveLeft) {
+                fighter1.x -= fighter1.dino.walkSpeed * dt;
+                fighter1.action = 'walk';
+            } else if (moveRight) {
+                fighter1.x += fighter1.dino.walkSpeed * dt;
+                fighter1.action = 'walk';
+            } else {
+                fighter1.action = 'idle';
+            }
+        }
+
+        function handlePlayer2Inputs(dt) {
+            if (xrayCinematicTimer > 0 || fighter2.hitStun > 0 || fighter2.isDead || fighter2.isDizzy) return;
+
+            const moveLeft = keys['ArrowLeft'];
+            const moveRight = keys['ArrowRight'];
+            const jump = keys['ArrowUp'];
+            const block = keys['ArrowDown'];
+
+            if (fighter2.y > 0.05 && fighter2.dashTimer <= 0) {
+                if (moveLeft) fighter2.x -= fighter2.dino.walkSpeed * 0.85 * dt;
+                if (moveRight) fighter2.x += fighter2.dino.walkSpeed * 0.85 * dt;
+            }
+
+            if (fighter2.actionDuration > 0 || fighter2.dashTimer > 0) return;
+
+            fighter2.isBlocking = block && fighter2.y <= 0.01;
+            if (fighter2.isBlocking) {
+                fighter2.action = 'crouch';
+                return;
+            }
+            if (jump && fighter2.y <= 0.01) {
+                fighter2.vy = 11.8;
+                if (moveLeft) fighter2.vx = -fighter2.dino.walkSpeed * 0.65;
+                if (moveRight) fighter2.vx = fighter2.dino.walkSpeed * 0.65;
+            }
+            if (moveLeft) {
+                fighter2.x -= fighter2.dino.walkSpeed * dt;
+                fighter2.action = 'walk';
+            } else if (moveRight) {
+                fighter2.x += fighter2.dino.walkSpeed * dt;
+                fighter2.action = 'walk';
+            } else {
+                fighter2.action = 'idle';
+            }
+        }
+
+        let aiDecisionCooldown = 0;
+        function updateAI(ai, target, dt) {
+            if (ai.hitStun > 0 || ai.isDead || ai.isDizzy || ai.actionDuration > 0) return;
+
+            aiDecisionCooldown -= dt;
+            const dist = Math.abs(ai.x - target.x);
+            const aggr = aiDifficulty === 'brutal' ? 0.08 : (aiDifficulty === 'normal' ? 0.045 : 0.02);
+
+            if (dist > 3.1) {
+                ai.isBlocking = false;
+                ai.x += ai.facing * ai.dino.walkSpeed * dt * (aiDifficulty === 'easy' ? 0.7 : 0.95);
+                ai.action = 'walk';
+
+                if (dist > 5.0 && Math.random() < aggr * 0.45 && aiDecisionCooldown <= 0) {
+                    ai.startAttack(Math.random() > 0.5 ? 'special2' : 'special');
+                    aiDecisionCooldown = 0.7;
+                }
+            } else {
+                if (target.actionDuration > 0 && Math.random() < (aiDifficulty === 'brutal' ? 0.55 : 0.25)) {
+                    ai.isBlocking = true;
+                    ai.action = 'crouch';
+                    return;
+                }
+                ai.isBlocking = false;
+
+                if (aiDecisionCooldown <= 0) {
+                    if (ai.rage >= 100 && Math.random() < 0.5) {
+                        executeXRayMove(ai, target);
+                    } else {
+                        const r = Math.random();
+                        if (r < 0.45) ai.startAttack('light');
+                        else if (r < 0.78) ai.startAttack('heavy');
+                        else ai.startAttack('special');
+                    }
+                    aiDecisionCooldown = aiDifficulty === 'brutal' ? 0.28 : (aiDifficulty === 'normal' ? 0.52 : 0.85);
+                }
+            }
+        }
+
+        // 12. MISE À JOUR DU HUD HTML & RENDU CAMÉRA 3D DYNAMIQUE
         function updateBattleHUD() {
             if (!fighter1 || !fighter2) return;
             const p1Pct = Math.max(0, Math.round((fighter1.hp / fighter1.maxHp) * 100));
             const p2Pct = Math.max(0, Math.round((fighter2.hp / fighter2.maxHp) * 100));
+
             document.getElementById('hudP1HealthBar').style.width = p1Pct + '%';
-            document.getElementById('hudP2HealthBar').style.width = p2Pct + '%';
+            document.getElementById('hudP1DamageBar').style.width = p1Pct + '%';
             document.getElementById('hudP1HpText').textContent = p1Pct + '%';
+
+            document.getElementById('hudP2HealthBar').style.width = p2Pct + '%';
+            document.getElementById('hudP2DamageBar').style.width = p2Pct + '%';
             document.getElementById('hudP2HpText').textContent = p2Pct + '%';
+
+            document.getElementById('hudP1RageBar').style.width = fighter1.rage + '%';
+            const r1Badge = document.getElementById('hudP1RageBadge');
+            r1Badge.textContent = fighter1.rage >= 100 ? '💀 X-RAY PRÊT (R)' : `RAGE ${Math.floor(fighter1.rage)}%`;
+            r1Badge.className = fighter1.rage >= 100
+                ? 'text-[10px] font-black uppercase px-1.5 py-0.2 rounded bg-red-600 text-white border border-amber-300 animate-pulse'
+                : 'text-[10px] font-black uppercase px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-700';
+
+            document.getElementById('hudP2RageBar').style.width = fighter2.rage + '%';
+            const r2Badge = document.getElementById('hudP2RageBadge');
+            r2Badge.textContent = fighter2.rage >= 100 ? '💀 X-RAY PRÊT' : `RAGE ${Math.floor(fighter2.rage)}%`;
+
+            document.getElementById('hudP1Rounds').innerHTML = '💀'.repeat(fighter1.roundsWon);
+            document.getElementById('hudP2Rounds').innerHTML = '💀'.repeat(fighter2.roundsWon);
         }
 
         function renderBattle3D(now) {
@@ -2321,36 +3552,96 @@
                     battleCamera.updateProjectionMatrix();
                 }
             }
+
+            // Calcul de la caméra dynamique (Zoom X-Ray, Zoom Fatalité ou Orbit utilisateur)
             const midX = (fighter1.x + fighter2.x) * 0.5;
-            battleCamera.position.set(midX, 3.8, 14.5);
-            battleCamera.lookAt(midX, 2.0, 0);
+            const dist = Math.abs(fighter1.x - fighter2.x);
+            let targetDist = Math.max(10.5, Math.min(17.5, dist * 1.15 + 6.5));
+            let targetY = 3.6 + camOrbit.pitch * 8;
+            let focusX = midX;
+            let focusY = 2.1;
+
+            if (xrayCinematicTimer > 0) {
+                targetDist = 5.4;
+                targetY = xrayStage === 1 ? 2.9 : (xrayStage === 2 ? 2.2 : 2.5);
+                const xTarget = fighter1.isXrayTarget ? fighter1 : fighter2;
+                focusX = xTarget.x;
+                focusY = targetY - 0.3;
+            } else if (matchState === 'fatality_anim' && fatalityFocusFighter) {
+                targetDist = 7.4;
+                targetY = 2.8;
+                focusX = (fighter1.x + fighter2.x) * 0.5;
+            }
+
+            const shakeX = (Math.random() - 0.5) * screenShake;
+            const shakeY = (Math.random() - 0.5) * screenShake;
+
+            const camX = focusX + Math.sin(camOrbit.yaw) * targetDist + shakeX;
+            const camZ = Math.cos(camOrbit.yaw) * targetDist;
+
+            battleCamera.position.x += (camX - battleCamera.position.x) * 0.14;
+            battleCamera.position.y += (targetY + shakeY - battleCamera.position.y) * 0.14;
+            battleCamera.position.z += (camZ - battleCamera.position.z) * 0.14;
+            battleCamera.lookAt(focusX, focusY, 0);
+
             battleRenderer.render(battleScene, battleCamera);
         }
 
+        // 13. BOUCLE D'ANIMATION PRINCIPALE
         let lastFrameTime = performance.now();
         function mainGameLoop(now) {
             const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
             lastFrameTime = now;
-            if (matchState === 'select') updatePreviewModels(now);
-            else { updateBattle3D(dt, now * 0.001); renderBattle3D(now); }
+
+            if (matchState === 'select') {
+                updatePreviewModels(now);
+            } else {
+                updateBattle3D(dt, now * 0.001);
+                renderBattle3D(now);
+            }
+
             requestAnimationFrame(mainGameLoop);
         }
 
+        // 14. INITIALISATION & ÉVÉNEMENTS UI
         window.onload = function () {
             initRosterUI();
+
             document.querySelectorAll('.mode-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     gameMode = btn.dataset.mode;
-                    document.querySelectorAll('.mode-btn').forEach(b => b.className = 'mode-btn px-3 py-1 rounded-lg text-xs font-extrabold uppercase bg-zinc-800 text-zinc-300 border border-zinc-700');
+                    document.querySelectorAll('.mode-btn').forEach(b => {
+                        b.className = 'mode-btn px-3 py-1 rounded-lg text-xs font-extrabold uppercase bg-zinc-800 text-zinc-300 border border-zinc-700';
+                    });
                     btn.className = 'mode-btn px-3 py-1 rounded-lg text-xs font-extrabold uppercase bg-red-700 text-white border border-amber-400 shadow';
+                    document.getElementById('p2TagLabel').textContent = gameMode === 'pvp' ? 'Joueur 2' : (gameMode === 'practice' ? 'Mannequin' : 'IA');
                     updateSelectScreenUI();
                 });
             });
 
-            document.getElementById('btnSelectSlotP1').addEventListener('click', () => { activeSelectSlot = 1; updateSelectScreenUI(); });
-            document.getElementById('btnSelectSlotP2').addEventListener('click', () => { activeSelectSlot = 2; updateSelectScreenUI(); });
+            document.getElementById('btnSelectSlotP1').addEventListener('click', () => {
+                activeSelectSlot = 1;
+                updateSelectScreenUI();
+            });
+            document.getElementById('btnSelectSlotP2').addEventListener('click', () => {
+                activeSelectSlot = 2;
+                updateSelectScreenUI();
+            });
+
+            document.getElementById('btnRandomFighters').addEventListener('click', () => {
+                sfx.playHit(false);
+                p1ChoiceIndex = Math.floor(Math.random() * DINO_ROSTER.length);
+                do {
+                    p2ChoiceIndex = Math.floor(Math.random() * DINO_ROSTER.length);
+                } while (p2ChoiceIndex === p1ChoiceIndex);
+                updateSelectScreenUI();
+            });
+
             document.getElementById('btnStartKomBat').addEventListener('click', startMatch);
-            document.getElementById('btnResetCam').addEventListener('click', () => { camOrbit = { yaw: 0, pitch: 0.12 }; });
+
+            document.getElementById('btnResetCam').addEventListener('click', () => {
+                camOrbit = { yaw: 0, pitch: 0.12 };
+            });
 
             const returnToSelect = () => {
                 matchState = 'select';
@@ -2362,14 +3653,55 @@
             };
             document.getElementById('btnBackToSelect').addEventListener('click', returnToSelect);
             document.getElementById('btnReturnRoster').addEventListener('click', returnToSelect);
+
             document.getElementById('btnRematch').addEventListener('click', startMatch);
+            document.getElementById('btnNextOpponent').addEventListener('click', () => {
+                p2ChoiceIndex = (p2ChoiceIndex + 1) % DINO_ROSTER.length;
+                if (p2ChoiceIndex === p1ChoiceIndex) p2ChoiceIndex = (p2ChoiceIndex + 1) % DINO_ROSTER.length;
+                startMatch();
+            });
+
             document.getElementById('btnTriggerFatalityNow').addEventListener('click', () => {
-                if (matchState === 'finish_him') executeUnique3DFatality(fighter1.roundsWon >= 2 ? fighter1 : fighter2, fighter1.roundsWon >= 2 ? fighter2 : fighter1);
+                if (matchState === 'finish_him' && fighter1 && fighter2) {
+                    const winner = fighter1.roundsWon >= 2 ? fighter1 : fighter2;
+                    const loser = winner === fighter1 ? fighter2 : fighter1;
+                    executeUnique3DFatality(winner, loser);
+                }
+            });
+
+            document.querySelectorAll('.ctrl-btn').forEach(btn => {
+                const dir = btn.dataset.ctrl;
+                const startDir = (e) => { e.preventDefault(); touchState[dir] = true; btn.classList.add('active-press'); };
+                const endDir = (e) => { e.preventDefault(); touchState[dir] = false; btn.classList.remove('active-press'); };
+                btn.addEventListener('mousedown', startDir);
+                btn.addEventListener('mouseup', endDir);
+                btn.addEventListener('mouseleave', endDir);
+                btn.addEventListener('touchstart', startDir, { passive: false });
+                btn.addEventListener('touchend', endDir, { passive: false });
+            });
+
+            document.querySelectorAll('.act-btn').forEach(btn => {
+                const act = btn.dataset.action;
+                const trigger = (e) => {
+                    e.preventDefault();
+                    if (fighter1 && fighter2) {
+                        triggerPlayerAction(fighter1, fighter2, act);
+                    }
+                };
+                btn.addEventListener('mousedown', trigger);
+                btn.addEventListener('touchstart', trigger, { passive: false });
             });
 
             document.getElementById('btnToggleSound').addEventListener('click', () => {
                 sfx.enabled = !sfx.enabled;
                 document.getElementById('soundIcon').textContent = sfx.enabled ? '🔊' : '🔇';
+            });
+
+            document.getElementById('btnShowMoves').addEventListener('click', () => {
+                document.getElementById('movesModal').classList.remove('hidden');
+            });
+            document.getElementById('btnCloseMoves').addEventListener('click', () => {
+                document.getElementById('movesModal').classList.add('hidden');
             });
 
             requestAnimationFrame(mainGameLoop);
