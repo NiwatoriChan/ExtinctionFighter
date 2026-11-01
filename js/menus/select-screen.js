@@ -688,7 +688,21 @@ function initRosterUI() {
             card.addEventListener('click', () => {
                 sfx.playHit(false);
                 if (gameMode === 'campaign') {
+                    if (p1ChoiceIndex === idx) {
+                        // Cliquer sur le combattant déjà sélectionné lance immédiatement le combat
+                        startMatch();
+                        return;
+                    }
                     p1ChoiceIndex = idx;
+                    // S'assurer que l'adversaire de l'étape n'est pas le même que le personnage choisi
+                    if (campaignStage < 6 && campaignOpponents && campaignOpponents[campaignStage - 1] === idx) {
+                        for (let k = 0; k < DINO_ROSTER.length; k++) {
+                            if (k !== idx && !DINO_ROSTER[k].isBoss && (!DINO_ROSTER[k].isUnlockable || isFighterUnlocked(DINO_ROSTER[k].id))) {
+                                campaignOpponents[campaignStage - 1] = k;
+                                break;
+                            }
+                        }
+                    }
                 } else {
                     if (activeSelectSlot === 1) {
                         p1ChoiceIndex = idx;
@@ -699,6 +713,13 @@ function initRosterUI() {
                     }
                 }
                 updateSelectScreenUI();
+            });
+
+            card.addEventListener('dblclick', () => {
+                if (gameMode === 'campaign') {
+                    p1ChoiceIndex = idx;
+                    startMatch();
+                }
             });
         }
 
@@ -734,23 +755,26 @@ function updateSelectScreenUI() {
         }
         if (promptText) {
             promptText.textContent = campaignStage === 6
-                ? "Ultime épreuve d'Extinction ! Choisissez votre champion"
-                : `Choisissez votre champion pour l'étape ${campaignStage}`;
+                ? "Ultime épreuve d'Extinction ! Cliquez sur votre champion pour affronter Drak'Zul"
+                : `Choisissez votre champion pour l'étape ${campaignStage} (Adversaire & Arène sélectionnés par le jeu)`;
         }
+        if (slot1Btn) slot1Btn.classList.add('hidden');
         if (slot2Btn) slot2Btn.classList.add('hidden');
-        if (p2SkinSelector && campaignStage === 6) p2SkinSelector.classList.add('hidden');
-        else if (p2SkinSelector) p2SkinSelector.classList.remove('hidden');
+        if (p2SkinSelector) p2SkinSelector.classList.add('hidden');
 
         if (p2TagLabel) {
             if (campaignStage === 6) {
                 p2TagLabel.textContent = "BOSS DE FIN";
                 p2TagLabel.className = "px-2 py-0.5 rounded-md bg-gradient-to-r from-red-600 to-amber-500 text-white text-[11px] font-black uppercase tracking-wider animate-pulse";
             } else {
-                p2TagLabel.textContent = `Étape ${campaignStage} / 6`;
-                p2TagLabel.className = "px-2 py-0.5 rounded-md bg-amber-600/80 text-white text-[11px] font-black uppercase tracking-wider";
+                p2TagLabel.textContent = `ADVERSAIRE ÉTAPE ${campaignStage} / 6`;
+                p2TagLabel.className = "px-2 py-0.5 rounded-md bg-blue-700 text-white text-[11px] font-black uppercase tracking-wider";
             }
         }
     } else {
+        if (slot1Btn) slot1Btn.classList.remove('hidden');
+        if (slot2Btn) slot2Btn.classList.remove('hidden');
+        if (p2SkinSelector) p2SkinSelector.classList.remove('hidden');
         if (modeBadge) {
             modeBadge.innerHTML = gameMode === 'pvp'
                 ? `<span>👥 2 JOUEURS (1 VS 1)</span>`
@@ -822,9 +846,12 @@ function updateSelectScreenUI() {
     const btnGoToArena = document.getElementById('btnGoToArena');
     if (btnGoToArena) {
         if (gameMode === 'campaign') {
+            const themedArenaId = typeof getThemedArenaForFighter === 'function' ? getThemedArenaForFighter(p2.id) : 'volcano';
+            const arenaObj = typeof ARENAS !== 'undefined' && ARENAS[themedArenaId];
+            const arenaLabel = arenaObj ? arenaObj.label.split('(')[0].trim() : themedArenaId;
             btnGoToArena.innerHTML = campaignStage === 6
                 ? `🔥 DÉFIER LE BOSS DRAK'ZUL ➔`
-                : `⚔️ DÉFIER L'ÉTAPE ${campaignStage} (${p2.name}) ➔`;
+                : `⚔️ DÉFIER L'ÉTAPE ${campaignStage} • ${p2.name} (${arenaLabel}) ➔`;
             btnGoToArena.className = 'w-full py-2.5 px-6 rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-amber-500 hover:from-red-600 hover:to-amber-400 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-lg border border-amber-300 finish-pulse transition';
         } else {
             btnGoToArena.innerHTML = `CHOISIR L'ARÈNE DE KOMBAT ➔`;
@@ -859,10 +886,17 @@ function updateSelectScreenUI() {
     });
 
     if (slot1Btn && slot2Btn) {
-        if (activeSelectSlot === 1 || gameMode === 'campaign') {
+        if (gameMode === 'campaign') {
+            slot1Btn.classList.add('hidden');
+            slot2Btn.classList.add('hidden');
+        } else if (activeSelectSlot === 1) {
+            slot1Btn.classList.remove('hidden');
+            slot2Btn.classList.remove('hidden');
             slot1Btn.className = 'px-3 py-1.5 rounded-lg bg-red-800 text-xs font-bold text-white uppercase shadow-sm border border-red-500/50';
             slot2Btn.className = 'px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-zinc-400 uppercase';
         } else {
+            slot1Btn.classList.remove('hidden');
+            slot2Btn.classList.remove('hidden');
             slot1Btn.className = 'px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-zinc-400 uppercase';
             slot2Btn.className = 'px-3 py-1.5 rounded-lg bg-blue-800 text-xs font-bold text-white uppercase shadow-sm border border-blue-500/50';
         }

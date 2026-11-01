@@ -4,23 +4,27 @@ function updateAI(ai, target, dt) {
 
     aiDecisionCooldown -= dt;
     const dist = Math.abs(ai.x - target.x);
-    const aggr = aiDifficulty === 'brutal' ? 0.08 : (aiDifficulty === 'normal' ? 0.045 : 0.02);
+    const isBoss = ai.dino && ai.dino.isBoss;
+    const aggr = isBoss ? 0.02 : (aiDifficulty === 'brutal' ? 0.08 : (aiDifficulty === 'normal' ? 0.045 : 0.02));
 
     if (dist > 3.1) {
         ai.isBlocking = false;
-        ai.x += ai.facing * ai.dino.walkSpeed * dt * (aiDifficulty === 'easy' ? 0.7 : 0.95);
+        const speedScale = isBoss ? 0.6 : (aiDifficulty === 'easy' ? 0.7 : 0.95);
+        ai.x += ai.facing * ai.dino.walkSpeed * dt * speedScale;
         ai.action = 'walk';
 
-        if (dist > 5.0 && Math.random() < aggr * 0.45 && aiDecisionCooldown <= 0) {
+        const rangedChance = isBoss ? 0.015 : aggr * 0.45;
+        if (dist > 5.0 && Math.random() < rangedChance && aiDecisionCooldown <= 0) {
             const availRanged = ['special2', 'special'].filter(m => !ai.cooldowns || ai.cooldowns[m] <= 0);
             if (availRanged.length > 0) {
                 const pick = availRanged[Math.floor(Math.random() * availRanged.length)];
                 ai.startAttack(pick);
-                aiDecisionCooldown = 0.7;
+                aiDecisionCooldown = isBoss ? 1.3 : 0.7;
             }
         }
     } else {
-        if (target.actionDuration > 0 && Math.random() < (aiDifficulty === 'brutal' ? 0.55 : 0.25)) {
+        const blockChance = isBoss ? 0.05 : (aiDifficulty === 'brutal' ? 0.55 : 0.25);
+        if (target.actionDuration > 0 && Math.random() < blockChance) {
             ai.isBlocking = true;
             ai.action = 'crouch';
             return;
@@ -28,8 +32,8 @@ function updateAI(ai, target, dt) {
         ai.isBlocking = false;
 
         if (aiDecisionCooldown <= 0) {
-            // Le X-Ray Fatal requiert strictement une rage à 100%
-            if (ai.rage >= 100 && (!ai.cooldowns || ai.cooldowns['xray'] <= 0) && Math.random() < 0.6) {
+            // Le boss ne déclenche pas de cinématique X-Ray pour ne pas frustrer le joueur
+            if (!isBoss && ai.rage >= 100 && (!ai.cooldowns || ai.cooldowns['xray'] <= 0) && Math.random() < 0.6) {
                 executeXRayMove(ai, target);
                 if (ai.cooldowns && ai.maxCooldowns) ai.cooldowns['xray'] = ai.maxCooldowns['xray'];
             } else {
@@ -46,7 +50,7 @@ function updateAI(ai, target, dt) {
                     ai.startAttack(chosen);
                 }
             }
-            aiDecisionCooldown = aiDifficulty === 'brutal' ? 0.28 : (aiDifficulty === 'normal' ? 0.52 : 0.85);
+            aiDecisionCooldown = isBoss ? 1.15 : (aiDifficulty === 'brutal' ? 0.28 : (aiDifficulty === 'normal' ? 0.52 : 0.85));
         }
     }
 }

@@ -62,8 +62,8 @@ function spawn3DProjectile(owner, kind) {
         owner,
         mesh,
         kind,
-        vx: dir * (kind === 'sonic' ? 19.5 : (kind === 'dragon_fire' ? 18.0 : 15.5)),
-        damage: kind === 'xray_wave' ? 165 : (kind === 'dragon_fire' ? 120 : 85),
+        vx: dir * (kind === 'sonic' ? 19.5 : (kind === 'dragon_fire' ? 11.5 : 15.5)),
+        damage: kind === 'xray_wave' ? 165 : (kind === 'dragon_fire' ? 42 : 85),
         life: 1.5
     });
 }

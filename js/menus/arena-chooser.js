@@ -227,6 +227,10 @@ function updateArenaHeroDetails() {
 }
 
 function openArenaChooser() {
+    if (gameMode === 'campaign') {
+        startMatch();
+        return;
+    }
     matchState = 'arena_select';
     document.getElementById('mainMenu').classList.add('hidden');
     document.getElementById('selectScreen').classList.add('hidden');

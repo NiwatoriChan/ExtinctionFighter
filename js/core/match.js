@@ -15,6 +15,15 @@ function startMatch() {
             p2Skin = 0;
             currentArena = 'dragonlair';
         } else if (campaignOpponents && campaignOpponents[campaignStage - 1] !== undefined) {
+            // S'assurer que l'adversaire de l'étape n'est pas le combattant choisi par le joueur
+            if (campaignOpponents[campaignStage - 1] === p1ChoiceIndex) {
+                for (let k = 0; k < DINO_ROSTER.length; k++) {
+                    if (k !== p1ChoiceIndex && !DINO_ROSTER[k].isBoss && (!DINO_ROSTER[k].isUnlockable || isFighterUnlocked(DINO_ROSTER[k].id))) {
+                        campaignOpponents[campaignStage - 1] = k;
+                        break;
+                    }
+                }
+            }
             p2Dino = DINO_ROSTER[campaignOpponents[campaignStage - 1]];
             p2Skin = 0;
             currentArena = typeof getThemedArenaForFighter === 'function' ? getThemedArenaForFighter(p2Dino.id) : 'volcano';
@@ -27,10 +36,9 @@ function startMatch() {
         if (!currentArena) currentArena = 'volcano';
     }
 
-    // Gestion de la difficulté IA (progression accessible en campagne pour vaincre le boss équitablement)
+    // Difficulté IA en campagne : calibrée sur 'easy' pour un parcours exaltant et un boss Drak'Zul battable
     if (gameMode === 'campaign') {
-        if (campaignStage <= 3) aiDifficulty = 'easy';
-        else aiDifficulty = 'normal';
+        aiDifficulty = 'easy';
     } else {
         const aiDiffEl = document.getElementById('aiDifficulty');
         if (aiDiffEl) aiDifficulty = aiDiffEl.value;
@@ -96,13 +104,19 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
     if (defender.isDead) return;
 
     let finalDamage = rawDamage;
+    // Avantage joueur contre le boss en campagne pour rendre le combat palpitant et accessible
+    if (attacker.isP1 && gameMode === 'campaign' && defender.dino && defender.dino.isBoss) {
+        finalDamage = Math.round(finalDamage * 1.35);
+    }
+
     if (defender.isBlocking && !defender.isDizzy && !isLockedXrayHit && !defender.isXrayTarget) {
-        finalDamage = Math.max(8, Math.round(rawDamage * 0.22));
+        finalDamage = Math.max(8, Math.round(finalDamage * 0.22));
         sfx.playHit(false);
         spawnFloatingPopup(defender.x, '🛡️ BLOQUÉ !', '#fbbf24');
     } else {
         sfx.playHit(isHeavy);
-        defender.hitStun = isLockedXrayHit ? 1.2 : (isHeavy ? 0.36 : 0.2);
+        const isBossDef = defender.dino && defender.dino.isBoss;
+        defender.hitStun = isLockedXrayHit ? 1.2 : (isHeavy ? (isBossDef ? 0.48 : 0.36) : (isBossDef ? 0.32 : 0.2));
         // Ne pas repousser les personnages pendant que le X-Ray verrouille leurs positions
         if (!isLockedXrayHit && !xrayLockPositions) {
             defender.vx = attacker.facing * (isHeavy ? 8.5 : 4.5);

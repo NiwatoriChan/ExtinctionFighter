@@ -21,6 +21,18 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyW' || e.code === 'KeyZ' || (gameMode !== 'pvp' && e.code === 'ArrowUp')) flashArcadeButton('uiBtnUp', true);
     if (e.code === 'KeyS' || (gameMode !== 'pvp' && e.code === 'ArrowDown')) flashArcadeButton('uiBtnDown', true);
 
+    // Validation au clavier (Entrée / Espace) sur l'écran de sélection
+    if (matchState === 'select' && (e.code === 'Enter' || e.code === 'Space')) {
+        e.preventDefault();
+        sfx.playHit(false);
+        if (gameMode === 'campaign') {
+            startMatch();
+        } else {
+            openArenaChooser();
+        }
+        return;
+    }
+
     // Bloquer tous les contrôles si une cinématique X-Ray est en cours
     if (xrayCinematicTimer > 0) return;
 
@@ -659,8 +671,9 @@ function handleGamepadSelectScreen(pad, pad2, dt) {
                 } else {
                     openArenaChooser();
                 }
+            } else if (gameMode === 'campaign') {
+                startMatch();
             } else {
-                // En solo (Campagne, Vs IA, Entraînement) -> direct vers Arène
                 openArenaChooser();
             }
         }

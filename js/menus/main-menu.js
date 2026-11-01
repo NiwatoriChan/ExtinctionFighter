@@ -168,6 +168,16 @@ function startCampaignMode() {
     }
     campaignOpponents = available.slice(0, 5);
 
+    // S'assurer que le premier adversaire n'est pas le même que le personnage actuel de J1
+    if (campaignOpponents[0] === p1ChoiceIndex) {
+        for (let k = 0; k < available.length; k++) {
+            if (available[k] !== p1ChoiceIndex) {
+                campaignOpponents[0] = available[k];
+                break;
+            }
+        }
+    }
+
     goToSelectScreen();
 }
 
