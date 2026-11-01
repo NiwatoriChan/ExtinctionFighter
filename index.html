@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>EXTINCTION KOMBAT 3D - Jurassic Blood</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --mk-gold: #f59e0b;
+            --mk-red: #dc2626;
+            --mk-blood: #7f1d1d;
+            --mk-dark: #090a0f;
+        }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050508;
+            color: #f8fafc;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+        }
+        .mk-title {
+            font-family: 'Cinzel Decorative', serif;
+            text-shadow: 0 0 15px rgba(220, 38, 38, 0.85), 0 4px 0 #450a0a;
+        }
+        .mk-banner {
+            font-family: 'Cinzel Decorative', serif;
+            text-shadow: 0 0 25px #ef4444, 0 0 8px #f59e0b, 0 5px 0 #000;
+        }
+        .stone-panel {
+            background: linear-gradient(145deg, #18181b 0%, #09090b 100%);
+            border: 2px solid #3f3f46;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 8px 25px rgba(0,0,0,0.8);
+        }
+        .stone-card {
+            background: radial-gradient(circle at center, #27272a 0%, #09090b 100%);
+            border: 2px solid #52525b;
+            transition: all 0.2s ease;
+        }
+        .stone-card:hover {
+            border-color: #f59e0b;
+            transform: translateY(-2px);
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
+        }
+        .stone-card.selected-p1 {
+            border-color: #ef4444;
+            box-shadow: 0 0 22px rgba(239, 68, 68, 0.75), inset 0 0 15px rgba(239, 68, 68, 0.35);
+        }
+        .stone-card.selected-p2 {
+            border-color: #3b82f6;
+            box-shadow: 0 0 22px rgba(59, 130, 246, 0.75), inset 0 0 15px rgba(59, 130, 246, 0.35);
+        }
+        .arcade-btn {
+            transition: transform 0.08s ease, box-shadow 0.12s ease;
+            touch-action: manipulation;
+        }
+        .arcade-btn:active, .arcade-btn.active-press {
+            transform: scale(0.92) translateY(2px);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 8px #ef4444); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 22px #f59e0b); transform: scale(1.05); }
+        }
+        .finish-pulse {
+            animation: pulseGlow 0.7s infinite ease-in-out;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between bg-zinc-950 text-zinc-100">
+
+    <!-- HEADER BAR -->
+    <header class="w-full max-w-6xl px-3 py-2 flex flex-wrap items-center justify-between border-b border-red-900/50 bg-black/80 backdrop-blur-md z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 via-red-600 to-red-950 p-0.5 flex items-center justify-center shadow-lg shadow-red-900/50 border border-amber-400">
+                <span class="text-lg font-black tracking-tighter text-amber-200">EK</span>
+            </div>
+            <div>
+                <h1 class="mk-title text-lg sm:text-2xl font-black tracking-wider text-amber-400 leading-none">
+                    EXTINCTION KOMBAT 3D
+                </h1>
+                <p class="text-[11px] text-red-400 uppercase tracking-widest font-bold">9 Combattants 3D • X-Ray Anatomique 3 Phases & Fatalités</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 mt-1 sm:mt-0">
+            <button id="btnResetCam" class="hidden px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-bold text-cyan-400 transition" title="Glissez la souris sur l'arène 3D pour tourner la caméra">
+                🎥 Réinitialiser Caméra 3D
+            </button>
+            <button id="btnToggleSound" class="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-bold flex items-center gap-1.5 text-amber-400 transition">
+                <span id="soundIcon">🔊</span> <span class="hidden sm:inline">Audio Synthé</span>
+            </button>
+            <button id="btnShowMoves" class="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-200 transition">
+                📜 Coups & Fatalités 3D
+            </button>
+            <button id="btnBackToSelect" class="hidden px-3 py-1.5 rounded-lg bg-red-950/90 hover:bg-red-900 border border-red-600 text-xs font-bold text-amber-200 transition">
+                ⚔️ Changer de Dino
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="w-full max-w-6xl flex-1 flex flex-col items-center justify-center px-2 sm:px-4 py-2 relative">
+
+        <!-- ==================== SCREEN 1: CHARACTER SELECT ==================== -->
+        <section id="selectScreen" class="w-full flex flex-col gap-3 py-1">
+            <!-- Mode & Arena Bar -->
+            <div class="stone-panel rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs uppercase tracking-wider text-zinc-400 font-bold">Mode :</span>
+                    <button data-mode="cpu" class="mode-btn px-3 py-1 rounded-lg text-xs font-extrabold uppercase bg-red-700 text-white border border-amber-400 shadow">
+                        1J vs IA (Tournoi)
+                    </button>
+                    <button data-mode="pvp" class="mode-btn px-3 py-1 rounded-lg text-xs font-extrabold uppercase bg-zinc-800 text-zinc-300 border border-zinc-700">
+                        2 Joueurs (Local)
+                    </button>
+                    <button data-mode="practice" class="mode-btn px-3 py-1 rounded-lg text-xs font-extrabold uppercase bg-zinc-800 text-zinc-300 border border-zinc-700">
+                        Entraînement
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs uppercase tracking-wider text-zinc-400 font-bold">IA :</span>
+                    <select id="aiDifficulty" class="bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-xs font-bold text-amber-400 focus:outline-none">
+                        <option value="easy">Novice (Facile)</option>
+                        <option value="normal" selected>Prédateur (Normal)</option>
+                        <option value="brutal">Extinction (Brutal)</option>
+                    </select>
+
+                    <span class="text-xs uppercase tracking-wider text-zinc-400 font-bold ml-1">Arène :</span>
+                    <select id="arenaSelect" class="bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-xs font-bold text-red-400 focus:outline-none">
+                        <option value="volcano">Cratère du Chicxulub (Lave)</option>
+                        <option value="boneyard">Temple du Cimetière d'Os</option>
+                        <option value="swamp">Marais Acide Nocturne</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Fighter Preview, Color Picker & Roster Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
+                <!-- P1 Preview Card -->
+                <div class="lg:col-span-3 stone-panel rounded-xl p-3 flex flex-col justify-between border-t-4 border-t-red-600">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded bg-red-600 text-white text-xs font-black uppercase">Joueur 1</span>
+                            <span id="p1RoleBadge" class="text-xs text-amber-400 font-bold uppercase">Apex Carnivore</span>
+                        </div>
+                        <h2 id="p1NameDisplay" class="mk-title text-2xl font-black text-white mt-1">T-REX</h2>
+                        <p id="p1TitleDisplay" class="text-xs text-red-400 font-semibold italic">« Le Roi Sanglant du Crétacé »</p>
+
+                        <div class="w-full h-32 my-1.5 rounded-lg bg-gradient-to-b from-red-950/40 to-black border border-zinc-800 relative overflow-hidden">
+                            <canvas id="p1PreviewCanvas"></canvas>
+                        </div>
+
+                        <!-- Color Customizer J1 -->
+                        <div class="mt-1">
+                            <div class="text-[11px] font-bold text-zinc-400 uppercase mb-1">Peinture Armure J1 :</div>
+                            <div id="p1ColorPalette" class="flex items-center justify-between gap-1.5">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="space-y-1 text-xs mt-2">
+                            <div>
+                                <div class="flex justify-between font-bold"><span>PUISSANCE</span><span id="p1StatPow" class="text-red-400">95%</span></div>
+                                <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div id="p1BarPow" class="h-full bg-gradient-to-r from-amber-500 to-red-600" style="width:95%"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between font-bold"><span>VITESSE</span><span id="p1StatSpd" class="text-amber-400">70%</span></div>
+                                <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div id="p1BarSpd" class="h-full bg-gradient-to-r from-amber-400 to-orange-500" style="width:70%"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between font-bold"><span>ARMURE / PV</span><span id="p1StatDef" class="text-emerald-400">85%</span></div>
+                                <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div id="p1BarDef" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width:85%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 pt-1 border-t border-zinc-800 text-[11px] space-y-0.5">
+                        <div class="text-amber-400 font-bold">⚡ Spécial : <span id="p1SpecName" class="text-zinc-200">Morsure Sismique & Rugissement</span></div>
+                        <div class="text-red-500 font-bold">💀 Fatalité : <span id="p1FatalityName" class="text-zinc-200">Dévoration Royale</span></div>
+                    </div>
+                </div>
+
+                <!-- Center 10-Dino Grid -->
+                <div class="lg:col-span-6 stone-panel rounded-xl p-3 flex flex-col justify-between">
+                    <div class="text-center mb-1">
+                        <h3 class="mk-title text-base sm:text-xl text-amber-400 font-black tracking-wider uppercase">CHOISISSEZ VOTRE ESPÈCE (10 LÉGENDES)</h3>
+                        <p id="selectPromptText" class="text-xs text-zinc-400">Cliquez pour assigner le Joueur 1, puis l'Adversaire</p>
+                    </div>
+
+                    <div id="rosterGrid" class="grid grid-cols-5 gap-1.5 my-auto">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+
+                    <div class="mt-2 flex flex-wrap items-center justify-center gap-2">
+                        <button id="btnSelectSlotP1" class="px-3 py-1.5 rounded-lg bg-red-900/60 border border-red-500 text-xs font-extrabold text-white uppercase">
+                            Sélection : Joueur 1
+                        </button>
+                        <button id="btnSelectSlotP2" class="px-3 py-1.5 rounded-lg bg-zinc-800 border border-blue-500/60 text-xs font-extrabold text-blue-300 uppercase">
+                            Sélection : Adversaire
+                        </button>
+                        <button id="btnRandomFighters" class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-xs font-bold text-amber-300 uppercase">
+                            🎲 Aléatoire
+                        </button>
+                        <button id="btnStartKomBat" class="w-full sm:w-auto px-6 py-2 rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-black text-sm uppercase tracking-widest shadow-lg shadow-red-900/60 border border-amber-300 finish-pulse">
+                            🔥 LANCER LE KOMBAT !
+                        </button>
+                    </div>
+                </div>
+
+                <!-- P2 / CPU Preview Card -->
+                <div class="lg:col-span-3 stone-panel rounded-xl p-3 flex flex-col justify-between border-t-4 border-t-blue-500">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span id="p2TagLabel" class="px-2 py-0.5 rounded bg-blue-600 text-white text-xs font-black uppercase">IA / J2</span>
+                            <span id="p2RoleBadge" class="text-xs text-amber-400 font-bold uppercase">Forteresse Vivante</span>
+                        </div>
+                        <h2 id="p2NameDisplay" class="mk-title text-2xl font-black text-white mt-1">ANKYLOSAURE</h2>
+                        <p id="p2TitleDisplay" class="text-xs text-blue-400 font-semibold italic">« Le Briseur d'Os Blindé »</p>
+
+                        <div class="w-full h-32 my-1.5 rounded-lg bg-gradient-to-b from-blue-950/40 to-black border border-zinc-800 relative overflow-hidden">
+                            <canvas id="p2PreviewCanvas"></canvas>
+                        </div>
+
+                        <!-- Color Customizer J2 -->
+                        <div class="mt-1">
+                            <div class="text-[11px] font-bold text-zinc-400 uppercase mb-1">Peinture Armure J2 :</div>
+                            <div id="p2ColorPalette" class="flex items-center justify-between gap-1.5">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="space-y-1 text-xs mt-2">
+                            <div>
+                                <div class="flex justify-between font-bold"><span>PUISSANCE</span><span id="p2StatPow" class="text-red-400">90%</span></div>
+                                <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div id="p2BarPow" class="h-full bg-gradient-to-r from-amber-500 to-red-600" style="width:90%"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between font-bold"><span>VITESSE</span><span id="p2StatSpd" class="text-amber-400">55%</span></div>
+                                <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div id="p2BarSpd" class="h-full bg-gradient-to-r from-amber-400 to-orange-500" style="width:55%"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between font-bold"><span>ARMURE / PV</span><span id="p2StatDef" class="text-emerald-400">100%</span></div>
+                                <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div id="p2BarDef" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width:100%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 pt-1 border-t border-zinc-800 text-[11px] space-y-0.5">
+                        <div class="text-amber-400 font-bold">⚡ Spécial : <span id="p2SpecName" class="text-zinc-200">Marteau d'Os & Bouclier</span></div>
+                        <div class="text-red-500 font-bold">💀 Fatalité : <span id="p2FatalityName" class="text-zinc-200">Brise-Fossile</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SCREEN 2: ARENA BATTLE ==================== -->
+        <section id="battleScreen" class="hidden w-full flex-col items-center gap-2">
+            <!-- Canvas Wrapper -->
+            <div class="w-full relative rounded-2xl overflow-hidden border-2 border-zinc-700 shadow-2xl bg-black" style="height: min(62vh, 520px); min-height: 330px;">
+
+                <!-- TOP HUD OVERLAY -->
+                <div class="absolute top-0 left-0 right-0 p-2 sm:p-3 z-10 pointer-events-none">
+                    <div class="grid grid-cols-11 items-start gap-1 sm:gap-2">
+                        <!-- P1 Health & Rage -->
+                        <div class="col-span-5 flex flex-col gap-1">
+                            <div class="flex items-center justify-between px-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span id="hudP1Name" class="mk-title text-xs sm:text-base font-black text-amber-400 tracking-wide">T-REX</span>
+                                    <div id="hudP1Rounds" class="flex gap-1 text-xs"></div>
+                                </div>
+                                <span id="hudP1HpText" class="text-xs font-extrabold text-red-400">100%</span>
+                            </div>
+                            <!-- Health Bar -->
+                            <div class="w-full h-4 sm:h-5 bg-zinc-950/90 border-2 border-amber-500/80 rounded-md overflow-hidden relative shadow-inner">
+                                <div id="hudP1DamageBar" class="absolute top-0 left-0 h-full bg-amber-300 transition-all duration-500" style="width:100%"></div>
+                                <div id="hudP1HealthBar" class="absolute top-0 left-0 h-full bg-gradient-to-r from-red-800 via-red-600 to-amber-500 transition-all duration-100" style="width:100%"></div>
+                            </div>
+                            <!-- Rage / X-Ray Meter -->
+                            <div class="flex items-center gap-1.5">
+                                <div class="flex-1 h-2 bg-zinc-950 border border-zinc-700 rounded-full overflow-hidden">
+                                    <div id="hudP1RageBar" class="h-full bg-gradient-to-r from-cyan-500 via-purple-500 to-amber-400 transition-all duration-100" style="width:0%"></div>
+                                </div>
+                                <span id="hudP1RageBadge" class="text-[10px] font-black uppercase px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-700">RAGE 0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Center Timer & Round -->
+                        <div class="col-span-1 flex flex-col items-center justify-center">
+                            <div class="px-2 py-1 rounded-lg bg-zinc-950/90 border-2 border-amber-500 text-center shadow-lg">
+                                <div id="hudTimer" class="mk-title text-lg sm:text-2xl font-black text-amber-400 leading-none">99</div>
+                            </div>
+                            <span id="hudRoundText" class="text-[10px] font-extrabold uppercase text-red-400 mt-0.5 tracking-wider">ROUND 1</span>
+                        </div>
+
+                        <!-- P2 Health & Rage -->
+                        <div class="col-span-5 flex flex-col gap-1">
+                            <div class="flex items-center justify-between px-1">
+                                <span id="hudP2HpText" class="text-xs font-extrabold text-red-400">100%</span>
+                                <div class="flex items-center gap-1.5">
+                                    <div id="hudP2Rounds" class="flex gap-1 text-xs"></div>
+                                    <span id="hudP2Name" class="mk-title text-xs sm:text-base font-black text-amber-400 tracking-wide">ANKYLOSAURE</span>
+                                </div>
+                            </div>
+                            <!-- Health Bar (Right-to-Left feel) -->
+                            <div class="w-full h-4 sm:h-5 bg-zinc-950/90 border-2 border-amber-500/80 rounded-md overflow-hidden relative shadow-inner">
+                                <div id="hudP2DamageBar" class="absolute top-0 right-0 h-full bg-amber-300 transition-all duration-500" style="width:100%"></div>
+                                <div id="hudP2HealthBar" class="absolute top-0 right-0 h-full bg-gradient-to-l from-red-800 via-red-600 to-amber-500 transition-all duration-100" style="width:100%"></div>
+                            </div>
+                            <!-- Rage / X-Ray Meter -->
+                            <div class="flex items-center gap-1.5 flex-row-reverse">
+                                <div class="flex-1 h-2 bg-zinc-950 border border-zinc-700 rounded-full overflow-hidden">
+                                    <div id="hudP2RageBar" class="h-full bg-gradient-to-l from-cyan-500 via-purple-500 to-amber-400 ml-auto transition-all duration-100" style="width:0%"></div>
+                                </div>
+                                <span id="hudP2RageBadge" class="text-[10px] font-black uppercase px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-700">RAGE 0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CENTER ANNOUNCER BANNER -->
+                <div id="announcerOverlay" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20 px-4 text-center">
+                    <h2 id="announcerMain" class="mk-banner text-3xl sm:text-6xl font-black uppercase tracking-widest text-amber-400 transition-transform duration-200">
+                        ROUND 1
+                    </h2>
+                    <p id="announcerSub" class="text-sm sm:text-xl font-extrabold uppercase tracking-widest text-red-400 mt-1 drop-shadow">
+                        PRÉPAREZ-VOUS AU COMBAT
+                    </p>
+                </div>
+
+                <!-- X-RAY MEDICAL SCANNER OVERLAY (MORTAL KOMBAT STYLE) -->
+                <div id="xrayOverlayHud" class="hidden absolute inset-0 pointer-events-none z-20 flex flex-col justify-between p-4" style="background: radial-gradient(circle at center, rgba(6, 182, 212, 0.12) 0%, rgba(2, 6, 23, 0.88) 85%); box-shadow: inset 0 0 70px rgba(34, 211, 238, 0.55);">
+                    <div class="mt-14 flex items-center justify-between border-b border-cyan-400/50 pb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded bg-cyan-500 text-slate-950 font-black text-xs uppercase tracking-widest animate-pulse">☢ SCANNER X-RAY ACTIF</span>
+                            <span id="xrayTargetLabel" class="text-cyan-300 font-bold text-xs uppercase tracking-wider">ANALYSE SQUELETTIQUE</span>
+                        </div>
+                        <span id="xrayPhaseCounter" class="text-amber-300 font-black text-xs uppercase tracking-widest">PHASE 1 / 3</span>
+                    </div>
+
+                    <div class="my-auto flex flex-col items-center">
+                        <div id="xrayAnatomyBanner" class="px-5 py-2 rounded-xl bg-slate-950/90 border-2 border-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.7)] text-center transform transition-all duration-150">
+                            <div id="xrayBoneTitle" class="mk-title text-lg sm:text-2xl font-black text-cyan-300 tracking-wider">FRACTURE CRÂNIENNE</div>
+                            <div id="xrayPsiDetail" class="text-xs font-extrabold text-red-400 uppercase tracking-widest">TRAUMA INTERNE : 4 800 PSI • OS BROYÉ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FINISH HIM / FATALITY INTERACTIVE PROMPT -->
+                <div id="fatalityPromptBox" class="hidden absolute bottom-14 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+                    <button id="btnTriggerFatalityNow" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-800 via-red-600 to-amber-500 text-white font-black text-sm sm:text-lg uppercase tracking-wider border-2 border-amber-300 shadow-2xl finish-pulse">
+                        💀 EXÉCUTER LA FATALITÉ ! (Touche R)
+                    </button>
+                </div>
+
+                <!-- POST-MATCH OVERLAY BUTTONS -->
+                <div id="postMatchMenu" class="hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-wrap items-center justify-center gap-3 pointer-events-auto">
+                    <button id="btnRematch" class="px-5 py-2 rounded-xl bg-gradient-to-r from-red-700 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider border border-amber-300 shadow-xl">
+                        🔄 Revanche Immédiate
+                    </button>
+                    <button id="btnNextOpponent" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider border border-emerald-400 shadow-xl">
+                        🏆 Adversaire Suivant
+                    </button>
+                    <button id="btnReturnRoster" class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-bold text-xs sm:text-sm uppercase border border-zinc-600 shadow-xl">
+                        🦖 Menu des Dinosaures
+                    </button>
+                </div>
+
+                <!-- 2D FLOATING DAMAGE / COMBO OVERLAY -->
+                <div id="damagePopupLayer" class="absolute inset-0 pointer-events-none z-10 overflow-hidden"></div>
+
+                <!-- CAMERA HINT -->
+                <div class="absolute bottom-2 right-3 z-10 pointer-events-none text-[10px] text-zinc-400/80 font-bold bg-black/50 px-2 py-0.5 rounded border border-zinc-800">
+                    🖱️ Glisser la souris : Orienter la caméra 3D
+                </div>
+
+                <!-- MAIN 3D GAME CANVAS -->
+                <canvas id="battleCanvas" class="cursor-grab active:cursor-grabbing"></canvas>
+            </div>
+
+            <!-- ARCADE TOUCH & CLICK CONTROLS BAR -->
+            <div class="w-full stone-panel rounded-xl p-2 sm:p-3 flex flex-wrap items-center justify-between gap-2">
+                <!-- Left D-Pad + Dash -->
+                <div class="flex items-center gap-1.5">
+                    <button id="uiBtnLeft" data-ctrl="left" class="ctrl-btn arcade-btn w-12 h-11 sm:w-14 sm:h-12 rounded-xl bg-zinc-800 hover:bg-zinc-700 border-2 border-zinc-600 flex flex-col items-center justify-center text-white font-black shadow">
+                        <span class="text-base leading-none">◀</span>
+                        <span class="text-[9px] text-zinc-400">A / Q / ⬅</span>
+                    </button>
+                    <div class="flex flex-col gap-1">
+                        <button id="uiBtnUp" data-ctrl="up" class="ctrl-btn arcade-btn w-12 h-9 sm:w-14 sm:h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 border-2 border-zinc-600 flex items-center justify-center text-white font-black text-xs shadow">
+                            ▲ Saut (W)
+                        </button>
+                        <button id="uiBtnDown" data-ctrl="down" class="ctrl-btn arcade-btn w-12 h-9 sm:w-14 sm:h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 border-2 border-zinc-600 flex items-center justify-center text-amber-300 font-black text-xs shadow">
+                            🛡️ Garde (S)
+                        </button>
+                    </div>
+                    <button id="uiBtnRight" data-ctrl="right" class="ctrl-btn arcade-btn w-12 h-11 sm:w-14 sm:h-12 rounded-xl bg-zinc-800 hover:bg-zinc-700 border-2 border-zinc-600 flex flex-col items-center justify-center text-white font-black shadow">
+                        <span class="text-base leading-none">▶</span>
+                        <span class="text-[9px] text-zinc-400">D / ➡</span>
+                    </button>
+                    <button id="uiBtnDash" data-action="dash" class="act-btn arcade-btn px-2.5 h-11 sm:h-12 rounded-xl bg-zinc-900 hover:bg-zinc-800 border-2 border-cyan-500/80 flex flex-col items-center justify-center text-cyan-300 font-black text-xs shadow">
+                        <span>💨 DASH</span>
+                        <span class="text-[9px] text-zinc-400">[E / 2×Dir]</span>
+                    </button>
+                </div>
+
+                <!-- Center Quick Info / Combo Guide -->
+                <div class="hidden xl:flex flex-col items-center text-center px-2">
+                    <div class="text-xs font-extrabold text-amber-400 uppercase tracking-wider">Combos Fluides & Contrôles Pro</div>
+                    <div class="text-[11px] text-zinc-400">
+                        <span class="text-cyan-300 font-bold">Combo :</span> Léger (F) ➔ Lourd (G) ➔ Spécial (H/T) • <span class="text-amber-300 font-bold">Dash :</span> E ou Double-Direction
+                    </div>
+                </div>
+
+                <!-- Right Attack Buttons -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button id="uiBtnLight" data-action="light" class="act-btn arcade-btn px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 border-2 border-amber-300 text-black font-black text-xs sm:text-sm uppercase shadow-lg">
+                        ⚡ Léger <span class="block text-[10px] font-bold opacity-80">[F / J]</span>
+                    </button>
+                    <button id="uiBtnHeavy" data-action="heavy" class="act-btn arcade-btn px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-b from-orange-600 to-red-800 border-2 border-orange-300 text-white font-black text-xs sm:text-sm uppercase shadow-lg">
+                        💥 Lourd <span class="block text-[10px] font-bold opacity-80">[G / K]</span>
+                    </button>
+                    <button id="uiBtnSpecial" data-action="special" class="act-btn arcade-btn px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-b from-purple-600 to-indigo-900 border-2 border-purple-300 text-white font-black text-xs sm:text-sm uppercase shadow-lg">
+                        🔥 Spécial <span class="block text-[10px] font-bold opacity-80">[H / L]</span>
+                    </button>
+                    <button id="uiBtnSpecial2" data-action="special2" class="act-btn arcade-btn px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-b from-emerald-600 to-teal-900 border-2 border-emerald-300 text-white font-black text-xs sm:text-sm uppercase shadow-lg">
+                        🌪️ Ultra <span class="block text-[10px] font-bold opacity-80">[T / U]</span>
+                    </button>
+                    <button id="btnRageFatality" data-action="xray" class="act-btn arcade-btn px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-b from-red-600 via-red-800 to-black border-2 border-red-400 text-amber-200 font-black text-xs sm:text-sm uppercase shadow-lg">
+                        💀 X-Ray / Fatal <span class="block text-[10px] font-bold opacity-90">[R / Espace]</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL: MOVELIST & LORE -->
+    <div id="movesModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+        <div class="stone-panel rounded-2xl max-w-3xl w-full max-h-[88vh] flex flex-col overflow-hidden border-2 border-amber-500/60">
+            <div class="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950">
+                <h3 class="mk-title text-lg sm:text-xl font-black text-amber-400">GRIMOIRE DES COMBATTANTS & FATALITÉS</h3>
+                <button id="btnCloseMoves" class="px-3 py-1 rounded-lg bg-red-900/70 hover:bg-red-700 text-white text-xs font-bold">✕ Fermer</button>
+            </div>
+            <div class="p-4 overflow-y-auto space-y-3 text-xs sm:text-sm">
+                <div class="p-3 rounded-xl bg-zinc-900/90 border border-zinc-700">
+                    <h4 class="font-black text-amber-400 uppercase mb-1">Commandes Pro, Enchaînements & Esquives</h4>
+                    <p class="text-zinc-300">
+                        • <strong>Joueur 1 :</strong> <code class="text-amber-300">A/D</code> ou <code class="text-amber-300">Q/D</code> (Déplacement), <code class="text-amber-300">E</code> ou <strong>Double-Direction</strong> (Dash rapide avant/arrière), <code class="text-amber-300">W/Z</code> (Saut + Attaques sautées), <code class="text-amber-300">S</code> (Garde), <code class="text-amber-300">F</code> (Léger), <code class="text-amber-300">G</code> (Lourd), <code class="text-amber-300">H</code> (Spécial 1), <code class="text-amber-300">T</code> (Ultra), <code class="text-amber-300">R</code> / <code class="text-amber-300">Espace</code> (X-Ray ou <strong>FATALITÉ</strong>).<br>
+                        • <strong>Chaînes de Combos (Cancel) :</strong> Vous pouvez enchaîner sans délai <span class="text-amber-300 font-bold">Léger (F) ➔ Lourd (G) ➔ Spécial (H ou T) ➔ X-Ray (R)</span> !<br>
+                        • <strong>Joueur 2 (Mode 2J Local) :</strong> Flèches directionnelles + Pavé Numérique <code class="text-blue-300">1/I</code> (Léger), <code class="text-blue-300">2/O</code> (Lourd), <code class="text-blue-300">3/P</code> (Spécial 1), <code class="text-blue-300">4</code> (Ultra), <code class="text-blue-300">5</code> (Dash), <code class="text-blue-300">0/M</code> (X-Ray / Fatalité). Compatible manettes USB/Bluetooth !
+                    </p>
+                </div>
+                <div id="modalRosterMoves" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================================================
+         * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS (10 COMBATTANTS & PERSONNALISATION)
+         * ============================================================================ */
+
+        // 1. BASE DE DONNÉES DES 10 COMBATTANTS AVEC PALETTES DE COULEURS CUSTOMISABLES
+        const DINO_ROSTER = [
+            {
+                id: 'trex',
+                name: 'T-REX',
+                fullName: 'Tyrannosaurus Rex',
+                role: 'Apex Carnivore',
+                title: '« Le Roi Sanglant du Crétacé »',
+                defaultColor: 0xdc2626,
+                secondaryColor: 0x7f1d1d,
+                accentColor: 0xf59e0b,
+                palettes: [0xdc2626, 0x1d4ed8, 0x15803d, 0x9333ea, 0xb45309, 0xf43f5e],
+                scale: 1.05,
+                stats: { pow: 96, spd: 72, def: 85 },
+                maxHp: 1050,
+                walkSpeed: 7.8,
+                special1Name: 'Morsure Sismique (H)',
+                special2Name: 'Rugissement de Magma (T)',
+                fatalityName: 'Dévoration Royale (R)',
+                moveStyle: 'Foulée bipède lourde, morsure plongeante et balayage caudal rotatif.',
+                fatalityDesc: 'Saisit la victime dans ses mâchoires géantes, la secoue violemment, arrache la tête et l’avale dans une gerbe de sang.'
+            },
+            {
+                id: 'pachyrhino',
+                name: 'PACHYRHINO',
+                fullName: 'Pachyrhinosaurus',
+                role: 'Bélier Blindé',
+                title: '« Le Colosse à Bosse d’Acier »',
+                defaultColor: 0xd97706,
+                secondaryColor: 0x78350f,
+                accentColor: 0x38bdf8,
+                palettes: [0xd97706, 0x475569, 0x15803d, 0x9a3412, 0x374151, 0x0284c7],
+                scale: 1.0,
+                stats: { pow: 88, spd: 76, def: 92 },
+                maxHp: 1100,
+                walkSpeed: 8.2,
+                special1Name: 'Charge Boréale (H)',
+                special2Name: 'Cornes Sismiques (T)',
+                fatalityName: 'Impact Crânien Polaire (R)',
+                moveStyle: 'Trot quadrupède puissant, coup de bosse nasale et soulèvement de collerette.',
+                fatalityDesc: 'Gratte le sol, charge à vitesse supersonique avec sa bosse nasale blindée, pulvérise le torse ennemi et empale son crâne.'
+            },
+            {
+                id: 'ankylo',
+                name: 'ANKYLOSAURE',
+                fullName: 'Ankylosaurus Magniventris',
+                role: 'Forteresse Vivante',
+                title: '« Le Briseur d’Os Blindé »',
+                defaultColor: 0x4d7c0f,
+                secondaryColor: 0x1a2e05,
+                accentColor: 0xfacc15,
+                palettes: [0x4d7c0f, 0x1e293b, 0xb45309, 0x0f766e, 0x581c87, 0x334155],
+                scale: 1.0,
+                stats: { pow: 92, spd: 58, def: 100 },
+                maxHp: 1200,
+                walkSpeed: 6.4,
+                special1Name: 'Marteau d’Os 360° (H)',
+                special2Name: 'Boulet Tectonique (T)',
+                fatalityName: 'Home-Run Brise-Fossile (R)',
+                moveStyle: 'Marche blindée basse, roulade en boulet épineux et rotation de massue caudale.',
+                fatalityDesc: 'Brise d’abord les jambes de l’adversaire pour le mettre à genoux, puis effectue une frappe 360° de massue qui expédie sa tête hors de l’arène.'
+            },
+            {
+                id: 'apato',
+                name: 'APATOSAURE',
+                fullName: 'Apatosaurus Ajax',
+                role: 'Titan Tonnerre',
+                title: '« Le Géant qui Fait Trembler la Terre »',
+                defaultColor: 0x0f766e,
+                secondaryColor: 0x134e4a,
+                accentColor: 0x2dd4bf,
+                palettes: [0x0f766e, 0x3b82f6, 0x84cc16, 0xd97706, 0x475569, 0x6366f1],
+                scale: 1.16,
+                stats: { pow: 98, spd: 52, def: 98 },
+                maxHp: 1250,
+                walkSpeed: 6.0,
+                special1Name: 'Fouet Supersonique (H)',
+                special2Name: 'Piétinement Cataclysmique (T)',
+                fatalityName: 'Écrasement Titanesque (R)',
+                moveStyle: 'Pas sismiques de sauropode, balayage du long cou et claquement de queue supersonique.',
+                fatalityDesc: 'Se cabre de toute sa hauteur colossale sur ses pattes arrière puis s’abat de tout son poids pour aplatir complètement l’adversaire.'
+            },
+            {
+                id: 'maiasaura',
+                name: 'MAIASAURA',
+                fullName: 'Maiasaura Peeblesorum',
+                role: 'Furie Véloce',
+                title: '« La Gardienne aux Cris Ultrasoniques »',
+                defaultColor: 0x9333ea,
+                secondaryColor: 0x581c87,
+                accentColor: 0xf472b6,
+                palettes: [0x9333ea, 0xec4899, 0x06b6d4, 0xf59e0b, 0x10b981, 0x3b82f6],
+                scale: 0.98,
+                stats: { pow: 78, spd: 92, def: 78 },
+                maxHp: 980,
+                walkSpeed: 9.6,
+                special1Name: 'Onde Ultrasonique (H)',
+                special2Name: 'Ruée de Coups de Pied (T)',
+                fatalityName: 'Résonance Mortelle (R)',
+                moveStyle: 'Course athlétique agile, salto arrière de coups de pied et salves acoustiques.',
+                fatalityDesc: 'Concentre un rayon d’ondes ultrasoniques depuis sa crête qui fait vibrer et gonfler le crâne adverse jusqu’à l’explosion totale.'
+            },
+            {
+                id: 'terabird',
+                name: 'TERABIRD',
+                fullName: 'Phorusrhacos (Oiseau-Terreur)',
+                role: 'Bec Exécuteur',
+                title: '« La Faucheuse à Plumes de Sang »',
+                defaultColor: 0xe11d48,
+                secondaryColor: 0x4c0519,
+                accentColor: 0xfb7185,
+                palettes: [0xe11d48, 0xd97706, 0x1e293b, 0x047857, 0x7c3aed, 0xb91c1c],
+                scale: 0.98,
+                stats: { pow: 86, spd: 100, def: 70 },
+                maxHp: 940,
+                walkSpeed: 11.0,
+                special1Name: 'Guillotine Aviaire (H)',
+                special2Name: 'Tempête de Serres (T)',
+                fatalityName: 'Bec de la Faucheuse (R)',
+                moveStyle: 'Foulée de rapace prédateur, saut griffu aérien et coups de bec guillotine.',
+                fatalityDesc: 'Bondit ailes déployées sur sa proie, martèle frénétiquement sa poitrine de 4 coups de bec crochu et arrache son cœur battant.'
+            },
+            {
+                id: 'postosuchus',
+                name: 'POSTOSUCHUS',
+                fullName: 'Postosuchus Kirkpatricki',
+                role: 'Archosaure Trias',
+                title: '« Le Crocodile Blindé de l’Enfer »',
+                defaultColor: 0xb45309,
+                secondaryColor: 0x451a03,
+                accentColor: 0xfef08a,
+                palettes: [0xb45309, 0x1e293b, 0x3f3f46, 0x15803d, 0x7c2d12, 0x1d4ed8],
+                scale: 1.04,
+                stats: { pow: 94, spd: 82, def: 88 },
+                maxHp: 1120,
+                walkSpeed: 8.8,
+                special1Name: 'Tonneau de la Mort (H)',
+                special2Name: 'Mâchoire du Trias (T)',
+                fatalityName: 'Vrille Déchiqueteuse (R)',
+                moveStyle: 'Traque reptilienne basse sur 4 pattes, bond bipède féroce et roulade crocodilienne en vrille.',
+                fatalityDesc: 'Verrouille ses mâchoires sur le torse adverse et tourne sur lui-même à 1000 tours/minute (Death Roll) jusqu’à démembrer totalement sa proie.'
+            },
+            {
+                id: 'spinosaurus',
+                name: 'SPINOSAURE',
+                fullName: 'Spinosaurus Aegyptiacus',
+                role: 'Léviathan à Voile',
+                title: '« L’Empereur aux Griffes et Voile de Feu »',
+                defaultColor: 0x0284c7,
+                secondaryColor: 0x0c4a6e,
+                accentColor: 0xf97316,
+                palettes: [0x0284c7, 0xdc2626, 0x059669, 0x7c3aed, 0xd97706, 0x334155],
+                scale: 1.12,
+                stats: { pow: 97, spd: 76, def: 86 },
+                maxHp: 1140,
+                walkSpeed: 8.1,
+                special1Name: 'Lacération Abyssale (H)',
+                special2Name: 'Geyser Thermique (T)',
+                fatalityName: 'Éventration du Nil (R)',
+                moveStyle: 'Posture de prédateur géant à voile dorsale illuminée, griffes lacérantes et queue nageoire.',
+                fatalityDesc: 'Empale l’ennemi sur ses griffes géantes, le soulève pendant que sa voile dorsale s’embrase et le déchire en deux dans un geyser brûlant.'
+            },
+            {
+                id: 'therizino',
+                name: 'THÉRIZINO',
+                fullName: 'Therizinosaurus Cheloniformis',
+                role: 'Maître des Faux',
+                title: '« Les 6 Lames d’Obsidienne d’Un Mètre »',
+                defaultColor: 0x10b981,
+                secondaryColor: 0x064e3b,
+                accentColor: 0xa7f3d0,
+                palettes: [0x10b981, 0x3b82f6, 0xf59e0b, 0x8b5cf6, 0xef4444, 0x64748b],
+                scale: 1.06,
+                stats: { pow: 93, spd: 85, def: 80 },
+                maxHp: 1040,
+                walkSpeed: 8.6,
+                special1Name: 'Croix de Faucheuse (H)',
+                special2Name: 'Tourbillon de Lames (T)',
+                fatalityName: 'Découpe Chirurgicale (R)',
+                moveStyle: 'Posture droite de bretteur préhistorique, grands coups de faux croisés et tourbillon tranchant.',
+                fatalityDesc: 'Croise ses griffes géantes d’un mètre et exécute trois entailles fulgurantes en X qui découpent la cible et font voler sa tête.'
+            },
+            {
+                id: 'pulmonoscorpius',
+                name: 'PULMONOSCORPIUS',
+                fullName: 'Pulmonoscorpius Gigantus',
+                role: 'Scorpion de l’Ombre',
+                title: '« Le Tueur Venimeux du Carbonifère »',
+                defaultColor: 0x3f3f46,
+                secondaryColor: 0x18181b,
+                accentColor: 0xa855f7,
+                palettes: [0x3f3f46, 0x7c2d12, 0x1e3a8a, 0x064e3b, 0x581c87, 0x9a3412],
+                scale: 0.95,
+                stats: { pow: 89, spd: 94, def: 75 },
+                maxHp: 920,
+                walkSpeed: 10.2,
+                special1Name: 'Pince Faucheuse (H)',
+                special2Name: 'Dard Neurotoxique (T)',
+                fatalityName: 'Piqure Mortelle (R)',
+                moveStyle: 'Marche de scorpion géant, pinces menaçantes et dard venimeux dressé au-dessus du corps.',
+                fatalityDesc: 'Saisit l’adversaire entre ses pinces géantes, le soulève et lui plante son dard venimeux en plein crâne pour le dissoudre.'
+            }
+        ];
+
+        // État de sélection des couleurs pour J1 et J2
+        let p1ColorIndex = 0;
+        let p2ColorIndex = 0;
+
+        function getActiveColor(fighterOrIndex, isP1) {
+            const rosterIdx = isP1 ? p1ChoiceIndex : p2ChoiceIndex;
+            const colIdx = isP1 ? p1ColorIndex : p2ColorIndex;
+            const dino = DINO_ROSTER[rosterIdx];
+            return dino.palettes[colIdx % dino.palettes.length];
+        }
+
+        // 2. SYNTHÉTISEUR AUDIO WEB API (ZÉRO FICHIER EXTERNE)
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playHit(heavy = false) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = heavy ? 'sawtooth' : 'triangle';
+                osc.frequency.setValueAtTime(heavy ? 130 : 210, now);
+                osc.frequency.exponentialRampToValueAtTime(28, now + (heavy ? 0.25 : 0.12));
+                gain.gain.setValueAtTime(heavy ? 0.45 : 0.28, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + (heavy ? 0.26 : 0.13));
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + (heavy ? 0.27 : 0.14));
+            }
+            playRoar(pitch = 95, duration = 0.45) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const lfo = this.ctx.createOscillator();
+                const lfoGain = this.ctx.createGain();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(pitch * 1.3, now);
+                osc.frequency.linearRampToValueAtTime(pitch * 0.65, now + duration);
+
+                lfo.frequency.value = 38;
+                lfoGain.gain.value = 25;
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.005, now + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                lfo.start(now);
+                osc.stop(now + duration);
+                lfo.stop(now + duration);
+            }
+            playGong() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                [110, 165, 220, 277].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 0.96, now + 1.1);
+                    gain.gain.setValueAtTime(0.18 / (idx + 1), now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.15);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 1.2);
+                });
+            }
+            playBoneCrack() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * 0.18;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.55, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                noise.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+        }
+
+        const sfx = new SoundEngine();
+
+        // 3. ÉTAT GLOBAL
+        let gameMode = 'cpu';
+        let aiDifficulty = 'normal';
+        let currentArena = 'volcano';
+        let activeSelectSlot = 1;
+        let p1ChoiceIndex = 0;
+        let p2ChoiceIndex = 2;
+
+        // 4. CONSTRUCTEUR DE MODÈLES 3D (AVEC CORRECTION DES GRIFFES DU THÉRIZINO & PULMONOSCORPIUS)
+        function createDino3DRig(dino, colorOverride = null) {
+            const root = new THREE.Group();
+            const hips = new THREE.Group();
+            root.add(hips);
+
+            const activeColor = colorOverride !== null ? colorOverride : dino.defaultColor;
+            const bodyMat = new THREE.MeshStandardMaterial({
+                color: activeColor,
+                roughness: 0.55,
+                metalness: 0.15
+            });
+            const darkMat = new THREE.MeshStandardMaterial({
+                color: dino.secondaryColor,
+                roughness: 0.65,
+                metalness: 0.1
+            });
+            const accentMat = new THREE.MeshStandardMaterial({
+                color: dino.accentColor,
+                roughness: 0.35,
+                metalness: 0.3,
+                emissive: dino.accentColor,
+                emissiveIntensity: 0.15
+            });
+            const boneMat = new THREE.MeshStandardMaterial({
+                color: 0xfef3c7,
+                roughness: 0.4
+            });
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+            const shieldMat = new THREE.MeshBasicMaterial({
+                color: 0xf59e0b,
+                transparent: true,
+                opacity: 0.28,
+                wireframe: true
+            });
+
+            const skinMeshes = [];
+            function addMesh(geo, mat, parent, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
+                const m = new THREE.Mesh(geo, mat);
+                m.position.set(x, y, z);
+                m.rotation.set(rx, ry, rz);
+                m.castShadow = true;
+                m.receiveShadow = true;
+                parent.add(m);
+                if (mat === bodyMat || mat === darkMat) skinMeshes.push(m);
+                return m;
+            }
+
+            const rig = {
+                root,
+                hips,
+                torso: new THREE.Group(),
+                neck: new THREE.Group(),
+                headGroup: new THREE.Group(),
+                jaw: new THREE.Group(),
+                tailSegments: [],
+                legs: [],
+                arms: [],
+                specialParts: {},
+                skeletonGroup: new THREE.Group(),
+                xrayParts: {},
+                shieldMesh: null,
+                bodyMat,
+                darkMat,
+                accentMat,
+                skinMeshes
+            };
+
+            hips.add(rig.torso);
+
+            rig.shieldMesh = new THREE.Mesh(new THREE.SphereGeometry(2.2, 16, 12), shieldMat);
+            rig.shieldMesh.position.set(0.6, 2.0, 0);
+            rig.shieldMesh.visible = false;
+            root.add(rig.shieldMesh);
+
+            // --- SQUELETTE 3D X-RAY ---
+            const xrayBoneMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
+            const xrayCyanMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee, wireframe: true });
+            const xraySkullMat = new THREE.MeshBasicMaterial({ color: 0xf0f9ff });
+            const xrayRibMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
+            const xraySpineMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
+            const xrayOrganMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
+
+            const spineGroup = new THREE.Group();
+            for (let i = 0; i < 8; i++) {
+                const vert = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 0.26), xraySpineMat);
+                vert.position.set(-1.05 + i * 0.3, 0.25 + (i > 5 ? (i - 5) * 0.2 : 0), 0);
+                spineGroup.add(vert);
+            }
+            rig.skeletonGroup.add(spineGroup);
+
+            const ribCageGroup = new THREE.Group();
+            for (let i = 0; i < 6; i++) {
+                const ribL = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.045, 8, 14, Math.PI * 0.85), xrayRibMat);
+                ribL.position.set(-0.75 + i * 0.28, 0.15, 0.08);
+                ribL.rotation.y = Math.PI / 2;
+                ribCageGroup.add(ribL);
+
+                const ribR = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.045, 8, 14, Math.PI * 0.85), xrayRibMat);
+                ribR.position.set(-0.75 + i * 0.28, 0.15, -0.08);
+                ribR.rotation.y = -Math.PI / 2;
+                ribCageGroup.add(ribR);
+            }
+            const internalHeart = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24, 1), xrayOrganMat);
+            internalHeart.position.set(0.25, 0.15, 0);
+            ribCageGroup.add(internalHeart);
+            rig.skeletonGroup.add(ribCageGroup);
+
+            const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.42, 0.78), xrayCyanMat);
+            pelvis.position.set(-0.65, 0.05, 0);
+            rig.skeletonGroup.add(pelvis);
+            [-0.36, 0.36].forEach(zOff => {
+                const femur = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.07, 1.1, 8), xrayBoneMat);
+                femur.position.set(-0.55, -0.6, zOff);
+                rig.skeletonGroup.add(femur);
+            });
+
+            const skullBoneGroup = new THREE.Group();
+            skullBoneGroup.position.set(1.45, 0.78, 0);
+            const cranium = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.48, 0.58), xraySkullMat);
+            const jawBone = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.2, 0.5), xraySkullMat);
+            jawBone.position.set(0.04, -0.32, 0);
+            const eyeSocketL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), xrayOrganMat);
+            eyeSocketL.position.set(0.15, 0.08, 0.28);
+            const eyeSocketR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), xrayOrganMat);
+            eyeSocketR.position.set(0.15, 0.08, -0.28);
+            skullBoneGroup.add(cranium, jawBone, eyeSocketL, eyeSocketR);
+            rig.skeletonGroup.add(skullBoneGroup);
+
+            rig.xrayParts = {
+                skullGroup: skullBoneGroup,
+                skullMat: xraySkullMat,
+                jawBone,
+                ribCageGroup,
+                ribMat: xrayRibMat,
+                spineGroup,
+                spineMat: xraySpineMat,
+                heart: internalHeart
+            };
+
+            rig.skeletonGroup.visible = false;
+            hips.add(rig.skeletonGroup);
+
+            // --- MODÈLES 3D DES 10 ESPÈCES ---
+            if (dino.id === 'trex') {
+                hips.position.y = 2.1;
+                addMesh(new THREE.BoxGeometry(2.3, 1.35, 1.3), bodyMat, rig.torso, 0, 0.2, 0, 0, 0, 0.18);
+                addMesh(new THREE.BoxGeometry(2.0, 0.35, 1.1), darkMat, rig.torso, 0, 0.85, 0, 0, 0, 0.18);
+                for (let i = 0; i < 6; i++) {
+                    addMesh(new THREE.ConeGeometry(0.14, 0.38, 5), accentMat, rig.torso, -0.9 + i * 0.36, 1.05 + i * 0.05, 0);
+                }
+                rig.neck.position.set(1.05, 0.65, 0);
+                rig.torso.add(rig.neck);
+                addMesh(new THREE.BoxGeometry(0.8, 0.9, 0.95), bodyMat, rig.neck, 0.2, 0.3, 0, 0, 0, -0.3);
+
+                rig.headGroup.position.set(0.55, 0.75, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(1.45, 0.68, 0.95), bodyMat, rig.headGroup, 0.45, 0.15, 0);
+                addMesh(new THREE.BoxGeometry(0.5, 0.25, 0.98), darkMat, rig.headGroup, 0.15, 0.45, 0);
+                addMesh(new THREE.SphereGeometry(0.1, 8, 8), eyeMat, rig.headGroup, 0.35, 0.28, 0.48);
+                addMesh(new THREE.SphereGeometry(0.1, 8, 8), eyeMat, rig.headGroup, 0.35, 0.28, -0.48);
+                for (let t = 0; t < 5; t++) {
+                    addMesh(new THREE.ConeGeometry(0.06, 0.22, 4), boneMat, rig.headGroup, 0.25 + t * 0.2, -0.22, 0.38, Math.PI, 0, 0);
+                    addMesh(new THREE.ConeGeometry(0.06, 0.22, 4), boneMat, rig.headGroup, 0.25 + t * 0.2, -0.22, -0.38, Math.PI, 0, 0);
+                }
+                rig.jaw.position.set(0.0, -0.18, 0);
+                rig.headGroup.add(rig.jaw);
+                addMesh(new THREE.BoxGeometry(1.3, 0.32, 0.82), darkMat, rig.jaw, 0.45, -0.1, 0);
+                for (let t = 0; t < 4; t++) {
+                    addMesh(new THREE.ConeGeometry(0.05, 0.18, 4), boneMat, rig.jaw, 0.3 + t * 0.2, 0.12, 0.32);
+                    addMesh(new THREE.ConeGeometry(0.05, 0.18, 4), boneMat, rig.jaw, 0.3 + t * 0.2, 0.12, -0.32);
+                }
+                [-0.55, 0.55].forEach(zOff => {
+                    const arm = new THREE.Group();
+                    arm.position.set(0.95, 0.0, zOff);
+                    addMesh(new THREE.BoxGeometry(0.55, 0.18, 0.18), darkMat, arm, 0.22, -0.1, 0, 0, 0, -0.4);
+                    rig.torso.add(arm);
+                    rig.arms.push(arm);
+                });
+                let parentTail = rig.torso;
+                for (let s = 0; s < 4; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -1.1 : -0.82, s === 0 ? 0.1 : 0, 0);
+                    const w = 0.85 * Math.pow(0.74, s);
+                    addMesh(new THREE.BoxGeometry(0.9, w, w), s % 2 === 0 ? bodyMat : darkMat, seg, -0.4, 0, 0);
+                    parentTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    parentTail = seg;
+                }
+                [-0.58, 0.58].forEach(zOff => {
+                    const leg = new THREE.Group();
+                    leg.position.set(-0.15, 0, zOff);
+                    addMesh(new THREE.BoxGeometry(0.75, 1.15, 0.52), bodyMat, leg, 0, -0.5, 0, 0, 0, 0.15);
+                    addMesh(new THREE.BoxGeometry(0.48, 1.05, 0.42), darkMat, leg, -0.1, -1.4, 0, 0, 0, -0.1);
+                    addMesh(new THREE.BoxGeometry(0.85, 0.25, 0.55), boneMat, leg, 0.15, -1.98, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'pachyrhino') {
+                hips.position.y = 1.65;
+                addMesh(new THREE.BoxGeometry(2.4, 1.35, 1.45), bodyMat, rig.torso, 0, 0.15, 0);
+                addMesh(new THREE.BoxGeometry(2.1, 0.3, 1.5), darkMat, rig.torso, 0, 0.75, 0);
+                rig.neck.position.set(1.15, 0.3, 0);
+                rig.torso.add(rig.neck);
+                rig.headGroup.position.set(0.25, 0.1, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(0.28, 1.65, 1.75), darkMat, rig.headGroup, -0.15, 0.55, 0, 0, 0, 0.35);
+                addMesh(new THREE.BoxGeometry(0.32, 1.45, 1.55), accentMat, rig.headGroup, -0.12, 0.55, 0, 0, 0, 0.35);
+                addMesh(new THREE.ConeGeometry(0.16, 0.75, 6), boneMat, rig.headGroup, -0.25, 1.45, 0.55, 0, 0, -0.45);
+                addMesh(new THREE.ConeGeometry(0.16, 0.75, 6), boneMat, rig.headGroup, -0.25, 1.45, -0.55, 0, 0, -0.45);
+                addMesh(new THREE.BoxGeometry(1.25, 0.68, 0.88), bodyMat, rig.headGroup, 0.55, -0.05, 0);
+                const boss = addMesh(new THREE.SphereGeometry(0.44, 12, 10), boneMat, rig.headGroup, 0.78, 0.34, 0);
+                boss.scale.set(1.25, 0.75, 0.95);
+                rig.specialParts.nasalBoss = boss;
+                addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.35, 0.15, 0.46);
+                addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.35, 0.15, -0.46);
+                let pTail = rig.torso;
+                for (let s = 0; s < 3; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -1.15 : -0.65, 0, 0);
+                    const sz = 0.7 * Math.pow(0.72, s);
+                    addMesh(new THREE.BoxGeometry(0.7, sz, sz), bodyMat, seg, -0.3, 0, 0);
+                    pTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    pTail = seg;
+                }
+                [
+                    { x: 0.85, z: -0.62 }, { x: 0.85, z: 0.62 },
+                    { x: -0.85, z: -0.62 }, { x: -0.85, z: 0.62 }
+                ].forEach((pos, idx) => {
+                    const leg = new THREE.Group();
+                    leg.position.set(pos.x, -0.1, pos.z);
+                    addMesh(new THREE.BoxGeometry(0.52, 1.45, 0.48), idx < 2 ? bodyMat : darkMat, leg, 0, -0.7, 0);
+                    addMesh(new THREE.BoxGeometry(0.6, 0.22, 0.52), boneMat, leg, 0.08, -1.45, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'ankylo') {
+                hips.position.y = 1.35;
+                const shell = addMesh(new THREE.SphereGeometry(1.45, 14, 10), darkMat, rig.torso, 0, 0.15, 0);
+                shell.scale.set(1.15, 0.65, 0.95);
+                addMesh(new THREE.BoxGeometry(2.5, 0.55, 1.65), bodyMat, rig.torso, 0, -0.05, 0);
+                for (let r = -0.9; r <= 0.9; r += 0.45) {
+                    for (let side of [-1, 1]) {
+                        addMesh(new THREE.ConeGeometry(0.16, 0.52, 5), accentMat, rig.torso, r, 0.48, side * 0.72, side * 0.45, 0, 0);
+                        addMesh(new THREE.ConeGeometry(0.14, 0.45, 5), boneMat, rig.torso, r, 0.08, side * 0.92, side * 1.1, 0, 0);
+                    }
+                }
+                rig.neck.position.set(1.25, 0.05, 0);
+                rig.torso.add(rig.neck);
+                rig.headGroup.position.set(0.2, 0, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(0.95, 0.55, 0.78), bodyMat, rig.headGroup, 0.35, 0, 0);
+                addMesh(new THREE.ConeGeometry(0.13, 0.4, 4), accentMat, rig.headGroup, 0.1, 0.32, 0.35, -0.3, 0, 0.3);
+                addMesh(new THREE.ConeGeometry(0.13, 0.4, 4), accentMat, rig.headGroup, 0.1, 0.32, -0.35, 0.3, 0, 0.3);
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.4, 0.08, 0.4);
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.4, 0.08, -0.4);
+                let pTail = rig.torso;
+                for (let s = 0; s < 3; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -1.25 : -0.75, 0, 0);
+                    addMesh(new THREE.BoxGeometry(0.8, 0.38, 0.42), bodyMat, seg, -0.35, 0, 0);
+                    pTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    pTail = seg;
+                }
+                const clubGroup = new THREE.Group();
+                clubGroup.position.set(-0.75, 0, 0);
+                addMesh(new THREE.SphereGeometry(0.48, 12, 10), accentMat, clubGroup, 0, 0, 0.25);
+                addMesh(new THREE.SphereGeometry(0.48, 12, 10), accentMat, clubGroup, 0, 0, -0.25);
+                addMesh(new THREE.ConeGeometry(0.2, 0.5, 5), boneMat, clubGroup, -0.35, 0, 0, 0, 0, Math.PI / 2);
+                pTail.add(clubGroup);
+                rig.specialParts.tailClub = clubGroup;
+                [
+                    { x: 0.82, z: -0.68 }, { x: 0.82, z: 0.68 },
+                    { x: -0.82, z: -0.68 }, { x: -0.82, z: 0.68 }
+                ].forEach(pos => {
+                    const leg = new THREE.Group();
+                    leg.position.set(pos.x, -0.1, pos.z);
+                    addMesh(new THREE.BoxGeometry(0.48, 1.15, 0.48), darkMat, leg, 0, -0.55, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'apato') {
+                hips.position.y = 2.05;
+                addMesh(new THREE.BoxGeometry(2.6, 1.65, 1.55), bodyMat, rig.torso, 0, 0.25, 0);
+                addMesh(new THREE.BoxGeometry(2.2, 0.4, 1.35), darkMat, rig.torso, 0.1, 1.0, 0);
+                let pNeck = rig.torso;
+                const neckSegments = [];
+                for (let n = 0; n < 3; n++) {
+                    const nSeg = new THREE.Group();
+                    if (n === 0) nSeg.position.set(1.15, 0.75, 0);
+                    else nSeg.position.set(0.65, 0.65, 0);
+                    const thick = 0.68 - n * 0.12;
+                    addMesh(new THREE.BoxGeometry(0.95, thick, thick), n % 2 === 0 ? bodyMat : darkMat, nSeg, 0.35, 0.35, 0, 0, 0, 0.65);
+                    pNeck.add(nSeg);
+                    neckSegments.push(nSeg);
+                    pNeck = nSeg;
+                }
+                rig.neck = neckSegments[0];
+                rig.specialParts.neckSegments = neckSegments;
+                rig.headGroup.position.set(0.65, 0.65, 0);
+                pNeck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(0.85, 0.48, 0.55), darkMat, rig.headGroup, 0.3, 0, 0);
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.35, 0.1, 0.28);
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.35, 0.1, -0.28);
+                let pTail = rig.torso;
+                for (let s = 0; s < 5; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -1.25 : -0.85, s === 0 ? 0.2 : 0, 0);
+                    const thick = 0.72 * Math.pow(0.7, s);
+                    addMesh(new THREE.BoxGeometry(0.92, thick, thick), s % 2 === 0 ? bodyMat : accentMat, seg, -0.42, 0, 0);
+                    pTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    pTail = seg;
+                }
+                [
+                    { x: 0.92, z: -0.62 }, { x: 0.92, z: 0.62 },
+                    { x: -0.92, z: -0.62 }, { x: -0.92, z: 0.62 }
+                ].forEach((pos, idx) => {
+                    const leg = new THREE.Group();
+                    leg.position.set(pos.x, 0, pos.z);
+                    addMesh(new THREE.CylinderGeometry(0.32, 0.36, 1.95, 8), idx < 2 ? bodyMat : darkMat, leg, 0, -0.95, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'maiasaura') {
+                hips.position.y = 1.95;
+                addMesh(new THREE.BoxGeometry(2.15, 1.2, 1.15), bodyMat, rig.torso, 0, 0.15, 0, 0, 0, 0.12);
+                addMesh(new THREE.BoxGeometry(1.75, 0.18, 1.22), accentMat, rig.torso, 0, 0.25, 0, 0, 0, 0.12);
+                rig.neck.position.set(0.95, 0.55, 0);
+                rig.torso.add(rig.neck);
+                addMesh(new THREE.BoxGeometry(0.6, 0.85, 0.65), darkMat, rig.neck, 0.15, 0.35, 0, 0, 0, -0.35);
+                rig.headGroup.position.set(0.35, 0.78, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(0.85, 0.48, 0.65), bodyMat, rig.headGroup, 0.2, 0.05, 0);
+                addMesh(new THREE.BoxGeometry(0.65, 0.22, 0.58), accentMat, rig.headGroup, 0.72, -0.05, 0);
+                const crest = addMesh(new THREE.ConeGeometry(0.18, 0.55, 5), accentMat, rig.headGroup, 0.15, 0.48, 0, 0, 0, 0.35);
+                rig.specialParts.sonicCrest = crest;
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.28, 0.14, 0.34);
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.28, 0.14, -0.34);
+                [-0.52, 0.52].forEach(zOff => {
+                    const arm = new THREE.Group();
+                    arm.position.set(0.78, -0.1, zOff);
+                    addMesh(new THREE.BoxGeometry(0.65, 0.22, 0.22), darkMat, arm, 0.25, -0.2, 0, 0, 0, -0.6);
+                    rig.torso.add(arm);
+                    rig.arms.push(arm);
+                });
+                let pTail = rig.torso;
+                for (let s = 0; s < 4; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -1.05 : -0.75, 0, 0);
+                    const w = 0.7 * Math.pow(0.75, s);
+                    addMesh(new THREE.BoxGeometry(0.8, w, w * 0.75), s % 2 === 0 ? darkMat : bodyMat, seg, -0.35, 0, 0);
+                    pTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    pTail = seg;
+                }
+                [-0.5, 0.5].forEach(zOff => {
+                    const leg = new THREE.Group();
+                    leg.position.set(-0.15, 0, zOff);
+                    addMesh(new THREE.BoxGeometry(0.62, 1.05, 0.44), bodyMat, leg, 0, -0.45, 0);
+                    addMesh(new THREE.BoxGeometry(0.4, 1.0, 0.36), darkMat, leg, -0.08, -1.35, 0);
+                    addMesh(new THREE.BoxGeometry(0.75, 0.22, 0.45), accentMat, leg, 0.15, -1.85, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'terabird') {
+                hips.position.y = 2.25;
+                addMesh(new THREE.BoxGeometry(1.75, 1.15, 1.05), bodyMat, rig.torso, 0, 0.15, 0, 0, 0, 0.25);
+                [-0.58, 0.58].forEach(zOff => {
+                    const wing = new THREE.Group();
+                    wing.position.set(0.2, 0.3, zOff);
+                    addMesh(new THREE.BoxGeometry(1.15, 0.65, 0.12), darkMat, wing, -0.25, -0.1, 0);
+                    addMesh(new THREE.BoxGeometry(0.95, 0.22, 0.14), accentMat, wing, -0.3, -0.35, 0);
+                    rig.torso.add(wing);
+                    rig.arms.push(wing);
+                });
+                rig.neck.position.set(0.75, 0.55, 0);
+                rig.torso.add(rig.neck);
+                addMesh(new THREE.BoxGeometry(0.48, 1.25, 0.48), bodyMat, rig.neck, 0.1, 0.55, 0, 0, 0, -0.12);
+                rig.headGroup.position.set(0.18, 1.22, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(0.72, 0.62, 0.58), bodyMat, rig.headGroup, 0.1, 0.1, 0);
+                for (let f = 0; f < 4; f++) {
+                    addMesh(new THREE.ConeGeometry(0.1, 0.55, 4), accentMat, rig.headGroup, -0.15 - f * 0.1, 0.48, 0, 0, 0, 0.75);
+                }
+                addMesh(new THREE.BoxGeometry(0.95, 0.45, 0.42), boneMat, rig.headGroup, 0.72, 0.12, 0);
+                addMesh(new THREE.ConeGeometry(0.22, 0.55, 4), boneMat, rig.headGroup, 1.15, -0.15, 0, 0, 0, Math.PI * 0.92);
+                addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.25, 0.18, 0.3);
+                addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.25, 0.18, -0.3);
+                const tailFan = new THREE.Group();
+                tailFan.position.set(-0.9, 0.15, 0);
+                for (let z = -0.35; z <= 0.35; z += 0.35) {
+                    addMesh(new THREE.BoxGeometry(0.95, 0.15, 0.32), darkMat, tailFan, -0.45, 0.1, z, 0, z * 0.4, -0.2);
+                }
+                rig.torso.add(tailFan);
+                rig.tailSegments.push(tailFan);
+                [-0.45, 0.45].forEach(zOff => {
+                    const leg = new THREE.Group();
+                    leg.position.set(0, 0, zOff);
+                    addMesh(new THREE.BoxGeometry(0.45, 1.0, 0.38), bodyMat, leg, 0, -0.45, 0);
+                    addMesh(new THREE.CylinderGeometry(0.12, 0.1, 1.25, 6), boneMat, leg, -0.05, -1.45, 0);
+                    addMesh(new THREE.BoxGeometry(0.85, 0.16, 0.42), boneMat, leg, 0.2, -2.15, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'postosuchus') {
+                hips.position.y = 1.48;
+                addMesh(new THREE.BoxGeometry(2.65, 1.05, 1.25), bodyMat, rig.torso, 0, 0.1, 0);
+                addMesh(new THREE.BoxGeometry(2.4, 0.25, 1.32), darkMat, rig.torso, 0, -0.35, 0);
+                for (let i = -1.1; i <= 1.1; i += 0.36) {
+                    addMesh(new THREE.ConeGeometry(0.14, 0.38, 4), accentMat, rig.torso, i, 0.72, 0.25);
+                    addMesh(new THREE.ConeGeometry(0.14, 0.38, 4), accentMat, rig.torso, i, 0.72, -0.25);
+                }
+                rig.neck.position.set(1.25, 0.2, 0);
+                rig.torso.add(rig.neck);
+                addMesh(new THREE.BoxGeometry(0.65, 0.75, 0.85), darkMat, rig.neck, 0.15, 0.05, 0);
+                rig.headGroup.position.set(0.45, 0.15, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(1.45, 0.56, 0.82), bodyMat, rig.headGroup, 0.5, 0.12, 0);
+                addMesh(new THREE.BoxGeometry(1.3, 0.18, 0.86), darkMat, rig.headGroup, 0.45, 0.38, 0);
+                addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.3, 0.25, 0.42);
+                addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.3, 0.25, -0.42);
+                for (let t = 0; t < 5; t++) {
+                    addMesh(new THREE.ConeGeometry(0.05, 0.2, 4), boneMat, rig.headGroup, 0.2 + t * 0.22, -0.18, 0.35, Math.PI, 0, 0);
+                    addMesh(new THREE.ConeGeometry(0.05, 0.2, 4), boneMat, rig.headGroup, 0.2 + t * 0.22, -0.18, -0.35, Math.PI, 0, 0);
+                }
+                rig.jaw.position.set(0, -0.15, 0);
+                rig.headGroup.add(rig.jaw);
+                addMesh(new THREE.BoxGeometry(1.35, 0.26, 0.72), darkMat, rig.jaw, 0.48, -0.08, 0);
+                let pTail = rig.torso;
+                for (let s = 0; s < 4; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -1.3 : -0.82, 0, 0);
+                    const sz = 0.72 * Math.pow(0.74, s);
+                    addMesh(new THREE.BoxGeometry(0.88, sz, sz * 0.85), s % 2 === 0 ? bodyMat : darkMat, seg, -0.4, 0, 0);
+                    addMesh(new THREE.ConeGeometry(0.1, 0.3, 4), accentMat, seg, -0.4, sz * 0.6, 0);
+                    pTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    pTail = seg;
+                }
+                [
+                    { x: 0.9, z: -0.62, h: 1.25 }, { x: 0.9, z: 0.62, h: 1.25 },
+                    { x: -0.88, z: -0.62, h: 1.45 }, { x: -0.88, z: 0.62, h: 1.45 }
+                ].forEach((pos, idx) => {
+                    const leg = new THREE.Group();
+                    leg.position.set(pos.x, 0, pos.z);
+                    addMesh(new THREE.BoxGeometry(0.46, pos.h, 0.44), idx < 2 ? darkMat : bodyMat, leg, 0, -pos.h * 0.5, 0);
+                    addMesh(new THREE.BoxGeometry(0.58, 0.2, 0.48), boneMat, leg, 0.1, -pos.h, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'spinosaurus') {
+                hips.position.y = 2.15;
+                addMesh(new THREE.BoxGeometry(2.55, 1.32, 1.22), bodyMat, rig.torso, 0, 0.18, 0, 0, 0, 0.12);
+                const sailGroup = new THREE.Group();
+                const sailHeights = [0.85, 1.45, 1.95, 2.15, 1.95, 1.5, 0.95];
+                sailHeights.forEach((h, idx) => {
+                    const xPos = -1.05 + idx * 0.34;
+                    addMesh(new THREE.CylinderGeometry(0.06, 0.09, h, 6), boneMat, sailGroup, xPos, 0.75 + h * 0.5, 0);
+                    if (idx < sailHeights.length - 1) {
+                        addMesh(new THREE.BoxGeometry(0.36, h * 0.88, 0.14), accentMat, sailGroup, xPos + 0.17, 0.7 + h * 0.44, 0);
+                    }
+                });
+                rig.torso.add(sailGroup);
+                rig.specialParts.sailGroup = sailGroup;
+                rig.neck.position.set(1.18, 0.58, 0);
+                rig.torso.add(rig.neck);
+                addMesh(new THREE.BoxGeometry(0.75, 0.85, 0.72), darkMat, rig.neck, 0.2, 0.25, 0, 0, 0, -0.28);
+                rig.headGroup.position.set(0.5, 0.68, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(1.75, 0.42, 0.56), bodyMat, rig.headGroup, 0.65, 0.08, 0);
+                addMesh(new THREE.ConeGeometry(0.12, 0.42, 4), accentMat, rig.headGroup, 0.35, 0.42, 0, 0, 0, -0.3);
+                addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.28, 0.18, 0.3);
+                addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.28, 0.18, -0.3);
+                rig.jaw.position.set(0.05, -0.14, 0);
+                rig.headGroup.add(rig.jaw);
+                addMesh(new THREE.BoxGeometry(1.65, 0.22, 0.48), darkMat, rig.jaw, 0.6, -0.06, 0);
+                [-0.62, 0.62].forEach(zOff => {
+                    const arm = new THREE.Group();
+                    arm.position.set(0.95, 0.0, zOff);
+                    addMesh(new THREE.BoxGeometry(0.85, 0.28, 0.28), darkMat, arm, 0.3, -0.15, 0, 0, 0, -0.35);
+                    addMesh(new THREE.ConeGeometry(0.09, 0.55, 4), boneMat, arm, 0.78, -0.35, 0, 0, 0, -1.2);
+                    rig.torso.add(arm);
+                    rig.arms.push(arm);
+                });
+                let pTail = rig.torso;
+                for (let s = 0; s < 4; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -1.2 : -0.85, 0, 0);
+                    addMesh(new THREE.BoxGeometry(0.9, 0.85 - s * 0.12, 0.28), s % 2 === 0 ? bodyMat : accentMat, seg, -0.42, 0.1, 0);
+                    pTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    pTail = seg;
+                }
+                [-0.56, 0.56].forEach(zOff => {
+                    const leg = new THREE.Group();
+                    leg.position.set(-0.18, 0, zOff);
+                    addMesh(new THREE.BoxGeometry(0.72, 1.15, 0.5), bodyMat, leg, 0, -0.5, 0);
+                    addMesh(new THREE.BoxGeometry(0.48, 1.05, 0.42), darkMat, leg, -0.08, -1.42, 0);
+                    addMesh(new THREE.BoxGeometry(0.85, 0.24, 0.55), boneMat, leg, 0.15, -2.02, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'therizino') {
+                // --- CORRECTION DES GRIFFES DU THÉRIZINOSAURE ---
+                hips.position.y = 2.15;
+                addMesh(new THREE.BoxGeometry(1.95, 1.55, 1.35), bodyMat, rig.torso, 0, 0.35, 0, 0, 0, 0.52);
+                addMesh(new THREE.BoxGeometry(1.65, 1.25, 1.42), darkMat, rig.torso, -0.1, 0.25, 0, 0, 0, 0.52);
+
+                rig.neck.position.set(0.65, 1.05, 0);
+                rig.torso.add(rig.neck);
+                addMesh(new THREE.BoxGeometry(0.48, 1.25, 0.52), bodyMat, rig.neck, 0.15, 0.55, 0, 0, 0, -0.18);
+
+                rig.headGroup.position.set(0.28, 1.18, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(0.78, 0.44, 0.48), darkMat, rig.headGroup, 0.2, 0.05, 0);
+                addMesh(new THREE.ConeGeometry(0.15, 0.48, 4), boneMat, rig.headGroup, 0.65, 0.0, 0, 0, 0, -Math.PI / 2);
+                addMesh(new THREE.BoxGeometry(0.55, 0.28, 0.12), accentMat, rig.headGroup, -0.05, 0.32, 0, 0, 0, 0.4);
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.25, 0.12, 0.26);
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.25, 0.12, -0.26);
+
+                // AVANT-BRAS & 6 GRIFFES GÉANTES D'UN MÈTRE CORRECTEMENT ORIENTÉES VERS L'AVANT
+                [-0.72, 0.72].forEach(zOff => {
+                    const arm = new THREE.Group();
+                    arm.position.set(0.55, 0.65, zOff);
+                    addMesh(new THREE.BoxGeometry(0.88, 0.3, 0.3), darkMat, arm, 0.42, -0.15, 0, 0, 0, -0.15);
+                    // 3 Griffes par main pointant vers l'avant (axe X+) et courbées vers le bas
+                    [-0.12, 0, 0.12].forEach(cZ => {
+                        const claw = addMesh(new THREE.ConeGeometry(0.065, 1.35, 5), boneMat, arm, 1.12, -0.38, cZ, 0, 0, -Math.PI / 2.2);
+                        claw.scale.set(1, 1.2, 1);
+                    });
+                    rig.torso.add(arm);
+                    rig.arms.push(arm);
+                });
+
+                let pTail = rig.torso;
+                for (let s = 0; s < 3; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -0.95 : -0.7, s === 0 ? -0.15 : 0, 0);
+                    addMesh(new THREE.BoxGeometry(0.75, 0.55 - s * 0.12, 0.55), s === 2 ? accentMat : bodyMat, seg, -0.35, 0, 0);
+                    pTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    pTail = seg;
+                }
+                [-0.54, 0.54].forEach(zOff => {
+                    const leg = new THREE.Group();
+                    leg.position.set(-0.1, 0, zOff);
+                    addMesh(new THREE.BoxGeometry(0.68, 1.15, 0.52), bodyMat, leg, 0, -0.5, 0);
+                    addMesh(new THREE.BoxGeometry(0.5, 1.0, 0.44), darkMat, leg, -0.05, -1.4, 0);
+                    addMesh(new THREE.BoxGeometry(0.85, 0.24, 0.56), boneMat, leg, 0.15, -2.02, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'pulmonoscorpius') {
+                // --- NOUVEAU COMBATTANT : PULMONOSCORPIUS (SCORPION GÉANT 3D) ---
+                hips.position.y = 1.15;
+                // Céphalothorax bas & blindé
+                addMesh(new THREE.BoxGeometry(1.85, 0.85, 1.45), bodyMat, rig.torso, 0.2, 0.1, 0);
+                addMesh(new THREE.BoxGeometry(1.45, 0.35, 1.3), darkMat, rig.torso, 0.2, 0.52, 0);
+
+                // Yeux multiples de scorpion
+                [-0.35, 0.35].forEach(z => {
+                    addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.torso, 0.85, 0.45, z);
+                    addMesh(new THREE.SphereGeometry(0.06, 8, 8), eyeMat, rig.torso, 0.78, 0.45, z * 0.5);
+                });
+
+                // Pinces avant articulées (Pédipalpes armés de pinces faucheuses)
+                [-0.85, 0.85].forEach((zOff, idx) => {
+                    const pincerArm = new THREE.Group();
+                    pincerArm.position.set(0.95, 0.1, zOff);
+                    addMesh(new THREE.BoxGeometry(1.15, 0.28, 0.28), darkMat, pincerArm, 0.5, 0, 0, 0, idx === 0 ? 0.35 : -0.35, 0);
+                    // Pince en 3D
+                    addMesh(new THREE.BoxGeometry(0.75, 0.45, 0.22), accentMat, pincerArm, 1.25, 0.12, idx === 0 ? 0.22 : -0.22);
+                    rig.torso.add(pincerArm);
+                    rig.arms.push(pincerArm);
+                });
+
+                // Queue articulée en segments repliés avec DARD VENIMEUX
+                let pTail = rig.torso;
+                for (let s = 0; s < 5; s++) {
+                    const tailSeg = new THREE.Group();
+                    tailSeg.position.set(s === 0 ? -1.05 : -0.55, s === 0 ? 0.2 : 0.35, 0);
+                    addMesh(new THREE.BoxGeometry(0.65, 0.42, 0.45), s % 2 === 0 ? bodyMat : darkMat, tailSeg, -0.25, 0.15, 0, 0, 0, 0.35);
+                    pTail.add(tailSeg);
+                    rig.tailSegments.push(tailSeg);
+                    pTail = tailSeg;
+                }
+                // Dard terminal acéré (Stinger)
+                const stinger = new THREE.Group();
+                stinger.position.set(-0.55, 0.45, 0);
+                addMesh(new THREE.ConeGeometry(0.18, 0.75, 5), boneMat, stinger, -0.2, 0.35, 0, 0, 0, -Math.PI / 3);
+                pTail.add(stinger);
+                rig.specialParts.stinger = stinger;
+
+                // 8 Pattes articulées de scorpion
+                [
+                    { x: 0.65, z: -0.82 }, { x: 0.35, z: -0.88 }, { x: 0.05, z: -0.92 }, { x: -0.25, z: -0.95 },
+                    { x: 0.65, z: 0.82 }, { x: 0.35, z: 0.88 }, { x: 0.05, z: 0.92 }, { x: -0.25, z: 0.95 }
+                ].forEach((pos, idx) => {
+                    const leg = new THREE.Group();
+                    leg.position.set(pos.x, -0.15, pos.z);
+                    const sideDir = pos.z > 0 ? 1 : -1;
+                    addMesh(new THREE.BoxGeometry(0.28, 1.1, 0.28), darkMat, leg, 0, -0.45, sideDir * 0.35);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+            }
+
+            root.scale.setScalar(dino.scale);
+            return rig;
+        }
+
+        // 5. ANIMATIONS 3D DISTINCTES (INCLUANT LE PULMONOSCORPIUS)
+        function animateDino3DRig(fighter, time, dt) {
+            const rig = fighter.rig;
+            if (!rig) return;
+            const id = fighter.dino.id;
+            const act = fighter.action;
+            const prog = fighter.actionDuration > 0 ? Math.min(1, fighter.actionTimer / fighter.actionDuration) : 0;
+            const swing = Math.sin(prog * Math.PI);
+
+            rig.hips.rotation.set(0, 0, 0);
+            rig.torso.rotation.set(0, 0, 0);
+            rig.neck.rotation.set(0, 0, 0);
+            rig.headGroup.rotation.set(0, 0, 0);
+            rig.jaw.rotation.set(0, 0, 0);
+            rig.shieldMesh.visible = fighter.isBlocking;
+
+            const baseHipsY = id === 'ankylo' ? 1.35 : (id === 'postosuchus' ? 1.48 : (id === 'pachyrhino' ? 1.65 : (id === 'terabird' ? 2.25 : (id === 'pulmonoscorpius' ? 1.15 : 2.1))));
+            rig.hips.position.set(0, baseHipsY, 0);
+
+            rig.bodyMat.emissive.setHex(fighter.hitStun > 0.12 ? 0xffffff : 0x000000);
+            rig.bodyMat.emissiveIntensity = fighter.hitStun > 0.12 ? 0.65 : 0;
+
+            if (fighter.isXrayAttacker && xrayCinematicTimer > 0) {
+                const phasePulse = Math.sin(time * 24);
+                if (xrayStage === 1) {
+                    rig.hips.position.x = 0.55;
+                    rig.torso.rotation.z = -0.32 + phasePulse * 0.12;
+                    rig.headGroup.rotation.z = -0.35;
+                    rig.jaw.rotation.z = -0.75;
+                } else if (xrayStage === 2) {
+                    rig.hips.position.x = 0.78;
+                    rig.torso.rotation.y = phasePulse * 0.45;
+                    rig.torso.rotation.z = 0.22;
+                } else {
+                    rig.hips.position.x = 0.92;
+                    rig.hips.position.y = baseHipsY + 0.35;
+                    rig.torso.rotation.z = 0.45;
+                    rig.headGroup.rotation.z = 0.55;
+                    rig.jaw.rotation.z = -0.85;
+                }
+                return;
+            }
+
+            if (fighter.isXrayTarget) {
+                rig.skeletonGroup.visible = true;
+                rig.skinMeshes.forEach(m => {
+                    m.material.transparent = true;
+                    m.material.opacity = 0.14;
+                });
+                const xp = rig.xrayParts;
+                if (xp) {
+                    xp.heart.scale.setScalar(1 + Math.sin(time * 28) * 0.28);
+                    xp.skullMat.color.setHex(xrayStage === 1 ? 0xef4444 : 0xf0f9ff);
+                    xp.ribMat.color.setHex(xrayStage === 2 ? 0xef4444 : 0xe0f2fe);
+                    xp.spineMat.color.setHex(xrayStage === 3 ? 0xef4444 : 0xe0f2fe);
+                    if (xrayStage === 1) {
+                        xp.skullGroup.rotation.z = Math.sin(time * 55) * 0.28;
+                        xp.jawBone.rotation.z = -0.45 + Math.sin(time * 40) * 0.2;
+                        rig.headGroup.rotation.z = 0.45;
+                    } else if (xrayStage === 2) {
+                        xp.ribCageGroup.scale.set(0.82 + Math.sin(time * 50) * 0.15, 0.85, 1.2);
+                        rig.torso.rotation.z = -0.25;
+                    } else if (xrayStage === 3) {
+                        xp.spineGroup.rotation.z = Math.sin(time * 60) * 0.35;
+                        rig.hips.position.y = baseHipsY + 0.55;
+                        rig.hips.rotation.z = 0.38;
+                    }
+                }
+                return;
+            } else {
+                rig.skeletonGroup.visible = false;
+                if (rig.xrayParts) {
+                    rig.xrayParts.ribCageGroup.scale.set(1, 1, 1);
+                    rig.xrayParts.skullGroup.rotation.set(0, 0, 0);
+                    rig.xrayParts.spineGroup.rotation.set(0, 0, 0);
+                }
+                rig.skinMeshes.forEach(m => {
+                    m.material.transparent = false;
+                    m.material.opacity = 1.0;
+                });
+            }
+
+            rig.headGroup.visible = !fighter.decapitated;
+            if (fighter.flattened) {
+                rig.root.scale.set(fighter.dino.scale * 1.65, 0.12, fighter.dino.scale * 1.65);
+                return;
+            } else {
+                rig.root.scale.setScalar(fighter.dino.scale);
+            }
+
+            if (fighter.isDead) {
+                rig.hips.position.y = 0.65;
+                rig.hips.rotation.z = Math.PI / 2.1;
+                return;
+            }
+
+            if (fighter.isDizzy) {
+                rig.hips.rotation.z = Math.sin(time * 7) * 0.18;
+                rig.hips.rotation.x = Math.cos(time * 5) * 0.12;
+                rig.headGroup.rotation.z = -0.3 + Math.sin(time * 9) * 0.2;
+                rig.jaw.rotation.z = -0.35;
+                if (fighter.kneeling) rig.hips.position.y = baseHipsY * 0.55;
+                return;
+            }
+
+            // IDLE & WALK ANIMATIONS
+            if (act === 'idle' || act === 'walk' || act === 'crouch') {
+                const isWalk = act === 'walk';
+                if (id === 'trex') {
+                    const freq = isWalk ? 11 : 3.5;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.22 : 0.06);
+                    rig.torso.rotation.z = isWalk ? -0.12 + Math.sin(time * freq) * 0.06 : Math.sin(time * 3) * 0.03;
+                    rig.jaw.rotation.z = -0.08 - Math.abs(Math.sin(time * 2.5)) * 0.12;
+                    rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.55 : 0;
+                    rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.55 : 0;
+                    rig.tailSegments.forEach((seg, i) => {
+                        seg.rotation.y = Math.sin(time * freq - i * 0.5) * (isWalk ? 0.22 : 0.1);
+                    });
+                } else if (id === 'pachyrhino') {
+                    const freq = isWalk ? 13 : 4;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.15 : 0.04);
+                    rig.headGroup.rotation.z = isWalk ? -0.18 + Math.sin(time * freq) * 0.1 : Math.sin(time * 3.5) * 0.08;
+                    const s = isWalk ? Math.sin(time * freq) * 0.45 : 0;
+                    rig.legs[0].rotation.z = s;
+                    rig.legs[3].rotation.z = s;
+                    rig.legs[1].rotation.z = -s;
+                    rig.legs[2].rotation.z = -s;
+                } else if (id === 'ankylo') {
+                    const freq = isWalk ? 10 : 3;
+                    rig.hips.position.y = baseHipsY + Math.sin(time * freq) * 0.05;
+                    const s = isWalk ? Math.sin(time * freq) * 0.38 : 0;
+                    rig.legs[0].rotation.z = s;
+                    rig.legs[3].rotation.z = s;
+                    rig.legs[1].rotation.z = -s;
+                    rig.legs[2].rotation.z = -s;
+                    rig.tailSegments.forEach((seg, i) => {
+                        seg.rotation.y = Math.sin(time * 5 - i * 0.4) * 0.28;
+                    });
+                } else if (id === 'apato') {
+                    const freq = isWalk ? 7.5 : 2.5;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.18 : 0.04);
+                    rig.specialParts.neckSegments.forEach((nSeg, i) => {
+                        nSeg.rotation.z = Math.sin(time * 3 - i * 0.6) * 0.1;
+                    });
+                    rig.tailSegments.forEach((seg, i) => {
+                        seg.rotation.y = Math.sin(time * 6 - i * 0.6) * 0.22;
+                    });
+                    const s = isWalk ? Math.sin(time * freq) * 0.35 : 0;
+                    rig.legs[0].rotation.z = s;
+                    rig.legs[3].rotation.z = s;
+                    rig.legs[1].rotation.z = -s;
+                    rig.legs[2].rotation.z = -s;
+                } else if (id === 'maiasaura') {
+                    const freq = isWalk ? 14 : 5;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.28 : 0.08);
+                    rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.62 : 0;
+                    rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.62 : 0;
+                } else if (id === 'terabird') {
+                    const freq = isWalk ? 15 : 5.5;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.32 : 0.07);
+                    rig.arms[0].rotation.x = -Math.abs(Math.sin(time * 6)) * 0.35;
+                    rig.arms[1].rotation.x = Math.abs(Math.sin(time * 6)) * 0.35;
+                    rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.72 : 0;
+                    rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.72 : 0;
+                } else if (id === 'postosuchus') {
+                    const freq = isWalk ? 12 : 3.5;
+                    rig.hips.position.y = baseHipsY + Math.sin(time * freq) * 0.06;
+                    const s = isWalk ? Math.sin(time * freq) * 0.48 : 0;
+                    rig.legs[0].rotation.z = s;
+                    rig.legs[3].rotation.z = s;
+                    rig.legs[1].rotation.z = -s;
+                    rig.legs[2].rotation.z = -s;
+                } else if (id === 'spinosaurus') {
+                    const freq = isWalk ? 10.5 : 3.2;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.2 : 0.06);
+                    rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.52 : 0;
+                    rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.52 : 0;
+                } else if (id === 'therizino') {
+                    const freq = isWalk ? 11.5 : 3.8;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.18 : 0.05);
+                    rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.55 : 0;
+                    rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.55 : 0;
+                } else if (id === 'pulmonoscorpius') {
+                    const freq = isWalk ? 16 : 4;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * 0.05;
+                    rig.tailSegments.forEach((seg, i) => {
+                        seg.rotation.z = Math.sin(time * 5 - i * 0.5) * 0.22;
+                    });
+                }
+                if (act === 'crouch') {
+                    rig.hips.position.y = baseHipsY * 0.72;
+                }
+                return;
+            }
+
+            // ATTACK & FATALITY ANIMATIONS
+            if (act === 'light' || act === 'heavy' || act === 'special' || act === 'special2' || act === 'xray' || act === 'fatality') {
+                if (act === 'fatality') {
+                    if (id === 'pulmonoscorpius') {
+                        rig.tailSegments.forEach((seg, i) => { seg.rotation.z = -0.45 - i * 0.2; });
+                    }
+                    return;
+                }
+                if (id === 'pulmonoscorpius') {
+                    rig.arms[0].rotation.y = swing * 0.8;
+                    rig.arms[1].rotation.y = -swing * 0.8;
+                }
+            }
+        }
+
+        // 6. SCÈNES THREE.JS
+        let battleRenderer = null;
+        let battleScene = null;
+        let battleCamera = null;
+        let arenaGroup = null;
+        let fxGroup = null;
+
+        let isDraggingCam = false;
+        let prevMouse = { x: 0, y: 0 };
+        let camOrbit = { yaw: 0, pitch: 0.12 };
+
+        let preview1 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, colorIdx: -1 };
+        let preview2 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, colorIdx: -1 };
+
+        function setupPreviewScene(previewObj, canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(40, 1.6, 0.1, 100);
+            camera.position.set(0, 2.3, 6.2);
+            camera.lookAt(0, 1.6, 0);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+            const dirLight = new THREE.DirectionalLight(0xffedd5, 1.3);
+            dirLight.position.set(4, 7, 5);
+            scene.add(dirLight);
+
+            const pedestal = new THREE.Mesh(
+                new THREE.CylinderGeometry(1.85, 2.1, 0.35, 20),
+                new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.7 })
+            );
+            pedestal.position.y = -0.18;
+            scene.add(pedestal);
+
+            previewObj.renderer = renderer;
+            previewObj.scene = scene;
+            previewObj.camera = camera;
+        }
+
+        function updatePreviewModels(time) {
+            const selectSec = document.getElementById('selectScreen');
+            if (selectSec.classList.contains('hidden')) return;
+
+            if (!preview1.renderer) setupPreviewScene(preview1, 'p1PreviewCanvas');
+            if (!preview2.renderer) setupPreviewScene(preview2, 'p2PreviewCanvas');
+
+            [
+                { p: preview1, dino: DINO_ROSTER[p1ChoiceIndex], canvasId: 'p1PreviewCanvas', dir: 1, colIdx: p1ColorIndex },
+                { p: preview2, dino: DINO_ROSTER[p2ChoiceIndex], canvasId: 'p2PreviewCanvas', dir: -1, colIdx: p2ColorIndex }
+            ].forEach(item => {
+                const canvas = document.getElementById(item.canvasId);
+                const rect = canvas.parentElement.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                    if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
+                        item.p.renderer.setSize(rect.width, rect.height, false);
+                        item.p.camera.aspect = rect.width / rect.height;
+                        item.p.camera.updateProjectionMatrix();
+                    }
+                }
+
+                if (item.p.dinoId !== item.dino.id || item.p.colorIdx !== item.colIdx) {
+                    if (item.p.rig) item.p.scene.remove(item.p.rig.root);
+                    item.p.rig = createDino3DRig(item.dino, item.dino.palettes[item.colIdx % item.dino.palettes.length]);
+                    item.p.scene.add(item.p.rig.root);
+                    item.p.dinoId = item.dino.id;
+                    item.p.colorIdx = item.colIdx;
+                }
+
+                if (item.p.rig) {
+                    item.p.rig.root.rotation.y = time * 0.0008 * item.dir + (item.dir === 1 ? -0.35 : 0.35);
+                    animateDino3DRig({
+                        dino: item.dino,
+                        rig: item.p.rig,
+                        action: 'idle',
+                        actionDuration: 0,
+                        hitStun: 0,
+                        isBlocking: false
+                    }, time * 0.001, 0.016);
+                }
+
+                item.p.renderer.render(item.p.scene, item.p.camera);
+            });
+        }
+
+        function initBattle3DScene() {
+            if (battleRenderer) return;
+            const canvas = document.getElementById('battleCanvas');
+            battleRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            battleRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            battleRenderer.shadowMap.enabled = true;
+
+            battleScene = new THREE.Scene();
+            battleCamera = new THREE.PerspectiveCamera(45, 2, 0.1, 250);
+
+            battleScene.add(new THREE.AmbientLight(0xffffff, 0.65));
+            const sunLight = new THREE.DirectionalLight(0xfff7ed, 1.35);
+            sunLight.position.set(8, 18, 12);
+            sunLight.castShadow = true;
+            battleScene.add(sunLight);
+
+            arenaGroup = new THREE.Group();
+            fxGroup = new THREE.Group();
+            battleScene.add(arenaGroup);
+            battleScene.add(fxGroup);
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDraggingCam = true;
+                prevMouse = { x: e.clientX, y: e.clientY };
+            });
+            window.addEventListener('mouseup', () => { isDraggingCam = false; });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingCam) return;
+                const dx = e.clientX - prevMouse.x;
+                const dy = e.clientY - prevMouse.y;
+                prevMouse = { x: e.clientX, y: e.clientY };
+                camOrbit.yaw = Math.max(-0.85, Math.min(0.85, camOrbit.yaw - dx * 0.005));
+                camOrbit.pitch = Math.max(0.02, Math.min(0.55, camOrbit.pitch + dy * 0.004));
+            });
+        }
+
+        function buildArena3D(arenaType) {
+            while (arenaGroup.children.length > 0) {
+                arenaGroup.remove(arenaGroup.children[0]);
+            }
+            let skyColor = 0x1a0505;
+            let floorColor = 0x18181b;
+            let accentColor = 0xea580c;
+
+            if (arenaType === 'boneyard') {
+                skyColor = 0x090d16;
+                floorColor = 0x27272a;
+                accentColor = 0xd4d4d8;
+            } else if (arenaType === 'swamp') {
+                skyColor = 0x022c22;
+                floorColor = 0x052e16;
+                accentColor = 0x84cc16;
+            }
+
+            battleScene.background = new THREE.Color(skyColor);
+            battleScene.fog = new THREE.FogExp2(skyColor, 0.022);
+
+            const stageMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(28, 2, 10),
+                new THREE.MeshStandardMaterial({ color: floorColor, roughness: 0.8 })
+            );
+            stageMesh.position.set(0, -1, 0);
+            stageMesh.receiveShadow = true;
+            arenaGroup.add(stageMesh);
+        }
+
+        // 7. GESTION DE LA SÉLECTION ET PALETTES DE COULEURS
+        function initRosterUI() {
+            const grid = document.getElementById('rosterGrid');
+            grid.innerHTML = '';
+
+            DINO_ROSTER.forEach((dino, idx) => {
+                const card = document.createElement('div');
+                card.className = `stone-card rounded-xl p-2 cursor-pointer flex flex-col items-center text-center relative ${
+                    idx === p1ChoiceIndex ? 'selected-p1' : ''
+                } ${idx === p2ChoiceIndex ? 'selected-p2' : ''}`;
+                card.dataset.index = idx;
+
+                card.innerHTML = `
+                    <div class="w-full flex justify-between items-center text-[9px] font-black mb-0.5">
+                        <span class="px-1 rounded bg-zinc-900 text-amber-400 border border-zinc-700">${dino.role}</span>
+                        <span class="badge-slot text-xs font-black"></span>
+                    </div>
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center my-1 border-2" style="background: radial-gradient(circle, #${dino.defaultColor.toString(16)}55, #09090b); border-color:#${dino.defaultColor.toString(16)}">
+                        <span class="mk-title text-base font-black text-white">${dino.name.substring(0, 2)}</span>
+                    </div>
+                    <div class="mk-title text-[11px] font-black text-white tracking-wide truncate w-full">${dino.name}</div>
+                `;
+
+                card.addEventListener('click', () => {
+                    sfx.playHit(false);
+                    if (activeSelectSlot === 1) {
+                        p1ChoiceIndex = idx;
+                        p1ColorIndex = 0;
+                        activeSelectSlot = 2;
+                    } else {
+                        p2ChoiceIndex = idx;
+                        p2ColorIndex = 0;
+                        activeSelectSlot = 1;
+                    }
+                    updateSelectScreenUI();
+                });
+
+                grid.appendChild(card);
+            });
+
+            updateSelectScreenUI();
+        }
+
+        function updateSelectScreenUI() {
+            const p1 = DINO_ROSTER[p1ChoiceIndex];
+            const p2 = DINO_ROSTER[p2ChoiceIndex];
+
+            document.getElementById('p1NameDisplay').textContent = p1.name;
+            document.getElementById('p1RoleBadge').textContent = p1.role;
+            document.getElementById('p1TitleDisplay').textContent = p1.title;
+            document.getElementById('p1StatPow').textContent = p1.stats.pow + '%';
+            document.getElementById('p1BarPow').style.width = p1.stats.pow + '%';
+            document.getElementById('p1StatSpd').textContent = p1.stats.spd + '%';
+            document.getElementById('p1BarSpd').style.width = p1.stats.spd + '%';
+            document.getElementById('p1StatDef').textContent = p1.stats.def + '%';
+            document.getElementById('p1BarDef').style.width = p1.stats.def + '%';
+            document.getElementById('p1SpecName').textContent = `${p1.special1Name} • ${p1.special2Name}`;
+            document.getElementById('p1FatalityName').textContent = p1.fatalityName;
+
+            // Palette de couleurs J1
+            const p1Palette = document.getElementById('p1ColorPalette');
+            p1Palette.innerHTML = '';
+            p1.palettes.forEach((colHex, cIdx) => {
+                const btn = document.createElement('button');
+                btn.className = `w-6 h-6 rounded-full border-2 transition ${cIdx === p1ColorIndex ? 'border-amber-400 scale-110 shadow' : 'border-zinc-700 opacity-70'}`;
+                btn.style.backgroundColor = '#' + colHex.toString(16).padStart(6, '0');
+                btn.addEventListener('click', () => {
+                    p1ColorIndex = cIdx;
+                    updateSelectScreenUI();
+                });
+                p1Palette.appendChild(btn);
+            });
+
+            document.getElementById('p2NameDisplay').textContent = p2.name;
+            document.getElementById('p2RoleBadge').textContent = p2.role;
+            document.getElementById('p2TitleDisplay').textContent = p2.title;
+            document.getElementById('p2StatPow').textContent = p2.stats.pow + '%';
+            document.getElementById('p2BarPow').style.width = p2.stats.pow + '%';
+            document.getElementById('p2StatSpd').textContent = p2.stats.spd + '%';
+            document.getElementById('p2BarSpd').style.width = p2.stats.spd + '%';
+            document.getElementById('p2StatDef').textContent = p2.stats.def + '%';
+            document.getElementById('p2BarDef').style.width = p2.stats.def + '%';
+            document.getElementById('p2SpecName').textContent = `${p2.special1Name} • ${p2.special2Name}`;
+            document.getElementById('p2FatalityName').textContent = p2.fatalityName;
+
+            // Palette de couleurs J2
+            const p2Palette = document.getElementById('p2ColorPalette');
+            p2Palette.innerHTML = '';
+            p2.palettes.forEach((colHex, cIdx) => {
+                const btn = document.createElement('button');
+                btn.className = `w-6 h-6 rounded-full border-2 transition ${cIdx === p2ColorIndex ? 'border-amber-400 scale-110 shadow' : 'border-zinc-700 opacity-70'}`;
+                btn.style.backgroundColor = '#' + colHex.toString(16).padStart(6, '0');
+                btn.addEventListener('click', () => {
+                    p2ColorIndex = cIdx;
+                    updateSelectScreenUI();
+                });
+                p2Palette.appendChild(btn);
+            });
+
+            document.querySelectorAll('#rosterGrid .stone-card').forEach((card, i) => {
+                card.classList.toggle('selected-p1', i === p1ChoiceIndex);
+                card.classList.toggle('selected-p2', i === p2ChoiceIndex);
+                const badge = card.querySelector('.badge-slot');
+                if (i === p1ChoiceIndex && i === p2ChoiceIndex) {
+                    badge.textContent = 'J1/J2';
+                    badge.className = 'badge-slot text-amber-400 font-black';
+                } else if (i === p1ChoiceIndex) {
+                    badge.textContent = 'J1';
+                    badge.className = 'badge-slot text-red-500 font-black';
+                } else if (i === p2ChoiceIndex) {
+                    badge.textContent = gameMode === 'pvp' ? 'J2' : 'IA';
+                    badge.className = 'badge-slot text-blue-400 font-black';
+                } else {
+                    badge.textContent = '';
+                }
+            });
+        }
+
+        // 8. COMBATTANTS ET COMBAT 3D
+        const STAGE_LEFT_3D = -11.0;
+        const STAGE_RIGHT_3D = 11.0;
+
+        class Fighter3D {
+            constructor(dino, isP1, colorOverride) {
+                this.dino = dino;
+                this.isP1 = isP1;
+                this.roundsWon = 0;
+                this.rig = createDino3DRig(dino, colorOverride);
+                battleScene.add(this.rig.root);
+                this.resetForRound();
+            }
+
+            destroy() {
+                if (this.rig && this.rig.root && battleScene) {
+                    battleScene.remove(this.rig.root);
+                }
+            }
+
+            resetForRound() {
+                this.x = this.isP1 ? -4.8 : 4.8;
+                this.y = 0;
+                this.vx = 0;
+                this.vy = 0;
+                this.facing = this.isP1 ? 1 : -1;
+                this.hp = this.dino.maxHp;
+                this.maxHp = this.dino.maxHp;
+                this.rage = 0;
+                this.action = 'idle';
+                this.actionTimer = 0;
+                this.actionDuration = 0;
+                this.hasHitCurrentAttack = false;
+                this.hitStun = 0;
+                this.isBlocking = false;
+                this.isDizzy = false;
+                this.isDead = false;
+                this.decapitated = false;
+                this.flattened = false;
+                this.kneeling = false;
+                this.isXrayTarget = false;
+                this.isXrayAttacker = false;
+                this.comboCount = 0;
+                this.dashTimer = 0;
+                this.dashCooldown = 0;
+                this.bufferedAction = null;
+                this.bufferTimer = 0;
+                this.rig.headGroup.scale.setScalar(1);
+            }
+
+            canCancelInto(nextType) {
+                if (this.actionDuration <= 0) return true;
+                const progress = this.actionTimer / this.actionDuration;
+                if (progress < 0.42) return false;
+                if (this.action === 'light' && (nextType === 'heavy' || nextType === 'special' || nextType === 'special2' || nextType === 'xray')) return true;
+                if (this.action === 'heavy' && (nextType === 'special' || nextType === 'special2' || nextType === 'xray')) return true;
+                return false;
+            }
+
+            startDash(dir) {
+                if (xrayCinematicTimer > 0 || this.hitStun > 0 || this.isDizzy || this.isDead || this.dashCooldown > 0) return;
+                this.dashTimer = 0.18;
+                this.dashCooldown = 0.42;
+                const dashDir = dir !== 0 ? dir : this.facing;
+                this.vx = dashDir * (this.dino.walkSpeed * 2.45);
+                this.action = 'walk';
+                sfx.playHit(false);
+            }
+
+            startAttack(type) {
+                if (xrayCinematicTimer > 0 || this.hitStun > 0 || this.isDizzy || this.isDead) return;
+                if (this.action === 'light' || this.action === 'heavy' || this.action === 'special') {
+                    if (!this.canCancelInto(type)) {
+                        this.bufferedAction = type;
+                        this.bufferTimer = 0.24;
+                        return;
+                    }
+                }
+                this.isBlocking = false;
+                this.action = type;
+                this.hasHitCurrentAttack = false;
+                this.actionTimer = 0;
+                this.bufferedAction = null;
+                this.actionDuration = type === 'light' ? 0.26 : (type === 'heavy' ? 0.44 : 0.54);
+                sfx.playRoar(100, 0.2);
+            }
+        }
+
+        let fighter1 = null;
+        let fighter2 = null;
+        let projectiles3D = [];
+        let particles3D = [];
+        let roundNumber = 1;
+        let roundTimer = 99;
+        let roundTimerAccum = 0;
+        let matchState = 'select';
+        let stateTimer = 0;
+        let screenShake = 0;
+        let xrayCinematicTimer = 0;
+        let xrayStage = 0;
+        let xrayLockPositions = null;
+        let fatalityFocusFighter = null;
+
+        const keys = {};
+        const touchState = { left: false, right: false, up: false, down: false };
+        const lastTapTime = { left: 0, right: 0 };
+
+        function flashArcadeButton(btnId, active) {
+            const el = document.getElementById(btnId);
+            if (el) el.classList.toggle('active-press', active);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (matchState !== 'select' && ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+            if (e.repeat) return;
+            keys[e.code] = true;
+            if (xrayCinematicTimer > 0) return;
+
+            if (matchState === 'fight' || matchState === 'finish_him') {
+                if (e.code === 'KeyF' || e.code === 'KeyJ') triggerPlayerAction(fighter1, fighter2, 'light');
+                if (e.code === 'KeyG' || e.code === 'KeyK') triggerPlayerAction(fighter1, fighter2, 'heavy');
+                if (e.code === 'KeyH' || e.code === 'KeyL') triggerPlayerAction(fighter1, fighter2, 'special');
+                if (e.code === 'KeyT' || e.code === 'KeyU') triggerPlayerAction(fighter1, fighter2, 'special2');
+                if (e.code === 'KeyR' || e.code === 'Space') triggerPlayerAction(fighter1, fighter2, 'xray');
+            }
+        });
+
+        window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+        function spawnFloatingPopup(worldX, text, colorHex = '#fde047') {
+            const layer = document.getElementById('damagePopupLayer');
+            if (!layer) return;
+            const el = document.createElement('div');
+            el.style.left = Math.max(12, Math.min(88, 50 + (worldX / 12) * 42)) + '%';
+            el.style.top = '32%';
+            el.style.color = colorHex;
+            el.className = 'mk-title absolute -translate-x-1/2 font-black text-base sm:text-2xl drop-shadow';
+            el.textContent = text;
+            layer.appendChild(el);
+            setTimeout(() => el.remove(), 700);
+        }
+
+        function spawn3DBloodAndBones(x, y, count = 20, includeBones = false) {
+            for (let i = 0; i < count; i++) {
+                const isB = includeBones && i % 4 === 0;
+                const mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.2, 0.2, 0.2),
+                    new THREE.MeshStandardMaterial({ color: isB ? 0xfef3c7 : 0xdc2626 })
+                );
+                mesh.position.set(x, y, (Math.random() - 0.5) * 1.2);
+                fxGroup.add(mesh);
+                particles3D.push({
+                    mesh,
+                    vx: (Math.random() - 0.5) * 7,
+                    vy: Math.random() * 6 + 3,
+                    vz: (Math.random() - 0.5) * 4,
+                    life: 1.0
+                });
+            }
+        }
+
+        function triggerPlayerAction(attacker, defender, type) {
+            if (!attacker || !defender || xrayCinematicTimer > 0) return;
+            if (matchState === 'finish_him' && defender.isDizzy) {
+                executeUnique3DFatality(attacker, defender);
+                return;
+            }
+            if (matchState !== 'fight') return;
+            if (type === 'xray') {
+                if (attacker.rage >= 100) executeXRayMove(attacker, defender);
+                else attacker.startAttack('heavy');
+                return;
+            }
+            attacker.startAttack(type);
+        }
+
+        function executeXRayMove(attacker, defender) {
+            if (xrayCinematicTimer > 0) return;
+            attacker.rage = 0;
+            const lockDefX = Math.max(STAGE_LEFT_3D + 3.0, Math.min(STAGE_RIGHT_3D - 3.0, defender.x));
+            const lockAttX = lockDefX - attacker.facing * 2.25;
+
+            attacker.x = lockAttX;
+            attacker.y = 0;
+            attacker.vx = 0;
+            attacker.vy = 0;
+            attacker.action = 'xray';
+            attacker.actionDuration = 2.35;
+            attacker.isXrayAttacker = true;
+
+            defender.x = lockDefX;
+            defender.y = 0;
+            defender.vx = 0;
+            defender.vy = 0;
+            defender.hitStun = 2.45;
+            defender.isXrayTarget = true;
+
+            xrayLockPositions = { attacker, defender, attX: lockAttX, defX: lockDefX, attFacing: attacker.facing, defFacing: -attacker.facing };
+            xrayCinematicTimer = 2.35;
+            xrayStage = 1;
+
+            const hud = document.getElementById('xrayOverlayHud');
+            hud.classList.remove('hidden');
+            sfx.playBoneCrack();
+
+            setTimeout(() => { if (xrayCinematicTimer > 0) xrayStage = 2; }, 750);
+            setTimeout(() => {
+                if (xrayCinematicTimer > 0) {
+                    xrayStage = 3;
+                    xrayLockPositions = null;
+                    defender.vx = attacker.facing * 13.5;
+                    defender.vy = 6.8;
+                }
+            }, 1500);
+        }
+
+        function executeUnique3DFatality(winner, loser) {
+            matchState = 'fatality_anim';
+            stateTimer = 3.8;
+            fatalityFocusFighter = winner;
+            document.getElementById('fatalityPromptBox').classList.add('hidden');
+            winner.action = 'fatality';
+            winner.x = loser.x - winner.facing * 2.8;
+
+            sfx.playGong();
+            sfx.playRoar(65, 0.8);
+            setTimeout(() => {
+                loser.decapitated = true;
+                loser.isDead = true;
+                loser.hp = 0;
+                spawn3DBloodAndBones(loser.x, 2.5, 60, true);
+            }, 1800);
+        }
+
+        function showAnnouncer(mainText, subText = '') {
+            document.getElementById('announcerMain').textContent = mainText;
+            document.getElementById('announcerSub').textContent = subText;
+        }
+
+        function clearAnnouncer() {
+            document.getElementById('announcerMain').textContent = '';
+            document.getElementById('announcerSub').textContent = '';
+        }
+
+        function startMatch() {
+            sfx.init();
+            sfx.playGong();
+            initBattle3DScene();
+
+            currentArena = document.getElementById('arenaSelect').value;
+            aiDifficulty = document.getElementById('aiDifficulty').value;
+            buildArena3D(currentArena);
+
+            if (fighter1) fighter1.destroy();
+            if (fighter2) fighter2.destroy();
+
+            fighter1 = new Fighter3D(DINO_ROSTER[p1ChoiceIndex], true, getActiveColor(p1ChoiceIndex, true));
+            fighter2 = new Fighter3D(DINO_ROSTER[p2ChoiceIndex], false, getActiveColor(p2ChoiceIndex, false));
+            roundNumber = 1;
+
+            document.getElementById('selectScreen').classList.add('hidden');
+            document.getElementById('battleScreen').classList.remove('hidden');
+            document.getElementById('battleScreen').classList.add('flex');
+            document.getElementById('btnBackToSelect').classList.remove('hidden');
+            document.getElementById('btnResetCam').classList.remove('hidden');
+            document.getElementById('postMatchMenu').classList.add('hidden');
+
+            document.getElementById('hudP1Name').textContent = fighter1.dino.name;
+            document.getElementById('hudP2Name').textContent = fighter2.dino.name;
+            startNewRound();
+        }
+
+        function startNewRound() {
+            fighter1.resetForRound();
+            fighter2.resetForRound();
+            while (fxGroup.children.length > 0) fxGroup.remove(fxGroup.children[0]);
+            projectiles3D = [];
+            particles3D = [];
+            roundTimer = 99;
+            roundTimerAccum = 0;
+            xrayCinematicTimer = 0;
+            xrayStage = 0;
+            xrayLockPositions = null;
+
+            document.getElementById('hudRoundText').textContent = `ROUND ${roundNumber}`;
+            document.getElementById('xrayOverlayHud').classList.add('hidden');
+            document.getElementById('fatalityPromptBox').classList.add('hidden');
+            document.getElementById('postMatchMenu').classList.add('hidden');
+
+            matchState = 'intro';
+            stateTimer = 1.6;
+            showAnnouncer(`ROUND ${roundNumber}`, `${fighter1.dino.name} VS ${fighter2.dino.name}`);
+            updateBattleHUD();
+        }
+
+        function applyDamage(attacker, defender, rawDamage, isHeavy) {
+            if (defender.isDead) return;
+            sfx.playHit(isHeavy);
+            defender.hp = Math.max(0, defender.hp - rawDamage);
+            spawn3DBloodAndBones(defender.x, 2.0, 15, isHeavy);
+            updateBattleHUD();
+            if (defender.hp <= 0 && matchState === 'fight') handleKnockout(attacker, defender);
+        }
+
+        function handleKnockout(winner, loser) {
+            winner.roundsWon++;
+            updateBattleHUD();
+            if (winner.roundsWon >= 2) {
+                matchState = 'finish_him';
+                stateTimer = 6.5;
+                loser.hp = 1;
+                loser.isDizzy = true;
+                showAnnouncer('ACHEVEZ-LE !', 'APPUYEZ SUR [R] POUR LA FATALITÉ');
+                if (winner.isP1 || gameMode === 'pvp') document.getElementById('fatalityPromptBox').classList.remove('hidden');
+            } else {
+                matchState = 'round_over';
+                stateTimer = 2.6;
+                loser.isDead = true;
+                showAnnouncer('K.O. !', `${winner.dino.name} REMPORTE LE ROUND`);
+            }
+        }
+
+        function updateBattle3D(dt, nowSec) {
+            if (xrayCinematicTimer > 0) {
+                xrayCinematicTimer -= dt;
+                if (xrayLockPositions) {
+                    xrayLockPositions.attacker.x = xrayLockPositions.attX;
+                    xrayLockPositions.defender.x = xrayLockPositions.defX;
+                }
+                if (xrayCinematicTimer <= 0) {
+                    xrayLockPositions = null;
+                    fighter1.isXrayTarget = fighter2.isXrayTarget = false;
+                    fighter1.isXrayAttacker = fighter2.isXrayAttacker = false;
+                    document.getElementById('xrayOverlayHud').classList.add('hidden');
+                }
+            }
+
+            if (matchState === 'intro') {
+                stateTimer -= dt;
+                if (stateTimer <= 0) { matchState = 'fight'; clearAnnouncer(); }
+            } else if (matchState === 'finish_him') {
+                stateTimer -= dt;
+                if (stateTimer <= 0) {
+                    matchState = 'match_over';
+                    showAnnouncer('VICTOIRE');
+                    document.getElementById('postMatchMenu').classList.remove('hidden');
+                }
+            }
+
+            if (matchState === 'fight' && xrayCinematicTimer <= 0) {
+                handlePlayer1Inputs(dt);
+                if (gameMode === 'pvp') handlePlayer2Inputs(dt);
+                else updateAI(fighter2, fighter1, dt);
+            }
+
+            [fighter1, fighter2].forEach(f => {
+                const other = f === fighter1 ? fighter2 : fighter1;
+                f.x += f.vx * dt;
+                f.y += f.vy * dt;
+                f.vx *= 0.82;
+                if (f.y > 0) f.vy -= 26 * dt; else { f.y = 0; f.vy = 0; }
+                f.x = Math.max(STAGE_LEFT_3D, Math.min(STAGE_RIGHT_3D, f.x));
+                f.rig.root.position.set(f.x, f.y, 0);
+                f.rig.root.rotation.y = f.facing === 1 ? 0 : Math.PI;
+                animateDino3DRig(f, nowSec, dt);
+            });
+        }
+
+        function handlePlayer1Inputs(dt) {
+            if (fighter1.hitStun > 0 || fighter1.isDead) return;
+            const moveLeft = keys['KeyA'] || keys['KeyQ'] || keys['ArrowLeft'];
+            const moveRight = keys['KeyD'] || keys['ArrowRight'];
+            if (moveLeft) { fighter1.x -= fighter1.dino.walkSpeed * dt; fighter1.facing = -1; fighter1.action = 'walk'; }
+            else if (moveRight) { fighter1.x += fighter1.dino.walkSpeed * dt; fighter1.facing = 1; fighter1.action = 'walk'; }
+            else fighter1.action = 'idle';
+        }
+
+        function handlePlayer2Inputs(dt) {
+            if (fighter2.hitStun > 0 || fighter2.isDead) return;
+            if (keys['ArrowLeft']) { fighter2.x -= fighter2.dino.walkSpeed * dt; fighter2.facing = -1; fighter2.action = 'walk'; }
+            else if (keys['ArrowRight']) { fighter2.x += fighter2.dino.walkSpeed * dt; fighter2.facing = 1; fighter2.action = 'walk'; }
+            else fighter2.action = 'idle';
+        }
+
+        function updateAI(ai, target, dt) {
+            const dist = Math.abs(ai.x - target.x);
+            if (dist > 3.0) {
+                ai.x += ai.facing * ai.dino.walkSpeed * dt * 0.9;
+                ai.action = 'walk';
+            } else {
+                ai.startAttack('light');
+            }
+        }
+
+        function updateBattleHUD() {
+            if (!fighter1 || !fighter2) return;
+            const p1Pct = Math.max(0, Math.round((fighter1.hp / fighter1.maxHp) * 100));
+            const p2Pct = Math.max(0, Math.round((fighter2.hp / fighter2.maxHp) * 100));
+            document.getElementById('hudP1HealthBar').style.width = p1Pct + '%';
+            document.getElementById('hudP2HealthBar').style.width = p2Pct + '%';
+            document.getElementById('hudP1HpText').textContent = p1Pct + '%';
+            document.getElementById('hudP2HpText').textContent = p2Pct + '%';
+        }
+
+        function renderBattle3D(now) {
+            if (!battleRenderer || !fighter1 || !fighter2) return;
+            const canvas = document.getElementById('battleCanvas');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+                if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
+                    battleRenderer.setSize(rect.width, rect.height, false);
+                    battleCamera.aspect = rect.width / rect.height;
+                    battleCamera.updateProjectionMatrix();
+                }
+            }
+            const midX = (fighter1.x + fighter2.x) * 0.5;
+            battleCamera.position.set(midX, 3.8, 14.5);
+            battleCamera.lookAt(midX, 2.0, 0);
+            battleRenderer.render(battleScene, battleCamera);
+        }
+
+        let lastFrameTime = performance.now();
+        function mainGameLoop(now) {
+            const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+            lastFrameTime = now;
+            if (matchState === 'select') updatePreviewModels(now);
+            else { updateBattle3D(dt, now * 0.001); renderBattle3D(now); }
+            requestAnimationFrame(mainGameLoop);
+        }
+
+        window.onload = function () {
+            initRosterUI();
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    gameMode = btn.dataset.mode;
+                    document.querySelectorAll('.mode-btn').forEach(b => b.className = 'mode-btn px-3 py-1 rounded-lg text-xs font-extrabold uppercase bg-zinc-800 text-zinc-300 border border-zinc-700');
+                    btn.className = 'mode-btn px-3 py-1 rounded-lg text-xs font-extrabold uppercase bg-red-700 text-white border border-amber-400 shadow';
+                    updateSelectScreenUI();
+                });
+            });
+
+            document.getElementById('btnSelectSlotP1').addEventListener('click', () => { activeSelectSlot = 1; updateSelectScreenUI(); });
+            document.getElementById('btnSelectSlotP2').addEventListener('click', () => { activeSelectSlot = 2; updateSelectScreenUI(); });
+            document.getElementById('btnStartKomBat').addEventListener('click', startMatch);
+            document.getElementById('btnResetCam').addEventListener('click', () => { camOrbit = { yaw: 0, pitch: 0.12 }; });
+
+            const returnToSelect = () => {
+                matchState = 'select';
+                document.getElementById('battleScreen').classList.add('hidden');
+                document.getElementById('battleScreen').classList.remove('flex');
+                document.getElementById('selectScreen').classList.remove('hidden');
+                document.getElementById('btnBackToSelect').classList.add('hidden');
+                document.getElementById('btnResetCam').classList.add('hidden');
+            };
+            document.getElementById('btnBackToSelect').addEventListener('click', returnToSelect);
+            document.getElementById('btnReturnRoster').addEventListener('click', returnToSelect);
+            document.getElementById('btnRematch').addEventListener('click', startMatch);
+            document.getElementById('btnTriggerFatalityNow').addEventListener('click', () => {
+                if (matchState === 'finish_him') executeUnique3DFatality(fighter1.roundsWon >= 2 ? fighter1 : fighter2, fighter1.roundsWon >= 2 ? fighter2 : fighter1);
+            });
+
+            document.getElementById('btnToggleSound').addEventListener('click', () => {
+                sfx.enabled = !sfx.enabled;
+                document.getElementById('soundIcon').textContent = sfx.enabled ? '🔊' : '🔇';
+            });
+
+            requestAnimationFrame(mainGameLoop);
+        };
+    </script>
+</body>
+</html>
