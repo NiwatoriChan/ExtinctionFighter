@@ -13,8 +13,8 @@
 
 ## 🌟 Points Forts du Jeu
 
-* **13 Légendes Préhistoriques + Boss Secret** : Chaque combattant possède son propre rig 3D articulé, sa palette de coups, ses skins alternatifs, ses attaques spéciales et sa propre Fatalité 3D.
-* **🏆 Mode Campagne d'Extinction** : Gravissez 6 étapes épiques en battant 5 prédateurs aléatoires avant d'affronter l'ultime épreuve finale secrète.
+* **13 Légendes Préhistoriques + 1 Combattant Déblocable + Boss Secret** : Chaque combattant possède son propre rig 3D articulé, sa palette de coups, ses skins alternatifs, ses attaques spéciales et sa propre Fatalité 3D.
+* **🏆 Mode Campagne d'Extinction** : Gravissez 6 étapes épiques en battant 5 prédateurs aléatoires avant d'affronter l'ultime épreuve finale secrète contre Drak'Zul pour débloquer le redoutable **Smilodon (Tigre à Dents de Sabre)** !
 * **🎮 Modes de Jeu Complets** :
   * **1 Joueur** : Campagne d'Extinction, Joueur vs IA (Novice, Normal, Brutal), et Mode Entraînement.
   * **2 Joueurs** : 1 vs 1 Local sur le même clavier ou à la manette.
@@ -68,7 +68,7 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 
 ---
 
-## 🦖 Roster des Combattants (13 Créatures + 1 Boss)
+## 🦖 Roster des Combattants (13 Créatures + 1 Déblocable + 1 Boss)
 
 | # | Combattant | Rôle | Attaques Spéciales | Fatalité 3D |
 | :-: | :--- | :--- | :--- | :--- |
@@ -85,6 +85,7 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 | 11 | **Stégosaure** | Sentinelle à Plaques | Thagomizer • Balayage d'Épines | *Empalement Dorsal* |
 | 12 | **Quetzalcoatlus** | Monarque Céleste | Piqué Supersonique • Rafale de Tempête | *Chute Céleste* |
 | 13 | **Mégathérium** | Colosse Paresseux | Coup de Griffe Brutal • Écrasement Tellurique | *Pilonnage Géant* |
+| 🐯 | **Smilodon (Déblocable)** | Tigre à Dents de Sabre | Bond Prédateur • Morsure Mortelle | *Égorgement Fatal* |
 | 👑 | **??? (Boss Secret)** | L'Inconnu de l'Extinction | Dévoilé à l'Étape 6 de la Campagne | *Fatalité Secrète* |
 
 ---

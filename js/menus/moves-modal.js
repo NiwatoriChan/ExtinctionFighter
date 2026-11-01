@@ -31,28 +31,45 @@ document.getElementById('appMain').insertAdjacentHTML('afterend', MOVES_MODAL_HT
 
 function renderMovesModalList() {
     const modalList = document.getElementById('modalRosterMoves');
-    modalList.innerHTML = DINO_ROSTER.map(d => `
-        <div class="p-3 rounded-xl bg-zinc-900/70 border border-zinc-700">
-            <div class="flex items-center justify-between">
-                <span class="mk-title font-black text-amber-400 text-sm">${d.name}</span>
-                <span class="text-[11px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">${d.role}</span>
+    if (!modalList) return;
+    modalList.innerHTML = DINO_ROSTER.map(d => {
+        if (d.isUnlockable && !isFighterUnlocked(d.id)) {
+            return `
+                <div class="p-3 rounded-xl bg-zinc-950/80 border border-amber-500/30 border-dashed text-center flex flex-col items-center justify-center py-5">
+                    <span class="text-2xl mb-1 text-amber-400">🔒</span>
+                    <span class="mk-title font-black text-amber-400 text-sm">??? (COMBATTANT DÉBLOCABLE)</span>
+                    <span class="text-[10px] text-zinc-400 mt-1 max-w-xs">Triomphez de la Campagne d'Extinction et éliminez le Dragon Suprême pour déverrouiller ce félin préhistorique et son grimoire.</span>
+                </div>
+            `;
+        }
+        return `
+            <div class="p-3 rounded-xl bg-zinc-900/70 border border-zinc-700 relative overflow-hidden">
+                ${d.isUnlockable ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-amber-500 text-black text-[9px] font-black uppercase">Débloqué</span>' : ''}
+                <div class="flex items-center justify-between">
+                    <span class="mk-title font-black text-amber-400 text-sm">${d.name}</span>
+                    <span class="text-[11px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">${d.role}</span>
+                </div>
+                <p class="text-xs text-zinc-300 mt-1"><strong>Animation 3D :</strong> ${d.moveStyle}</p>
+                <ul class="mt-2 space-y-0.5 text-xs">
+                    <li>⚡ <strong>Spécial 1 :</strong> <span class="text-amber-300">${d.special1Name}</span></li>
+                    <li>🌪️ <strong>Spécial 2 :</strong> <span class="text-emerald-300">${d.special2Name}</span></li>
+                    <li>💀 <strong>Fatalité 3D (${d.fatalityName}) :</strong> <span class="text-red-400">${d.fatalityDesc}</span></li>
+                </ul>
             </div>
-            <p class="text-xs text-zinc-300 mt-1"><strong>Animation 3D :</strong> ${d.moveStyle}</p>
-            <ul class="mt-2 space-y-0.5 text-xs">
-                <li>⚡ <strong>Spécial 1 :</strong> <span class="text-amber-300">${d.special1Name}</span></li>
-                <li>🌪️ <strong>Spécial 2 :</strong> <span class="text-emerald-300">${d.special2Name}</span></li>
-                <li>💀 <strong>Fatalité 3D (${d.fatalityName}) :</strong> <span class="text-red-400">${d.fatalityDesc}</span></li>
-            </ul>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function initMovesModal() {
     renderMovesModalList();
 
-    document.getElementById('btnShowMoves').addEventListener('click', () => {
-        document.getElementById('movesModal').classList.remove('hidden');
-    });
+    const btnShow = document.getElementById('btnShowMoves');
+    if (btnShow) {
+        btnShow.addEventListener('click', () => {
+            renderMovesModalList();
+            document.getElementById('movesModal').classList.remove('hidden');
+        });
+    }
     document.getElementById('btnCloseMoves').addEventListener('click', () => {
         document.getElementById('movesModal').classList.add('hidden');
     });

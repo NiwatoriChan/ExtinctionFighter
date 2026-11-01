@@ -240,6 +240,30 @@ const FIGHTER_PORTRAITS = {
             <!-- Griffe imposante recourbée vers l'avant -->
             <path d="M42 46 C48 38 48 26 44 18 C48 26 46 36 40 44 Z" fill="#fef08a" stroke="#d97706" stroke-width="1"/>
         </svg>
+    `,
+    smilodon: `
+        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+            <defs>
+                <radialGradient id="bg_smilo" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.5"/>
+                    <stop offset="100%" stop-color="#451a03" stop-opacity="0.95"/>
+                </radialGradient>
+            </defs>
+            <circle cx="32" cy="32" r="30" fill="url(#bg_smilo)" stroke="#fbbf24" stroke-width="1.5"/>
+            <!-- Tête féline puissante de Smilodon -->
+            <path d="M14 42 Q16 24 28 20 Q40 18 46 26 Q52 36 42 46 Q32 48 20 46 Z" fill="#b45309" stroke="#fde68a" stroke-width="1"/>
+            <!-- Oreille féline pointue -->
+            <polygon points="26,20 28,10 34,18" fill="#78350f" stroke="#fde68a" stroke-width="0.8"/>
+            <!-- Museau fauve musclé -->
+            <path d="M36 26 Q46 28 48 36 L38 40 Z" fill="#78350f"/>
+            <!-- Oeil perçant ambre -->
+            <circle cx="34" cy="25" r="2.2" fill="#fef08a"/>
+            <!-- Les 2 grandes canines sabres emblématiques courbées vers le bas -->
+            <path d="M40 36 C42 46 38 53 35 57 C37 50 39 44 38 36 Z" fill="#fef08a" stroke="#d97706" stroke-width="0.8"/>
+            <path d="M44 36 C46 47 42 54 39 58 C41 51 43 45 42 36 Z" fill="#ffffff" stroke="#d97706" stroke-width="0.8"/>
+            <!-- Mâchoire inférieure avec bride mentonnière -->
+            <path d="M30 40 L38 42 L34 47 L28 43 Z" fill="#92400e"/>
+        </svg>
     `
 };
 
@@ -616,46 +640,67 @@ function initRosterUI() {
     grid.innerHTML = '';
 
     DINO_ROSTER.forEach((dino, idx) => {
+        const isLocked = dino.isUnlockable && !isFighterUnlocked(dino.id);
+
         const card = document.createElement('div');
         card.className = `stone-card rounded-xl p-2 cursor-pointer flex flex-col items-center justify-between text-center relative overflow-hidden ${
             idx === p1ChoiceIndex ? 'selected-p1' : ''
-        } ${idx === p2ChoiceIndex ? 'selected-p2' : ''}`;
+        } ${idx === p2ChoiceIndex ? 'selected-p2' : ''} ${isLocked ? 'opacity-65 border-dashed border-amber-500/30 bg-black/40' : ''}`;
         card.dataset.index = idx;
 
-        // Aperçu 3D du visage du monstre (visage en focus, prend plus de place, surplus masqué)
-        const thumb3D = getDino3DThumbnail(dino, 0);
-        const portraitVisual = thumb3D ? `
-            <img src="${thumb3D}" alt="${dino.name}" class="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] transform scale-110 transition-transform duration-200" />
-        ` : (FIGHTER_PORTRAITS[dino.id] || `
-            <div class="w-14 h-14 rounded-full flex items-center justify-center border border-white/10" style="background:${dino.cssPrimary}44">
-                <span class="mk-title text-base font-black text-white">${dino.name.substring(0, 2)}</span>
-            </div>
-        `);
+        if (isLocked) {
+            card.innerHTML = `
+                <span class="badge-slot absolute top-1.5 right-1.5 text-[10px] font-black z-10 text-amber-400">🔒</span>
+                <div class="w-full h-24 sm:h-28 mx-auto my-0.5 flex flex-col items-center justify-center relative dino-face-slot overflow-hidden rounded-lg bg-black/30">
+                    <span class="text-3xl filter drop-shadow">🔒</span>
+                    <span class="text-[9px] text-amber-400/90 font-bold uppercase tracking-wide text-center px-1 mt-1">Déblocable en Campagne</span>
+                </div>
+                <div class="mk-title text-[10px] sm:text-[11px] font-black text-zinc-400 tracking-wider uppercase text-center w-full mt-auto px-0.5 truncate z-10 drop-shadow-md">???</div>
+            `;
 
-        // Le visage du monstre prend plus de place dans la boîte, surplus masqué, nom centré au bas
-        card.innerHTML = `
-            <span class="badge-slot absolute top-1.5 right-1.5 text-[10px] font-black z-10"></span>
-            <div class="w-full h-24 sm:h-28 mx-auto my-0.5 flex items-center justify-center relative dino-face-slot overflow-hidden rounded-lg">
-                ${portraitVisual}
-            </div>
-            <div class="mk-title text-[10px] sm:text-[11px] font-black text-zinc-100 tracking-wider uppercase text-center w-full mt-auto px-0.5 truncate z-10 drop-shadow-md">${dino.name}</div>
-        `;
+            card.addEventListener('click', () => {
+                sfx.playCooldownWarning();
+                spawnFloatingPopup(0, "🔒 COMBATTANT VERROUILLÉ ! Battez la Campagne pour débloquer Smilodon !", '#ef4444');
+            });
+        } else {
+            // Aperçu 3D du visage du monstre (visage en focus, prend plus de place, surplus masqué)
+            const thumb3D = getDino3DThumbnail(dino, 0);
+            const portraitVisual = thumb3D ? `
+                <img src="${thumb3D}" alt="${dino.name}" class="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] transform scale-110 transition-transform duration-200" />
+            ` : (FIGHTER_PORTRAITS[dino.id] || `
+                <div class="w-14 h-14 rounded-full flex items-center justify-center border border-white/10" style="background:${dino.cssPrimary}44">
+                    <span class="mk-title text-base font-black text-white">${dino.name.substring(0, 2)}</span>
+                </div>
+            `);
 
-        card.addEventListener('click', () => {
-            sfx.playHit(false);
-            if (gameMode === 'campaign') {
-                p1ChoiceIndex = idx;
-            } else {
-                if (activeSelectSlot === 1) {
+            const unlockBadge = dino.isUnlockable ? `<span class="absolute top-1 left-1 px-1.5 py-0.2 rounded bg-amber-500 text-black text-[8px] font-black uppercase tracking-wider z-10 shadow">DÉBLOQUÉ</span>` : '';
+
+            // Le visage du monstre prend plus de place dans la boîte, surplus masqué, nom centré au bas
+            card.innerHTML = `
+                ${unlockBadge}
+                <span class="badge-slot absolute top-1.5 right-1.5 text-[10px] font-black z-10"></span>
+                <div class="w-full h-24 sm:h-28 mx-auto my-0.5 flex items-center justify-center relative dino-face-slot overflow-hidden rounded-lg">
+                    ${portraitVisual}
+                </div>
+                <div class="mk-title text-[10px] sm:text-[11px] font-black text-zinc-100 tracking-wider uppercase text-center w-full mt-auto px-0.5 truncate z-10 drop-shadow-md">${dino.name}</div>
+            `;
+
+            card.addEventListener('click', () => {
+                sfx.playHit(false);
+                if (gameMode === 'campaign') {
                     p1ChoiceIndex = idx;
-                    if (gameMode === 'pvp') activeSelectSlot = 2;
                 } else {
-                    p2ChoiceIndex = idx;
-                    activeSelectSlot = 1;
+                    if (activeSelectSlot === 1) {
+                        p1ChoiceIndex = idx;
+                        if (gameMode === 'pvp') activeSelectSlot = 2;
+                    } else {
+                        p2ChoiceIndex = idx;
+                        activeSelectSlot = 1;
+                    }
                 }
-            }
-            updateSelectScreenUI();
-        });
+                updateSelectScreenUI();
+            });
+        }
 
         grid.appendChild(card);
     });
@@ -664,6 +709,14 @@ function initRosterUI() {
 }
 
 function updateSelectScreenUI() {
+    // Si l'index pointe sur un personnage encore verrouillé, replier sur un personnage débloqué
+    if (DINO_ROSTER[p1ChoiceIndex] && DINO_ROSTER[p1ChoiceIndex].isUnlockable && !isFighterUnlocked(DINO_ROSTER[p1ChoiceIndex].id)) {
+        p1ChoiceIndex = 0;
+    }
+    if (DINO_ROSTER[p2ChoiceIndex] && DINO_ROSTER[p2ChoiceIndex].isUnlockable && !isFighterUnlocked(DINO_ROSTER[p2ChoiceIndex].id)) {
+        p2ChoiceIndex = 1;
+    }
+
     const p1 = DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0];
     const p2 = getP2EffectiveDino();
 
@@ -803,6 +856,7 @@ function returnToSelect() {
     document.getElementById('btnResetCam').classList.add('hidden');
     const pmm = document.getElementById('postMatchMenu');
     if (pmm) pmm.classList.add('hidden');
+    initRosterUI();
     updateSelectScreenUI();
 }
 
@@ -874,11 +928,12 @@ function initSelectScreenMenu() {
 
     document.getElementById('btnRandomFighters').addEventListener('click', () => {
         sfx.playHit(false);
-        p1ChoiceIndex = Math.floor(Math.random() * DINO_ROSTER.length);
+        const unlockedIndices = DINO_ROSTER.map((d, i) => (!d.isUnlockable || isFighterUnlocked(d.id)) ? i : -1).filter(i => i !== -1);
+        p1ChoiceIndex = unlockedIndices[Math.floor(Math.random() * unlockedIndices.length)];
         if (gameMode !== 'campaign') {
             do {
-                p2ChoiceIndex = Math.floor(Math.random() * DINO_ROSTER.length);
-            } while (p2ChoiceIndex === p1ChoiceIndex);
+                p2ChoiceIndex = unlockedIndices[Math.floor(Math.random() * unlockedIndices.length)];
+            } while (p2ChoiceIndex === p1ChoiceIndex && unlockedIndices.length > 1);
         }
         updateSelectScreenUI();
     });
@@ -891,4 +946,88 @@ function initSelectScreenMenu() {
             openArenaChooser();
         });
     }
+}
+
+// Fenêtre de célébration lors du déblocage d'un nouveau combattant
+function showFighterUnlockedModal(fighterId = 'smilodon') {
+    const existing = document.getElementById('unlockedFighterModal');
+    if (existing) existing.remove();
+
+    sfx.playGong();
+    sfx.playRoar(70, 0.7);
+
+    const dino = DINO_ROSTER.find(d => d.id === fighterId) || DINO_ROSTER[DINO_ROSTER.length - 1];
+    const portraitSvg = FIGHTER_PORTRAITS[dino.id] || `
+        <div class="w-16 h-16 rounded-full flex items-center justify-center border border-white/20" style="background:${dino.cssPrimary}44">
+            <span class="mk-title text-xl font-black text-white">${dino.name.substring(0, 2)}</span>
+        </div>
+    `;
+
+    const modalHtml = `
+        <div id="unlockedFighterModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 select-none">
+            <div class="stone-panel rounded-3xl max-w-lg w-full p-6 text-center border-2 border-amber-400 shadow-[0_0_60px_rgba(245,158,11,0.6)] flex flex-col items-center">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-600 to-yellow-300 p-0.5 flex items-center justify-center shadow-xl mb-3 animate-pulse">
+                    <span class="text-3xl">🏆</span>
+                </div>
+                <div class="text-xs font-black uppercase tracking-[0.25em] text-amber-400 mb-1">VICTOIRE DE LA CAMPAGNE !</div>
+                <h2 class="mk-title text-2xl sm:text-3xl font-black text-white tracking-wider mb-0.5">NOUVEAU COMBATTANT DÉBLOQUÉ !</h2>
+                <div class="text-amber-300 text-sm font-extrabold uppercase tracking-widest mb-3">${dino.name} • ${dino.fullName.toUpperCase()}</div>
+
+                <!-- Visuel du combattant débloqué -->
+                <div class="w-32 h-32 rounded-2xl bg-gradient-to-b from-amber-500/20 to-black/80 border-2 border-amber-400/80 p-2 my-2 shadow-inner flex items-center justify-center relative overflow-hidden">
+                    ${portraitSvg}
+                </div>
+
+                <p class="text-xs sm:text-sm text-amber-200 italic mb-2">${dino.title}</p>
+                <p class="text-xs text-zinc-300 max-w-md mb-4 leading-relaxed">
+                    Vous avez terrassé le Dragon Primordial à l'Étape 6 de la Campagne d'Extinction ! Le redoutable <strong>${dino.fullName} aux canines sabres</strong> rejoint définitivement votre Roster !
+                </p>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-2 w-full max-w-xs mb-5 text-center">
+                    <div class="bg-black/60 p-2 rounded-xl border border-white/10">
+                        <div class="text-[10px] text-zinc-400 uppercase font-bold">Puissance</div>
+                        <div class="text-sm font-black text-red-400">${dino.stats.pow}%</div>
+                    </div>
+                    <div class="bg-black/60 p-2 rounded-xl border border-white/10">
+                        <div class="text-[10px] text-zinc-400 uppercase font-bold">Vitesse</div>
+                        <div class="text-sm font-black text-amber-400">${dino.stats.spd}%</div>
+                    </div>
+                    <div class="bg-black/60 p-2 rounded-xl border border-white/10">
+                        <div class="text-[10px] text-zinc-400 uppercase font-bold">Armure</div>
+                        <div class="text-sm font-black text-emerald-400">${dino.stats.def}%</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 w-full">
+                    <button id="btnPlayWithUnlocked" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-400 hover:from-amber-500 hover:to-yellow-300 text-zinc-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg transition">
+                        🐯 Choisir Smilodon !
+                    </button>
+                    <button id="btnCloseUnlockedModal" class="py-3 px-5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-xs sm:text-sm uppercase tracking-wider transition">
+                        Continuer
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const smiloIdx = DINO_ROSTER.findIndex(d => d.id === fighterId);
+
+    document.getElementById('btnPlayWithUnlocked').addEventListener('click', () => {
+        document.getElementById('unlockedFighterModal').remove();
+        sfx.playHit(false);
+        if (smiloIdx >= 0) {
+            p1ChoiceIndex = smiloIdx;
+            activeSelectSlot = 1;
+        }
+        returnToSelect();
+    });
+
+    document.getElementById('btnCloseUnlockedModal').addEventListener('click', () => {
+        document.getElementById('unlockedFighterModal').remove();
+        sfx.playHit(false);
+        initRosterUI();
+    });
 }

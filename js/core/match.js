@@ -250,7 +250,7 @@ function updateBattle3D(dt, nowSec) {
         }
     } else if (matchState === 'finish_him') {
         stateTimer -= dt;
-        if (fighter2.roundsWon >= 2 && gameMode === 'cpu' && stateTimer < 4.8) {
+        if (fighter2.roundsWon >= 2 && (gameMode === 'cpu' || gameMode === 'campaign') && stateTimer < 4.8) {
             executeUnique3DFatality(fighter2, fighter1);
             return;
         }
@@ -294,7 +294,7 @@ function updateBattle3D(dt, nowSec) {
         handlePlayer1Inputs(dt);
         if (gameMode === 'pvp') {
             handlePlayer2Inputs(dt);
-        } else if (gameMode === 'cpu' && matchState === 'fight') {
+        } else if ((gameMode === 'cpu' || gameMode === 'campaign') && matchState === 'fight') {
             updateAI(fighter2, fighter1, dt);
         }
     }
@@ -458,6 +458,13 @@ function finishMatch(winner, loser) {
                 showAnnouncer('ÉTAPE REMPORTÉE !', `${winner.dino.name} ACCÈDE À L'ÉTAPE ${campaignStage + 1} / 6`);
             } else {
                 showAnnouncer('👑 VICTOIRE DE LA CAMPAGNE !', "VOUS AVEZ TERRASSÉ DRAK'ZUL LE DRAGON SUPRÊME !");
+                // Déblocage du combattant secret : SMILODON !
+                unlockFighter('smilodon');
+                setTimeout(() => {
+                    if (typeof showFighterUnlockedModal === 'function') {
+                        showFighterUnlockedModal('smilodon');
+                    }
+                }, 1800);
             }
         } else {
             showAnnouncer('DÉFAITE...', `ÉCHEC À L'ÉTAPE ${campaignStage} / 6`);

@@ -636,6 +636,11 @@ function handleGamepadSelectScreen(pad, pad2, dt) {
         }
 
         if (changed) {
+            const targetDino = DINO_ROSTER[p1ChoiceIndex];
+            if (targetDino && targetDino.isUnlockable && typeof isFighterUnlocked === 'function' && !isFighterUnlocked(targetDino.id)) {
+                if (nav1 === 'left') p1ChoiceIndex = (p1ChoiceIndex - 1 + DINO_ROSTER.length) % DINO_ROSTER.length;
+                else p1ChoiceIndex = (p1ChoiceIndex + 1) % DINO_ROSTER.length;
+            }
             sfx.playHit(false);
             updateSelectScreenUI();
         }
@@ -700,6 +705,11 @@ function handleGamepadSelectScreen(pad, pad2, dt) {
         else if (nav2 === 'down' && p2ChoiceIndex + cols < DINO_ROSTER.length) { p2ChoiceIndex += cols; p2Changed = true; }
 
         if (p2Changed) {
+            const targetDino = DINO_ROSTER[p2ChoiceIndex];
+            if (targetDino && targetDino.isUnlockable && typeof isFighterUnlocked === 'function' && !isFighterUnlocked(targetDino.id)) {
+                if (nav2 === 'left') p2ChoiceIndex = (p2ChoiceIndex - 1 + DINO_ROSTER.length) % DINO_ROSTER.length;
+                else p2ChoiceIndex = (p2ChoiceIndex + 1) % DINO_ROSTER.length;
+            }
             sfx.playHit(false);
             updateSelectScreenUI();
         }
@@ -708,7 +718,10 @@ function handleGamepadSelectScreen(pad, pad2, dt) {
         if (isGpBtnJustPressed(1, 4)) { const b = document.getElementById('btnP2PrevSkin'); if (b) b.click(); }
         if (isGpBtnJustPressed(1, 5)) { const b = document.getElementById('btnP2NextSkin'); if (b) b.click(); }
         if (isGpBtnJustPressed(1, 2)) { // X = Aléatoire J2
-            do { p2ChoiceIndex = Math.floor(Math.random() * DINO_ROSTER.length); } while (p2ChoiceIndex === p1ChoiceIndex);
+            const unlocked = DINO_ROSTER.map((d, i) => (!d.isUnlockable || isFighterUnlocked(d.id)) ? i : -1).filter(i => i !== -1);
+            do {
+                p2ChoiceIndex = unlocked[Math.floor(Math.random() * unlocked.length)];
+            } while (p2ChoiceIndex === p1ChoiceIndex && unlocked.length > 1);
             updateSelectScreenUI();
             sfx.playHit(false);
         }

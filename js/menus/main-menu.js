@@ -152,9 +152,14 @@ function initMainMenu() {
 function startCampaignMode() {
     campaignStage = 1;
 
-    // Sélectionner 5 adversaires aléatoires uniques parmi les 13 créatures
+    // Sélectionner 5 adversaires aléatoires uniques parmi les créatures débloquées (hors boss)
     const available = [];
-    for (let i = 0; i < DINO_ROSTER.length; i++) available.push(i);
+    for (let i = 0; i < DINO_ROSTER.length; i++) {
+        const d = DINO_ROSTER[i];
+        if (!d.isBoss && (!d.isUnlockable || isFighterUnlocked(d.id))) {
+            available.push(i);
+        }
+    }
     // Shuffle
     for (let i = available.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -187,6 +192,9 @@ function goToSelectScreen() {
     document.getElementById('btnBackToSelect').classList.add('hidden');
     document.getElementById('btnResetCam').classList.add('hidden');
 
+    if (typeof initRosterUI === 'function') {
+        initRosterUI();
+    }
     if (typeof updateSelectScreenUI === 'function') {
         updateSelectScreenUI();
     }

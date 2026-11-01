@@ -33,7 +33,8 @@ function updatePostMatchMenuUI(winner) {
                 btnRematch.innerHTML = `🔄 Rejouer l'Étape ${campaignStage}`;
             } else {
                 // Victoire finale contre le Dragon Boss !
-                btnNext.classList.add('hidden');
+                btnNext.classList.remove('hidden');
+                btnNext.innerHTML = `🐯 Jouer avec Smilodon ➔`;
                 btnRematch.innerHTML = `🔄 Rejouer contre Drak'Zul`;
             }
         } else {
@@ -66,10 +67,22 @@ function initPostMatchMenu() {
                     currentArena = 'dragonlair';
                 }
                 openArenaChooser();
+            } else {
+                // Victoire de la campagne -> Aller au roster avec Smilodon
+                const smiloIdx = DINO_ROSTER.findIndex(d => d.id === 'smilodon');
+                if (smiloIdx >= 0) {
+                    p1ChoiceIndex = smiloIdx;
+                    activeSelectSlot = 1;
+                }
+                returnToSelect();
             }
         } else {
-            p2ChoiceIndex = (p2ChoiceIndex + 1) % DINO_ROSTER.length;
-            if (p2ChoiceIndex === p1ChoiceIndex) p2ChoiceIndex = (p2ChoiceIndex + 1) % DINO_ROSTER.length;
+            const unlocked = DINO_ROSTER.map((d, i) => (!d.isUnlockable || isFighterUnlocked(d.id)) ? i : -1).filter(i => i !== -1);
+            let nextIdx = (p2ChoiceIndex + 1) % DINO_ROSTER.length;
+            while (!unlocked.includes(nextIdx) || nextIdx === p1ChoiceIndex) {
+                nextIdx = (nextIdx + 1) % DINO_ROSTER.length;
+            }
+            p2ChoiceIndex = nextIdx;
             startMatch();
         }
     });

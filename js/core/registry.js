@@ -22,6 +22,24 @@ function registerBoss(data, impl) {
     FIGHTER_IMPLS[data.id] = impl || {};
 }
 
+// Système de déblocage de combattants (persistance localStorage)
+function isFighterUnlocked(fighterId) {
+    if (fighterId === 'smilodon') {
+        try {
+            return localStorage.getItem('ek3d_unlocked_smilodon') === 'true';
+        } catch (e) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function unlockFighter(fighterId) {
+    try {
+        localStorage.setItem('ek3d_unlocked_' + fighterId, 'true');
+    } catch (e) {}
+}
+
 // Chaque arène est déclarée dans son propre fichier (js/arenas/*.js) via registerArena().
 const ARENA_LIST = [];
 const ARENAS = {};

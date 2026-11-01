@@ -49,6 +49,14 @@ function bootGame() {
 
     // Le jeu démarre sur le Menu Principal (ou directement sur l'écran spécifié via ?screen=...)
     const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('unlock') === '1' || urlParams.get('unlock') === 'smilodon') {
+        unlockFighter('smilodon');
+    }
+    if (urlParams.get('p1') === 'smilodon') {
+        const smiloIdx = DINO_ROSTER.findIndex(d => d.id === 'smilodon');
+        if (smiloIdx >= 0) p1ChoiceIndex = smiloIdx;
+    }
+
     if (urlParams.get('screen') === 'select') {
         goToSelectScreen();
         updatePreviewModels(16);
