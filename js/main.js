@@ -36,8 +36,15 @@ window.onload = function () {
         applyGraphicsSettings(graphicsQuality || 'high');
     }
 
-    // Le jeu démarre sur le Menu Principal
-    goToMainMenu();
+    // Le jeu démarre sur le Menu Principal (ou directement sur l'écran spécifié via ?screen=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('screen') === 'select') {
+        goToSelectScreen();
+    } else if (urlParams.get('screen') === 'arena') {
+        openArenaChooser();
+    } else {
+        goToMainMenu();
+    }
 
     requestAnimationFrame(mainGameLoop);
 };
