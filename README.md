@@ -13,10 +13,10 @@
 
 ## 🌟 Points Forts du Jeu
 
-* **13 Légendes Préhistoriques + 1 Boss Suprême** : Chaque combattant possède son propre rig 3D articulé, sa palette de coups, ses skins alternatifs, ses attaques spéciales et sa propre Fatalité 3D.
-* **🐲 Mode Campagne du Dragon** : Gravissez 6 étapes épiques en battant 5 prédateurs aléatoires avant d'affronter l'ultime terreur : **Drak'Zul le Dragon Primordial**.
+* **13 Légendes Préhistoriques + Boss Secret** : Chaque combattant possède son propre rig 3D articulé, sa palette de coups, ses skins alternatifs, ses attaques spéciales et sa propre Fatalité 3D.
+* **🏆 Mode Campagne d'Extinction** : Gravissez 6 étapes épiques en battant 5 prédateurs aléatoires avant d'affronter l'ultime épreuve finale secrète.
 * **🎮 Modes de Jeu Complets** :
-  * **1 Joueur** : Campagne du Dragon, Joueur vs IA (Novice, Normal, Brutal), et Mode Entraînement.
+  * **1 Joueur** : Campagne d'Extinction, Joueur vs IA (Novice, Normal, Brutal), et Mode Entraînement.
   * **2 Joueurs** : 1 vs 1 Local sur le même clavier ou à la manette.
 * **🌋 Arènes 3D Interactives** : 5 décors Three.js avec météo dynamique, météores, éclairs, lave et aurores boréales.
 * **💀 Mécaniques Avancées de Kombat** :
@@ -85,7 +85,7 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 | 11 | **Stégosaure** | Sentinelle à Plaques | Thagomizer • Balayage d'Épines | *Empalement Dorsal* |
 | 12 | **Quetzalcoatlus** | Monarque Céleste | Piqué Supersonique • Rafale de Tempête | *Chute Céleste* |
 | 13 | **Mégathérium** | Colosse Paresseux | Coup de Griffe Brutal • Écrasement Tellurique | *Pilonnage Géant* |
-| 👑 | **Drak'Zul (Boss)** | Dragon de l'Extinction | Souffle de Feu Draconique • Vol de Brasier | *Incinération Suprême* |
+| 👑 | **??? (Boss Secret)** | L'Inconnu de l'Extinction | Dévoilé à l'Étape 6 de la Campagne | *Fatalité Secrète* |
 
 ---
 
@@ -95,7 +95,7 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 2. **🏛️ Citadelle Céleste d'Os** : Arches thoraciques gigantesques de titanaures et aurores astrales mystiques.
 3. **🍄 Abysse Fongique Toxique** : Champignons géants bioluminescents et brume d'acide suffocante.
 4. **⚡ Canyon de l'Orage Primordial** : Colonnes de basalte, pluie torrentielle et tempêtes d'éclairs foudroyants.
-5. **🐲 L'Antre de Drak'Zul** : Caldera infernale volcanique réservée au combat de boss de la Campagne.
+5. **🐲 L'Antre Infernale** : Caldera volcanique secrète réservée à l'affrontement final de la Campagne.
 
 ---
 

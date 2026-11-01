@@ -31,28 +31,28 @@ const ARENA_CHOOSER_HTML = `
         <!-- Main Arena Layout (as in sketch): Big 'Arena selected' on left + Grid 'preview' on right -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch flex-1 min-h-0">
             <!-- Left Large Viewport: Arena Selected (3D live rotating view + details) -->
-            <div class="lg:col-span-8 stone-panel rounded-2xl p-3 flex flex-col justify-between border-2 border-red-600/80 shadow-2xl relative overflow-hidden">
+            <div class="lg:col-span-8 stone-panel rounded-2xl p-3 flex flex-col justify-between relative overflow-hidden">
                 <!-- 3D Canvas Viewport -->
-                <div class="w-full h-full flex-1 rounded-xl bg-black relative overflow-hidden border border-zinc-800 min-h-[300px]">
+                <div class="w-full h-full flex-1 rounded-xl bg-black/60 relative overflow-hidden border border-white/5 min-h-[300px]">
                     <canvas id="arenaPreviewCanvas" class="w-full h-full block"></canvas>
 
                     <!-- Top-Left Arena Badge -->
-                    <div class="absolute top-3 left-3 bg-black/75 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-amber-500/60 shadow-lg pointer-events-none">
-                        <span class="text-[10px] text-amber-400 font-extrabold uppercase tracking-widest block">ARÈNE SÉLECTIONNÉE</span>
+                    <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 shadow-lg pointer-events-none">
+                        <span class="text-[10px] text-amber-400 font-bold uppercase tracking-widest block">ARÈNE SÉLECTIONNÉE</span>
                         <h2 id="arenaHeroTitle" class="mk-title text-lg sm:text-2xl font-black text-white">🌋 CRATÈRE DU CHICXULUB</h2>
                     </div>
 
                     <!-- Bottom Overlay: Atmosphere & Hazard description -->
-                    <div class="absolute bottom-3 left-3 right-3 bg-black/80 backdrop-blur-md p-2.5 sm:p-3 rounded-xl border border-zinc-700/80 pointer-events-none flex flex-wrap items-center justify-between gap-2">
+                    <div class="absolute bottom-3 left-3 right-3 bg-black/70 backdrop-blur-md p-2.5 sm:p-3 rounded-xl border border-white/10 pointer-events-none flex flex-wrap items-center justify-between gap-2">
                         <div>
-                            <div id="arenaHeroSub" class="text-xs sm:text-sm font-bold text-zinc-200">
+                            <div id="arenaHeroSub" class="text-xs sm:text-sm font-semibold text-zinc-200">
                                 Lave en fusion, météores incandescents et ciel de cendres apocalyptique
                             </div>
                             <div class="text-[10px] text-zinc-400 mt-0.5">
-                                Propriétés : <span id="arenaHeroHazard" class="text-amber-400 font-bold">Magma tellurique • Impacts d'astéroïdes • Sol sismique</span>
+                                Propriétés : <span id="arenaHeroHazard" class="text-amber-400 font-medium">Magma tellurique • Impacts d'astéroïdes • Sol sismique</span>
                             </div>
                         </div>
-                        <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-red-900/80 text-red-200 border border-red-500/60">
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-950/60 text-red-300 border border-red-500/30">
                             Arène 3D Interactive
                         </span>
                     </div>
@@ -60,7 +60,7 @@ const ARENA_CHOOSER_HTML = `
             </div>
 
             <!-- Right: Arena menu preview (Thumbnails / Cards Grid as in sketch) -->
-            <div class="lg:col-span-4 stone-panel rounded-2xl p-3 flex flex-col justify-between border-2 border-zinc-700 overflow-hidden">
+            <div class="lg:col-span-4 stone-panel rounded-2xl p-3 flex flex-col justify-between overflow-hidden">
                 <div class="mb-2 shrink-0">
                     <h3 class="mk-title text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider flex items-center justify-between">
                         <span>LISTE DES ARÈNES</span>
@@ -146,8 +146,8 @@ function renderArenaCards() {
         const card = document.createElement('div');
         card.className = `p-2.5 rounded-xl cursor-pointer border transition-all flex items-center justify-between ${
             isSelected
-                ? 'bg-red-950/80 border-amber-400 shadow-lg shadow-red-900/50'
-                : 'bg-zinc-900/80 hover:bg-zinc-800 border-zinc-700'
+                ? 'bg-amber-500/10 border-amber-400/80 shadow-md ring-1 ring-amber-400/40'
+                : 'bg-white/5 hover:bg-white/10 border-white/5'
         }`;
         card.dataset.arenaId = arena.id;
 
