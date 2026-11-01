@@ -90,7 +90,7 @@
                 <h1 class="mk-title text-lg sm:text-2xl font-black tracking-wider text-amber-400 leading-none">
                     EXTINCTION KOMBAT 3D
                 </h1>
-                <p class="text-[11px] text-red-400 uppercase tracking-widest font-bold">9 Combattants 3D • X-Ray Anatomique 3 Phases & Fatalités</p>
+                <p class="text-[11px] text-red-400 uppercase tracking-widest font-bold">13 Combattants 3D • Skins • Arènes Épiques • X-Ray & Fatalités</p>
             </div>
         </div>
 
@@ -140,9 +140,10 @@
 
                     <span class="text-xs uppercase tracking-wider text-zinc-400 font-bold ml-1">Arène :</span>
                     <select id="arenaSelect" class="bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-xs font-bold text-red-400 focus:outline-none">
-                        <option value="volcano">Cratère du Chicxulub (Lave)</option>
-                        <option value="boneyard">Temple du Cimetière d'Os</option>
-                        <option value="swamp">Marais Acide Nocturne</option>
+                        <option value="volcano">🌋 Cratère du Chicxulub (Lave & Météores)</option>
+                        <option value="boneyard">🏛️ Citadelle Céleste d'Os (Aurores & Runes)</option>
+                        <option value="swamp">🍄 Abysse Fongique Toxique (Bioluminescence)</option>
+                        <option value="storm">⚡ Canyon de l'Orage Primordial (Pluie & Foudre)</option>
                     </select>
                 </div>
             </div>
@@ -161,6 +162,11 @@
 
                         <div class="w-full h-36 my-2 rounded-lg bg-gradient-to-b from-red-950/40 to-black border border-zinc-800 relative overflow-hidden">
                             <canvas id="p1PreviewCanvas"></canvas>
+                            <div class="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded border border-red-500/40 text-xs">
+                                <button id="btnP1PrevSkin" class="px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 font-bold">&lt;</button>
+                                <span id="p1SkinName" class="font-bold text-amber-300 tracking-wide text-[11px] truncate">Skin: Primal</span>
+                                <button id="btnP1NextSkin" class="px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 font-bold">&gt;</button>
+                            </div>
                         </div>
 
                         <!-- Stats -->
@@ -189,11 +195,11 @@
                 <!-- Center 9-Dino Grid -->
                 <div class="lg:col-span-6 stone-panel rounded-xl p-3 flex flex-col justify-between">
                     <div class="text-center mb-2">
-                        <h3 class="mk-title text-base sm:text-xl text-amber-400 font-black tracking-wider uppercase">CHOISISSEZ VOTRE COMBATTANT (9 LÉGENDES)</h3>
+                        <h3 class="mk-title text-base sm:text-xl text-amber-400 font-black tracking-wider uppercase">CHOISISSEZ VOTRE COMBATTANT (13 LÉGENDES)</h3>
                         <p id="selectPromptText" class="text-xs text-zinc-400">Cliquez pour assigner le Joueur 1, puis l'Adversaire (ou utilisez Aléatoire)</p>
                     </div>
 
-                    <div id="rosterGrid" class="grid grid-cols-3 gap-2 my-auto">
+                    <div id="rosterGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 my-auto max-h-[380px] overflow-y-auto pr-1">
                         <!-- Populated dynamically by JS -->
                     </div>
 
@@ -225,6 +231,11 @@
 
                         <div class="w-full h-36 my-2 rounded-lg bg-gradient-to-b from-blue-950/40 to-black border border-zinc-800 relative overflow-hidden">
                             <canvas id="p2PreviewCanvas"></canvas>
+                            <div class="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded border border-blue-500/40 text-xs">
+                                <button id="btnP2PrevSkin" class="px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 font-bold">&lt;</button>
+                                <span id="p2SkinName" class="font-bold text-blue-300 tracking-wide text-[11px] truncate">Skin: Primal</span>
+                                <button id="btnP2NextSkin" class="px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 font-bold">&gt;</button>
+                            </div>
                         </div>
 
                         <!-- Stats -->
@@ -457,10 +468,10 @@
 
     <script>
         /* ============================================================================
-         * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS COMPLET (9 COMBATTANTS & X-RAY 2.0)
+         * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS COMPLET (13 COMBATTANTS, SKINS & ARÈNES ÉPIQUES)
          * ============================================================================ */
 
-        // 1. BASE DE DONNÉES DES 9 COMBATTANTS AVEC ANIMATIONS & FATALITÉS 3D DISTINCTES
+        // 1. BASE DE DONNÉES DES 13 COMBATTANTS AVEC ANIMATIONS, SKINS & FATALITÉS 3D DISTINCTES
         const DINO_ROSTER = [
             {
                 id: 'trex',
@@ -480,7 +491,13 @@
                 special2Name: 'Rugissement de Magma (T)',
                 fatalityName: 'Dévoration Royale (R)',
                 moveStyle: 'Foulée bipède lourde, morsure plongeante et balayage caudal rotatif.',
-                fatalityDesc: 'Saisit la victime dans ses mâchoires géantes, la secoue violemment, arrache la tête et l’avale dans une gerbe de sang.'
+                fatalityDesc: 'Saisit la victime dans ses mâchoires géantes, la secoue violemment, arrache la tête et l’avale dans une gerbe de sang.',
+                skins: [
+                    { name: 'Apex Crimson', primary: 0xdc2626, secondary: 0x7f1d1d, accent: 0xf59e0b },
+                    { name: 'Abyssal Shadow', primary: 0x18181b, secondary: 0x09090b, accent: 0x38bdf8 },
+                    { name: 'Albino Phantom', primary: 0xe2e8f0, secondary: 0x94a3b8, accent: 0xd946ef },
+                    { name: 'Molten Core', primary: 0x7c2d12, secondary: 0x451a03, accent: 0xf97316 }
+                ]
             },
             {
                 id: 'pachyrhino',
@@ -500,147 +517,299 @@
                 special2Name: 'Cornes Sismiques (T)',
                 fatalityName: 'Impact Crânien Polaire (R)',
                 moveStyle: 'Trot quadrupède puissant, coup de bosse nasale et soulèvement de collerette.',
-                fatalityDesc: 'Gratte le sol, charge à vitesse supersonique avec sa bosse nasale blindée, pulvérise le torse ennemi et empale son crâne.'
+                fatalityDesc: 'Gratte le sol, charge à vitesse supersonique avec sa bosse nasale blindée, pulvérise le torse ennemi et empale son crâne.',
+                skins: [
+                    { name: 'Tundra Brawler', primary: 0xd97706, secondary: 0x78350f, accent: 0x38bdf8 },
+                    { name: 'Glacial Frost', primary: 0x0284c7, secondary: 0x0369a1, accent: 0xe0f2fe },
+                    { name: 'Volcanic Basalt', primary: 0x27272a, secondary: 0x18181b, accent: 0xf97316 },
+                    { name: 'Emerald Moss', primary: 0x15803d, secondary: 0x166534, accent: 0xfacc15 }
+                ]
             },
             {
                 id: 'ankylo',
                 name: 'ANKYLOSAURE',
                 fullName: 'Ankylosaurus Magniventris',
                 role: 'Forteresse Vivante',
-                title: '« Le Briseur d’Os Blindé »',
-                primaryColor: 0x4d7c0f,
-                secondaryColor: 0x1a2e05,
-                accentColor: 0xfacc15,
-                cssPrimary: '#4d7c0f',
-                scale: 1.0,
-                stats: { pow: 92, spd: 58, def: 100 },
+                title: '« Le Cuirassé Caudal »',
+                primaryColor: 0x059669,
+                secondaryColor: 0x064e3b,
+                accentColor: 0xa3e635,
+                cssPrimary: '#059669',
+                scale: 1.02,
+                stats: { pow: 90, spd: 64, def: 99 },
                 maxHp: 1200,
-                walkSpeed: 6.4,
-                special1Name: 'Marteau d’Os 360° (H)',
-                special2Name: 'Boulet Tectonique (T)',
-                fatalityName: 'Home-Run Brise-Fossile (R)',
-                moveStyle: 'Marche blindée basse, roulade en boulet épineux et rotation de massue caudale.',
-                fatalityDesc: 'Brise d’abord les jambes de l’adversaire pour le mettre à genoux, puis effectue une frappe 360° de massue qui expédie sa tête hors de l’arène.'
+                walkSpeed: 6.8,
+                special1Name: 'Balayage Massue (H)',
+                special2Name: 'Cuirasse d’Ostéodermes (T)',
+                fatalityName: 'Pulvérisation Caudale (R)',
+                moveStyle: 'Démarche basse et blindée, frappe circulaire de massue osseuse caudale.',
+                fatalityDesc: 'Effectue un demi-tour centrifuge avec sa massue osseuse de 50 kg, fracasse les rotules de l’opposant avant de lui aplatir la cage thoracique.',
+                skins: [
+                    { name: 'Bastion Iron', primary: 0x059669, secondary: 0x064e3b, accent: 0xa3e635 },
+                    { name: 'Obsidian Shell', primary: 0x18181b, secondary: 0x09090b, accent: 0xf59e0b },
+                    { name: 'Desert Dune', primary: 0xa16207, secondary: 0x713f12, accent: 0xfef08a },
+                    { name: 'Toxic Carapace', primary: 0x4d7c0f, secondary: 0x365314, accent: 0x86efac }
+                ]
             },
             {
                 id: 'apato',
                 name: 'APATOSAURE',
                 fullName: 'Apatosaurus Ajax',
-                role: 'Titan Tonnerre',
-                title: '« Le Géant qui Fait Trembler la Terre »',
-                primaryColor: 0x0f766e,
-                secondaryColor: 0x134e4a,
-                accentColor: 0x2dd4bf,
-                cssPrimary: '#0f766e',
-                scale: 1.16,
-                stats: { pow: 98, spd: 52, def: 98 },
+                role: 'Titan Sismique',
+                title: '« Le Fléau des Tempêtes »',
+                primaryColor: 0x7c3aed,
+                secondaryColor: 0x4c1d95,
+                accentColor: 0x38bdf8,
+                cssPrimary: '#7c3aed',
+                scale: 1.15,
+                stats: { pow: 98, spd: 58, def: 94 },
                 maxHp: 1250,
-                walkSpeed: 6.0,
-                special1Name: 'Fouet Supersonique (H)',
-                special2Name: 'Piétinement Cataclysmique (T)',
+                walkSpeed: 6.2,
+                special1Name: 'Fouet Caudal Supersonique (H)',
+                special2Name: 'Piétinement Sismique (T)',
                 fatalityName: 'Écrasement Titanesque (R)',
-                moveStyle: 'Pas sismiques de sauropode, balayage du long cou et claquement de queue supersonique.',
-                fatalityDesc: 'Se cabre de toute sa hauteur colossale sur ses pattes arrière puis s’abat de tout son poids pour aplatir complètement l’adversaire.'
+                moveStyle: 'Pas titanesque faisant trembler le sol, claquement de queue supersonique.',
+                fatalityDesc: 'Dresse ses pattes antérieures dans le ciel orageux et s’abat de tout son poids de 30 tonnes, réduisant la victime en purée sous ses sabots.',
+                skins: [
+                    { name: 'Royal Titan', primary: 0x7c3aed, secondary: 0x4c1d95, accent: 0x38bdf8 },
+                    { name: 'Mossy Mountain', primary: 0x15803d, secondary: 0x14532d, accent: 0x86efac },
+                    { name: 'Sand Behemoth', primary: 0x92400e, secondary: 0x78350f, accent: 0xfde68a },
+                    { name: 'Cosmic Nebula', primary: 0x1e1b4b, secondary: 0x0f172a, accent: 0xc4b5fd }
+                ]
             },
             {
                 id: 'maiasaura',
                 name: 'MAIASAURA',
                 fullName: 'Maiasaura Peeblesorum',
-                role: 'Furie Véloce',
-                title: '« La Gardienne aux Cris Ultrasoniques »',
-                primaryColor: 0x9333ea,
-                secondaryColor: 0x581c87,
-                accentColor: 0xf472b6,
-                cssPrimary: '#9333ea',
-                scale: 0.98,
-                stats: { pow: 78, spd: 92, def: 78 },
+                role: 'Protectrice Féroce',
+                title: '« La Bonne Mère Indomptable »',
+                primaryColor: 0x10b981,
+                secondaryColor: 0x065f46,
+                accentColor: 0xfbbf24,
+                cssPrimary: '#10b981',
+                scale: 1.0,
+                stats: { pow: 82, spd: 86, def: 78 },
                 maxHp: 980,
-                walkSpeed: 9.6,
-                special1Name: 'Onde Ultrasonique (H)',
-                special2Name: 'Ruée de Coups de Pied (T)',
-                fatalityName: 'Résonance Mortelle (R)',
-                moveStyle: 'Course athlétique agile, salto arrière de coups de pied et salves acoustiques.',
-                fatalityDesc: 'Concentre un rayon d’ondes ultrasoniques depuis sa crête qui fait vibrer et gonfler le crâne adverse jusqu’à l’explosion totale.'
+                walkSpeed: 9.2,
+                special1Name: 'Ruade Maternelle (H)',
+                special2Name: 'Cri d’Alerte Sonique (T)',
+                fatalityName: 'Frénésie du Nid (R)',
+                moveStyle: 'Galop agile à deux et quatre pattes, ruades foudroyantes et ondes sonores stridentes.',
+                fatalityDesc: 'Pousse un hurlement qui paralyse le système nerveux adverse, puis piétine frénétiquement le torse de la victime jusqu’à dislocation complète.',
+                skins: [
+                    { name: 'Matriarch Flora', primary: 0x10b981, secondary: 0x065f46, accent: 0xfbbf24 },
+                    { name: 'Autumn Ember', primary: 0xb45309, secondary: 0x9a3412, accent: 0xfed7aa },
+                    { name: 'Cherry Blossom', primary: 0xbe185d, secondary: 0x9d174d, accent: 0xfce7f3 },
+                    { name: 'Silver Meadow', primary: 0x475569, secondary: 0x334155, accent: 0x38bdf8 }
+                ]
             },
             {
                 id: 'terabird',
-                name: 'TERABIRD',
-                fullName: 'Phorusrhacos (Oiseau-Terreur)',
-                role: 'Bec Exécuteur',
-                title: '« La Faucheuse à Plumes de Sang »',
-                primaryColor: 0xe11d48,
-                secondaryColor: 0x4c0519,
-                accentColor: 0xfb7185,
-                cssPrimary: '#e11d48',
+                name: 'OISEAU DE TERREUR',
+                fullName: 'Phorusrhacos Longissimus',
+                role: 'Faucheur Véloce',
+                title: '« La Hache Plumée du Miocène »',
+                primaryColor: 0xea580c,
+                secondaryColor: 0x9a3412,
+                accentColor: 0xfacc15,
+                cssPrimary: '#ea580c',
                 scale: 0.98,
-                stats: { pow: 86, spd: 100, def: 70 },
-                maxHp: 940,
-                walkSpeed: 11.0,
-                special1Name: 'Guillotine Aviaire (H)',
-                special2Name: 'Tempête de Serres (T)',
-                fatalityName: 'Bec de la Faucheuse (R)',
-                moveStyle: 'Foulée de rapace prédateur, saut griffu aérien et coups de bec guillotine.',
-                fatalityDesc: 'Bondit ailes déployées sur sa proie, martèle frénétiquement sa poitrine de 4 coups de bec crochu et arrache son cœur battant.'
+                stats: { pow: 92, spd: 98, def: 68 },
+                maxHp: 920,
+                walkSpeed: 10.4,
+                special1Name: 'Pique de Hache (H)',
+                special2Name: 'Foulée Furieuse (T)',
+                fatalityName: 'Trépanation Sauvage (R)',
+                moveStyle: 'Sprinteur hyperkinétique bipède, frappes verticales de son bec tranchant en coin.',
+                fatalityDesc: 'Assène une frappe verticale d’une violence inouïe avec son bec crochu, ouvrant le crâne adverse en deux avant de déchirer les viscères.',
+                skins: [
+                    { name: 'Terror Feather', primary: 0xea580c, secondary: 0x9a3412, accent: 0xfacc15 },
+                    { name: 'Snow Owl', primary: 0xf1f5f9, secondary: 0x94a3b8, accent: 0xfacc15 },
+                    { name: 'Raven Nightmare', primary: 0x18181b, secondary: 0x09090b, accent: 0xa855f7 },
+                    { name: 'Blood Falcon', primary: 0x991b1b, secondary: 0x7f1d1d, accent: 0xfca5a5 }
+                ]
             },
             {
                 id: 'postosuchus',
                 name: 'POSTOSUCHUS',
                 fullName: 'Postosuchus Kirkpatricki',
-                role: 'Archosaure Trias',
-                title: '« Le Crocodile Blindé de l’Enfer »',
-                primaryColor: 0xb45309,
-                secondaryColor: 0x451a03,
-                accentColor: 0xfef08a,
-                cssPrimary: '#b45309',
-                scale: 1.04,
-                stats: { pow: 94, spd: 82, def: 88 },
-                maxHp: 1120,
-                walkSpeed: 8.8,
-                special1Name: 'Tonneau de la Mort (H)',
-                special2Name: 'Mâchoire du Trias (T)',
-                fatalityName: 'Vrille Déchiqueteuse (R)',
-                moveStyle: 'Traque reptilienne basse sur 4 pattes, bond bipède féroce et roulade crocodilienne en vrille.',
-                fatalityDesc: 'Verrouille ses mâchoires sur le torse adverse et tourne sur lui-même à 1000 tours/minute (Death Roll) jusqu’à démembrer totalement sa proie.'
+                role: 'Archosaurien Carnassier',
+                title: '« L’Ombre du Trias Supérieur »',
+                primaryColor: 0xb91c1c,
+                secondaryColor: 0x450a0a,
+                accentColor: 0xf97316,
+                cssPrimary: '#b91c1c',
+                scale: 0.95,
+                stats: { pow: 91, spd: 80, def: 84 },
+                maxHp: 1020,
+                walkSpeed: 8.4,
+                special1Name: 'Croc Mortel (H)',
+                special2Name: 'Roulade Triasique (T)',
+                fatalityName: 'Déchirement Préhistorique (R)',
+                moveStyle: 'Démarche semi-érigée menaçante, bonds violents et morsures en tenaille.',
+                fatalityDesc: 'Broyage du cou par morsure en étau, roule sur lui-même comme un crocodile primitif pour arracher la colonne vertébrale.',
+                skins: [
+                    { name: 'Triassic Stalker', primary: 0xb91c1c, secondary: 0x450a0a, accent: 0xf97316 },
+                    { name: 'Canyon Dust', primary: 0x78350f, secondary: 0x451a03, accent: 0xf59e0b },
+                    { name: 'Swamp Basilisk', primary: 0x166534, secondary: 0x052e16, accent: 0x4ade80 },
+                    { name: 'Basalt Viper', primary: 0x27272a, secondary: 0x09090b, accent: 0x38bdf8 }
+                ]
             },
             {
                 id: 'spinosaurus',
                 name: 'SPINOSAURE',
                 fullName: 'Spinosaurus Aegyptiacus',
-                role: 'Léviathan à Voile',
-                title: '« L’Empereur aux Griffes et Voile de Feu »',
+                role: 'Léviathan du Crétacé',
+                title: '« Le Carnivore Démesuré »',
                 primaryColor: 0x0284c7,
-                secondaryColor: 0x0c4a6e,
-                accentColor: 0xf97316,
+                secondaryColor: 0x082f49,
+                accentColor: 0x38bdf8,
                 cssPrimary: '#0284c7',
                 scale: 1.12,
-                stats: { pow: 97, spd: 76, def: 86 },
-                maxHp: 1140,
-                walkSpeed: 8.1,
-                special1Name: 'Lacération Abyssale (H)',
-                special2Name: 'Geyser Thermique (T)',
+                stats: { pow: 95, spd: 74, def: 88 },
+                maxHp: 1120,
+                walkSpeed: 7.6,
+                special1Name: 'Tranchage Fluvial (H)',
+                special2Name: 'Vague Sanglante (T)',
                 fatalityName: 'Éventration du Nil (R)',
-                moveStyle: 'Posture de prédateur géant à voile dorsale illuminée, griffes lacérantes et queue nageoire.',
-                fatalityDesc: 'Empale l’ennemi sur ses griffes géantes, le soulève pendant que sa voile dorsale s’embrase et le déchire en deux dans un geyser brûlant.'
+                moveStyle: 'Posture massive avec crête neurale impressionnante, coups de museau et balayages aquatiques.',
+                fatalityDesc: 'Empale la victime de ses griffes crocodiliennes, la soulève au-dessus de sa voile dorsale et la déchiquette en deux parties.',
+                skins: [
+                    { name: 'River Emperor', primary: 0x0284c7, secondary: 0x082f49, accent: 0x38bdf8 },
+                    { name: 'Bile Croc', primary: 0x166534, secondary: 0x14532d, accent: 0x86efac },
+                    { name: 'Deep Trench', primary: 0x312e81, secondary: 0x1e1b4b, accent: 0x818cf8 },
+                    { name: 'Nile Blood', primary: 0x991b1b, secondary: 0x450a0a, accent: 0xfca5a5 }
+                ]
             },
             {
                 id: 'therizino',
                 name: 'THÉRIZINOSAURE',
                 fullName: 'Therizinosaurus Cheloniformis',
-                role: 'Maître des Faux',
-                title: '« Les 6 Lames d’Obsidienne d’Un Mètre »',
-                primaryColor: 0x10b981,
-                secondaryColor: 0x064e3b,
-                accentColor: 0xa7f3d0,
-                cssPrimary: '#10b981',
-                scale: 1.06,
-                stats: { pow: 93, spd: 85, def: 80 },
+                role: 'Faucheuse Préhistorique',
+                title: '« Les Lames Vivantes de Mongolie »',
+                primaryColor: 0x0d9488,
+                secondaryColor: 0x134e4a,
+                accentColor: 0x2dd4bf,
+                cssPrimary: '#0d9488',
+                scale: 1.05,
+                stats: { pow: 97, spd: 75, def: 82 },
                 maxHp: 1040,
-                walkSpeed: 8.6,
+                walkSpeed: 7.9,
                 special1Name: 'Croix de Faucheuse (H)',
                 special2Name: 'Tourbillon de Lames (T)',
                 fatalityName: 'Découpe Chirurgicale (R)',
                 moveStyle: 'Posture droite de bretteur préhistorique, grands coups de faux croisés et tourbillon tranchant.',
-                fatalityDesc: 'Croise ses griffes géantes d’un mètre et exécute trois entailles fulgurantes en X qui découpent la cible et font voler sa tête.'
+                fatalityDesc: 'Croise ses griffes géantes d’un mètre et exécute trois entailles fulgurantes en X qui découpent la cible et font voler sa tête.',
+                skins: [
+                    { name: 'Obsidian Scythe', primary: 0x0d9488, secondary: 0x134e4a, accent: 0x2dd4bf },
+                    { name: 'Crimson Reaver', primary: 0x991b1b, secondary: 0x450a0a, accent: 0xef4444 },
+                    { name: 'Verdant Harvester', primary: 0x15803d, secondary: 0x14532d, accent: 0x22c55e },
+                    { name: 'Gold Plumed', primary: 0xa16207, secondary: 0x713f12, accent: 0xfbbf24 }
+                ]
+            },
+            {
+                id: 'pulmonoscorpius',
+                name: 'PULMONOSCORPIUS',
+                fullName: 'Pulmonoscorpius Kirktonensis',
+                role: 'Scorpion Primordial Géant',
+                title: '« L’Arachnide Venimeux du Carbonifère »',
+                primaryColor: 0x9333ea,
+                secondaryColor: 0x4c1d95,
+                accentColor: 0x22c55e,
+                cssPrimary: '#9333ea',
+                scale: 1.05,
+                stats: { pow: 93, spd: 88, def: 89 },
+                maxHp: 1000,
+                walkSpeed: 8.8,
+                special1Name: 'Dard Neurotoxique (H)',
+                special2Name: 'Pince Broyeuse (T)',
+                fatalityName: 'Injection Mortelle (R)',
+                moveStyle: 'Galop à 8 pattes chitineuses, garde de pinces dentelées et dard caudal prêt à fondre.',
+                fatalityDesc: 'Verrouille la tête de la victime dans ses pinces et lui transperce le crâne de son dard caudal venimeux jusqu’à liquéfaction.',
+                skins: [
+                    { name: 'Carbon Chitin', primary: 0x9333ea, secondary: 0x4c1d95, accent: 0x22c55e },
+                    { name: 'Toxic Emerald', primary: 0x14532d, secondary: 0x052e16, accent: 0x22c55e },
+                    { name: 'Amber Fossil', primary: 0x78350f, secondary: 0x451a03, accent: 0xf59e0b },
+                    { name: 'Spectral Phantom', primary: 0x1e293b, secondary: 0x0f172a, accent: 0x06b6d4 }
+                ]
+            },
+            {
+                id: 'stegosaurus',
+                name: 'STÉGOSAURE',
+                fullName: 'Stegosaurus Stenops',
+                role: 'Sentinelle à Plaques',
+                title: '« Le Mur d’Épines et de Plaques »',
+                primaryColor: 0xb45309,
+                secondaryColor: 0x78350f,
+                accentColor: 0xf59e0b,
+                cssPrimary: '#b45309',
+                scale: 1.08,
+                stats: { pow: 92, spd: 68, def: 95 },
+                maxHp: 1160,
+                walkSpeed: 7.2,
+                special1Name: 'Thagomiseur Caudal (H)',
+                special2Name: 'Écran Thermique (T)',
+                fatalityName: 'Transfixion Quadruple (R)',
+                moveStyle: 'Marche quadrupède lourde rythmée par ses doubles rangées de plaques dorsales et ses 4 pointes caudales.',
+                fatalityDesc: 'Pivote à 180° et empale le torse et la cage thoracique ennemie de ses 4 pointes osseuses d’un mètre avant de projeter la dépouille.',
+                skins: [
+                    { name: 'Solar Shield', primary: 0xb45309, secondary: 0x78350f, accent: 0xf59e0b },
+                    { name: 'Verdant Grove', primary: 0x166534, secondary: 0x14532d, accent: 0x22c55e },
+                    { name: 'Cobalt Night', primary: 0x1e3a8a, secondary: 0x172554, accent: 0x3b82f6 },
+                    { name: 'Basalt Magma', primary: 0x27272a, secondary: 0x18181b, accent: 0xf97316 }
+                ]
+            },
+            {
+                id: 'quetzal',
+                name: 'QUETZALCOATLUS',
+                fullName: 'Quetzalcoatlus Northropi',
+                role: 'Monarque Céleste',
+                title: '« L’Envergure Démesurée des Cieux »',
+                primaryColor: 0x0284c7,
+                secondaryColor: 0x0369a1,
+                accentColor: 0x38bdf8,
+                cssPrimary: '#0284c7',
+                scale: 1.06,
+                stats: { pow: 94, spd: 96, def: 74 },
+                maxHp: 940,
+                walkSpeed: 9.6,
+                special1Name: 'Piqué Sonique (H)',
+                special2Name: 'Bourrasque d’Ailes (T)',
+                fatalityName: 'Chute Stratosphérique (R)',
+                moveStyle: 'Démarche quadrupède ailée sur de longues échasses, piqués foudroyants et battements d’ailes destructeurs.',
+                fatalityDesc: 'Saisit l’ennemi de son long bec en dague, s’élève dans la haute atmosphère et le laisse s’écraser à vitesse terminale.',
+                skins: [
+                    { name: 'Sky Sovereign', primary: 0x0284c7, secondary: 0x0369a1, accent: 0x38bdf8 },
+                    { name: 'Blood Harpy', primary: 0x991b1b, secondary: 0x450a0a, accent: 0xef4444 },
+                    { name: 'Aurora Spirit', primary: 0x6366f1, secondary: 0x312e81, accent: 0x818cf8 },
+                    { name: 'Nocturnal Glider', primary: 0x18181b, secondary: 0x09090b, accent: 0x0ea5e9 }
+                ]
+            },
+            {
+                id: 'giantsloth',
+                name: 'MÉGATHÉRIUM',
+                fullName: 'Megatherium Americanum',
+                role: 'Paresseux Géant Béhémoth',
+                title: '« La Force Brute du Pléistocène »',
+                primaryColor: 0x854d0e,
+                secondaryColor: 0x543209,
+                accentColor: 0xfacc15,
+                cssPrimary: '#854d0e',
+                scale: 1.06,
+                stats: { pow: 96, spd: 70, def: 93 },
+                maxHp: 1180,
+                walkSpeed: 7.4,
+                special1Name: 'Griffes Béhémoth (H)',
+                special2Name: 'Écrasement Pectoral (T)',
+                fatalityName: 'Étreinte Annihilatrice (R)',
+                moveStyle: 'Posture bipède colossale et voûtée, revers de pattes herculéennes armées de griffes recourbées.',
+                fatalityDesc: 'Enserre le torse de la victime dans ses avant-bras colossaux, brise la cage thoracique en deux dans une étreinte fatale avant de l’écraser au sol.',
+                skins: [
+                    { name: 'Pleistocene Grizzly', primary: 0x854d0e, secondary: 0x543209, accent: 0xfacc15 },
+                    { name: 'Mammoth Fur', primary: 0xe2e8f0, secondary: 0x94a3b8, accent: 0x93c5fd },
+                    { name: 'Obsidian Behemoth', primary: 0x27272a, secondary: 0x18181b, accent: 0xf97316 },
+                    { name: 'Moss Covered', primary: 0x3f6212, secondary: 0x1a2e05, accent: 0x65a30d }
+                ]
             }
         ];
 
@@ -675,6 +844,47 @@
                 gain.connect(this.ctx.destination);
                 osc.start(now);
                 osc.stop(now + (heavy ? 0.27 : 0.14));
+            }
+                        playThunder() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                // Bruit blanc filtré pour un tonnerre réaliste
+                const bufSize = this.ctx.sampleRate * 0.8;
+                const buffer = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(320, now);
+                filter.frequency.exponentialRampToValueAtTime(45, now + 0.8);
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+            playStinger() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(480, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.22);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.23);
             }
             playRoar(pitch = 95, duration = 0.45) {
                 if (!this.enabled) return;
@@ -755,29 +965,36 @@
         let activeSelectSlot = 1;
         let p1ChoiceIndex = 0; // T-Rex
         let p2ChoiceIndex = 1; // Pachyrhinosaure
+        let p1SkinIndex = 0;
+        let p2SkinIndex = 0;
 
         // 4. CONSTRUCTEUR DE MODÈLES 3D ARTICULÉS (THREE.JS) POUR CHAQUE ESPÈCE
-        function createDino3DRig(dino) {
+        function createDino3DRig(dino, skinIndex = 0) {
+            const skin = (dino.skins && dino.skins[skinIndex]) ? dino.skins[skinIndex] : {
+                primary: dino.primaryColor,
+                secondary: dino.secondaryColor,
+                accent: dino.accentColor
+            };
             const root = new THREE.Group();
             const hips = new THREE.Group();
             root.add(hips);
 
             const bodyMat = new THREE.MeshStandardMaterial({
-                color: dino.primaryColor,
+                color: skin.primary,
                 roughness: 0.55,
                 metalness: 0.15
             });
             const darkMat = new THREE.MeshStandardMaterial({
-                color: dino.secondaryColor,
+                color: skin.secondary,
                 roughness: 0.65,
                 metalness: 0.1
             });
             const accentMat = new THREE.MeshStandardMaterial({
-                color: dino.accentColor,
+                color: skin.accent,
                 roughness: 0.35,
                 metalness: 0.3,
-                emissive: dino.accentColor,
-                emissiveIntensity: 0.15
+                emissive: skin.accent,
+                emissiveIntensity: 0.25
             });
             const boneMat = new THREE.MeshStandardMaterial({
                 color: 0xfef3c7,
@@ -1394,14 +1611,26 @@
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.25, 0.12, 0.26);
                 addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.25, 0.12, -0.26);
 
-                // BRAS + LES 6 GRIFFES FAUX D'UN MÈTRE (Iconic Scythe Claws)
+                // BRAS + LES 6 VRAIES GRIFFES-FAUX MULTI-SEGMENTS DU THÉRIZINOSAURE
                 [-0.72, 0.72].forEach(zOff => {
                     const arm = new THREE.Group();
                     arm.position.set(0.55, 0.65, zOff);
-                    addMesh(new THREE.BoxGeometry(0.95, 0.28, 0.28), darkMat, arm, 0.38, -0.12, 0, 0, 0, -0.2);
-                    // 3 Griffes géantes courbées par main
-                    [-0.14, 0, 0.14].forEach(cZ => {
-                        addMesh(new THREE.ConeGeometry(0.075, 1.45, 5), boneMat, arm, 1.32, -0.38, cZ, 0, 0, -1.35);
+                    // Bras musclé et avant-bras étendu
+                    addMesh(new THREE.BoxGeometry(0.85, 0.32, 0.32), darkMat, arm, 0.35, -0.08, 0, 0, 0, -0.22);
+                    addMesh(new THREE.BoxGeometry(0.65, 0.26, 0.28), bodyMat, arm, 0.95, -0.22, 0, 0, 0, -0.38);
+
+                    // 3 immenses faux courbées et acérées avec garde osseuse
+                    [-0.18, 0, 0.18].forEach((cZ, cIdx) => {
+                        const clawRoot = new THREE.Group();
+                        clawRoot.position.set(1.28, -0.32, cZ);
+                        const len = 1.35 + (cIdx === 1 ? 0.35 : 0.1); // Griffe centrale plus longue
+                        // Base de la griffe
+                        addMesh(new THREE.BoxGeometry(len * 0.45, 0.11, 0.07), boneMat, clawRoot, len * 0.22, -0.08, 0, 0, 0, -0.55);
+                        // Courbure médiane acérée
+                        addMesh(new THREE.BoxGeometry(len * 0.42, 0.08, 0.05), accentMat, clawRoot, len * 0.55, -0.32, 0, 0, 0, -1.15);
+                        // Pointe de faux effilée
+                        addMesh(new THREE.ConeGeometry(0.045, len * 0.4, 4), boneMat, clawRoot, len * 0.68, -0.62, 0, 0, 0, -1.75);
+                        arm.add(clawRoot);
                     });
                     rig.torso.add(arm);
                     rig.arms.push(arm);
@@ -1428,6 +1657,271 @@
                     hips.add(leg);
                     rig.legs.push(leg);
                 });
+            } else if (dino.id === 'pulmonoscorpius') {
+                // PULMONOSCORPIUS : Scorpion géant à 8 pattes, prosoma, métasoma articulé et aiguillon
+                hips.position.y = 0.95;
+                // Prosoma (céphalothorax chitineux aplati)
+                addMesh(new THREE.BoxGeometry(1.6, 0.55, 1.3), bodyMat, rig.torso, 0, 0, 0);
+                addMesh(new THREE.BoxGeometry(1.2, 0.35, 1.1), darkMat, rig.torso, 0.1, 0.18, 0);
+                // Yeux médians et latéraux bioluminescents
+                [-0.15, 0.15].forEach(z => {
+                    addMesh(new THREE.SphereGeometry(0.065, 8, 8), eyeMat, rig.torso, 0.65, 0.28, z);
+                });
+                for (let o = -0.35; o <= 0.35; o += 0.7) {
+                    addMesh(new THREE.SphereGeometry(0.04, 6, 6), accentMat, rig.torso, 0.75, 0.12, o);
+                }
+
+                // Chélicères
+                addMesh(new THREE.ConeGeometry(0.08, 0.35, 4), boneMat, rig.torso, 0.95, -0.05, 0.12, 0, 0, -Math.PI / 2);
+                addMesh(new THREE.ConeGeometry(0.08, 0.35, 4), boneMat, rig.torso, 0.95, -0.05, -0.12, 0, 0, -Math.PI / 2);
+
+                // Deux Pédipalpes (immenses pinces chitineuses articulées)
+                [-0.85, 0.85].forEach((zOff, pIdx) => {
+                    const pincerArm = new THREE.Group();
+                    pincerArm.position.set(0.65, 0.05, zOff);
+                    // Brachium
+                    addMesh(new THREE.BoxGeometry(0.7, 0.22, 0.22), darkMat, pincerArm, 0.3, 0.1, 0, 0, 0, 0.35);
+                    // Tibia de la pince
+                    const chela = new THREE.Group();
+                    chela.position.set(0.7, 0.2, 0);
+                    addMesh(new THREE.BoxGeometry(0.65, 0.3, 0.28), bodyMat, chela, 0.28, 0, 0);
+                    // Doigt fixe dentelé
+                    addMesh(new THREE.ConeGeometry(0.09, 0.6, 4), accentMat, chela, 0.75, 0.08, 0, 0, 0, -Math.PI / 2);
+                    // Doigt mobile dentelé
+                    addMesh(new THREE.ConeGeometry(0.08, 0.55, 4), boneMat, chela, 0.72, -0.09, 0, 0, 0, -Math.PI / 2 + 0.3);
+                    pincerArm.add(chela);
+                    rig.torso.add(pincerArm);
+                    rig.arms.push(pincerArm);
+                });
+
+                // 8 pattes arachnides ambulatoires (4 de chaque côté)
+                for (let side = -1; side <= 1; side += 2) {
+                    for (let l = 0; l < 4; l++) {
+                        const legGroup = new THREE.Group();
+                        const xOffset = -0.45 + l * 0.32;
+                        legGroup.position.set(xOffset, -0.05, side * 0.65);
+                        // Fémur relevé
+                        const rz = side > 0 ? 0.45 : -0.45;
+                        addMesh(new THREE.BoxGeometry(0.14, 0.55, 0.14), darkMat, legGroup, 0, 0.22, side * 0.22, 0, 0, rz);
+                        // Tibia descendant vers le sol
+                        addMesh(new THREE.BoxGeometry(0.11, 0.7, 0.11), bodyMat, legGroup, 0, -0.28, side * 0.42, 0, 0, -rz * 1.2);
+                        hips.add(legGroup);
+                        rig.legs.push(legGroup);
+                    }
+                }
+
+                // Métasoma : Queue de scorpion en 5 segments arquée vers l'avant + venin stinger
+                let pSeg = rig.torso;
+                for (let s = 0; s < 5; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -0.85 : -0.55, s === 0 ? 0.1 : 0.18, 0);
+                    const sz = 0.55 - s * 0.05;
+                    addMesh(new THREE.BoxGeometry(0.65, sz, sz), s % 2 === 0 ? bodyMat : darkMat, seg, -0.25, 0, 0);
+                    pSeg.add(seg);
+                    rig.tailSegments.push(seg);
+                    pSeg = seg;
+                }
+                // Telson (ampoule à venin) + Aiguillon courbé (stinger)
+                const telson = new THREE.Group();
+                telson.position.set(-0.6, 0.05, 0);
+                addMesh(new THREE.SphereGeometry(0.24, 8, 8), accentMat, telson, 0, 0, 0);
+                // Aiguillon acéré noir et or
+                addMesh(new THREE.ConeGeometry(0.08, 0.55, 5), boneMat, telson, 0.15, 0.32, 0, 0, 0, 0.65);
+                pSeg.add(telson);
+                rig.specialParts.stinger = telson;
+
+            } else if (dino.id === 'stegosaurus') {
+                // STÉGOSAURE : Grand dinosaure quadrupède cuirassé, plaques dorsales en quinconce et thagomiseur
+                hips.position.y = 1.65;
+                // Torse massif et voûté
+                addMesh(new THREE.BoxGeometry(2.4, 1.4, 1.3), bodyMat, rig.torso, 0, 0.15, 0, 0, 0, -0.15);
+                addMesh(new THREE.BoxGeometry(1.8, 1.1, 1.38), darkMat, rig.torso, -0.2, 0.05, 0, 0, 0, -0.15);
+
+                // Petit cou & tête très basse
+                rig.neck.position.set(1.15, -0.1, 0);
+                rig.torso.add(rig.neck);
+                addMesh(new THREE.BoxGeometry(0.7, 0.5, 0.55), bodyMat, rig.neck, 0.3, -0.12, 0, 0, 0, -0.25);
+
+                rig.headGroup.position.set(0.6, -0.22, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(0.75, 0.42, 0.45), darkMat, rig.headGroup, 0.25, 0, 0);
+                addMesh(new THREE.ConeGeometry(0.14, 0.38, 4), boneMat, rig.headGroup, 0.65, -0.05, 0, 0, 0, -Math.PI / 2);
+                addMesh(new THREE.SphereGeometry(0.07, 8, 8), eyeMat, rig.headGroup, 0.35, 0.1, 0.24);
+                addMesh(new THREE.SphereGeometry(0.07, 8, 8), eyeMat, rig.headGroup, 0.35, 0.1, -0.24);
+
+                // Deux rangées alternées de 8 grandes plaques dermiques dorsales losanges
+                const platesGroup = new THREE.Group();
+                for (let i = 0; i < 8; i++) {
+                    const pSide = (i % 2 === 0) ? 0.22 : -0.22;
+                    const pX = -1.0 + i * 0.35;
+                    const pScale = 0.55 + Math.sin((i / 7) * Math.PI) * 0.55;
+                    const plate = new THREE.Mesh(new THREE.BoxGeometry(0.35 * pScale, 0.85 * pScale, 0.06), accentMat);
+                    plate.position.set(pX, 0.85 + pScale * 0.35, pSide);
+                    plate.rotation.y = (i % 2 === 0 ? 0.12 : -0.12);
+                    plate.rotation.z = 0.15;
+                    platesGroup.add(plate);
+                }
+                rig.torso.add(platesGroup);
+                rig.specialParts.plates = platesGroup;
+
+                // Bras avant plus courts (quadrupède)
+                [-0.62, 0.62].forEach(z => {
+                    const fLeg = new THREE.Group();
+                    fLeg.position.set(0.75, -0.2, z);
+                    addMesh(new THREE.BoxGeometry(0.48, 0.9, 0.42), bodyMat, fLeg, 0, -0.35, 0);
+                    addMesh(new THREE.BoxGeometry(0.42, 0.75, 0.38), darkMat, fLeg, 0, -0.9, 0);
+                    hips.add(fLeg);
+                    rig.arms.push(fLeg);
+                });
+
+                // Queue puissante armée du THAGOMISEUR (4 épines osseuses mortelles)
+                let pTail = rig.torso;
+                for (let s = 0; s < 4; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -1.15 : -0.75, s === 0 ? 0.1 : -0.05, 0);
+                    addMesh(new THREE.BoxGeometry(0.8, 0.6 - s * 0.1, 0.55 - s * 0.08), bodyMat, seg, -0.38, 0, 0);
+                    pTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    pTail = seg;
+                }
+                // Thagomiseur : 4 pointes osseuses sur le dernier segment caudal
+                const thago = new THREE.Group();
+                thago.position.set(-0.65, 0.05, 0);
+                // 2 pointes à gauche et 2 pointes à droite
+                [-0.32, 0.32].forEach(z => {
+                    [0.25, -0.15].forEach(x => {
+                        const spike = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.95, 5), boneMat);
+                        spike.position.set(x, 0.1, z);
+                        spike.rotation.z = Math.PI / 2 - 0.2;
+                        spike.rotation.x = (z > 0 ? 0.6 : -0.6);
+                        thago.add(spike);
+                    });
+                });
+                pTail.add(thago);
+                rig.specialParts.thagomizer = thago;
+
+                // 2 Pattes arrière massives et hautes
+                [-0.68, 0.68].forEach(z => {
+                    const hLeg = new THREE.Group();
+                    hLeg.position.set(-0.65, 0, z);
+                    addMesh(new THREE.BoxGeometry(0.65, 1.25, 0.52), bodyMat, hLeg, 0, -0.45, 0);
+                    addMesh(new THREE.BoxGeometry(0.5, 0.95, 0.44), darkMat, hLeg, 0, -1.2, 0);
+                    hips.add(hLeg);
+                    rig.legs.push(hLeg);
+                });
+
+            } else if (dino.id === 'quetzal') {
+                // QUETZALCOATLUS : Le géant ptérosaure azhdarchidé aux ailes immenses et long bec lancéolé
+                hips.position.y = 1.95;
+                // Torse profilé et caréné
+                addMesh(new THREE.BoxGeometry(1.6, 0.85, 0.85), bodyMat, rig.torso, 0, 0.1, 0, 0, 0, 0.32);
+                addMesh(new THREE.BoxGeometry(1.2, 0.65, 0.9), darkMat, rig.torso, -0.1, 0, 0, 0, 0, 0.32);
+
+                // Cou très long et gracile (spécificité des Azhdarchidae)
+                rig.neck.position.set(0.7, 0.5, 0);
+                rig.torso.add(rig.neck);
+                addMesh(new THREE.BoxGeometry(0.38, 1.45, 0.38), bodyMat, rig.neck, 0.25, 0.65, 0, 0, 0, -0.22);
+
+                // Tête géante surmontée d'une crête osseuse et armée d'un bec d'1.8 m
+                rig.headGroup.position.set(0.45, 1.4, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(0.85, 0.38, 0.35), darkMat, rig.headGroup, 0.2, 0, 0);
+                // Immense bec en dague
+                addMesh(new THREE.ConeGeometry(0.14, 1.6, 4), boneMat, rig.headGroup, 1.05, -0.1, 0, 0, 0, -Math.PI / 2);
+                // Crête céphalique stylisée
+                addMesh(new THREE.BoxGeometry(0.7, 0.45, 0.08), accentMat, rig.headGroup, -0.1, 0.32, 0, 0, 0, 0.45);
+                addMesh(new THREE.SphereGeometry(0.07, 8, 8), eyeMat, rig.headGroup, 0.25, 0.08, 0.19);
+                addMesh(new THREE.SphereGeometry(0.07, 8, 8), eyeMat, rig.headGroup, 0.25, 0.08, -0.19);
+
+                // Ailes articulées géantes (bras de marche repliés au sol ou déployés)
+                [-0.65, 0.65].forEach((zOff, wIdx) => {
+                    const wingArm = new THREE.Group();
+                    wingArm.position.set(0.45, 0.2, zOff);
+                    // Bras principal
+                    addMesh(new THREE.BoxGeometry(0.3, 1.35, 0.25), darkMat, wingArm, 0.1, -0.6, 0, 0, 0, 0.15);
+                    // Doigt alaire et membrane ptérosaurienne
+                    const wingMembrane = new THREE.Mesh(new THREE.BoxGeometry(1.65, 1.1, 0.05), accentMat);
+                    wingMembrane.position.set(0.4, -0.5, 0);
+                    wingMembrane.rotation.y = (wIdx === 0 ? 0.2 : -0.2);
+                    wingArm.add(wingMembrane);
+                    rig.torso.add(wingArm);
+                    rig.arms.push(wingArm);
+                });
+
+                // Queue vestigiale
+                const qTail = new THREE.Group();
+                qTail.position.set(-0.85, 0, 0);
+                addMesh(new THREE.BoxGeometry(0.5, 0.22, 0.22), darkMat, qTail, -0.2, 0, 0);
+                rig.torso.add(qTail);
+                rig.tailSegments.push(qTail);
+
+                // Longues pattes arrière d'échassier
+                [-0.45, 0.45].forEach(z => {
+                    const leg = new THREE.Group();
+                    leg.position.set(-0.25, 0, z);
+                    addMesh(new THREE.BoxGeometry(0.32, 1.2, 0.32), bodyMat, leg, 0, -0.5, 0);
+                    addMesh(new THREE.BoxGeometry(0.24, 1.1, 0.24), darkMat, leg, 0, -1.45, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
+
+            } else if (dino.id === 'giantsloth') {
+                // MÉGATHÉRIUM : Paresseux géant colossal à l'allure de grizzly préhistorique armé de serres
+                hips.position.y = 1.85;
+                // Bassin gigantesque et torse herculéen trapu
+                addMesh(new THREE.BoxGeometry(2.1, 1.7, 1.5), bodyMat, rig.torso, 0, 0.3, 0, 0, 0, 0.35);
+                addMesh(new THREE.BoxGeometry(1.7, 1.4, 1.55), darkMat, rig.torso, -0.15, 0.2, 0, 0, 0, 0.35);
+
+                // Cou trapu & tête massive arrondie à museau émoussé
+                rig.neck.position.set(0.7, 0.95, 0);
+                rig.torso.add(rig.neck);
+                addMesh(new THREE.BoxGeometry(0.65, 0.7, 0.75), bodyMat, rig.neck, 0.2, 0.2, 0);
+
+                rig.headGroup.position.set(0.35, 0.35, 0);
+                rig.neck.add(rig.headGroup);
+                addMesh(new THREE.BoxGeometry(0.85, 0.65, 0.7), darkMat, rig.headGroup, 0.25, 0.05, 0);
+                addMesh(new THREE.BoxGeometry(0.45, 0.4, 0.5), bodyMat, rig.headGroup, 0.68, -0.05, 0); // Museau
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.4, 0.18, 0.36);
+                addMesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat, rig.headGroup, 0.4, 0.18, -0.36);
+
+                // Bras gigantesques aux griffes courbées terrifiantes
+                [-0.85, 0.85].forEach(z => {
+                    const arm = new THREE.Group();
+                    arm.position.set(0.65, 0.6, z);
+                    // Avant-bras puissant
+                    addMesh(new THREE.BoxGeometry(0.95, 0.45, 0.42), darkMat, arm, 0.4, -0.25, 0, 0, 0, -0.4);
+                    // 3 Grandes griffes recourbées de 35 cm pour déraciner les arbres
+                    [-0.14, 0, 0.14].forEach(cz => {
+                        const claw = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.85, 5), boneMat);
+                        claw.position.set(0.95, -0.65, cz);
+                        claw.rotation.z = -1.9;
+                        claw.rotation.x = (cz > 0 ? 0.2 : -0.2);
+                        arm.add(claw);
+                    });
+                    rig.torso.add(arm);
+                    rig.arms.push(arm);
+                });
+
+                // Queue robuste formant un trépied d'appui au sol
+                let pTail = rig.torso;
+                for (let s = 0; s < 3; s++) {
+                    const seg = new THREE.Group();
+                    seg.position.set(s === 0 ? -1.0 : -0.65, s === 0 ? -0.15 : -0.1, 0);
+                    addMesh(new THREE.BoxGeometry(0.7, 0.65 - s * 0.12, 0.65 - s * 0.12), darkMat, seg, -0.3, 0, 0);
+                    pTail.add(seg);
+                    rig.tailSegments.push(seg);
+                    pTail = seg;
+                }
+
+                // Pattes arrière colonnaires ultra-stables
+                [-0.65, 0.65].forEach(z => {
+                    const leg = new THREE.Group();
+                    leg.position.set(-0.25, 0, z);
+                    addMesh(new THREE.BoxGeometry(0.75, 1.15, 0.65), bodyMat, leg, 0, -0.5, 0);
+                    addMesh(new THREE.BoxGeometry(0.85, 0.4, 0.75), darkMat, leg, 0.1, -1.25, 0);
+                    hips.add(leg);
+                    rig.legs.push(leg);
+                });
             }
 
             root.scale.setScalar(dino.scale);
@@ -1451,7 +1945,7 @@
             rig.jaw.rotation.set(0, 0, 0);
             rig.shieldMesh.visible = fighter.isBlocking;
 
-            const baseHipsY = id === 'ankylo' ? 1.35 : (id === 'postosuchus' ? 1.48 : (id === 'pachyrhino' ? 1.65 : (id === 'terabird' ? 2.25 : 2.1)));
+            const baseHipsY = id === 'pulmonoscorpius' ? 0.95 : (id === 'ankylo' ? 1.35 : (id === 'postosuchus' ? 1.48 : (id === 'stegosaurus' ? 1.65 : (id === 'giantsloth' ? 1.85 : (id === 'quetzal' ? 1.95 : (id === 'terabird' ? 2.25 : 2.1))))));
             rig.hips.position.set(0, baseHipsY, 0);
 
             // Flash blanc si touché
@@ -1659,6 +2153,52 @@
                     rig.arms[1].rotation.z = 0.15 - Math.sin(time * 3) * 0.1;
                     rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.55 : 0;
                     rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.55 : 0;
+                } else if (id === 'pulmonoscorpius') {
+                    // Pulmonoscorpius : Ondulation des 8 pattes et dard dressé
+                    const freq = isWalk ? 14 : 3.5;
+                    rig.hips.position.y = baseHipsY + Math.sin(time * freq) * (isWalk ? 0.08 : 0.02);
+                    rig.arms[0].rotation.y = 0.25 + Math.sin(time * 3) * 0.15;
+                    rig.arms[1].rotation.y = -0.25 - Math.sin(time * 3) * 0.15;
+                    rig.tailSegments.forEach((seg, i) => {
+                        seg.rotation.z = -0.35 + Math.sin(time * 4 + i * 0.4) * 0.08;
+                    });
+                    if (rig.specialParts.stinger) {
+                        rig.specialParts.stinger.rotation.z = 0.4 + Math.sin(time * 6) * 0.15;
+                    }
+                    rig.legs.forEach((leg, i) => {
+                        const phase = (i % 2 === 0 ? 0 : Math.PI);
+                        leg.rotation.z = isWalk ? Math.sin(time * freq + phase + i * 0.5) * 0.35 : 0;
+                    });
+                } else if (id === 'stegosaurus') {
+                    // Stégosaure : Balancement lent de la queue et du thagomiseur
+                    const freq = isWalk ? 7.2 : 2.5;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.1 : 0.03);
+                    rig.torso.rotation.y = Math.sin(time * (freq * 0.5)) * 0.12;
+                    rig.tailSegments.forEach((seg, i) => {
+                        seg.rotation.y = Math.sin(time * 3.5 - i * 0.4) * 0.28;
+                    });
+                    rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.45 : 0;
+                    rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.45 : 0;
+                    rig.arms[0].rotation.z = isWalk ? -Math.sin(time * freq) * 0.45 : 0;
+                    rig.arms[1].rotation.z = isWalk ? Math.sin(time * freq) * 0.45 : 0;
+                } else if (id === 'quetzal') {
+                    // Quetzalcoatlus : Allure d'échassier volant majestueux
+                    const freq = isWalk ? 8.5 : 2.2;
+                    rig.hips.position.y = baseHipsY + Math.sin(time * freq) * (isWalk ? 0.15 : 0.04);
+                    rig.neck.rotation.z = -0.15 + Math.sin(time * 3) * 0.08;
+                    rig.arms[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.35 : 0.1;
+                    rig.arms[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.35 : -0.1;
+                    rig.legs[0].rotation.z = isWalk ? -Math.sin(time * freq) * 0.45 : 0;
+                    rig.legs[1].rotation.z = isWalk ? Math.sin(time * freq) * 0.45 : 0;
+                } else if (id === 'giantsloth') {
+                    // Mégathérium : Balancement pesant de grizzly avec serres repliées
+                    const freq = isWalk ? 6.5 : 2.0;
+                    rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.12 : 0.04);
+                    rig.torso.rotation.y = Math.sin(time * 2.2) * 0.15;
+                    rig.arms[0].rotation.y = 0.3 + Math.sin(time * 3) * 0.15;
+                    rig.arms[1].rotation.y = -0.3 - Math.sin(time * 3) * 0.15;
+                    rig.legs[0].rotation.z = isWalk ? Math.sin(time * freq) * 0.42 : 0;
+                    rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.42 : 0;
                 }
 
                 if (act === 'crouch') {
@@ -1821,6 +2361,59 @@
                         rig.arms[0].rotation.x = -0.75;
                         rig.arms[1].rotation.x = 0.75;
                     }
+                } else if (id === 'pulmonoscorpius') {
+                    if (act === 'light') {
+                        rig.arms[0].rotation.y = 0.3 + swing * 0.95;
+                        rig.arms[1].rotation.y = -0.3 - swing * 0.45;
+                    } else if (act === 'heavy') {
+                        rig.arms[0].rotation.y = swing * 1.25;
+                        rig.arms[1].rotation.y = -swing * 1.25;
+                    } else if (act === 'special') {
+                        rig.tailSegments.forEach(seg => { seg.rotation.z = -swing * 0.85; });
+                        if (rig.specialParts.stinger) rig.specialParts.stinger.rotation.z = swing * 1.45;
+                    } else {
+                        rig.torso.rotation.y = Math.sin(prog * Math.PI * 2) * 0.45;
+                        rig.tailSegments.forEach(seg => { seg.rotation.z = -0.7; });
+                    }
+                } else if (id === 'stegosaurus') {
+                    if (act === 'light') {
+                        rig.torso.rotation.y = swing * 0.55;
+                        rig.headGroup.rotation.y = swing * 0.65;
+                    } else if (act === 'heavy' || act === 'special') {
+                        rig.hips.rotation.y = -swing * 1.95;
+                        rig.tailSegments.forEach((seg, i) => { seg.rotation.y = -swing * 0.65; });
+                    } else {
+                        rig.torso.rotation.z = Math.sin(prog * Math.PI * 6) * 0.15;
+                    }
+                } else if (id === 'quetzal') {
+                    if (act === 'light') {
+                        rig.neck.rotation.z = -swing * 0.85;
+                        rig.headGroup.rotation.z = -swing * 0.45;
+                    } else if (act === 'heavy') {
+                        rig.arms[0].rotation.y = swing * 1.45;
+                        rig.arms[1].rotation.y = -swing * 1.45;
+                    } else if (act === 'special') {
+                        rig.hips.position.y = baseHipsY + swing * 1.5;
+                        rig.neck.rotation.z = -swing * 1.2;
+                    } else {
+                        rig.arms[0].rotation.z = Math.sin(prog * Math.PI * 8) * 0.9;
+                        rig.arms[1].rotation.z = -Math.sin(prog * Math.PI * 8) * 0.9;
+                    }
+                } else if (id === 'giantsloth') {
+                    if (act === 'light') {
+                        rig.arms[0].rotation.z = -swing * 1.15;
+                        rig.arms[0].rotation.y = swing * 0.65;
+                    } else if (act === 'heavy') {
+                        rig.torso.rotation.z = -swing * 0.45;
+                        rig.arms[0].rotation.z = -swing * 1.45;
+                        rig.arms[1].rotation.z = -swing * 1.45;
+                    } else if (act === 'special') {
+                        rig.hips.position.y = baseHipsY + swing * 0.65;
+                        rig.torso.rotation.z = 0.35 - swing * 0.75;
+                    } else {
+                        rig.arms[0].rotation.y = swing * 1.35;
+                        rig.arms[1].rotation.y = -swing * 1.35;
+                    }
                 }
                 return;
             }
@@ -1930,6 +2523,22 @@
                     rig.arms[1].rotation.z = -slashWave * 1.3;
                     rig.arms[0].rotation.y = Math.cos(prog * Math.PI * 6) * 0.85;
                     rig.arms[1].rotation.y = -Math.cos(prog * Math.PI * 6) * 0.85;
+                } else if (id === 'pulmonoscorpius') {
+                    rig.arms[0].rotation.y = 0.85;
+                    rig.arms[1].rotation.y = -0.85;
+                    rig.tailSegments.forEach(seg => { seg.rotation.z = -Math.sin(prog * Math.PI * 4) * 0.75; });
+                    if (rig.specialParts.stinger) rig.specialParts.stinger.rotation.z = Math.sin(prog * Math.PI * 4) * 1.2;
+                } else if (id === 'stegosaurus') {
+                    rig.hips.rotation.y = -Math.min(1, prog * 1.8) * Math.PI;
+                    rig.tailSegments.forEach((seg, i) => { seg.rotation.y = -Math.sin(prog * Math.PI * 2) * 0.65; });
+                } else if (id === 'quetzal') {
+                    rig.hips.position.y = baseHipsY + Math.sin(prog * Math.PI) * 4.5;
+                    rig.arms[0].rotation.y = Math.sin(prog * Math.PI * 10) * 1.1;
+                    rig.arms[1].rotation.y = -Math.sin(prog * Math.PI * 10) * 1.1;
+                } else if (id === 'giantsloth') {
+                    rig.arms[0].rotation.y = 1.25;
+                    rig.arms[1].rotation.y = -1.25;
+                    rig.torso.rotation.z = Math.sin(prog * Math.PI * 4) * 0.35;
                 }
             }
         }
@@ -1986,8 +2595,8 @@
             if (!preview2.renderer) setupPreviewScene(preview2, 'p2PreviewCanvas');
 
             [
-                { p: preview1, dino: DINO_ROSTER[p1ChoiceIndex], canvasId: 'p1PreviewCanvas', dir: 1 },
-                { p: preview2, dino: DINO_ROSTER[p2ChoiceIndex], canvasId: 'p2PreviewCanvas', dir: -1 }
+                { p: preview1, dino: DINO_ROSTER[p1ChoiceIndex], skinIndex: p1SkinIndex, canvasId: 'p1PreviewCanvas', dir: 1 },
+                { p: preview2, dino: DINO_ROSTER[p2ChoiceIndex], skinIndex: p2SkinIndex, canvasId: 'p2PreviewCanvas', dir: -1 }
             ].forEach(item => {
                 const canvas = document.getElementById(item.canvasId);
                 const rect = canvas.parentElement.getBoundingClientRect();
@@ -1999,11 +2608,12 @@
                     }
                 }
 
-                if (item.p.dinoId !== item.dino.id) {
+                if (item.p.dinoId !== item.dino.id || item.p.skinIndex !== item.skinIndex) {
                     if (item.p.rig) item.p.scene.remove(item.p.rig.root);
-                    item.p.rig = createDino3DRig(item.dino);
+                    item.p.rig = createDino3DRig(item.dino, item.skinIndex);
                     item.p.scene.add(item.p.rig.root);
                     item.p.dinoId = item.dino.id;
+                    item.p.skinIndex = item.skinIndex;
                 }
 
                 if (item.p.rig) {
@@ -2070,80 +2680,176 @@
                 arenaGroup.remove(arenaGroup.children[0]);
             }
 
-            let skyColor = 0x1a0505;
-            let floorColor = 0x18181b;
-            let accentColor = 0xea580c;
+            let skyColor = 0x180505;
+            let floorColor = 0x1c1917;
+            let accentColor = 0xf97316;
 
             if (arenaType === 'boneyard') {
-                skyColor = 0x090d16;
-                floorColor = 0x27272a;
-                accentColor = 0xd4d4d8;
+                skyColor = 0x050814;
+                floorColor = 0x1e1b4b;
+                accentColor = 0x818cf8;
             } else if (arenaType === 'swamp') {
-                skyColor = 0x022c22;
+                skyColor = 0x021f15;
                 floorColor = 0x052e16;
-                accentColor = 0x84cc16;
+                accentColor = 0x22c55e;
+            } else if (arenaType === 'storm') {
+                skyColor = 0x090d16;
+                floorColor = 0x18181b;
+                accentColor = 0x38bdf8;
             }
 
             battleScene.background = new THREE.Color(skyColor);
-            battleScene.fog = new THREE.FogExp2(skyColor, 0.022);
+            battleScene.fog = new THREE.FogExp2(skyColor, 0.024);
 
             // Sol principal de l'arène
-            const stageGeo = new THREE.BoxGeometry(28, 2, 10);
-            const stageMat = new THREE.MeshStandardMaterial({ color: floorColor, roughness: 0.8 });
+            const stageGeo = new THREE.BoxGeometry(32, 2.2, 12);
+            const stageMat = new THREE.MeshStandardMaterial({ color: floorColor, roughness: 0.75, metalness: 0.2 });
             const stageMesh = new THREE.Mesh(stageGeo, stageMat);
-            stageMesh.position.set(0, -1, 0);
+            stageMesh.position.set(0, -1.1, 0);
             stageMesh.receiveShadow = true;
             arenaGroup.add(stageMesh);
 
-            // Bordure lumineuse de lave / acide / os
-            const rimGeo = new THREE.BoxGeometry(28.2, 0.18, 10.2);
+            // Bordure lumineuse d'énergie tellurique
+            const rimGeo = new THREE.BoxGeometry(32.2, 0.22, 12.2);
             const rimMat = new THREE.MeshBasicMaterial({ color: accentColor });
             const rimMesh = new THREE.Mesh(rimGeo, rimMat);
-            rimMesh.position.set(0, -0.05, 0);
+            rimMesh.position.set(0, -0.02, 0);
             arenaGroup.add(rimMesh);
 
-            // Éléments de décor 3D en arrière-plan
+            // Éléments de décor 3D spectaculaires
             if (arenaType === 'volcano') {
+                // Mer de magma en fusion & météores incandescents
                 const lavaSea = new THREE.Mesh(
-                    new THREE.PlaneGeometry(120, 80),
+                    new THREE.PlaneGeometry(160, 100),
                     new THREE.MeshBasicMaterial({ color: 0x991b1b })
                 );
                 lavaSea.rotation.x = -Math.PI / 2;
-                lavaSea.position.y = -1.8;
+                lavaSea.position.y = -2.2;
                 arenaGroup.add(lavaSea);
 
-                // Volcans 3D et Météore du Chicxulub
-                for (let x of [-14, -4, 7, 16]) {
+                // Volcans 3D escarpés
+                for (let x of [-16, -6, 8, 18]) {
                     const cone = new THREE.Mesh(
-                        new THREE.ConeGeometry(4.5, 9, 7),
-                        new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.9 })
+                        new THREE.ConeGeometry(5.5, 11, 8),
+                        new THREE.MeshStandardMaterial({ color: 0x0c0a09, roughness: 0.95 })
                     );
-                    cone.position.set(x, 3.2, -12);
+                    cone.position.set(x, 4.0, -14);
                     arenaGroup.add(cone);
+                    // Cratère lumineux au sommet du volcan
+                    const caldera = new THREE.Mesh(
+                        new THREE.SphereGeometry(1.6, 12, 12),
+                        new THREE.MeshBasicMaterial({ color: 0xf97316 })
+                    );
+                    caldera.position.set(x, 9.5, -14);
+                    arenaGroup.add(caldera);
                 }
+
+                // Gigantesque météore du Chicxulub en flammes
                 const meteor = new THREE.Mesh(
-                    new THREE.SphereGeometry(2.6, 16, 16),
+                    new THREE.SphereGeometry(3.6, 16, 16),
                     new THREE.MeshBasicMaterial({ color: 0xf59e0b })
                 );
-                meteor.position.set(0, 11, -22);
+                meteor.position.set(0, 14, -26);
                 arenaGroup.add(meteor);
+
+                // Fragments de météores incandescents en orbite
+                for (let i = 0; i < 6; i++) {
+                    const rock = new THREE.Mesh(
+                        new THREE.DodecahedronGeometry(0.85),
+                        new THREE.MeshBasicMaterial({ color: 0xef4444 })
+                    );
+                    rock.position.set(-10 + i * 4, 8 + (i % 3) * 2, -18);
+                    arenaGroup.add(rock);
+                }
+
             } else if (arenaType === 'boneyard') {
-                // Côtes géantes de Titanosaure en arche 3D
-                const boneMat = new THREE.MeshStandardMaterial({ color: 0xe4e4e7, roughness: 0.5 });
-                for (let x = -10; x <= 10; x += 4) {
-                    const rib = new THREE.Mesh(new THREE.TorusGeometry(5.5, 0.38, 8, 20, Math.PI), boneMat);
-                    rib.position.set(x, 0, -4.5);
+                // Citadelle Céleste d'Os : Arches thoraciques colossales de Sauropodes & runes stellaires
+                const boneMat = new THREE.MeshStandardMaterial({ color: 0xf4f4f5, roughness: 0.45 });
+                for (let x = -14; x <= 14; x += 3.5) {
+                    const rib = new THREE.Mesh(new THREE.TorusGeometry(6.2, 0.48, 8, 24, Math.PI), boneMat);
+                    rib.position.set(x, 0, -5.5);
                     arenaGroup.add(rib);
                 }
-            } else {
-                // Piliers et cristaux acides
-                const crysMat = new THREE.MeshStandardMaterial({ color: 0x84cc16, emissive: 0x3f6212 });
-                for (let x = -11; x <= 11; x += 4.5) {
-                    const crys = new THREE.Mesh(new THREE.ConeGeometry(0.9, 5.5, 5), crysMat);
-                    crys.position.set(x, 2.2, -5.5);
-                    crys.rotation.z = (x % 2 === 0 ? 0.15 : -0.15);
-                    arenaGroup.add(crys);
+                // Menhirs d'os et obélisques gravés
+                for (let x of [-15, -9, 9, 15]) {
+                    const obelisk = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.3, 0.9, 9, 6),
+                        new THREE.MeshStandardMaterial({ color: 0x312e81, emissive: 0x4338ca, emissiveIntensity: 0.4 })
+                    );
+                    obelisk.position.set(x, 4.5, -8);
+                    arenaGroup.add(obelisk);
                 }
+                // Aurores cosmiques flottantes
+                const auroraMat = new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.35, wireframe: true });
+                const auroraMesh = new THREE.Mesh(new THREE.TorusGeometry(18, 2.5, 8, 32), auroraMat);
+                auroraMesh.position.set(0, 12, -20);
+                auroraMesh.rotation.x = 0.5;
+                arenaGroup.add(auroraMesh);
+
+            } else if (arenaType === 'swamp') {
+                // Abysse Fongique Toxique : Champignons géants bioluminescents et brume d'acide
+                const swampMat = new THREE.MeshBasicMaterial({ color: 0x052e16 });
+                const swampPlane = new THREE.Mesh(new THREE.PlaneGeometry(160, 100), swampMat);
+                swampPlane.rotation.x = -Math.PI / 2;
+                swampPlane.position.y = -2.1;
+                arenaGroup.add(swampPlane);
+
+                // Champignons géants luminescents
+                for (let x of [-13, -7, 6, 14]) {
+                    const stem = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.45, 0.7, 5, 8),
+                        new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.8 })
+                    );
+                    stem.position.set(x, 2.2, -7);
+                    arenaGroup.add(stem);
+
+                    const cap = new THREE.Mesh(
+                        new THREE.ConeGeometry(2.4, 1.6, 12),
+                        new THREE.MeshStandardMaterial({
+                            color: 0x22c55e,
+                            emissive: 0x16a34a,
+                            emissiveIntensity: 0.75
+                        })
+                    );
+                    cap.position.set(x, 4.8, -7);
+                    arenaGroup.add(cap);
+                }
+
+                // Bulles d'acide en suspension
+                for (let i = 0; i < 8; i++) {
+                    const bubble = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.45, 8, 8),
+                        new THREE.MeshBasicMaterial({ color: 0xa3e635, transparent: true, opacity: 0.75 })
+                    );
+                    bubble.position.set(-11 + i * 3.2, 1.8 + (i % 4) * 0.9, -4 - (i % 3) * 2);
+                    arenaGroup.add(bubble);
+                }
+
+            } else if (arenaType === 'storm') {
+                // Canyon de l'Orage Primordial : Tempête d'éclairs, colonnes de basalte et pluie diluvienne
+                const canyonMat = new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.9 });
+                for (let x of [-16, -10, 10, 16]) {
+                    const pillar = new THREE.Mesh(new THREE.BoxGeometry(3.5, 14, 4), canyonMat);
+                    pillar.position.set(x, 5.5, -9);
+                    arenaGroup.add(pillar);
+                }
+
+                // Gouttes de pluie stylisées 3D
+                const rainMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5 });
+                for (let i = 0; i < 35; i++) {
+                    const drop = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.8, 4), rainMat);
+                    drop.position.set(-16 + Math.random() * 32, Math.random() * 12, -8 + Math.random() * 8);
+                    drop.rotation.z = 0.15;
+                    arenaGroup.add(drop);
+                }
+
+                // Arcs d'énergie orageuse
+                const lightningGeo = new THREE.CylinderGeometry(0.08, 0.2, 12, 5);
+                const lightningMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
+                const bolt = new THREE.Mesh(lightningGeo, lightningMat);
+                bolt.position.set(4, 8, -15);
+                bolt.rotation.z = 0.35;
+                arenaGroup.add(bolt);
             }
         }
 
@@ -2209,6 +2915,18 @@
             const p1 = DINO_ROSTER[p1ChoiceIndex];
             const p2 = DINO_ROSTER[p2ChoiceIndex];
 
+            // Mise à jour de l'affichage des skins
+            if (p1.skins && p1.skins.length > 0) {
+                p1SkinIndex = ((p1SkinIndex % p1.skins.length) + p1.skins.length) % p1.skins.length;
+                const skinP1El = document.getElementById('p1SkinName');
+                if (skinP1El) skinP1El.textContent = `Skin: ${p1.skins[p1SkinIndex].name}`;
+            }
+            if (p2.skins && p2.skins.length > 0) {
+                p2SkinIndex = ((p2SkinIndex % p2.skins.length) + p2.skins.length) % p2.skins.length;
+                const skinP2El = document.getElementById('p2SkinName');
+                if (skinP2El) skinP2El.textContent = `Skin: ${p2.skins[p2SkinIndex].name}`;
+            }
+
             document.getElementById('p1NameDisplay').textContent = p1.name;
             document.getElementById('p1RoleBadge').textContent = p1.role;
             document.getElementById('p1TitleDisplay').textContent = p1.title;
@@ -2267,11 +2985,12 @@
         const STAGE_RIGHT_3D = 11.0;
 
         class Fighter3D {
-            constructor(dino, isP1) {
+            constructor(dino, isP1, skinIndex = 0) {
                 this.dino = dino;
                 this.isP1 = isP1;
+                this.skinIndex = skinIndex;
                 this.roundsWon = 0;
-                this.rig = createDino3DRig(dino);
+                this.rig = createDino3DRig(dino, skinIndex);
                 battleScene.add(this.rig.root);
                 this.resetForRound();
             }
@@ -2526,6 +3245,16 @@
             if (kind === 'sonic') {
                 geo = new THREE.TorusGeometry(0.65, 0.12, 8, 20);
                 mat = new THREE.MeshBasicMaterial({ color: 0xf472b6 });
+            } else if (kind === 'venom') {
+                geo = new THREE.SphereGeometry(0.48, 8, 8);
+                mat = new THREE.MeshStandardMaterial({
+                    color: 0x22c55e,
+                    emissive: 0x16a34a,
+                    emissiveIntensity: 0.8
+                });
+            } else if (kind === 'feather') {
+                geo = new THREE.ConeGeometry(0.25, 1.2, 4);
+                mat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
             } else {
                 geo = new THREE.DodecahedronGeometry(0.55, 1);
                 mat = new THREE.MeshStandardMaterial({
@@ -2900,7 +3629,6 @@
                     setTimeout(() => {
                         if (matchState !== 'fatality_anim') return;
                         sfx.playBoneCrack();
-                        // Faisceau lumineux d'entaille 3D
                         const slashGeo = new THREE.BoxGeometry(3.8, 0.14, 0.14);
                         const slashMat = new THREE.MeshBasicMaterial({ color: 0xa7f3d0 });
                         const slashMesh = new THREE.Mesh(slashGeo, slashMat);
@@ -2920,6 +3648,89 @@
                     spawn3DBloodAndBones(loser.x, 2.6, 75, true);
                     screenShake = 0.95;
                     showAnnouncer('FATALITY !', 'DÉCOUPE CHIRURGICALE DU THÉRIZINOSAURE');
+                }, 2200);
+
+            } else if (id === 'pulmonoscorpius') {
+                // 10) PULMONOSCORPIUS : Injection de neurotoxine et liquéfaction interne
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playStinger();
+                    sfx.playBoneCrack();
+                    spawn3DBloodAndBones(loser.x, 2.2, 40, true);
+                    spawnFloatingPopup(loser.x, 'DARD ENFOUÉ !', '#22c55e');
+                }, 900);
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    sfx.playRoar(120, 0.6);
+                    loser.decapitated = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 2.6, 75, true);
+                    screenShake = 0.85;
+                    showAnnouncer('FATALITY !', 'INJECTION MORTELLE DU PULMONOSCORPIUS');
+                }, 2200);
+
+            } else if (id === 'stegosaurus') {
+                // 11) STÉGOSAURE : Rotation et transfixion quadruple au THAGOMISEUR
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    sfx.playHit(true);
+                    spawn3DBloodAndBones(loser.x, 2.0, 45, true);
+                    spawnFloatingPopup(loser.x, 'THAGOMISEUR !', '#f59e0b');
+                }, 950);
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    sfx.playRoar(55, 0.9);
+                    loser.flattened = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 1.2, 70, true);
+                    screenShake = 0.9;
+                    showAnnouncer('FATALITY !', 'TRANSFIXION DU STÉGOSAURE');
+                }, 2200);
+
+            } else if (id === 'quetzal') {
+                // 12) QUETZALCOATLUS : Enlèvement aérien et écrasement terminal
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playRoar(160, 0.5);
+                    loser.y = 8;
+                    spawnFloatingPopup(loser.x, 'CHUTE VERTIGINEUSE !', '#38bdf8');
+                }, 1000);
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    loser.y = 0;
+                    sfx.playBoneCrack();
+                    sfx.playHit(true);
+                    loser.flattened = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 0.5, 80, true);
+                    screenShake = 1.0;
+                    showAnnouncer('FATALITY !', 'CHUTE STRATOSPHÉRIQUE DU QUETZALCOATLUS');
+                }, 2250);
+
+            } else if (id === 'giantsloth') {
+                // 13) MÉGATHÉRIUM : Étreinte colossale broyant les côtes et piétinement
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    spawn3DBloodAndBones(loser.x, 2.2, 45, true);
+                    spawnFloatingPopup(loser.x, 'ÉTREINTE BÉHÉMOTH !', '#ca8a04');
+                }, 950);
+                setTimeout(() => {
+                    if (matchState !== 'fatality_anim') return;
+                    sfx.playBoneCrack();
+                    sfx.playRoar(50, 0.9);
+                    loser.flattened = true;
+                    loser.isDead = true;
+                    loser.hp = 0;
+                    spawn3DBloodAndBones(loser.x, 0.8, 85, true);
+                    screenShake = 1.0;
+                    showAnnouncer('FATALITY !', 'ÉTREINTE ANNIHILATRICE DU MÉGATHÉRIUM');
                 }, 2200);
             }
         }
@@ -2953,8 +3764,8 @@
             if (fighter1) fighter1.destroy();
             if (fighter2) fighter2.destroy();
 
-            fighter1 = new Fighter3D(DINO_ROSTER[p1ChoiceIndex], true);
-            fighter2 = new Fighter3D(DINO_ROSTER[p2ChoiceIndex], false);
+            fighter1 = new Fighter3D(DINO_ROSTER[p1ChoiceIndex], true, p1SkinIndex);
+            fighter2 = new Fighter3D(DINO_ROSTER[p2ChoiceIndex], false, p2SkinIndex);
             roundNumber = 1;
 
             document.getElementById('selectScreen').classList.add('hidden');
@@ -3378,11 +4189,16 @@
             if (attacker.action === 'special2') {
                 if (attacker.dino.id === 'maiasaura') {
                     spawn3DProjectile(attacker, 'sonic');
-                } else if (attacker.dino.id === 'apato' || attacker.dino.id === 'pachyrhino') {
-                    screenShake = 0.45;
-                    spawn3DBloodAndBones(defender.x, 0.3, 14, true);
-                    if (dist < 7.5) {
-                        applyDamage(attacker, defender, Math.round(basePow * 1.08), true, 'SÉISME TECTONIQUE !');
+                } else if (attacker.dino.id === 'pulmonoscorpius') {
+                    sfx.playStinger();
+                    spawn3DProjectile(attacker, 'venom');
+                } else if (attacker.dino.id === 'quetzal') {
+                    spawn3DProjectile(attacker, 'feather');
+                } else if (attacker.dino.id === 'apato' || attacker.dino.id === 'pachyrhino' || attacker.dino.id === 'giantsloth' || attacker.dino.id === 'stegosaurus') {
+                    screenShake = 0.55;
+                    spawn3DBloodAndBones(defender.x, 0.3, 18, true);
+                    if (dist < 8.2) {
+                        applyDamage(attacker, defender, Math.round(basePow * 1.15), true, 'SÉISME TECTONIQUE !');
                     }
                 } else {
                     spawn3DProjectile(attacker, 'boulder');
@@ -3626,6 +4442,49 @@
             document.getElementById('btnSelectSlotP2').addEventListener('click', () => {
                 activeSelectSlot = 2;
                 updateSelectScreenUI();
+            });
+
+                        // Écouteurs pour le changement de skins
+            const btnP1Prev = document.getElementById('btnP1PrevSkin');
+            const btnP1Next = document.getElementById('btnP1NextSkin');
+            const btnP2Prev = document.getElementById('btnP2PrevSkin');
+            const btnP2Next = document.getElementById('btnP2NextSkin');
+
+            if (btnP1Prev) btnP1Prev.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sfx.playHit(false);
+                const skins = DINO_ROSTER[p1ChoiceIndex].skins || [];
+                if (skins.length > 0) {
+                    p1SkinIndex = (p1SkinIndex - 1 + skins.length) % skins.length;
+                    updateSelectScreenUI();
+                }
+            });
+            if (btnP1Next) btnP1Next.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sfx.playHit(false);
+                const skins = DINO_ROSTER[p1ChoiceIndex].skins || [];
+                if (skins.length > 0) {
+                    p1SkinIndex = (p1SkinIndex + 1) % skins.length;
+                    updateSelectScreenUI();
+                }
+            });
+            if (btnP2Prev) btnP2Prev.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sfx.playHit(false);
+                const skins = DINO_ROSTER[p2ChoiceIndex].skins || [];
+                if (skins.length > 0) {
+                    p2SkinIndex = (p2SkinIndex - 1 + skins.length) % skins.length;
+                    updateSelectScreenUI();
+                }
+            });
+            if (btnP2Next) btnP2Next.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sfx.playHit(false);
+                const skins = DINO_ROSTER[p2ChoiceIndex].skins || [];
+                if (skins.length > 0) {
+                    p2SkinIndex = (p2SkinIndex + 1) % skins.length;
+                    updateSelectScreenUI();
+                }
             });
 
             document.getElementById('btnRandomFighters').addEventListener('click', () => {
