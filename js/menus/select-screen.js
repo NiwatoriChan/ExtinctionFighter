@@ -5,9 +5,9 @@
 // Les options d'arène sont générées depuis les fichiers js/arenas/*.js
 const SELECT_SCREEN_HTML = `
         <!-- ==================== SCREEN 1: CHARACTER SELECT ==================== -->
-        <section id="selectScreen" class="w-full flex flex-col gap-3 py-1">
+        <section id="selectScreen" class="w-full h-full flex-1 flex flex-col justify-between gap-2 py-1 max-w-7xl mx-auto">
             <!-- Mode & Arena Bar -->
-            <div class="stone-panel rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="stone-panel rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="text-xs uppercase tracking-wider text-zinc-400 font-bold">Mode :</span>
                     <button data-mode="cpu" class="mode-btn px-3 py-1 rounded-lg text-xs font-extrabold uppercase bg-red-700 text-white border border-amber-400 shadow">
@@ -37,9 +37,9 @@ const SELECT_SCREEN_HTML = `
             </div>
 
             <!-- Fighter Preview & Roster Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-stretch flex-1 min-h-0">
                 <!-- P1 Preview Card -->
-                <div class="lg:col-span-3 stone-panel rounded-xl p-3 flex flex-col justify-between border-t-4 border-t-red-600">
+                <div class="lg:col-span-3 stone-panel rounded-xl p-3 flex flex-col justify-between border-t-4 border-t-red-600 overflow-y-auto">
                     <div>
                         <div class="flex items-center justify-between">
                             <span class="px-2 py-0.5 rounded bg-red-600 text-white text-xs font-black uppercase">Joueur 1</span>
@@ -48,7 +48,7 @@ const SELECT_SCREEN_HTML = `
                         <h2 id="p1NameDisplay" class="mk-title text-2xl font-black text-white mt-1">T-REX</h2>
                         <p id="p1TitleDisplay" class="text-xs text-red-400 font-semibold italic">« Le Roi Sanglant du Crétacé »</p>
 
-                        <div class="w-full h-36 my-2 rounded-lg bg-gradient-to-b from-red-950/40 to-black border border-zinc-800 relative overflow-hidden">
+                        <div class="w-full h-44 my-2 rounded-lg bg-gradient-to-b from-red-950/40 to-black border border-zinc-800 relative overflow-hidden">
                             <canvas id="p1PreviewCanvas"></canvas>
                             <div class="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded border border-red-500/40 text-xs">
                                 <button id="btnP1PrevSkin" class="px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 font-bold">&lt;</button>
@@ -81,13 +81,13 @@ const SELECT_SCREEN_HTML = `
                 </div>
 
                 <!-- Center 9-Dino Grid -->
-                <div class="lg:col-span-6 stone-panel rounded-xl p-3 flex flex-col justify-between">
-                    <div class="text-center mb-2">
+                <div class="lg:col-span-6 stone-panel rounded-xl p-3 flex flex-col justify-between overflow-hidden">
+                    <div class="text-center mb-1.5 shrink-0">
                         <h3 class="mk-title text-base sm:text-xl text-amber-400 font-black tracking-wider uppercase">CHOISISSEZ VOTRE COMBATTANT (13 LÉGENDES)</h3>
                         <p id="selectPromptText" class="text-xs text-zinc-400">Cliquez pour assigner le Joueur 1, puis l'Adversaire (ou utilisez Aléatoire)</p>
                     </div>
 
-                    <div id="rosterGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 my-auto max-h-[380px] overflow-y-auto pr-1">
+                    <div id="rosterGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 my-auto flex-1 overflow-y-auto pr-1 min-h-[220px]">
                         <!-- Populated dynamically by JS -->
                     </div>
 
@@ -108,7 +108,7 @@ const SELECT_SCREEN_HTML = `
                 </div>
 
                 <!-- P2 / CPU Preview Card -->
-                <div class="lg:col-span-3 stone-panel rounded-xl p-3 flex flex-col justify-between border-t-4 border-t-blue-500">
+                <div class="lg:col-span-3 stone-panel rounded-xl p-3 flex flex-col justify-between border-t-4 border-t-blue-500 overflow-y-auto">
                     <div>
                         <div class="flex items-center justify-between">
                             <span id="p2TagLabel" class="px-2 py-0.5 rounded bg-blue-600 text-white text-xs font-black uppercase">IA / J2</span>
@@ -117,7 +117,7 @@ const SELECT_SCREEN_HTML = `
                         <h2 id="p2NameDisplay" class="mk-title text-2xl font-black text-white mt-1">ANKYLOSAURE</h2>
                         <p id="p2TitleDisplay" class="text-xs text-blue-400 font-semibold italic">« Le Briseur d'Os Blindé »</p>
 
-                        <div class="w-full h-36 my-2 rounded-lg bg-gradient-to-b from-blue-950/40 to-black border border-zinc-800 relative overflow-hidden">
+                        <div class="w-full h-44 my-2 rounded-lg bg-gradient-to-b from-blue-950/40 to-black border border-zinc-800 relative overflow-hidden">
                             <canvas id="p2PreviewCanvas"></canvas>
                             <div class="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded border border-blue-500/40 text-xs">
                                 <button id="btnP2PrevSkin" class="px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 font-bold">&lt;</button>

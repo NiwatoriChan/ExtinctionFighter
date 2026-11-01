@@ -4,7 +4,7 @@
 
 const HEADER_MENU_HTML = `
     <!-- HEADER BAR -->
-    <header class="w-full max-w-6xl px-3 py-2 flex flex-wrap items-center justify-between border-b border-red-900/50 bg-black/80 backdrop-blur-md z-20">
+    <header class="w-full px-4 py-2 flex flex-wrap items-center justify-between border-b border-red-900/50 bg-black/80 backdrop-blur-md z-20 shrink-0">
         <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 via-red-600 to-red-950 p-0.5 flex items-center justify-center shadow-lg shadow-red-900/50 border border-amber-400">
                 <span class="text-lg font-black tracking-tighter text-amber-200">EK</span>

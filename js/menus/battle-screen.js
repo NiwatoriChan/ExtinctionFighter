@@ -5,9 +5,9 @@
 
 const BATTLE_SCREEN_HTML = `
         <!-- ==================== SCREEN 2: ARENA BATTLE ==================== -->
-        <section id="battleScreen" class="hidden w-full flex-col items-center gap-2">
+        <section id="battleScreen" class="hidden w-full h-full flex-1 flex-col items-center gap-1.5 min-h-0">
             <!-- Canvas Wrapper -->
-            <div class="w-full relative rounded-2xl overflow-hidden border-2 border-zinc-700 shadow-2xl bg-black" style="height: min(62vh, 520px); min-height: 330px;">
+            <div class="w-full flex-1 relative rounded-2xl overflow-hidden border-2 border-zinc-700 shadow-2xl bg-black min-h-[360px]">
 
                 <!-- TOP HUD OVERLAY -->
                 <div class="absolute top-0 left-0 right-0 p-2 sm:p-3 z-10 pointer-events-none">
@@ -117,7 +117,7 @@ const BATTLE_SCREEN_HTML = `
             </div>
 
             <!-- ARCADE TOUCH & CLICK CONTROLS BAR -->
-            <div class="w-full stone-panel rounded-xl p-2 sm:p-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="w-full stone-panel rounded-xl p-2 sm:p-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
                 <!-- Left D-Pad + Dash -->
                 <div class="flex items-center gap-1.5">
                     <button id="uiBtnLeft" data-ctrl="left" class="ctrl-btn arcade-btn w-12 h-11 sm:w-14 sm:h-12 rounded-xl bg-zinc-800 hover:bg-zinc-700 border-2 border-zinc-600 flex flex-col items-center justify-center text-white font-black shadow">
