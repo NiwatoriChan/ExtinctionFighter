@@ -4,9 +4,21 @@ function startMatch() {
     sfx.playGong();
     initBattle3DScene();
 
-    // En mode campagne étape 6, l'arène est obligatoirement l'Antre de Drak'Zul
-    if (gameMode === 'campaign' && campaignStage === 6) {
-        currentArena = 'dragonlair';
+    const p1Dino = DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0];
+    let p2Dino = DINO_ROSTER[p2ChoiceIndex] || DINO_ROSTER[1];
+    let p2Skin = p2SkinIndex;
+
+    // En mode campagne, le jeu assigne automatiquement l'adversaire et son arène thématique
+    if (gameMode === 'campaign') {
+        if (campaignStage === 6 && typeof DRAGON_BOSS !== 'undefined' && DRAGON_BOSS) {
+            p2Dino = DRAGON_BOSS;
+            p2Skin = 0;
+            currentArena = 'dragonlair';
+        } else if (campaignOpponents && campaignOpponents[campaignStage - 1] !== undefined) {
+            p2Dino = DINO_ROSTER[campaignOpponents[campaignStage - 1]];
+            p2Skin = 0;
+            currentArena = typeof getThemedArenaForFighter === 'function' ? getThemedArenaForFighter(p2Dino.id) : 'volcano';
+        }
     } else {
         const arenaSelectEl = document.getElementById('arenaSelect');
         if (arenaSelectEl && arenaSelectEl.value && !currentArena) {
@@ -15,11 +27,10 @@ function startMatch() {
         if (!currentArena) currentArena = 'volcano';
     }
 
-    // Gestion de la difficulté IA (progression en campagne ou choix libre)
+    // Gestion de la difficulté IA (progression accessible en campagne pour vaincre le boss équitablement)
     if (gameMode === 'campaign') {
-        if (campaignStage <= 2) aiDifficulty = 'easy';
-        else if (campaignStage <= 4) aiDifficulty = 'normal';
-        else aiDifficulty = 'brutal';
+        if (campaignStage <= 3) aiDifficulty = 'easy';
+        else aiDifficulty = 'normal';
     } else {
         const aiDiffEl = document.getElementById('aiDifficulty');
         if (aiDiffEl) aiDifficulty = aiDiffEl.value;
@@ -29,20 +40,6 @@ function startMatch() {
 
     if (fighter1) fighter1.destroy();
     if (fighter2) fighter2.destroy();
-
-    const p1Dino = DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0];
-    let p2Dino = DINO_ROSTER[p2ChoiceIndex] || DINO_ROSTER[1];
-    let p2Skin = p2SkinIndex;
-
-    if (gameMode === 'campaign') {
-        if (campaignStage === 6 && typeof DRAGON_BOSS !== 'undefined' && DRAGON_BOSS) {
-            p2Dino = DRAGON_BOSS;
-            p2Skin = 0;
-        } else if (campaignOpponents && campaignOpponents[campaignStage - 1] !== undefined) {
-            p2Dino = DINO_ROSTER[campaignOpponents[campaignStage - 1]];
-            p2Skin = 0;
-        }
-    }
 
     fighter1 = new Fighter3D(p1Dino, true, p1SkinIndex);
     fighter2 = new Fighter3D(p2Dino, false, p2Skin);
@@ -133,9 +130,9 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
     }
 
     if (!attacker.isXrayAttacker) {
-        attacker.rage = Math.min(100, attacker.rage + (isHeavy ? 18 : 11));
+        attacker.rage = Math.min(100, attacker.rage + (isHeavy ? 6 : 3.5));
     }
-    defender.rage = Math.min(100, defender.rage + (isHeavy ? 22 : 14));
+    defender.rage = Math.min(100, defender.rage + (isHeavy ? 7.5 : 4.5));
 
     updateBattleHUD();
 
@@ -185,13 +182,8 @@ function handleKnockout(winner, loser) {
         if (winner.isP1 || gameMode === 'pvp') {
             const fatBtn = document.getElementById('btnTriggerFatalityNow');
             if (fatBtn) {
-                if (winner.rage >= 100) {
-                    fatBtn.className = 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-800 via-red-600 to-amber-500 text-white font-black text-sm sm:text-lg uppercase tracking-wider border-2 border-amber-300 shadow-2xl finish-pulse cursor-pointer';
-                    fatBtn.innerHTML = `💀 EXÉCUTER LA FATALITÉ ! (Touche R ou Espace)`;
-                } else {
-                    fatBtn.className = 'px-6 py-2.5 rounded-xl bg-zinc-900 text-zinc-400 font-bold text-xs sm:text-sm uppercase tracking-wider border border-zinc-700 shadow-lg cursor-not-allowed opacity-75';
-                    fatBtn.innerHTML = `🔒 FATALITÉ INDISPONIBLE (RAGE ${Math.floor(winner.rage)}%/100% REQUISE)`;
-                }
+                fatBtn.className = 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-800 via-red-600 to-amber-500 text-white font-black text-sm sm:text-lg uppercase tracking-wider border-2 border-amber-300 shadow-2xl finish-pulse cursor-pointer';
+                fatBtn.innerHTML = `💀 EXÉCUTER LA FATALITÉ ! (Touche R ou Espace)`;
             }
             document.getElementById('fatalityPromptBox').classList.remove('hidden');
         }

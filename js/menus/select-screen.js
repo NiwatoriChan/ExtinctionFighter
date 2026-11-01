@@ -799,7 +799,16 @@ function updateSelectScreenUI() {
     // P2 Details
     document.getElementById('p2NameDisplay').textContent = p2.name;
     document.getElementById('p2RoleBadge').textContent = p2.role;
-    document.getElementById('p2TitleDisplay').textContent = p2.title;
+
+    if (gameMode === 'campaign') {
+        const themedArenaId = typeof getThemedArenaForFighter === 'function' ? getThemedArenaForFighter(p2.id) : 'volcano';
+        const arenaObj = typeof ARENAS !== 'undefined' && ARENAS[themedArenaId];
+        const arenaLabel = arenaObj ? arenaObj.label : themedArenaId;
+        document.getElementById('p2TitleDisplay').textContent = `${p2.title} • Arène : ${arenaLabel}`;
+    } else {
+        document.getElementById('p2TitleDisplay').textContent = p2.title;
+    }
+
     document.getElementById('p2StatPow').textContent = p2.stats.pow + '%';
     document.getElementById('p2BarPow').style.width = p2.stats.pow + '%';
     document.getElementById('p2StatSpd').textContent = p2.stats.spd + '%';
@@ -808,6 +817,20 @@ function updateSelectScreenUI() {
     document.getElementById('p2BarDef').style.width = p2.stats.def + '%';
     document.getElementById('p2SpecName').textContent = `${p2.special1Name} • ${p2.special2Name}`;
     document.getElementById('p2FatalityName').textContent = p2.fatalityName;
+
+    // Bouton d'action principal au bas de l'écran (En campagne : direct vers le combat, pas de choix d'arène)
+    const btnGoToArena = document.getElementById('btnGoToArena');
+    if (btnGoToArena) {
+        if (gameMode === 'campaign') {
+            btnGoToArena.innerHTML = campaignStage === 6
+                ? `🔥 DÉFIER LE BOSS DRAK'ZUL ➔`
+                : `⚔️ DÉFIER L'ÉTAPE ${campaignStage} (${p2.name}) ➔`;
+            btnGoToArena.className = 'w-full py-2.5 px-6 rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-amber-500 hover:from-red-600 hover:to-amber-400 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-lg border border-amber-300 finish-pulse transition';
+        } else {
+            btnGoToArena.innerHTML = `CHOISIR L'ARÈNE DE KOMBAT ➔`;
+            btnGoToArena.className = 'w-full py-2.5 px-6 rounded-xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg border border-white/10 transition';
+        }
+    }
 
     // Roster grid badges & highlight
     document.querySelectorAll('#rosterGrid .stone-card').forEach((card, i) => {
@@ -938,12 +961,16 @@ function initSelectScreenMenu() {
         updateSelectScreenUI();
     });
 
-    // "When Selected ->" transition button to Arena Chooser (sketch design)
+    // "When Selected ->" transition button (En campagne : direct vers le combat, sinon sélecteur d'arène)
     const btnGoToArena = document.getElementById('btnGoToArena');
     if (btnGoToArena) {
         btnGoToArena.addEventListener('click', () => {
             sfx.playHit(false);
-            openArenaChooser();
+            if (gameMode === 'campaign') {
+                startMatch();
+            } else {
+                openArenaChooser();
+            }
         });
     }
 }

@@ -4,13 +4,7 @@ function triggerPlayerAction(attacker, defender, type) {
     if (xrayCinematicTimer > 0) return;
 
     if (matchState === 'finish_him' && defender.isDizzy) {
-        if (attacker.rage < 100) {
-            if (attacker.isP1 || gameMode === 'pvp') {
-                sfx.playCooldownWarning();
-                spawnFloatingPopup(attacker.x, '⚡ RAGE INSUFFISANTE POUR LA FATALITÉ (100%) !', '#ef4444');
-            }
-            return;
-        }
+        // La Fatalité peut TOUJOURS être exécutée pendant la phase ACHEVEZ-LE
         executeUnique3DFatality(attacker, defender);
         return;
     }

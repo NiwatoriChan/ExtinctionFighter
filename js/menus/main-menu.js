@@ -150,6 +150,7 @@ function initMainMenu() {
 }
 
 function startCampaignMode() {
+    gameMode = 'campaign';
     campaignStage = 1;
 
     // Sélectionner 5 adversaires aléatoires uniques parmi les créatures débloquées (hors boss)

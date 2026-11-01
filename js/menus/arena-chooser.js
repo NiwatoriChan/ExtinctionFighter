@@ -104,6 +104,11 @@ const ARENA_DESCRIPTIONS = {
         sub: "Tempêtes d'éclairs foudroyants, colonnes de basalte et pluie torrentielle.",
         hazards: "Impacts de foudre • Ruissellement diluvien • Bourrasques électriques"
     },
+    iceage: {
+        title: "❄️ GLACIER DE L'ÈRE GLACIAIRE",
+        sub: "Banquise éternelle, tempêtes de blizzard glaciales et aurores boréales polaires.",
+        hazards: "Blizzard perçant • Fissures de glace • Colonnes d'ivoire fossiles"
+    },
     dragonlair: {
         title: "🐲 L'ANTRE DE DRAK'ZUL",
         sub: "La caldera infernale où réside le Dragon Primordial de l'Extinction.",
@@ -154,7 +159,7 @@ function renderArenaCards() {
         card.innerHTML = `
             <div class="flex items-center gap-2.5">
                 <div class="w-10 h-10 rounded-lg flex items-center justify-center font-black text-lg border border-zinc-600" style="background: radial-gradient(circle, ${arena.accentColor ? '#' + arena.accentColor.toString(16).padStart(6, '0') + '44' : '#ef444444'}, #09090b)">
-                    ${arena.id === 'volcano' ? '🌋' : (arena.id === 'boneyard' ? '🏛️' : (arena.id === 'swamp' ? '🍄' : (arena.id === 'storm' ? '⚡' : '🐲')))}
+                    ${arena.id === 'volcano' ? '🌋' : (arena.id === 'boneyard' ? '🏛️' : (arena.id === 'swamp' ? '🍄' : (arena.id === 'storm' ? '⚡' : (arena.id === 'iceage' ? '❄️' : '🐲'))))}
                 </div>
                 <div>
                     <div class="mk-title text-xs sm:text-sm font-black ${isSelected ? 'text-amber-300' : 'text-zinc-200'}">${arena.label}</div>

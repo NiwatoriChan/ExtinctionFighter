@@ -14,16 +14,16 @@
 ## 🌟 Points Forts du Jeu
 
 * **13 Légendes Préhistoriques + 1 Combattant Déblocable + Boss Secret** : Chaque combattant possède son propre rig 3D articulé, sa palette de coups, ses skins alternatifs, ses attaques spéciales et sa propre Fatalité 3D.
-* **🏆 Mode Campagne d'Extinction** : Gravissez 6 étapes épiques en battant 5 prédateurs aléatoires avant d'affronter l'ultime épreuve finale secrète contre Drak'Zul pour débloquer le redoutable **Smilodon (Tigre à Dents de Sabre)** !
+* **🏆 Mode Campagne d'Extinction Automatisé** : Gravissez 6 étapes épiques. En mode campagne, vous choisissez uniquement votre héros ; le jeu sélectionne chaque adversaire et son arène thématique dédiée, menant à l'ultime affrontement contre Drak'Zul pour débloquer le redoutable **Smilodon (Tigre à Dents de Sabre)** !
 * **🎮 Modes de Jeu Complets** :
   * **1 Joueur** : Campagne d'Extinction, Joueur vs IA (Novice, Normal, Brutal), et Mode Entraînement.
   * **2 Joueurs** : 1 vs 1 Local sur le même clavier ou à la manette.
-* **🌋 Arènes 3D Interactives** : 5 décors Three.js avec météo dynamique, météores, éclairs, lave et aurores boréales.
+* **🌋 Arènes 3D Interactives** : 6 décors Three.js avec météo dynamique, météores, éclairs, lave, blizzard de neige et aurores boréales.
 * **💀 Mécaniques Avancées de Kombat** :
   * Système de combos fluides (Léger ➔ Lourd ➔ Spécial).
   * Dash rapide et cancels d'attaques.
-  * Jauge de Rage avec cinématique de scanner médical **X-Ray** brisant le squelette de l'adversaire.
-  * Séquence *"Achevez-le !"* et exécution de Fatalités 3D uniques.
+  * Jauge de Rage à accumulation progressive avec cinématique de scanner médical **X-Ray** brisant le squelette de l'adversaire (à 100% de rage).
+  * Séquence *"Achevez-le !"* : exécution de Fatalités 3D viscérales immédiates (toujours réalisables sans condition de rage requise).
 * **⚙️ Réglages Graphiques & Immersion** :
   * 4 niveaux de détails graphiques (*Faible*, *Moyenne*, *Élevée*, *Ultra*).
   * Mode Plein Écran à 100% du viewport.
@@ -55,7 +55,7 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 | **Attaque Lourde** | <kbd>G</kbd> ou <kbd>K</kbd> |
 | **Attaque Spéciale 1** | <kbd>H</kbd> ou <kbd>L</kbd> |
 | **Attaque Spéciale 2 (Ultra)** | <kbd>T</kbd> ou <kbd>U</kbd> |
-| **X-Ray / Fatalité** | <kbd>R</kbd> ou <kbd>Espace</kbd> (Rage à 100% ou lors de *"Achevez-le !"*) |
+| **X-Ray / Fatalité** | <kbd>R</kbd> ou <kbd>Espace</kbd> (X-Ray à 100% de Rage / Fatalité toujours active lors de *"Achevez-le !"*) |
 
 ### Joueur 2 (1 vs 1 Local)
 
@@ -96,7 +96,8 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 2. **🏛️ Citadelle Céleste d'Os** : Arches thoraciques gigantesques de titanaures et aurores astrales mystiques.
 3. **🍄 Abysse Fongique Toxique** : Champignons géants bioluminescents et brume d'acide suffocante.
 4. **⚡ Canyon de l'Orage Primordial** : Colonnes de basalte, pluie torrentielle et tempêtes d'éclairs foudroyants.
-5. **🐲 L'Antre Infernale** : Caldera volcanique secrète réservée à l'affrontement final de la Campagne.
+5. **❄️ Glacier de l'Ère Glaciaire** : Blizzard de flocons en 3D, pics de glace cristallins, ossements mammouths et aurore boréale polaire.
+6. **🐲 L'Antre Infernale** : Caldera volcanique secrète réservée à l'affrontement final de la Campagne.
 
 ---
 
@@ -143,12 +144,14 @@ ExtinctionFighter/
     │   ├── stegosaurus.js
     │   ├── quetzalcoatlus.js
     │   ├── megatherium.js
-    │   └── dragon.js          # Boss Drak'Zul non jouable
-    ├── arenas/                # Un fichier modulaire par arène 3D
+    │   ├── smilodon.js            # Combattant déblocable (Tigre à Dents de Sabre)
+    │   └── dragon.js              # Boss Drak'Zul non jouable
+    ├── arenas/                    # Un fichier modulaire par arène 3D
     │   ├── volcano.js
     │   ├── boneyard.js
     │   ├── swamp.js
     │   ├── storm.js
+    │   ├── ice-age.js             # Arène du Glacier de l'Ère Glaciaire
     │   └── dragon-lair.js
     ├── menus/                 # Un fichier par composant de menu
     │   ├── header.js          # Barre d'en-tête (retour, caméra, options)

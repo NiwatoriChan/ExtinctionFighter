@@ -15,9 +15,9 @@ registerBoss({
     accentColor: 0xf97316,
     cssPrimary: '#ef4444',
     scale: 1.32,
-    stats: { pow: 108, spd: 82, def: 98 },
-    maxHp: 1500,
-    walkSpeed: 8.6,
+    stats: { pow: 84, spd: 70, def: 75 },
+    maxHp: 1080,
+    walkSpeed: 7.2,
     special1Name: 'Souffle Infernale (H)',
     special2Name: 'Cataclysme Éruptif (T)',
     fatalityName: 'Incinération Suprême (R)',
@@ -31,18 +31,17 @@ registerBoss({
     ]
 }, {
     animBaseHipsY: 2.1,
-    attackReach: 4.6,
+    attackReach: 3.85,
 
     // Spécial 1 (H) : Souffle de feu draconique
     onSpecial(attacker, defender, dist, basePow) {
-        sfx.playRoar(75, 0.6);
+        sfx.playRoar(75, 0.5);
         spawn3DProjectile(attacker, 'dragon_fire');
     },
 
-    // Spécial 2 (T) : Cataclysme de flammes et secousse sismique
+    // Spécial 2 (T) : Cataclysme de flammes et secousse tellurique
     onSpecial2(attacker, defender, dist, basePow) {
-        special2SeismicQuake(attacker, defender, dist, basePow);
-        spawn3DProjectile(attacker, 'dragon_fire');
+        special2SeismicQuake(attacker, defender, dist, Math.round(basePow * 0.9));
     },
 
     // Construction du modèle 3D articulé du Dragon

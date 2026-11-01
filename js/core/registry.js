@@ -48,3 +48,26 @@ function registerArena(def) {
     ARENA_LIST.push(def);
     ARENAS[def.id] = def;
 }
+
+// Association thématique de chaque combattant à son arène naturelle pour le mode campagne
+const FIGHTER_THEMED_ARENAS = {
+    dragon: 'dragonlair',
+    trex: 'volcano',
+    stegosaurus: 'volcano',
+    pachyrhino: 'iceage',
+    smilodon: 'iceage',
+    giantsloth: 'iceage',
+    spinosaurus: 'swamp',
+    postosuchus: 'swamp',
+    pulmonoscorpius: 'swamp',
+    maiasaura: 'swamp',
+    terabird: 'storm',
+    quetzal: 'storm',
+    ankylo: 'boneyard',
+    apato: 'boneyard',
+    therizino: 'boneyard'
+};
+
+function getThemedArenaForFighter(fighterId) {
+    return FIGHTER_THEMED_ARENAS[fighterId] || 'volcano';
+}

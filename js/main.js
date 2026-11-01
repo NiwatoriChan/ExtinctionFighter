@@ -57,7 +57,10 @@ function bootGame() {
         if (smiloIdx >= 0) p1ChoiceIndex = smiloIdx;
     }
 
-    if (urlParams.get('screen') === 'select') {
+    if (urlParams.get('mode') === 'campaign') {
+        startCampaignMode();
+        updatePreviewModels(16);
+    } else if (urlParams.get('screen') === 'select') {
         goToSelectScreen();
         updatePreviewModels(16);
     } else if (urlParams.get('screen') === 'arena') {

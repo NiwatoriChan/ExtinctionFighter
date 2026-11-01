@@ -63,10 +63,8 @@ function initPostMatchMenu() {
         if (gameMode === 'campaign') {
             if (campaignStage < 6) {
                 campaignStage++;
-                if (campaignStage === 6) {
-                    currentArena = 'dragonlair';
-                }
-                openArenaChooser();
+                // En mode campagne, tout est géré automatiquement par le jeu (adversaire et arène thématique)
+                startMatch();
             } else {
                 // Victoire de la campagne -> Aller au roster avec Smilodon
                 const smiloIdx = DINO_ROSTER.findIndex(d => d.id === 'smilodon');
