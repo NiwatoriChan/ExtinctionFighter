@@ -173,12 +173,30 @@ window.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Validation au clavier (Entrée / Espace) sur l'écran de choix d'arène
-    if (matchState === 'arena_select' && (e.code === 'Enter' || e.code === 'Space')) {
-        e.preventDefault();
-        sfx.playHit(false);
-        startMatch();
-        return;
+    // Validation & navigation au clavier sur l'écran de choix d'arène
+    if (matchState === 'arena_select') {
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA' || e.code === 'KeyQ') {
+            e.preventDefault();
+            if (typeof navigateArenaCarousel === 'function') navigateArenaCarousel(-1);
+            return;
+        }
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+            e.preventDefault();
+            if (typeof navigateArenaCarousel === 'function') navigateArenaCarousel(1);
+            return;
+        }
+        if (e.code === 'KeyR' || e.code === 'KeyX') {
+            e.preventDefault();
+            const btnRandom = document.getElementById('btnArenaRandom');
+            if (btnRandom) btnRandom.click();
+            return;
+        }
+        if (e.code === 'Enter' || e.code === 'Space') {
+            e.preventDefault();
+            sfx.playHit(false);
+            startMatch();
+            return;
+        }
     }
 
     // Bloquer tous les contrôles si une cinématique X-Ray est en cours
@@ -437,24 +455,7 @@ function updateGamepadHelperHUD() {
             <span class="gp-key">B</span> Retour
         `;
     } else if (matchState === 'fight' || matchState === 'finish_him' || matchState === 'round_over' || matchState === 'intro') {
-        if (matchState === 'finish_him') {
-            bar.style.display = 'flex';
-            bar.innerHTML = `
-                <span class="text-red-400 animate-pulse font-black font-chakra">💀 FINISH HIM !</span>
-                <span class="gp-key gp-key-action font-chakra">A / RT / START</span> EXÉCUTER LA FATALITÉ !
-            `;
-        } else {
-            bar.style.display = 'flex';
-            bar.innerHTML = `
-                <span class="gp-key gp-key-action font-chakra">A</span> Saut
-                <span class="gp-key font-chakra">X</span> Frappe (H/M/B)
-                <span class="gp-key font-chakra">Y</span> Spécial
-                <span class="gp-key font-chakra">B</span> Garde
-                <span class="gp-key font-chakra">RB</span> Dash
-                <span class="gp-key gp-key-gold font-chakra">RT</span> Rage
-                <span class="gp-key font-chakra">START</span> Pause
-            `;
-        }
+        bar.style.display = 'none';
     }
 }
 
@@ -937,21 +938,27 @@ function handleGamepadArenaScreen(pad, dt) {
     if (curArenaIdx === -1) curArenaIdx = 0;
 
     if (arenaFocusZone === 'cards') {
-        if (nav === 'up') {
-            const nextIdx = (curArenaIdx - 1 + ARENA_LIST.length) % ARENA_LIST.length;
-            selectArena(ARENA_LIST[nextIdx].id);
-            sfx.playHit(false);
+        if (nav === 'left' || nav === 'up') {
+            if (typeof navigateArenaCarousel === 'function') navigateArenaCarousel(-1);
+            else {
+                const nextIdx = (curArenaIdx - 1 + ARENA_LIST.length) % ARENA_LIST.length;
+                selectArena(ARENA_LIST[nextIdx].id);
+                sfx.playHit(false);
+            }
+        } else if (nav === 'right') {
+            if (typeof navigateArenaCarousel === 'function') navigateArenaCarousel(1);
+            else {
+                const nextIdx = (curArenaIdx + 1) % ARENA_LIST.length;
+                selectArena(ARENA_LIST[nextIdx].id);
+                sfx.playHit(false);
+            }
         } else if (nav === 'down') {
-            const nextIdx = (curArenaIdx + 1) % ARENA_LIST.length;
-            selectArena(ARENA_LIST[nextIdx].id);
-            sfx.playHit(false);
-        } else if (nav === 'right' || nav === 'left') {
             arenaFocusZone = 'topButtons';
             arenaTopIdx = topButtons.length - 1; // "Lancer le Kombat"
             sfx.playHit(false);
         }
 
-        const activeCard = arenaCards[curArenaIdx];
+        const activeCard = arenaCards[1] || arenaCards[0];
         if (activeCard) setGamepadFocus(activeCard);
 
         if (isGpBtnJustPressed(0, 0)) { // A sur la carte d'arène -> lancer le combat
@@ -965,7 +972,7 @@ function handleGamepadArenaScreen(pad, dt) {
         } else if (nav === 'right') {
             arenaTopIdx = Math.min(topButtons.length - 1, arenaTopIdx + 1);
             sfx.playHit(false);
-        } else if (nav === 'down') {
+        } else if (nav === 'up') {
             arenaFocusZone = 'cards';
             sfx.playHit(false);
         }
@@ -976,6 +983,14 @@ function handleGamepadArenaScreen(pad, dt) {
         if (isGpBtnJustPressed(0, 0)) {
             if (target) target.click();
         }
+    }
+
+    // LB / RB = Changer d'arène directement (comme dans le concept art)
+    if (isGpBtnJustPressed(0, 4)) { // LB
+        if (typeof navigateArenaCarousel === 'function') navigateArenaCarousel(-1);
+    }
+    if (isGpBtnJustPressed(0, 5)) { // RB
+        if (typeof navigateArenaCarousel === 'function') navigateArenaCarousel(1);
     }
 
     // Raccourcis universels sur l'arène

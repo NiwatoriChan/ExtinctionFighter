@@ -436,18 +436,18 @@ html, body {
 
 /* Grille de bêtes encadrée de pierre et lianes */
 .beast-grid-frame {
-    background: linear-gradient(150deg, rgba(32, 34, 44, 0.92) 0%, rgba(18, 19, 25, 0.98) 100%);
-    border: 3px solid #57524c;
-    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.15), inset 0 -4px 6px rgba(0, 0, 0, 0.9), 0 12px 36px rgba(0, 0, 0, 0.9);
+    background: linear-gradient(150deg, rgba(28, 25, 23, 0.95) 0%, rgba(16, 14, 13, 0.98) 100%);
+    border: 3px solid #57534e;
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -4px 6px rgba(0, 0, 0, 0.95), 0 12px 36px rgba(0, 0, 0, 0.95);
     position: relative;
 }
 
 /* Carte carrée individuelle de dinosaure (Image 2) */
 .beast-card {
     aspect-ratio: 1 / 1;
-    background: linear-gradient(160deg, #2b2e3a 0%, #171821 60%, #0d0e14 100%);
-    border: 2px solid #4a4d5e;
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15), 0 4px 10px rgba(0, 0, 0, 0.85);
+    background: linear-gradient(160deg, #262320 0%, #171514 60%, #0d0c0b 100%);
+    border: 2px solid #44403c;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 4px 10px rgba(0, 0, 0, 0.85);
     border-radius: 0.5rem;
     position: relative;
     overflow: hidden;
@@ -517,7 +517,7 @@ html, body {
 /* Nom de la bête sous le portrait */
 .beast-name-plaque {
     width: 100%;
-    background: linear-gradient(180deg, rgba(15, 16, 22, 0.7) 0%, rgba(9, 10, 14, 0.95) 100%);
+    background: linear-gradient(180deg, rgba(28, 25, 23, 0.85) 0%, rgba(12, 10, 9, 0.98) 100%);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     padding: 0.15rem 0.1rem;
     text-align: center;
@@ -526,7 +526,7 @@ html, body {
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #e2e8f0;
+    color: #f5f5f4;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -535,14 +535,20 @@ html, body {
 
 /* Trough pour les jauges de statistiques (Image 2) */
 .stat-slot-trough {
-    background: #0c0d12;
-    border: 1.5px solid #3c3f4e;
+    background: #141211;
+    border: 1.5px solid #44403c;
     border-radius: 0.25rem;
     height: 0.75rem;
     padding: 1.5px;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.95), 0 1px 1px rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
+}
+
+.beast-stat-plaque {
+    background: linear-gradient(150deg, rgba(41, 37, 36, 0.95) 0%, rgba(28, 25, 23, 0.98) 100%);
+    border: 2px solid #57534e;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.9), inset 0 1px 1px rgba(255, 255, 255, 0.12);
 }
 .stat-bar-cyan {
     height: 100%;
@@ -579,4 +585,89 @@ canvas {
     width: 100%;
     height: 100%;
 }
+
+/* ==================== ARENA CHOOSER REDESIGN (MATCHING CONCEPT ART) ==================== */
+.arena-screen-bg {
+    background: radial-gradient(circle at 10% 25%, rgba(245, 158, 11, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 90% 25%, rgba(245, 158, 11, 0.08) 0%, transparent 45%),
+                radial-gradient(ellipse at 50% 90%, rgba(30, 25, 20, 0.95) 0%, rgba(12, 10, 9, 0.99) 75%),
+                #09090b;
+}
+
+.arena-header-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    background: linear-gradient(180deg, #fef3c7 0%, #f59e0b 45%, #b45309 85%, #78350f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 3px 0 #000) drop-shadow(0 0 24px rgba(245, 158, 11, 0.7));
+}
+
+.arena-stone-underline {
+    height: 4px;
+    background: linear-gradient(90deg, transparent 0%, #78716c 20%, #44403c 50%, #78716c 80%, transparent 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 -1px 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.arena-carousel-card {
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-style: preserve-3d;
+    background: #0c0a09;
+    border: 2px solid #44403c;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.9), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.arena-carousel-card.active {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 35px rgba(245, 158, 11, 0.85), inset 0 0 20px rgba(245, 158, 11, 0.35), 0 16px 36px rgba(0, 0, 0, 0.98) !important;
+    transform: scale(1.06) translateY(-4px) !important;
+    z-index: 20;
+}
+
+.arena-carousel-card.inactive {
+    opacity: 0.6;
+    transform: scale(0.92) translateY(4px);
+    filter: brightness(0.75) contrast(0.95);
+    border-color: #292524 !important;
+}
+.arena-carousel-card.inactive:hover {
+    opacity: 0.9;
+    transform: scale(0.96) translateY(0);
+    filter: brightness(0.95);
+    border-color: #78716c !important;
+}
+
+.arena-hazard-badge {
+    background: linear-gradient(150deg, rgba(41, 37, 36, 0.95) 0%, rgba(28, 25, 23, 0.98) 100%);
+    border: 2px solid #57534e;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    transition: all 0.2s ease;
+}
+.arena-hazard-badge:hover {
+    border-color: #f59e0b;
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.arena-portal-frame {
+    background: linear-gradient(160deg, #1c1917 0%, #0c0a09 100%);
+    border: 3.5px solid #44403c;
+    box-shadow: inset 2px 2px 3px rgba(255, 255, 255, 0.1), inset -2px -2px 5px rgba(0, 0, 0, 0.95), 0 12px 36px rgba(0, 0, 0, 0.95);
+}
+
+.arena-plinth-tag {
+    background: linear-gradient(180deg, #292524 0%, #141211 100%);
+    border: 1.5px solid #57534e;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+}
+
+.arena-bottom-slab {
+    background: linear-gradient(180deg, #292524 0%, #1c1917 40%, #0c0a09 100%);
+    border-top: 3px solid #57534e;
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.85), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+}
+
+
 

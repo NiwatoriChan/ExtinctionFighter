@@ -344,7 +344,7 @@ function startCampaignMode() {
 
 function goToMainMenu() {
     matchState = 'main_menu';
-    const headerEl = document.querySelector('header');
+    const headerEl = document.getElementById('gameHeader');
     if (headerEl) headerEl.classList.add('hidden');
     const gpBar = document.getElementById('gamepadHelperBar');
     if (gpBar) gpBar.style.display = 'none';
@@ -372,7 +372,7 @@ function goToMainMenu() {
 
 function goToSelectScreen() {
     matchState = 'select';
-    const headerEl = document.querySelector('header');
+    const headerEl = document.getElementById('gameHeader');
     if (headerEl) headerEl.classList.add('hidden');
     const gpBar = document.getElementById('gamepadHelperBar');
     if (gpBar) gpBar.style.display = 'none';

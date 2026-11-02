@@ -268,78 +268,66 @@ const FIGHTER_PORTRAITS = {
 };
 
 const SELECT_SCREEN_HTML = `
-        <!-- ==================== SCREEN 1: CHARACTER SELECT (IMAGE 2 HOMAGE) ==================== -->
-        <section id="selectScreen" class="w-full h-full flex-1 flex flex-col justify-between p-2 sm:p-3 max-w-7xl mx-auto select-none relative z-10 overflow-hidden">
-            
-            <!-- Hanging Vines at top left and right (Image 2 ancient ruins ambiance) -->
-            <div class="absolute -top-2 left-4 w-28 h-36 pointer-events-none opacity-40 z-0">
-                <svg viewBox="0 0 100 130" class="w-full h-full drop-shadow">
-                    <path d="M12 0 Q30 45 18 85 Q12 110 24 130" stroke="#15803d" stroke-width="3" fill="none"/>
-                    <path d="M35 0 Q22 35 38 65 Q48 95 42 125" stroke="#16a34a" stroke-width="2" fill="none"/>
-                    <circle cx="18" cy="55" r="4.5" fill="#15803d"/>
-                    <circle cx="38" cy="85" r="5" fill="#22c55e"/>
-                    <polygon points="18,52 28,48 24,58" fill="#15803d"/>
-                    <polygon points="38,82 48,78 44,88" fill="#22c55e"/>
-                </svg>
-            </div>
-            <div class="absolute -top-2 right-4 w-28 h-36 pointer-events-none opacity-40 z-0">
-                <svg viewBox="0 0 100 130" class="w-full h-full drop-shadow">
-                    <path d="M88 0 Q70 45 82 85 Q88 110 76 130" stroke="#15803d" stroke-width="3" fill="none"/>
-                    <path d="M65 0 Q78 35 62 65 Q52 95 58 125" stroke="#16a34a" stroke-width="2" fill="none"/>
-                    <circle cx="82" cy="55" r="4.5" fill="#15803d"/>
-                    <circle cx="62" cy="85" r="5" fill="#22c55e"/>
-                    <polygon points="82,52 72,48 76,58" fill="#15803d"/>
-                    <polygon points="62,82 52,78 56,88" fill="#22c55e"/>
-                </svg>
-            </div>
+        <!-- ==================== SCREEN 1: CHARACTER SELECT ==================== -->
+        <section id="selectScreen" class="hidden w-full h-full flex-1 flex flex-col justify-between arena-screen-bg select-none relative z-10 overflow-hidden p-2 sm:p-4">
 
-            <!-- TOP HEADER (MATCHING IMAGE 2: PLAYER 1 | SELECT YOUR BEAST | PLAYER 2) -->
-            <div class="w-full flex items-center justify-between px-2 sm:px-6 py-1 relative shrink-0">
-                <!-- Left: PLAYER 1 -->
-                <div class="flex flex-col items-start min-w-[120px]">
-                    <span class="font-chakra font-black text-lg sm:text-2xl text-sky-400 uppercase tracking-widest drop-shadow-[0_0_12px_#38bdf8]">
-                        PLAYER 1
-                    </span>
-                    <div class="w-28 sm:w-40 h-1 bg-gradient-to-r from-sky-400 to-transparent mt-0.5 shadow-[0_0_8px_#38bdf8]"></div>
+            <!-- ================= TOP HEADER: PLAYER 1 | SELECT YOUR BEAST | PLAYER 2 ================= -->
+            <header class="w-full flex items-center justify-between px-3 sm:px-8 pt-1 shrink-0 z-20">
+                <!-- Left: PLAYER 1 with clean blue text & stone underline -->
+                <div class="flex flex-col items-start min-w-[130px] sm:min-w-[190px]">
+                    <div class="flex items-center gap-2">
+                        <span class="font-cinzel text-sky-400 font-black text-lg sm:text-2xl md:text-3xl tracking-widest drop-shadow-[0_2px_8px_rgba(56,189,248,0.7)]">
+                            PLAYER 1
+                        </span>
+                        <span id="p1HeaderSub" class="hidden md:inline-block text-[11px] font-chakra font-black text-sky-300/80">
+                            SÉLECTION
+                        </span>
+                    </div>
+                    <div class="w-full h-1 bg-stone-800 rounded mt-1 border-b border-sky-500/70 shadow-[0_0_8px_rgba(56,189,248,0.5)]"></div>
                 </div>
 
-                <!-- Center: SELECT YOUR BEAST with dual glowing underlines -->
-                <div class="flex flex-col items-center justify-center text-center">
-                    <h1 class="beast-header-title text-xl sm:text-3xl md:text-4xl uppercase tracking-[0.2em]">
+                <!-- Center: SELECT YOUR BEAST (Monumental Carved Volcanic Stone Title) -->
+                <div class="flex flex-col items-center shrink-0">
+                    <h1 class="arena-header-title text-2xl sm:text-4xl md:text-5xl uppercase tracking-widest drop-shadow-[0_4px_10px_rgba(0,0,0,0.95)]">
                         SELECT YOUR BEAST
                     </h1>
-                    <div class="w-48 sm:w-72 beast-underline-bar mt-1"></div>
-                    <div class="w-32 sm:w-48 beast-underline-bar mt-0.5 opacity-60"></div>
+                    <!-- Sculpted Prehistoric Stone Divider Bar -->
+                    <div class="w-48 sm:w-72 h-1.5 bg-gradient-to-r from-transparent via-amber-600 to-transparent mt-1 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.6)]"></div>
                 </div>
 
-                <!-- Right: PLAYER 2 / IA -->
-                <div class="flex flex-col items-end min-w-[120px]">
-                    <span id="p2HeaderLabel" class="font-chakra font-black text-lg sm:text-2xl text-red-500 uppercase tracking-widest drop-shadow-[0_0_12px_#ef4444]">
-                        PLAYER 2
-                    </span>
-                    <div class="w-28 sm:w-40 h-1 bg-gradient-to-l from-red-500 to-transparent mt-0.5 shadow-[0_0_8px_#ef4444]"></div>
+                <!-- Right: PLAYER 2 with clean red text & stone underline -->
+                <div class="flex flex-col items-end min-w-[130px] sm:min-w-[190px]">
+                    <div class="flex items-center gap-2 justify-end">
+                        <span id="p2HeaderSub" class="hidden md:inline-block text-[11px] font-chakra font-black text-red-400/80">
+                            RIVAL
+                        </span>
+                        <span id="p2HeaderLabel" class="font-cinzel text-red-500 font-black text-lg sm:text-2xl md:text-3xl tracking-widest drop-shadow-[0_2px_8px_rgba(239,68,68,0.7)]">
+                            PLAYER 2
+                        </span>
+                    </div>
+                    <div class="w-full h-1 bg-stone-800 rounded mt-1 border-b border-red-500/70 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
                 </div>
-            </div>
+            </header>
 
-            <!-- THREE COLUMN ARENA SHOWCASE (P1 3D - CENTER 5-COL GRID - P2 3D) -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3 items-stretch flex-1 min-h-0 my-auto">
+            <!-- ================= THREE COLUMN STAGE: P1 3D - CENTER BEAST GRID - P2 3D ================= -->
+            <main class="w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch min-h-0 relative z-10 px-1 sm:px-4 my-auto">
                 
                 <!-- ================= LEFT COLUMN: P1 SHOWCASE ================= -->
-                <div class="lg:col-span-3 flex flex-col justify-between gap-1 overflow-hidden">
+                <div class="lg:col-span-3 flex flex-col justify-between gap-2 overflow-hidden pl-1">
                     <!-- 3D Pedestal Canvas Box -->
-                    <div class="w-full flex-1 relative flex items-center justify-center overflow-hidden min-h-[220px]">
+                    <div class="w-full flex-1 relative flex items-center justify-center overflow-hidden min-h-[200px]">
                         <canvas id="p1PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
                         <img id="p1PreviewImg" alt="P1 3D Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-10" />
                         <!-- Skin Selector Pill -->
-                        <div class="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-sky-400/40 text-[10px] text-sky-200 shadow-lg z-20">
-                            <button id="btnP1PrevSkin" class="px-1 text-sky-400 hover:text-white font-black">&lt;</button>
-                            <span id="p1SkinName" class="font-bold tracking-wide truncate max-w-[110px]">Skin: Primal</span>
-                            <button id="btnP1NextSkin" class="px-1 text-sky-400 hover:text-white font-black">&gt;</button>
+                        <div class="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-stone-950/90 backdrop-blur-md px-3 py-1 rounded-full border border-stone-700 text-[10px] text-sky-200 shadow-xl z-20">
+                            <button id="btnP1PrevSkin" class="px-1 text-sky-400 hover:text-white font-black cursor-pointer">&lt;</button>
+                            <span id="p1SkinName" class="font-bold tracking-wide truncate max-w-[120px]">Skin: Primal</span>
+                            <button id="btnP1NextSkin" class="px-1 text-sky-400 hover:text-white font-black cursor-pointer">&gt;</button>
                         </div>
                     </div>
 
-                    <!-- P1 Recessed Stone Stat Box (Image 2) -->
-                    <div class="stone-panel rounded-xl p-2 sm:p-2.5 flex flex-col gap-1.5 shrink-0 border-sky-500/30">
+                    <!-- P1 Recessed Stone Stat Box (Natural Basalt Plaque) -->
+                    <div class="beast-stat-plaque rounded-xl p-2.5 sm:p-3 flex flex-col gap-1.5 shrink-0 shadow-2xl">
                         <!-- Stat Rows -->
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
@@ -360,8 +348,8 @@ const SELECT_SCREEN_HTML = `
                             </div>
                         </div>
 
-                        <!-- Class & Special (Image 2) -->
-                        <div class="pt-1 border-t border-stone-700/60 font-chakra text-[10px] sm:text-[11px] leading-tight">
+                        <!-- Class & Special -->
+                        <div class="pt-1.5 border-t border-stone-700/60 font-chakra text-[10px] sm:text-[11px] leading-tight">
                             <div class="text-amber-300/90 font-black tracking-wider uppercase">
                                 CLASS: <span id="p1ClassText" class="text-amber-100 font-extrabold">APEX PREDATOR</span>
                             </div>
@@ -373,8 +361,8 @@ const SELECT_SCREEN_HTML = `
                 </div>
 
                 <!-- ================= CENTER COLUMN: THE BEAST GRID (ROSTER) ================= -->
-                <div class="lg:col-span-6 beast-grid-frame rounded-2xl p-2 sm:p-3 flex flex-col justify-between overflow-hidden relative">
-                    <!-- Vine accents on corners -->
+                <div class="lg:col-span-6 beast-grid-frame rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between overflow-hidden relative shadow-2xl">
+                    <!-- Vine accents on top corners -->
                     <div class="absolute -top-1 -left-1 w-8 h-8 pointer-events-none text-emerald-500">
                         <svg viewBox="0 0 32 32" class="w-full h-full"><path d="M0 0 Q16 4 28 20" fill="none" stroke="#22c55e" stroke-width="2.5"/><polygon points="12,2 18,8 10,10" fill="#16a34a"/></svg>
                     </div>
@@ -382,26 +370,26 @@ const SELECT_SCREEN_HTML = `
                         <svg viewBox="0 0 32 32" class="w-full h-full"><path d="M32 0 Q16 4 4 20" fill="none" stroke="#22c55e" stroke-width="2.5"/><polygon points="20,2 14,8 22,10" fill="#16a34a"/></svg>
                     </div>
 
-                    <!-- 5-Columns Grid of Dinosaur Cards (Image 2) -->
+                    <!-- 5-Columns Grid of Dinosaur Cards -->
                     <div id="rosterGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 my-auto flex-1 overflow-y-auto pr-0.5">
                         <!-- Populated by initRosterUI with beast-card elements -->
                     </div>
 
-                    <!-- CTA Combat Button -->
-                    <div class="mt-2 flex flex-col gap-1.5 shrink-0">
+                    <!-- CTA Combat Button & Slots Row -->
+                    <div class="mt-2.5 flex flex-col gap-1.5 shrink-0">
                         <div class="flex items-center justify-center gap-2">
-                            <button id="btnSelectSlotP1" class="px-2.5 py-1 rounded bg-red-950/90 border border-sky-400 text-[10px] font-black text-sky-200 uppercase tracking-wider">
+                            <button id="btnSelectSlotP1" class="stone-btn px-3 py-1 rounded-lg text-[10px] sm:text-xs font-black text-sky-300 uppercase tracking-wider shadow cursor-pointer">
                                 Choisir J1
                             </button>
-                            <button id="btnSelectSlotP2" class="px-2.5 py-1 rounded bg-stone-900 border border-red-500 text-[10px] font-black text-red-300 uppercase tracking-wider">
+                            <button id="btnSelectSlotP2" class="stone-btn px-3 py-1 rounded-lg text-[10px] sm:text-xs font-black text-red-300 uppercase tracking-wider shadow cursor-pointer">
                                 Choisir J2
                             </button>
-                            <button id="btnRandomFighters" class="px-2.5 py-1 rounded bg-stone-900 hover:bg-stone-800 border border-amber-500/50 text-[10px] font-black text-amber-300 uppercase tracking-wider flex items-center gap-1">
+                            <button id="btnRandomFighters" class="stone-btn px-3 py-1 rounded-lg text-[10px] sm:text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-1 shadow cursor-pointer">
                                 <span>🎲</span> <span>Aléatoire</span>
                             </button>
                         </div>
 
-                        <button id="btnGoToArena" class="w-full py-2 sm:py-2.5 px-4 rounded-xl bg-gradient-to-r from-red-700 via-amber-600 to-red-700 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl border border-amber-400/60 finish-pulse flex items-center justify-center gap-2">
+                        <button id="btnGoToArena" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-red-800 via-red-600 to-amber-600 hover:from-red-700 hover:to-amber-500 text-white font-cinzel font-black text-xs sm:text-sm uppercase tracking-widest shadow-2xl border-2 border-amber-300 finish-pulse flex items-center justify-center gap-2 cursor-pointer">
                             <span>CHOISIR L'ARÈNE DE KOMBAT</span>
                             <span class="text-base">➔</span>
                         </button>
@@ -409,21 +397,21 @@ const SELECT_SCREEN_HTML = `
                 </div>
 
                 <!-- ================= RIGHT COLUMN: P2 SHOWCASE ================= -->
-                <div class="lg:col-span-3 flex flex-col justify-between gap-1 overflow-hidden">
+                <div class="lg:col-span-3 flex flex-col justify-between gap-2 overflow-hidden pr-1">
                     <!-- 3D Pedestal Canvas Box -->
-                    <div class="w-full flex-1 relative flex items-center justify-center overflow-hidden min-h-[220px]">
+                    <div class="w-full flex-1 relative flex items-center justify-center overflow-hidden min-h-[200px]">
                         <canvas id="p2PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
                         <img id="p2PreviewImg" alt="P2 3D Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-10" />
                         <!-- Skin Selector Pill -->
-                        <div id="p2SkinSelector" class="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-red-500/40 text-[10px] text-red-200 shadow-lg z-20">
-                            <button id="btnP2PrevSkin" class="px-1 text-red-400 hover:text-white font-black">&lt;</button>
-                            <span id="p2SkinName" class="font-bold tracking-wide truncate max-w-[110px]">Skin: Primal</span>
-                            <button id="btnP2NextSkin" class="px-1 text-red-400 hover:text-white font-black">&gt;</button>
+                        <div id="p2SkinSelector" class="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-stone-950/90 backdrop-blur-md px-3 py-1 rounded-full border border-stone-700 text-[10px] text-red-200 shadow-xl z-20">
+                            <button id="btnP2PrevSkin" class="px-1 text-red-400 hover:text-white font-black cursor-pointer">&lt;</button>
+                            <span id="p2SkinName" class="font-bold tracking-wide truncate max-w-[120px]">Skin: Primal</span>
+                            <button id="btnP2NextSkin" class="px-1 text-red-400 hover:text-white font-black cursor-pointer">&gt;</button>
                         </div>
                     </div>
 
-                    <!-- P2 Recessed Stone Stat Box (Image 2) -->
-                    <div class="stone-panel rounded-xl p-2 sm:p-2.5 flex flex-col gap-1.5 shrink-0 border-red-500/30">
+                    <!-- P2 Recessed Stone Stat Box (Natural Basalt Plaque) -->
+                    <div class="beast-stat-plaque rounded-xl p-2.5 sm:p-3 flex flex-col gap-1.5 shrink-0 shadow-2xl">
                         <!-- Stat Rows -->
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
@@ -444,8 +432,8 @@ const SELECT_SCREEN_HTML = `
                             </div>
                         </div>
 
-                        <!-- Class & Special (Image 2) -->
-                        <div class="pt-1 border-t border-stone-700/60 font-chakra text-[10px] sm:text-[11px] leading-tight">
+                        <!-- Class & Special -->
+                        <div class="pt-1.5 border-t border-stone-700/60 font-chakra text-[10px] sm:text-[11px] leading-tight">
                             <div class="text-amber-300/90 font-black tracking-wider uppercase">
                                 CLASS: <span id="p2ClassText" class="text-amber-100 font-extrabold">TANK</span>
                             </div>
@@ -456,38 +444,59 @@ const SELECT_SCREEN_HTML = `
                     </div>
                 </div>
 
-            </div>
+            </main>
 
-            <!-- BOTTOM CONTROLLER BAR (MATCHING IMAGE 2) -->
-            <div class="w-full stone-panel rounded-xl px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs z-30 shrink-0">
-                <button id="btnSelectBackToMain" class="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 font-chakra text-xs font-bold flex items-center gap-1">
-                    <span>←</span> <span>MENU</span>
+            <!-- ================= BOTTOM STONE PLINTH: CONTROLS & NAVIGATION ================= -->
+            <footer class="arena-bottom-slab w-full py-2 px-3 sm:px-8 flex flex-wrap items-center justify-between shrink-0 relative z-30">
+                <!-- Left Corner: Fossil Rib Bones & Vines Decoration -->
+                <div class="absolute -top-5 left-1 w-28 sm:w-36 h-10 pointer-events-none z-20 overflow-visible opacity-90 hidden sm:block">
+                    <svg viewBox="0 0 140 40" class="w-full h-full">
+                        <path d="M8 32 C15 15 28 8 40 12" stroke="#d6d3d1" stroke-width="4" stroke-linecap="round" fill="none"/>
+                        <path d="M22 34 C30 18 42 12 55 16" stroke="#d6d3d1" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                        <path d="M38 36 C45 22 56 18 68 22" stroke="#d6d3d1" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <path d="M2 38 Q30 24 60 32 T110 36" stroke="#16a34a" stroke-width="2.5" fill="none"/>
+                        <polygon points="45,20 40,28 50,26" fill="#4ade80"/>
+                        <polygon points="85,30 92,36 82,38" fill="#4ade80"/>
+                    </svg>
+                </div>
+
+                <!-- Left: Back Button -->
+                <button id="btnSelectBackToMain" class="stone-btn px-3.5 py-1.5 rounded-lg text-xs font-black text-amber-200 flex items-center gap-1.5 font-chakra shadow cursor-pointer relative z-30">
+                    <span>←</span> <span>MENU PRINCIPAL</span>
                 </button>
 
-                <!-- Hints matching Image 2: P1 [A] CONFIRM | [B] BACK   P2 [X] RANDOM | [Y] SKINS -->
-                <div class="flex items-center gap-4 sm:gap-6 font-chakra text-[11px] sm:text-xs font-black tracking-wider mx-auto">
+                <!-- Center: Gamepad / Keyboard Legend -->
+                <div class="flex items-center gap-4 sm:gap-6 font-chakra text-[11px] sm:text-xs font-black tracking-wider relative z-30">
                     <div class="flex items-center gap-1.5">
-                        <span class="text-sky-400">P1</span>
-                        <span class="px-1.5 py-0.2 rounded bg-emerald-600 text-white">[A]</span>
+                        <span class="text-sky-400">P1 [A]</span>
                         <span class="text-stone-300">CONFIRMER</span>
-                        <span class="text-stone-600">|</span>
-                        <span class="px-1.5 py-0.2 rounded bg-red-600 text-white">[B]</span>
+                        <span class="text-stone-500">|</span>
+                        <span class="text-red-400">[B]</span>
                         <span class="text-stone-300">RETOUR</span>
                     </div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-red-400">P2</span>
-                        <span class="px-1.5 py-0.2 rounded bg-sky-600 text-white">[X]</span>
-                        <span class="text-stone-300">ALÉATOIRE</span>
-                        <span class="text-stone-600">|</span>
-                        <span class="px-1.5 py-0.2 rounded bg-amber-600 text-white">[Y]</span>
-                        <span class="text-stone-300">SKINS</span>
+                    <div class="hidden sm:flex items-center gap-1.5">
+                        <span class="text-stone-500">•</span>
+                        <span class="text-amber-300">P2 [X] ALÉATOIRE</span>
+                        <span class="text-stone-500">|</span>
+                        <span class="text-amber-300">[Y] SKINS</span>
                     </div>
                 </div>
 
-                <div id="selectScreenModeBadge" class="text-[10px] sm:text-xs font-extrabold text-amber-400 tracking-wider uppercase">
+                <!-- Right: Mode Badge -->
+                <div id="selectScreenModeBadge" class="text-[10px] sm:text-xs font-extrabold text-amber-400 tracking-wider uppercase relative z-30">
                     JOUEUR VS IA
                 </div>
-            </div>
+
+                <!-- Right Corner: Creeping Roots & Embers Decoration -->
+                <div class="absolute -top-5 right-2 w-24 sm:w-32 h-10 pointer-events-none z-20 overflow-visible opacity-90 hidden sm:block">
+                    <svg viewBox="0 0 120 40" class="w-full h-full">
+                        <path d="M120 38 Q80 28 50 34 T0 36" stroke="#78350f" stroke-width="3" fill="none"/>
+                        <path d="M115 36 Q85 30 65 35" stroke="#16a34a" stroke-width="2" fill="none"/>
+                        <circle cx="85" cy="20" r="2" fill="#f59e0b" opacity="0.8"/>
+                        <circle cx="60" cy="15" r="1.5" fill="#ef4444" opacity="0.9"/>
+                    </svg>
+                </div>
+            </footer>
         </section>
 `;
 

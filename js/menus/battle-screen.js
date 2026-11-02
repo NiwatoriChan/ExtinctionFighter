@@ -13,15 +13,20 @@ function formatHudTimer(seconds) {
 
 const BATTLE_SCREEN_HTML = `
         <!-- ==================== SCREEN 2: ARENA BATTLE ==================== -->
-        <section id="battleScreen" class="hidden w-full h-full flex-1 flex-col items-center justify-between gap-1 min-h-0 relative select-none">
+        <section id="battleScreen" class="hidden w-full h-full flex-1 relative min-h-0 select-none">
             <!-- Canvas Wrapper -->
-            <div class="w-full flex-1 relative rounded-2xl overflow-hidden border-2 border-[#4f5263] shadow-2xl bg-black min-h-[360px]">
+            <div class="w-full h-full flex-1 relative rounded-2xl overflow-hidden border-2 border-[#4f5263] shadow-2xl bg-black min-h-[360px]">
 
                 <!-- Quick Pause Button (Touch & Mouse) -->
                 <button id="btnHudPause" class="pointer-events-auto absolute top-2 right-2 px-2.5 py-1.5 rounded-lg bg-stone-900/85 hover:bg-stone-800 border border-stone-600/80 hover:border-amber-400 text-stone-200 hover:text-amber-300 font-chakra text-xs font-black shadow-lg flex items-center gap-1.5 z-30 transition cursor-pointer backdrop-blur-sm active:scale-95" title="Pause & Options (Échap / Start)">
                     <span class="text-sm">⏸</span>
                     <span class="hidden sm:inline text-[11px] font-bold tracking-wider">PAUSE</span>
                 </button>
+
+                <!-- CAMERA & PAUSE HINT -->
+                <div class="absolute top-11 right-2 z-20 pointer-events-none hidden sm:block text-[10px] text-stone-300/80 font-bold bg-black/70 backdrop-blur-sm px-2 py-0.5 rounded border border-stone-800 shadow">
+                    🖱️ Glisser : Caméra 3D • ÉCHAP / START : Pause
+                </div>
 
                 <!-- ================= TOP HUD OVERLAY ================= -->
                 <div class="absolute top-0 left-0 right-0 p-1.5 sm:p-2 md:p-3 z-10 pointer-events-none">
@@ -350,161 +355,154 @@ const BATTLE_SCREEN_HTML = `
                 <!-- 2D FLOATING DAMAGE / COMBO OVERLAY -->
                 <div id="damagePopupLayer" class="absolute inset-0 pointer-events-none z-10 overflow-hidden"></div>
 
-                <!-- CAMERA & PAUSE HINT -->
-                <div class="absolute bottom-2 right-3 z-10 pointer-events-none text-[10px] text-stone-300/80 font-bold bg-black/60 px-2 py-0.5 rounded border border-stone-800">
-                    🖱️ Glisser : Caméra 3D • ÉCHAP / START : Pause
-                </div>
-
                 <!-- MAIN 3D GAME CANVAS -->
-                <canvas id="battleCanvas" class="cursor-grab active:cursor-grabbing"></canvas>
-            </div>
+                <canvas id="battleCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
 
+                <!-- ================= BOTTOM ARCADE & CONTROLS HUD (DIRECTLY OVER GAME) ================= -->
+                <div class="absolute bottom-2 sm:bottom-3 left-0 right-0 px-2 sm:px-4 z-20 pointer-events-none flex items-end justify-between gap-2">
 
-            <!-- ================= BOTTOM ARCADE & CONTROLS BAR ================= -->
-            <div class="w-full stone-panel rounded-xl p-2 sm:p-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0 z-20">
+                    <!-- ================= BOTTOM-LEFT: FRENZY READY CIRCULAR WHEEL ================= -->
+                    <div class="flex items-center gap-2 sm:gap-3 pointer-events-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] shrink-0">
+                        <div id="hudFrenzyGauge" class="relative w-14 h-14 sm:w-18 sm:h-18 flex items-center justify-center cursor-pointer transform hover:scale-105 active:scale-95 transition-all" title="Cliquer pour déclencher l'Attaque X-Ray / Fatalité">
+                            <!-- Outer Flame Corona -->
+                            <div id="hudFrenzyCorona" class="absolute inset-0 rounded-full frenzy-active-surge pointer-events-none">
+                                <svg viewBox="0 0 120 120" class="w-full h-full flame-spinner overflow-visible">
+                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#f59e0b" stroke-width="5" stroke-dasharray="18 10 26 8" stroke-linecap="round" opacity="0.95"/>
+                                    <circle cx="60" cy="60" r="57" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="28 14 20 12" stroke-linecap="round" opacity="0.8"/>
+                                    <circle cx="60" cy="60" r="50" fill="none" stroke="#fef08a" stroke-width="2.5" stroke-dasharray="14 8 20 10" opacity="0.9"/>
+                                </svg>
+                            </div>
 
-                <!-- ================= BOTTOM-LEFT: FRENZY READY CIRCULAR WHEEL ================= -->
-                <div class="flex items-center gap-3">
-                    <div id="hudFrenzyGauge" class="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center cursor-pointer transform hover:scale-105 active:scale-95 transition-all" title="Cliquer pour déclencher l'Attaque X-Ray / Fatalité">
-                        <!-- Outer Flame Corona -->
-                        <div id="hudFrenzyCorona" class="absolute inset-0 rounded-full frenzy-active-surge pointer-events-none">
-                            <svg viewBox="0 0 120 120" class="w-full h-full flame-spinner overflow-visible">
-                                <circle cx="60" cy="60" r="54" fill="none" stroke="#f59e0b" stroke-width="5" stroke-dasharray="18 10 26 8" stroke-linecap="round" opacity="0.95"/>
-                                <circle cx="60" cy="60" r="57" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="28 14 20 12" stroke-linecap="round" opacity="0.8"/>
-                                <circle cx="60" cy="60" r="50" fill="none" stroke="#fef08a" stroke-width="2.5" stroke-dasharray="14 8 20 10" opacity="0.9"/>
-                            </svg>
+                            <!-- Heavy Stone Bezel -->
+                            <div class="w-12 h-12 sm:w-15 sm:h-15 rounded-full stone-frame-heavy flex items-center justify-center relative p-1 bg-gradient-to-br from-stone-800 via-stone-900 to-black">
+                                <div class="w-full h-full rounded-full bg-gradient-to-br from-red-600 via-red-900 to-black flex items-center justify-center relative overflow-hidden shadow-inner border border-red-500/70">
+                                    <svg viewBox="0 0 64 64" class="w-9 h-9 sm:w-11 sm:h-11 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
+                                        <path d="M10 26 Q32 8 54 26 Q44 20 32 18 Q20 20 10 26 Z" fill="#fef3c7" stroke="#92400e" stroke-width="1.2"/>
+                                        <polygon points="14,25 18,33 21,25" fill="#fff"/>
+                                        <polygon points="22,24 26,34 30,24" fill="#fff"/>
+                                        <polygon points="34,24 38,34 42,24" fill="#fff"/>
+                                        <polygon points="43,25 47,33 50,25" fill="#fff"/>
+                                        <path d="M12 38 Q32 56 52 38 Q44 44 32 46 Q20 44 12 38 Z" fill="#fef3c7" stroke="#92400e" stroke-width="1.2"/>
+                                        <polygon points="16,39 20,31 23,39" fill="#fff"/>
+                                        <polygon points="24,40 28,30 32,40" fill="#fff"/>
+                                        <polygon points="33,40 37,30 41,40" fill="#fff"/>
+                                        <polygon points="42,39 46,31 49,39" fill="#fff"/>
+                                        <path d="M20 14 L38 50" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+                                        <path d="M29 12 L47 48" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
+                                        <path d="M38 14 L56 50" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Heavy Stone Bezel -->
-                        <div class="w-14 h-14 sm:w-17 sm:h-17 rounded-full stone-frame-heavy flex items-center justify-center relative p-1 bg-gradient-to-br from-stone-800 via-stone-900 to-black">
-                            <div class="w-full h-full rounded-full bg-gradient-to-br from-red-600 via-red-900 to-black flex items-center justify-center relative overflow-hidden shadow-inner border border-red-500/70">
-                                <svg viewBox="0 0 64 64" class="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
-                                    <path d="M10 26 Q32 8 54 26 Q44 20 32 18 Q20 20 10 26 Z" fill="#fef3c7" stroke="#92400e" stroke-width="1.2"/>
-                                    <polygon points="14,25 18,33 21,25" fill="#fff"/>
-                                    <polygon points="22,24 26,34 30,24" fill="#fff"/>
-                                    <polygon points="34,24 38,34 42,24" fill="#fff"/>
-                                    <polygon points="43,25 47,33 50,25" fill="#fff"/>
-                                    <path d="M12 38 Q32 56 52 38 Q44 44 32 46 Q20 44 12 38 Z" fill="#fef3c7" stroke="#92400e" stroke-width="1.2"/>
-                                    <polygon points="16,39 20,31 23,39" fill="#fff"/>
-                                    <polygon points="24,40 28,30 32,40" fill="#fff"/>
-                                    <polygon points="33,40 37,30 41,40" fill="#fff"/>
-                                    <polygon points="42,39 46,31 49,39" fill="#fff"/>
-                                    <path d="M20 14 L38 50" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
-                                    <path d="M29 12 L47 48" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
-                                    <path d="M38 14 L56 50" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+                        <!-- FRENZY READY Text -->
+                        <div class="flex flex-col">
+                            <div id="hudFrenzyText" class="frenzy-text-blood text-base sm:text-xl md:text-2xl font-black leading-tight uppercase">
+                                FRENZY<br>READY
+                            </div>
+                            <span class="text-[9px] text-amber-300 font-extrabold uppercase tracking-wider bg-black/75 backdrop-blur-sm px-1.5 py-0.2 rounded border border-amber-500/40">
+                                [R / ESPACE]
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- ================= CENTER D-PAD, JUMP & DASH CONTROLS ================= -->
+                    <div class="flex items-center gap-1 sm:gap-1.5 pointer-events-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] shrink-0">
+                        <button id="uiBtnLeft" data-ctrl="left" class="ctrl-btn stone-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center text-white font-black shadow backdrop-blur-sm" title="Aller à Gauche">
+                            <span class="text-base leading-none">◀</span>
+                            <span class="text-[9px] text-stone-400">A / Q</span>
+                        </button>
+                        <div class="flex flex-col gap-1">
+                            <button id="uiBtnUp" data-ctrl="up" class="ctrl-btn stone-btn w-14 sm:w-16 h-8 sm:h-9 px-1 rounded-lg flex items-center justify-center gap-1 text-sky-300 font-black text-[9px] sm:text-[10px] shadow backdrop-blur-sm" title="Viser Haut (Frappe Haute / Garde Haute)">
+                                <span>▲</span>
+                                <span>HAUT [W]</span>
+                            </button>
+                            <button id="uiBtnDown" data-ctrl="down" class="ctrl-btn stone-btn w-14 sm:w-16 h-8 sm:h-9 px-1 rounded-lg flex items-center justify-center gap-1 text-amber-300 font-black text-[9px] sm:text-[10px] shadow backdrop-blur-sm" title="Viser Bas (Frappe Basse / Garde Basse)">
+                                <span>▼</span>
+                                <span>BAS [S]</span>
+                            </button>
+                        </div>
+                        <button id="uiBtnRight" data-ctrl="right" class="ctrl-btn stone-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center text-white font-black shadow backdrop-blur-sm" title="Aller à Droite">
+                            <span class="text-base leading-none">▶</span>
+                            <span class="text-[9px] text-stone-400">D / ➡</span>
+                        </button>
+                        <div class="flex flex-col gap-1">
+                            <button id="uiBtnJump" data-action="jump" class="act-btn stone-btn px-2 h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1 text-emerald-300 font-black text-[8.5px] sm:text-[9.5px] shadow border-emerald-500/60 backdrop-blur-sm" title="Sauter (Espace)">
+                                <span>🦘</span>
+                                <span>SAUT</span>
+                            </button>
+                            <button id="uiBtnDash" data-action="dash" class="act-btn stone-btn px-2 h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1 text-cyan-300 font-black text-[8.5px] sm:text-[9.5px] shadow border-cyan-500/60 backdrop-blur-sm" title="Dasher / Esquive (E)">
+                                <span>💨</span>
+                                <span>DASH</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ================= BOTTOM-RIGHT: ACTIONS (FRAPPER, SPÉCIAL, PROTÉGER, RAGE) ================= -->
+                    <div class="flex flex-col items-end gap-1.5 pointer-events-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] shrink-0">
+                        <!-- Status Buffs Row -->
+                        <div class="flex items-center gap-1.5">
+                            <div class="status-badge w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center p-1 bg-emerald-950/80 border-emerald-500/70 shadow-md backdrop-blur-sm" title="Bonus d'Attaque Primal">
+                                <svg viewBox="0 0 24 24" class="w-full h-full fill-emerald-400">
+                                    <path d="M17 3 C10 3 4 8 4 15 C4 18 6 20 9 20 C16 20 21 14 21 7 L21 3 Z M17 5 C19 8 18 13 13 16 C10 18 7 18 6 16 C6 11 11 6 17 5 Z"/>
+                                </svg>
+                            </div>
+                            <div class="status-badge w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center p-1 bg-red-950/80 border-red-500/70 shadow-md backdrop-blur-sm" title="Saignement Viscéral">
+                                <svg viewBox="0 0 24 24" class="w-full h-full fill-red-500">
+                                    <path d="M12 2 C12 2 6 10 6 14 C6 17.3 8.7 20 12 20 C15.3 20 18 17.3 18 14 C18 10 12 2 12 2 Z"/>
+                                </svg>
+                            </div>
+                            <div class="status-badge w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center p-1 bg-amber-950/80 border-amber-500/70 shadow-md backdrop-blur-sm" title="Blindage Ostéodermique">
+                                <svg viewBox="0 0 24 24" class="w-full h-full fill-amber-400">
+                                    <path d="M12 2 L4 5 V11 C4 16.5 7.4 21.7 12 23 C16.6 21.7 20 16.5 20 11 V5 L12 2 Z"/>
                                 </svg>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- FRENZY READY Text -->
-                    <div class="flex flex-col">
-                        <div id="hudFrenzyText" class="frenzy-text-blood text-lg sm:text-2xl font-black leading-tight uppercase">
-                            FRENZY<br>READY
+                        <!-- Circular Action Medallions (4 Controls) -->
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <!-- 1. FRAPPER (Strike: Haut, Milieu, Bas selon direction) -->
+                            <button id="uiBtnStrike" data-action="strike" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative border-amber-400 group p-1.5 shadow-xl backdrop-blur-sm" title="Frapper (Haut, Milieu, Bas selon orientation)">
+                                <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6 fill-amber-300">
+                                    <path d="M4 18 C6 20 10 20 14 18 C18 16 20 12 20 8 C18 6 14 6 10 8 C6 10 4 14 4 18 Z M8 12 L11 11 L10 14 Z M13 11 L16 10 L15 13 Z"/>
+                                </svg>
+                                <span class="text-[7.5px] sm:text-[8px] font-black text-amber-200">FRAPPE [F]</span>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-amber-400 text-[9px] font-black text-amber-200 flex items-center justify-center shadow">
+                                    X
+                                </div>
+                            </button>
+
+                            <!-- 2. SPÉCIAL UNIQUE DE L'ANIMAL -->
+                            <button id="uiBtnSpecial" data-action="special" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-purple-400 shadow-xl backdrop-blur-sm" title="Coup Spécial Unique de l'animal">
+                                <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6 fill-purple-400">
+                                    <path d="M12 2 C8 7 6 10 6 14 C6 18.4 9.6 22 14 22 C18.4 22 22 18.4 22 14 C22 10 18 5 15 3 C15 6 13 8 11 8 C11 5 12 3 12 2 Z"/>
+                                </svg>
+                                <span class="text-[7.5px] sm:text-[8px] font-black text-purple-200">SPÉCIAL [H]</span>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-purple-400 text-[9px] font-black text-purple-300 flex items-center justify-center shadow">
+                                    Y
+                                </div>
+                            </button>
+
+                            <!-- 3. PROTÉGER (ARMURE DIRECTIONNELLE HAUT, MILIEU, BAS) -->
+                            <button id="uiBtnGuard" data-action="guard" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-sky-400 shadow-xl backdrop-blur-sm" title="Protéger (Armure 3D à l'endroit protégé)">
+                                <span class="text-base sm:text-lg leading-none">🛡️</span>
+                                <span class="text-[7.5px] sm:text-[8px] font-black text-sky-200">GARDE [S]</span>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-sky-400 text-[9px] font-black text-sky-300 flex items-center justify-center shadow">
+                                    B
+                                </div>
+                            </button>
+
+                            <!-- 4. SUPER ATTAQUE (RAGE 100%) -->
+                            <button id="btnRageFatality" data-action="xray" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-red-500 shadow-2xl backdrop-blur-sm" title="Super Attaque X-Ray (Rage 100%)">
+                                <span class="text-base leading-none">💀</span>
+                                <span class="text-[7.5px] font-black text-amber-200">RAGE [R]</span>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-red-400 text-[9px] font-black text-red-300 flex items-center justify-center shadow">
+                                    RT
+                                </div>
+                            </button>
                         </div>
-                        <span class="text-[9px] text-amber-300 font-extrabold uppercase tracking-wider bg-black/60 px-1.5 py-0.2 rounded border border-amber-500/40">
-                            [R / ESPACE]
-                        </span>
                     </div>
                 </div>
-
-                <!-- ================= CENTER D-PAD, JUMP & DASH CONTROLS ================= -->
-                <div class="flex items-center gap-1 sm:gap-1.5">
-                    <button id="uiBtnLeft" data-ctrl="left" class="ctrl-btn stone-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center text-white font-black shadow" title="Aller à Gauche">
-                        <span class="text-base leading-none">◀</span>
-                        <span class="text-[9px] text-stone-400">A / Q</span>
-                    </button>
-                    <div class="flex flex-col gap-1">
-                        <button id="uiBtnUp" data-ctrl="up" class="ctrl-btn stone-btn w-14 sm:w-16 h-8 sm:h-9 px-1 rounded-lg flex items-center justify-center gap-1 text-sky-300 font-black text-[9px] sm:text-[10px] shadow" title="Viser Haut (Frappe Haute / Garde Haute)">
-                            <span>▲</span>
-                            <span>HAUT [W]</span>
-                        </button>
-                        <button id="uiBtnDown" data-ctrl="down" class="ctrl-btn stone-btn w-14 sm:w-16 h-8 sm:h-9 px-1 rounded-lg flex items-center justify-center gap-1 text-amber-300 font-black text-[9px] sm:text-[10px] shadow" title="Viser Bas (Frappe Basse / Garde Basse)">
-                            <span>▼</span>
-                            <span>BAS [S]</span>
-                        </button>
-                    </div>
-                    <button id="uiBtnRight" data-ctrl="right" class="ctrl-btn stone-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center text-white font-black shadow" title="Aller à Droite">
-                        <span class="text-base leading-none">▶</span>
-                        <span class="text-[9px] text-stone-400">D / ➡</span>
-                    </button>
-                    <div class="flex flex-col gap-1">
-                        <button id="uiBtnJump" data-action="jump" class="act-btn stone-btn px-2 h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1 text-emerald-300 font-black text-[8.5px] sm:text-[9.5px] shadow border-emerald-500/60" title="Sauter (Espace)">
-                            <span>🦘</span>
-                            <span>SAUT</span>
-                        </button>
-                        <button id="uiBtnDash" data-action="dash" class="act-btn stone-btn px-2 h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1 text-cyan-300 font-black text-[8.5px] sm:text-[9.5px] shadow border-cyan-500/60" title="Dasher / Esquive (E)">
-                            <span>💨</span>
-                            <span>DASH</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ================= BOTTOM-RIGHT: ACTIONS (FRAPPER, SPÉCIAL, PROTÉGER, RAGE) ================= -->
-                <div class="flex flex-col items-end gap-1.5">
-                    <!-- Status Buffs Row -->
-                    <div class="flex items-center gap-1.5">
-                        <div class="status-badge w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center p-1 bg-emerald-950/80 border-emerald-500/70" title="Bonus d'Attaque Primal">
-                            <svg viewBox="0 0 24 24" class="w-full h-full fill-emerald-400">
-                                <path d="M17 3 C10 3 4 8 4 15 C4 18 6 20 9 20 C16 20 21 14 21 7 L21 3 Z M17 5 C19 8 18 13 13 16 C10 18 7 18 6 16 C6 11 11 6 17 5 Z"/>
-                            </svg>
-                        </div>
-                        <div class="status-badge w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center p-1 bg-red-950/80 border-red-500/70" title="Saignement Viscéral">
-                            <svg viewBox="0 0 24 24" class="w-full h-full fill-red-500">
-                                <path d="M12 2 C12 2 6 10 6 14 C6 17.3 8.7 20 12 20 C15.3 20 18 17.3 18 14 C18 10 12 2 12 2 Z"/>
-                            </svg>
-                        </div>
-                        <div class="status-badge w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center p-1 bg-amber-950/80 border-amber-500/70" title="Blindage Ostéodermique">
-                            <svg viewBox="0 0 24 24" class="w-full h-full fill-amber-400">
-                                <path d="M12 2 L4 5 V11 C4 16.5 7.4 21.7 12 23 C16.6 21.7 20 16.5 20 11 V5 L12 2 Z"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <!-- Circular Action Medallions (4 Unobtrusive Controls) -->
-                    <div class="flex items-center gap-1.5 sm:gap-2">
-                        <!-- 1. FRAPPER (Strike: Haut, Milieu, Bas selon direction) -->
-                        <button id="uiBtnStrike" data-action="strike" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative border-amber-400 group p-1.5" title="Frapper (Haut, Milieu, Bas selon orientation)">
-                            <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6 fill-amber-300">
-                                <path d="M4 18 C6 20 10 20 14 18 C18 16 20 12 20 8 C18 6 14 6 10 8 C6 10 4 14 4 18 Z M8 12 L11 11 L10 14 Z M13 11 L16 10 L15 13 Z"/>
-                            </svg>
-                            <span class="text-[7.5px] sm:text-[8px] font-black text-amber-200">FRAPPE [F]</span>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-amber-400 text-[9px] font-black text-amber-200 flex items-center justify-center shadow">
-                                X
-                            </div>
-                        </button>
-
-                        <!-- 2. SPÉCIAL UNIQUE DE L'ANIMAL -->
-                        <button id="uiBtnSpecial" data-action="special" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-purple-400" title="Coup Spécial Unique de l'animal">
-                            <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6 fill-purple-400">
-                                <path d="M12 2 C8 7 6 10 6 14 C6 18.4 9.6 22 14 22 C18.4 22 22 18.4 22 14 C22 10 18 5 15 3 C15 6 13 8 11 8 C11 5 12 3 12 2 Z"/>
-                            </svg>
-                            <span class="text-[7.5px] sm:text-[8px] font-black text-purple-200">SPÉCIAL [H]</span>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-purple-400 text-[9px] font-black text-purple-300 flex items-center justify-center shadow">
-                                Y
-                            </div>
-                        </button>
-
-                        <!-- 3. PROTÉGER (ARMURE DIRECTIONNELLE HAUT, MILIEU, BAS) -->
-                        <button id="uiBtnGuard" data-action="guard" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-sky-400" title="Protéger (Armure 3D à l'endroit protégé)">
-                            <span class="text-base sm:text-lg leading-none">🛡️</span>
-                            <span class="text-[7.5px] sm:text-[8px] font-black text-sky-200">GARDE [S]</span>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-sky-400 text-[9px] font-black text-sky-300 flex items-center justify-center shadow">
-                                B
-                            </div>
-                        </button>
-
-                        <!-- 4. SUPER ATTAQUE (RAGE 100%) -->
-                        <button id="btnRageFatality" data-action="xray" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-red-500 shadow-lg" title="Super Attaque X-Ray (Rage 100%)">
-                            <span class="text-base leading-none">💀</span>
-                            <span class="text-[7.5px] font-black text-amber-200">RAGE [R]</span>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-red-400 text-[9px] font-black text-red-300 flex items-center justify-center shadow">
-                                RT
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
             </div>
         </section>
 `;
