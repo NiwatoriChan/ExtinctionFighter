@@ -5,12 +5,110 @@
  * ============================================================================ */
 
 // 1. ÉCOUTEURS CLAVIER (Conservés & enrichis)
+function handleEscapeOrStartAction() {
+    const movesModal = document.getElementById('movesModal');
+    const isMovesModalOpen = movesModal && !movesModal.classList.contains('hidden');
+
+    const settingsModal = document.getElementById('settingsModal');
+    const isSettingsModalOpen = settingsModal && !settingsModal.classList.contains('hidden');
+
+    const pauseModal = document.getElementById('pauseModal');
+    const isPauseOpen = pauseModal && !pauseModal.classList.contains('hidden');
+
+    // 1. Fermer le grimoire des coups
+    if (isMovesModalOpen) {
+        movesModal.classList.add('hidden');
+        if (isMatchPaused && pauseModal) pauseModal.classList.remove('hidden');
+        sfx.playHit(false);
+        return;
+    }
+
+    // 2. Fermer les paramètres
+    if (isSettingsModalOpen) {
+        if (typeof closeSettingsModal === 'function') closeSettingsModal();
+        else settingsModal.classList.add('hidden');
+        if (isMatchPaused && pauseModal) pauseModal.classList.remove('hidden');
+        sfx.playHit(false);
+        return;
+    }
+
+    // 3. Si le menu pause est ouvert, reprendre le combat
+    if (isPauseOpen) {
+        if (typeof closePauseMenu === 'function') closePauseMenu();
+        else pauseModal.classList.add('hidden');
+        return;
+    }
+
+    // 4. En combat ou cinématique : ouvrir le menu pause
+    if (matchState === 'fight' || matchState === 'finish_him' || matchState === 'round_over' || matchState === 'intro') {
+        if (typeof openPauseMenu === 'function') openPauseMenu();
+        return;
+    }
+
+    // 5. Sur l'écran de choix d'arène : retour à la sélection
+    if (matchState === 'arena_select') {
+        if (typeof returnToSelect === 'function') returnToSelect();
+        return;
+    }
+
+    // 6. Sur l'écran de sélection : retour au menu principal
+    if (matchState === 'select') {
+        if (typeof goToMainMenu === 'function') goToMainMenu();
+        return;
+    }
+
+    // 7. Sur le menu principal : ouvrir les paramètres
+    if (matchState === 'main_menu') {
+        if (typeof openSettingsModal === 'function') openSettingsModal();
+        return;
+    }
+}
+
+// 1. ÉCOUTEURS CLAVIER (Conservés & enrichis)
 window.addEventListener('keydown', (e) => {
     // Empêcher le défilement de la page avec Espace ou les Flèches pendant un combat
     if (matchState !== 'select' && ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
         e.preventDefault();
     }
     if (e.repeat) return;
+
+    // Touche Échap (Escape) : Gestionnaire universel de Pause et d'Options
+    if (e.code === 'Escape') {
+        e.preventDefault();
+        handleEscapeOrStartAction();
+        return;
+    }
+
+    // Navigation au clavier dans le Menu Pause
+    const pauseModal = document.getElementById('pauseModal');
+    if (pauseModal && !pauseModal.classList.contains('hidden')) {
+        const buttons = typeof getPauseNavButtons === 'function' ? getPauseNavButtons() : [];
+        if (buttons.length > 0) {
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+                e.preventDefault();
+                pauseFocusIdx = (pauseFocusIdx - 1 + buttons.length) % buttons.length;
+                if (typeof updatePauseFocus === 'function') updatePauseFocus();
+                sfx.playHit(false);
+                return;
+            }
+            if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+                e.preventDefault();
+                pauseFocusIdx = (pauseFocusIdx + 1) % buttons.length;
+                if (typeof updatePauseFocus === 'function') updatePauseFocus();
+                sfx.playHit(false);
+                return;
+            }
+            if (e.code === 'Enter' || e.code === 'Space') {
+                e.preventDefault();
+                if (buttons[pauseFocusIdx]) buttons[pauseFocusIdx].click();
+                return;
+            }
+        }
+        return;
+    }
+
+    // Si le match est en pause, bloquer les attaques et mouvements
+    if (isMatchPaused) return;
 
     const now = performance.now();
     keys[e.code] = true;
@@ -20,6 +118,48 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyD' || (gameMode !== 'pvp' && e.code === 'ArrowRight')) flashArcadeButton('uiBtnRight', true);
     if (e.code === 'KeyW' || e.code === 'KeyZ' || (gameMode !== 'pvp' && e.code === 'ArrowUp')) flashArcadeButton('uiBtnUp', true);
     if (e.code === 'KeyS' || (gameMode !== 'pvp' && e.code === 'ArrowDown')) flashArcadeButton('uiBtnDown', true);
+
+    // Navigation au clavier sur le Menu Principal
+    if (matchState === 'main_menu') {
+        const movesModal = document.getElementById('movesModal');
+        const isMovesOpen = movesModal && !movesModal.classList.contains('hidden');
+        const settingsModal = document.getElementById('settingsModal');
+        const isSettingsOpen = settingsModal && !settingsModal.classList.contains('hidden');
+
+        if (!isMovesOpen && !isSettingsOpen) {
+            const menuButtons = typeof getMainMenuNavElements === 'function' ? getMainMenuNavElements() : [];
+            if (menuButtons.length > 0) {
+                if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'KeyZ') {
+                    e.preventDefault();
+                    mainMenuFocusIdx = (mainMenuFocusIdx - 1 + menuButtons.length) % menuButtons.length;
+                    sfx.playHit(false);
+                    const target = menuButtons[mainMenuFocusIdx];
+                    if (target) {
+                        setGamepadFocus(target);
+                        if (typeof selectMainMenuSlab === 'function') selectMainMenuSlab(target);
+                    }
+                    return;
+                }
+                if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+                    e.preventDefault();
+                    mainMenuFocusIdx = (mainMenuFocusIdx + 1) % menuButtons.length;
+                    sfx.playHit(false);
+                    const target = menuButtons[mainMenuFocusIdx];
+                    if (target) {
+                        setGamepadFocus(target);
+                        if (typeof selectMainMenuSlab === 'function') selectMainMenuSlab(target);
+                    }
+                    return;
+                }
+                if (e.code === 'Enter' || e.code === 'Space') {
+                    e.preventDefault();
+                    const target = menuButtons[mainMenuFocusIdx];
+                    if (target) target.click();
+                    return;
+                }
+            }
+        }
+    }
 
     // Validation au clavier (Entrée / Espace) sur l'écran de sélection
     if (matchState === 'select' && (e.code === 'Enter' || e.code === 'Space')) {
@@ -51,8 +191,14 @@ window.addEventListener('keydown', (e) => {
             triggerPlayerAction(fighter1, fighter2, 'dash');
         }
 
-        if (e.code === 'KeyF' || e.code === 'KeyJ') { flashArcadeButton('uiBtnLight', true); triggerPlayerAction(fighter1, fighter2, 'light'); }
-        if (e.code === 'KeyG' || e.code === 'KeyK') { flashArcadeButton('uiBtnHeavy', true); triggerPlayerAction(fighter1, fighter2, 'heavy'); }
+        // Chope / Projection au corps à corps (Touche C ou F+G simultanés)
+        if (e.code === 'KeyC' || ((e.code === 'KeyF' || e.code === 'KeyJ') && (keys['KeyG'] || keys['KeyK'])) || ((e.code === 'KeyG' || e.code === 'KeyK') && (keys['KeyF'] || keys['KeyJ']))) {
+            flashArcadeButton('uiBtnThrow', true);
+            triggerPlayerAction(fighter1, fighter2, 'throw');
+        } else {
+            if (e.code === 'KeyF' || e.code === 'KeyJ') { flashArcadeButton('uiBtnLight', true); triggerPlayerAction(fighter1, fighter2, 'light'); }
+            if (e.code === 'KeyG' || e.code === 'KeyK') { flashArcadeButton('uiBtnHeavy', true); triggerPlayerAction(fighter1, fighter2, 'heavy'); }
+        }
         if (e.code === 'KeyH' || e.code === 'KeyL') { flashArcadeButton('uiBtnSpecial', true); triggerPlayerAction(fighter1, fighter2, 'special'); }
         if (e.code === 'KeyT' || e.code === 'KeyU') { flashArcadeButton('uiBtnSpecial2', true); triggerPlayerAction(fighter1, fighter2, 'special2'); }
         if (e.code === 'KeyR' || e.code === 'Space') { flashArcadeButton('btnRageFatality', true); triggerPlayerAction(fighter1, fighter2, 'xray'); }
@@ -67,8 +213,12 @@ window.addEventListener('keydown', (e) => {
                 lastTapTime.p2Right = now;
             }
             if (e.code === 'Numpad5') triggerPlayerAction(fighter2, fighter1, 'dash');
-            if (e.code === 'Numpad1' || e.code === 'KeyI') triggerPlayerAction(fighter2, fighter1, 'light');
-            if (e.code === 'Numpad2' || e.code === 'KeyO') triggerPlayerAction(fighter2, fighter1, 'heavy');
+            if (e.code === 'Numpad6' || ((e.code === 'Numpad1' || e.code === 'KeyI') && (keys['Numpad2'] || keys['KeyO']))) {
+                triggerPlayerAction(fighter2, fighter1, 'throw');
+            } else {
+                if (e.code === 'Numpad1' || e.code === 'KeyI') triggerPlayerAction(fighter2, fighter1, 'light');
+                if (e.code === 'Numpad2' || e.code === 'KeyO') triggerPlayerAction(fighter2, fighter1, 'heavy');
+            }
             if (e.code === 'Numpad3' || e.code === 'KeyP') triggerPlayerAction(fighter2, fighter1, 'special');
             if (e.code === 'Numpad4') triggerPlayerAction(fighter2, fighter1, 'special2');
             if (e.code === 'Numpad0' || e.code === 'KeyM') triggerPlayerAction(fighter2, fighter1, 'xray');
@@ -83,6 +233,7 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'KeyW' || e.code === 'KeyZ' || e.code === 'ArrowUp') flashArcadeButton('uiBtnUp', false);
     if (e.code === 'KeyS' || e.code === 'ArrowDown') flashArcadeButton('uiBtnDown', false);
     if (e.code === 'KeyE') flashArcadeButton('uiBtnDash', false);
+    if (e.code === 'KeyC') flashArcadeButton('uiBtnThrow', false);
     if (e.code === 'KeyF' || e.code === 'KeyJ') flashArcadeButton('uiBtnLight', false);
     if (e.code === 'KeyG' || e.code === 'KeyK') flashArcadeButton('uiBtnHeavy', false);
     if (e.code === 'KeyH' || e.code === 'KeyL') flashArcadeButton('uiBtnSpecial', false);
@@ -103,7 +254,6 @@ const gpState = {
 
 // Variables d'état de navigation pour chaque écran
 let mainMenuFocusIdx = 0;
-let mainMenuInHeader = false;
 let headerFocusIdx = 0;
 
 let selectFocusZone = 'grid'; // 'grid' | 'bottom' | 'header'
@@ -118,7 +268,8 @@ let postMatchIdx = 0;
 
 // Fonctions d'indication visuelle (focus halo doré)
 function setGamepadFocus(el) {
-    if (currentFocusedElement && currentFocusedElement !== el) {
+    if (currentFocusedElement === el) return;
+    if (currentFocusedElement) {
         currentFocusedElement.classList.remove('gamepad-focused');
     }
     currentFocusedElement = el;
@@ -196,42 +347,50 @@ function updateGamepadHelperHUD() {
     const settingsModal = document.getElementById('settingsModal');
     const isSettingsModalOpen = settingsModal && !settingsModal.classList.contains('hidden');
 
+    const pauseModal = document.getElementById('pauseModal');
+    const isPauseOpen = pauseModal && !pauseModal.classList.contains('hidden');
+
     const postMatchMenu = document.getElementById('postMatchMenu');
     const isPostMatchOpen = postMatchMenu && !postMatchMenu.classList.contains('hidden');
 
     if (isMovesModalOpen) {
+        bar.style.display = 'flex';
         bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold">📜 GRIMOIRE</span>
+            <span class="text-amber-400 font-extrabold font-chakra">📜 GRIMOIRE</span>
             <span class="gp-key">Stick / D-Pad</span> Défiler
             <span class="gp-key gp-key-gold">B / START</span> Fermer
         `;
     } else if (isSettingsModalOpen) {
+        bar.style.display = 'flex';
         bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold">⚙️ PARAMÈTRES</span>
+            <span class="text-amber-400 font-extrabold font-chakra">⚙️ PARAMÈTRES</span>
             <span class="gp-key">D-Pad Haut/Bas</span> Naviguer
             <span class="gp-key gp-key-gold">◀ ▶ / A</span> Modifier
             <span class="gp-key">B / START</span> Fermer
         `;
-    } else if (matchState === 'match_over' || (isPostMatchOpen && matchState !== 'select' && matchState !== 'arena_select' && matchState !== 'main_menu' && matchState !== 'fight')) {
+    } else if (isPauseOpen) {
+        bar.style.display = 'flex';
         bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold">🏆 FIN DU MATCH</span>
+            <span class="text-amber-400 font-extrabold font-chakra">⏸ PAUSE</span>
+            <span class="gp-key">D-Pad Haut/Bas</span> Naviguer
+            <span class="gp-key gp-key-gold">A</span> Valider
+            <span class="gp-key">B / START</span> Reprendre
+        `;
+    } else if (matchState === 'match_over' || (isPostMatchOpen && matchState !== 'select' && matchState !== 'arena_select' && matchState !== 'main_menu' && matchState !== 'fight')) {
+        bar.style.display = 'flex';
+        bar.innerHTML = `
+            <span class="text-amber-400 font-extrabold font-chakra">🏆 FIN DU MATCH</span>
             <span class="gp-key">D-Pad Gauche/Droite</span> Choisir
             <span class="gp-key gp-key-gold">A</span> Valider
             <span class="gp-key">START</span> Revanche
             <span class="gp-key">B</span> Combattants
         `;
     } else if (matchState === 'main_menu') {
-        bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold">🎮 MENU</span>
-            <span class="gp-key">D-Pad</span> Naviguer
-            <span class="gp-key gp-key-gold">A</span> Valider
-            <span class="gp-key">B</span> Retour
-            <span class="gp-key">START</span> Paramètres
-            <span class="gp-key">SELECT</span> Grimoire
-        `;
+        bar.style.display = 'none';
     } else if (matchState === 'select') {
+        bar.style.display = 'flex';
         bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold">🦖 COMBATTANTS</span>
+            <span class="text-amber-400 font-extrabold font-chakra">🦖 COMBATTANTS</span>
             <span class="gp-key">D-Pad</span> Choisir
             <span class="gp-key gp-key-gold">A</span> Valider / Suivant
             <span class="gp-key">LB / RB</span> Skins J1
@@ -240,8 +399,9 @@ function updateGamepadHelperHUD() {
             <span class="gp-key">B</span> Menu
         `;
     } else if (matchState === 'arena_select') {
+        bar.style.display = 'flex';
         bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold">🌋 ARÈNES</span>
+            <span class="text-amber-400 font-extrabold font-chakra">🌋 ARÈNES</span>
             <span class="gp-key">D-Pad</span> Choisir Arène
             <span class="gp-key gp-key-action">START / A</span> Lancer le Kombat !
             <span class="gp-key">X</span> Aléatoire
@@ -249,21 +409,16 @@ function updateGamepadHelperHUD() {
         `;
     } else if (matchState === 'fight' || matchState === 'finish_him' || matchState === 'round_over' || matchState === 'intro') {
         if (matchState === 'finish_him') {
+            bar.style.display = 'flex';
             bar.innerHTML = `
-                <span class="text-red-400 animate-pulse font-black">💀 FINISH HIM !</span>
-                <span class="gp-key gp-key-action">A / RT / START</span> EXÉCUTER LA FATALITÉ !
+                <span class="text-red-400 animate-pulse font-black font-chakra">💀 FINISH HIM !</span>
+                <span class="gp-key gp-key-action font-chakra">A / RT / START</span> EXÉCUTER LA FATALITÉ !
             `;
         } else {
+            bar.style.display = 'flex';
             bar.innerHTML = `
-                <span class="text-amber-400 font-extrabold">⚔️ COMBAT</span>
-                <span class="gp-key">A</span> Léger
-                <span class="gp-key">X</span> Lourd
-                <span class="gp-key">Y</span> Spécial
-                <span class="gp-key">B</span> Ultra
-                <span class="gp-key">RB</span> Dash
-                <span class="gp-key gp-key-action">RT</span> X-Ray / Fatal
-                <span class="gp-key">R-Stick</span> Caméra
-                <span class="gp-key">START</span> Options
+                <span class="gp-key gp-key-gold font-chakra">START / ÉCHAP</span> Pause & Options
+                <span class="gp-key font-chakra">SELECT</span> Grimoire
             `;
         }
     }
@@ -346,10 +501,21 @@ function handleGamepadMovesModal(pad, dt) {
         if (nav === 'up') scrollContainer.scrollBy({ top: -140, behavior: 'smooth' });
     }
 
-    // Boutons de fermeture : B (1), Start (9), Select (8) ou A (0)
-    if (isGpBtnJustPressed(0, 1) || isGpBtnJustPressed(0, 8) || isGpBtnJustPressed(0, 9) || isGpBtnJustPressed(0, 0)) {
+    // Boutons de fermeture : B (1), Start (9), Select (8)
+    if (isGpBtnJustPressed(0, 1) || isGpBtnJustPressed(0, 8) || isGpBtnJustPressed(0, 9)) {
         sfx.playHit(false);
-        movesModal.classList.add('hidden');
+        if (typeof closeMovesModal === 'function') {
+            closeMovesModal();
+        } else {
+            movesModal.classList.add('hidden');
+            if (isMatchPaused) {
+                const pauseModal = document.getElementById('pauseModal');
+                if (pauseModal) {
+                    pauseModal.classList.remove('hidden');
+                    if (typeof updatePauseFocus === 'function') updatePauseFocus();
+                }
+            }
+        }
     }
 }
 
@@ -432,6 +598,39 @@ function handleGamepadSettingsModal(pad, dt) {
     }
 }
 
+// C. MENU DE PAUSE & OPTIONS RAPIDES (MODAL)
+function handleGamepadPauseModal(pad, dt) {
+    const pauseModal = document.getElementById('pauseModal');
+    if (!pauseModal || pauseModal.classList.contains('hidden')) return;
+
+    const buttons = typeof getPauseNavButtons === 'function' ? getPauseNavButtons() : [];
+    if (buttons.length === 0) return;
+
+    const nav = checkNavInput(pad, 0, dt);
+    if (nav === 'up') {
+        pauseFocusIdx = (pauseFocusIdx - 1 + buttons.length) % buttons.length;
+        sfx.playHit(false);
+        if (typeof updatePauseFocus === 'function') updatePauseFocus();
+    } else if (nav === 'down') {
+        pauseFocusIdx = (pauseFocusIdx + 1) % buttons.length;
+        sfx.playHit(false);
+        if (typeof updatePauseFocus === 'function') updatePauseFocus();
+    }
+
+    // [A] = Valider l'option sélectionnée
+    if (isGpBtnJustPressed(0, 0)) {
+        if (buttons[pauseFocusIdx]) {
+            buttons[pauseFocusIdx].click();
+        }
+    }
+
+    // [B] ou [START] = Reprendre le combat
+    if (isGpBtnJustPressed(0, 1) || isGpBtnJustPressed(0, 9)) {
+        sfx.playHit(false);
+        if (typeof closePauseMenu === 'function') closePauseMenu();
+    }
+}
+
 // C. ÉCRAN DE FIN DE MATCH (POST-MATCH)
 function handleGamepadPostMatch(pad, dt) {
     const postMatchMenu = document.getElementById('postMatchMenu');
@@ -476,112 +675,36 @@ function handleGamepadPostMatch(pad, dt) {
 
 // D. MENU PRINCIPAL
 function getMainMenuNavElements() {
-    const list = [];
-    const btn1P = document.getElementById('btnMenu1P');
-    if (btn1P) list.push(btn1P);
-
-    const sub1P = document.getElementById('submenu1P');
-    if (sub1P && !sub1P.classList.contains('hidden')) {
-        ['btnSubCampaign', 'btnSubVsAI', 'btnSubPractice'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) list.push(el);
-        });
-    }
-
-    const btn2P = document.getElementById('btnMenu2P');
-    if (btn2P) list.push(btn2P);
-
-    const sub2P = document.getElementById('submenu2P');
-    if (sub2P && !sub2P.classList.contains('hidden')) {
-        const el = document.getElementById('btnSubPvP');
-        if (el) list.push(el);
-    }
-
-    const btnSet = document.getElementById('btnMenuSettings');
-    if (btnSet) list.push(btnSet);
-
-    const btnMov = document.getElementById('btnMenuMoves');
-    if (btnMov) list.push(btnMov);
-
-    return list;
-}
-
-function getHeaderNavElements() {
-    const list = [];
-    ['btnHome', 'btnHeaderSettings', 'btnToggleSound', 'btnShowMoves', 'btnBackToSelect'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el && !el.classList.contains('hidden')) list.push(el);
-    });
-    return list;
+    return Array.from(document.querySelectorAll('#mainMenu .stone-slab-btn')).filter(b => !b.classList.contains('hidden'));
 }
 
 function handleGamepadMainMenu(pad, dt) {
     const nav = checkNavInput(pad, 0, dt);
     const menuButtons = getMainMenuNavElements();
-    const headerButtons = getHeaderNavElements();
+    if (menuButtons.length === 0) return;
 
-    if (mainMenuInHeader) {
-        if (nav === 'left') {
-            headerFocusIdx = (headerFocusIdx - 1 + headerButtons.length) % headerButtons.length;
-            sfx.playHit(false);
-        } else if (nav === 'right') {
-            headerFocusIdx = (headerFocusIdx + 1) % headerButtons.length;
-            sfx.playHit(false);
-        } else if (nav === 'down') {
-            mainMenuInHeader = false;
-            sfx.playHit(false);
-        }
+    if (nav === 'up') {
+        mainMenuFocusIdx = (mainMenuFocusIdx - 1 + menuButtons.length) % menuButtons.length;
+        sfx.playHit(false);
+    } else if (nav === 'down') {
+        mainMenuFocusIdx = (mainMenuFocusIdx + 1) % menuButtons.length;
+        sfx.playHit(false);
+    }
 
-        const target = headerButtons[headerFocusIdx];
-        if (target) setGamepadFocus(target);
+    mainMenuFocusIdx = Math.max(0, Math.min(menuButtons.length - 1, mainMenuFocusIdx));
+    const target = menuButtons[mainMenuFocusIdx];
+    if (target) {
+        setGamepadFocus(target);
+        if (typeof selectMainMenuSlab === 'function') {
+            selectMainMenuSlab(target);
+        } else {
+            menuButtons.forEach(b => b.classList.remove('active', 'selected'));
+            target.classList.add('active', 'selected');
+        }
+    }
 
-        if (isGpBtnJustPressed(0, 0)) {
-            if (target) target.click();
-        }
-        if (isGpBtnJustPressed(0, 1)) {
-            mainMenuInHeader = false;
-        }
-    } else {
-        if (nav === 'up') {
-            if (mainMenuFocusIdx > 0) {
-                mainMenuFocusIdx--;
-                sfx.playHit(false);
-            } else {
-                mainMenuInHeader = true;
-                headerFocusIdx = 0;
-                sfx.playHit(false);
-            }
-        } else if (nav === 'down') {
-            if (mainMenuFocusIdx < menuButtons.length - 1) {
-                mainMenuFocusIdx++;
-                sfx.playHit(false);
-            }
-        }
-
-        mainMenuFocusIdx = Math.max(0, Math.min(menuButtons.length - 1, mainMenuFocusIdx));
-        const target = menuButtons[mainMenuFocusIdx];
-        if (target) setGamepadFocus(target);
-
-        if (isGpBtnJustPressed(0, 0)) {
-            if (target) target.click();
-        }
-
-        // Touche B : refermer le sous-menu si actif
-        if (isGpBtnJustPressed(0, 1)) {
-            const sub1P = document.getElementById('submenu1P');
-            const sub2P = document.getElementById('submenu2P');
-            if (sub1P && !sub1P.classList.contains('hidden')) {
-                sub1P.classList.add('hidden');
-                sub1P.classList.remove('flex');
-                mainMenuFocusIdx = 0;
-                sfx.playHit(false);
-            } else if (sub2P && !sub2P.classList.contains('hidden')) {
-                sub2P.classList.add('hidden');
-                sub2P.classList.remove('flex');
-                mainMenuFocusIdx = 1;
-                sfx.playHit(false);
-            }
-        }
+    if (isGpBtnJustPressed(0, 0)) {
+        if (target) target.click();
     }
 
     // Raccourcis globaux du menu
@@ -591,6 +714,7 @@ function handleGamepadMainMenu(pad, dt) {
     }
     if (isGpBtnJustPressed(0, 8)) { // Select = Grimoire
         sfx.playHit(false);
+        if (typeof renderMovesModalList === 'function') renderMovesModalList();
         document.getElementById('movesModal').classList.remove('hidden');
     }
 }
@@ -837,17 +961,21 @@ function handleGamepadArenaScreen(pad, dt) {
 
 // G. COMBAT EN ARÈNE 3D & FINISH HIM
 function handleGamepadBattle(pad, pad2, dt) {
-    if (xrayCinematicTimer > 0) return;
+    if (xrayCinematicTimer > 0 || isMatchPaused) return;
 
     // Raccourcis universels pendant le combat
-    if (isGpBtnJustPressed(0, 9)) { // Start = Pause & Paramètres
+    if (isGpBtnJustPressed(0, 9)) { // Start = Pause & Menu Options
         sfx.playHit(false);
-        openSettingsModal();
+        handleEscapeOrStartAction();
         return;
     }
     if (isGpBtnJustPressed(0, 8)) { // Select = Grimoire des coups & Fatalités
         sfx.playHit(false);
-        document.getElementById('movesModal').classList.remove('hidden');
+        const mm = document.getElementById('movesModal');
+        if (mm) {
+            if (typeof renderMovesModalList === 'function') renderMovesModalList();
+            mm.classList.remove('hidden');
+        }
         return;
     }
 
@@ -882,10 +1010,10 @@ function handleGamepadBattle(pad, pad2, dt) {
     if (pad && fighter1 && fighter2) {
         const axX = pad.axes[0] || 0;
         const axY = pad.axes[1] || 0;
-        touchState.left = axX < -0.35 || !!(pad.buttons[14]?.pressed);
-        touchState.right = axX > 0.35 || !!(pad.buttons[15]?.pressed);
-        touchState.up = axY < -0.45 || !!(pad.buttons[12]?.pressed);
-        touchState.down = axY > 0.45 || !!(pad.buttons[13]?.pressed);
+        touchState.left = axX < -0.28 || !!(pad.buttons[14]?.pressed);
+        touchState.right = axX > 0.28 || !!(pad.buttons[15]?.pressed);
+        touchState.up = axY < -0.28 || !!(pad.buttons[12]?.pressed);
+        touchState.down = axY > 0.28 || !!(pad.buttons[13]?.pressed);
 
         // Retour visuel sur les touches tactiles
         flashArcadeButton('uiBtnLeft', touchState.left);
@@ -893,12 +1021,17 @@ function handleGamepadBattle(pad, pad2, dt) {
         flashArcadeButton('uiBtnUp', touchState.up);
         flashArcadeButton('uiBtnDown', touchState.down);
 
-        // Actions J1 (Attaques & Dash)
-        if (isGpBtnJustPressed(0, 0)) { flashArcadeButton('uiBtnLight', true); triggerPlayerAction(fighter1, fighter2, 'light'); }
-        if (isGpBtnJustPressed(0, 2)) { flashArcadeButton('uiBtnHeavy', true); triggerPlayerAction(fighter1, fighter2, 'heavy'); }
+        // Actions J1 (Attaques, Projection & Dash)
+        if (isGpBtnJustPressed(0, 4) || (isGpBtnJustPressed(0, 0) && pad.buttons[2]?.pressed) || (isGpBtnJustPressed(0, 2) && pad.buttons[0]?.pressed)) {
+            flashArcadeButton('uiBtnThrow', true);
+            triggerPlayerAction(fighter1, fighter2, 'throw');
+        } else {
+            if (isGpBtnJustPressed(0, 0)) { flashArcadeButton('uiBtnLight', true); triggerPlayerAction(fighter1, fighter2, 'light'); }
+            if (isGpBtnJustPressed(0, 2)) { flashArcadeButton('uiBtnHeavy', true); triggerPlayerAction(fighter1, fighter2, 'heavy'); }
+        }
         if (isGpBtnJustPressed(0, 3)) { flashArcadeButton('uiBtnSpecial', true); triggerPlayerAction(fighter1, fighter2, 'special'); }
         if (isGpBtnJustPressed(0, 1)) { flashArcadeButton('uiBtnSpecial2', true); triggerPlayerAction(fighter1, fighter2, 'special2'); }
-        if (isGpBtnJustPressed(0, 5) || isGpBtnJustPressed(0, 4)) { flashArcadeButton('uiBtnDash', true); triggerPlayerAction(fighter1, fighter2, 'dash'); }
+        if (isGpBtnJustPressed(0, 5)) { flashArcadeButton('uiBtnDash', true); triggerPlayerAction(fighter1, fighter2, 'dash'); }
         if (isGpBtnJustPressed(0, 7) || isGpBtnJustPressed(0, 6)) { flashArcadeButton('btnRageFatality', true); triggerPlayerAction(fighter1, fighter2, 'xray'); }
     }
 
@@ -906,16 +1039,20 @@ function handleGamepadBattle(pad, pad2, dt) {
     if (pad2 && gameMode === 'pvp' && fighter2 && fighter1) {
         const axX2 = pad2.axes[0] || 0;
         const axY2 = pad2.axes[1] || 0;
-        p2TouchState.left = axX2 < -0.35 || !!(pad2.buttons[14]?.pressed);
-        p2TouchState.right = axX2 > 0.35 || !!(pad2.buttons[15]?.pressed);
-        p2TouchState.up = axY2 < -0.45 || !!(pad2.buttons[12]?.pressed);
-        p2TouchState.down = axY2 > 0.45 || !!(pad2.buttons[13]?.pressed);
+        p2TouchState.left = axX2 < -0.28 || !!(pad2.buttons[14]?.pressed);
+        p2TouchState.right = axX2 > 0.28 || !!(pad2.buttons[15]?.pressed);
+        p2TouchState.up = axY2 < -0.28 || !!(pad2.buttons[12]?.pressed);
+        p2TouchState.down = axY2 > 0.28 || !!(pad2.buttons[13]?.pressed);
 
-        if (isGpBtnJustPressed(1, 0)) triggerPlayerAction(fighter2, fighter1, 'light');
-        if (isGpBtnJustPressed(1, 2)) triggerPlayerAction(fighter2, fighter1, 'heavy');
+        if (isGpBtnJustPressed(1, 4) || (isGpBtnJustPressed(1, 0) && pad2.buttons[2]?.pressed) || (isGpBtnJustPressed(1, 2) && pad2.buttons[0]?.pressed)) {
+            triggerPlayerAction(fighter2, fighter1, 'throw');
+        } else {
+            if (isGpBtnJustPressed(1, 0)) triggerPlayerAction(fighter2, fighter1, 'light');
+            if (isGpBtnJustPressed(1, 2)) triggerPlayerAction(fighter2, fighter1, 'heavy');
+        }
         if (isGpBtnJustPressed(1, 3)) triggerPlayerAction(fighter2, fighter1, 'special');
         if (isGpBtnJustPressed(1, 1)) triggerPlayerAction(fighter2, fighter1, 'special2');
-        if (isGpBtnJustPressed(1, 5) || isGpBtnJustPressed(1, 4)) triggerPlayerAction(fighter2, fighter1, 'dash');
+        if (isGpBtnJustPressed(1, 5)) triggerPlayerAction(fighter2, fighter1, 'dash');
         if (isGpBtnJustPressed(1, 7) || isGpBtnJustPressed(1, 6)) triggerPlayerAction(fighter2, fighter1, 'xray');
     }
 }
@@ -961,6 +1098,9 @@ function pollGamepadInputs(dt = 0.016, now = performance.now()) {
     const settingsModal = document.getElementById('settingsModal');
     const isSettingsModalOpen = settingsModal && !settingsModal.classList.contains('hidden');
 
+    const pauseModal = document.getElementById('pauseModal');
+    const isPauseOpen = pauseModal && !pauseModal.classList.contains('hidden');
+
     const postMatchMenu = document.getElementById('postMatchMenu');
     const isPostMatchOpen = postMatchMenu && !postMatchMenu.classList.contains('hidden');
 
@@ -969,6 +1109,9 @@ function pollGamepadInputs(dt = 0.016, now = performance.now()) {
         handleGamepadMovesModal(pad1, dt);
     } else if (isSettingsModalOpen) {
         handleGamepadSettingsModal(pad1, dt);
+    } else if (isPauseOpen) {
+        clearGamepadFocus();
+        handleGamepadPauseModal(pad1, dt);
     } else if (matchState === 'match_over' || (isPostMatchOpen && matchState !== 'select' && matchState !== 'arena_select' && matchState !== 'main_menu' && matchState !== 'fight')) {
         handleGamepadPostMatch(pad1, dt);
     } else if (matchState === 'main_menu') {
@@ -995,31 +1138,66 @@ function handlePlayer1Inputs(dt) {
     const moveLeft = keys['KeyA'] || keys['KeyQ'] || (gameMode !== 'pvp' && keys['ArrowLeft']) || touchState.left;
     const moveRight = keys['KeyD'] || (gameMode !== 'pvp' && keys['ArrowRight']) || touchState.right;
     const jump = keys['KeyW'] || keys['KeyZ'] || (gameMode !== 'pvp' && keys['ArrowUp']) || touchState.up;
-    const block = keys['KeyS'] || keys['ShiftLeft'] || (gameMode !== 'pvp' && keys['ArrowDown']) || touchState.down;
+    const crouchKey = keys['KeyS'] || keys['ShiftLeft'] || (gameMode !== 'pvp' && keys['ArrowDown']) || touchState.down;
 
-    // Permettre le contrôle aérien même pendant une attaque sautée
+    // Détection directionnelle absolue relative à l'adversaire
+    const isBack = (fighter1.facing === 1 && moveLeft) || (fighter1.facing === -1 && moveRight);
+    const isForward = (fighter1.facing === 1 && moveRight) || (fighter1.facing === -1 && moveLeft);
+    const isDown = crouchKey;
+
+    // Vitesse de base modifiée par le poison éventuel
+    let curWalkSpd = fighter1.dino.walkSpeed;
+    if (fighter1.poisonStacks >= 2) curWalkSpd *= 0.65;
+
+    // Quetzalcoatlus : Mécanique de Plané Stratosphérique (Glide)
+    if (fighter1.dino.id === 'quetzalcoatlus' && jump && fighter1.y > 0.35 && fighter1.vy < 0) {
+        fighter1.vy = Math.max(fighter1.vy, -1.6);
+        if (moveLeft) fighter1.x -= curWalkSpd * 1.25 * dt;
+        if (moveRight) fighter1.x += curWalkSpd * 1.25 * dt;
+    }
+
+    // Contrôle aérien pendant les sauts
     if (fighter1.y > 0.05 && fighter1.dashTimer <= 0) {
-        if (moveLeft) fighter1.x -= fighter1.dino.walkSpeed * 0.85 * dt;
-        if (moveRight) fighter1.x += fighter1.dino.walkSpeed * 0.85 * dt;
+        if (moveLeft) fighter1.x -= curWalkSpd * 0.85 * dt;
+        if (moveRight) fighter1.x += curWalkSpd * 0.85 * dt;
     }
 
     if (fighter1.actionDuration > 0 || fighter1.dashTimer > 0) return;
 
-    fighter1.isBlocking = block && fighter1.y <= 0.01;
-    if (fighter1.isBlocking) {
+    // --- SYSTÈME DE GARDE MODERNE (HAUTE / BASSE) ---
+    // 1. Garde Basse : Bas + Arrière OU Touche Bas seule
+    if (isDown && fighter1.y <= 0.01) {
+        fighter1.isBlocking = true;
+        fighter1.blockType = 'low';
         fighter1.action = 'crouch';
         return;
     }
-    if (jump && fighter1.y <= 0.01) {
-        fighter1.vy = 11.8;
-        if (moveLeft) fighter1.vx = -fighter1.dino.walkSpeed * 0.65;
-        if (moveRight) fighter1.vx = fighter1.dino.walkSpeed * 0.65;
+
+    // 2. Garde Haute : Maintenir Arrière (s'éloigner de l'adversaire)
+    if (isBack && !jump && fighter1.y <= 0.01) {
+        fighter1.isBlocking = true;
+        fighter1.blockType = 'high';
+        fighter1.action = 'walk';
+        fighter1.x -= fighter1.facing * curWalkSpd * 0.55 * dt;
+        return;
     }
+
+    // Pas de garde active
+    fighter1.isBlocking = false;
+    fighter1.blockType = 'none';
+
+    // Saut avec vélocité de classe de poids (Heavy: 10.5, Brawler: 11.8, Speed: 12.8)
+    if (jump && fighter1.y <= 0.01) {
+        fighter1.vy = fighter1.jumpVy || 11.8;
+        if (moveLeft) fighter1.vx = -curWalkSpd * 0.65;
+        if (moveRight) fighter1.vx = curWalkSpd * 0.65;
+    }
+
     if (moveLeft) {
-        fighter1.x -= fighter1.dino.walkSpeed * dt;
+        fighter1.x -= curWalkSpd * dt;
         fighter1.action = 'walk';
     } else if (moveRight) {
-        fighter1.x += fighter1.dino.walkSpeed * dt;
+        fighter1.x += curWalkSpd * dt;
         fighter1.action = 'walk';
     } else {
         fighter1.action = 'idle';
@@ -1032,30 +1210,59 @@ function handlePlayer2Inputs(dt) {
     const moveLeft = keys['ArrowLeft'] || p2TouchState.left;
     const moveRight = keys['ArrowRight'] || p2TouchState.right;
     const jump = keys['ArrowUp'] || p2TouchState.up;
-    const block = keys['ArrowDown'] || p2TouchState.down;
+    const crouchKey = keys['ArrowDown'] || p2TouchState.down;
+
+    const isBack = (fighter2.facing === 1 && moveLeft) || (fighter2.facing === -1 && moveRight);
+    const isForward = (fighter2.facing === 1 && moveRight) || (fighter2.facing === -1 && moveLeft);
+    const isDown = crouchKey;
+
+    let curWalkSpd = fighter2.dino.walkSpeed;
+    if (fighter2.poisonStacks >= 2) curWalkSpd *= 0.65;
+
+    // Quetzalcoatlus Glide J2
+    if (fighter2.dino.id === 'quetzalcoatlus' && jump && fighter2.y > 0.35 && fighter2.vy < 0) {
+        fighter2.vy = Math.max(fighter2.vy, -1.6);
+        if (moveLeft) fighter2.x -= curWalkSpd * 1.25 * dt;
+        if (moveRight) fighter2.x += curWalkSpd * 1.25 * dt;
+    }
 
     if (fighter2.y > 0.05 && fighter2.dashTimer <= 0) {
-        if (moveLeft) fighter2.x -= fighter2.dino.walkSpeed * 0.85 * dt;
-        if (moveRight) fighter2.x += fighter2.dino.walkSpeed * 0.85 * dt;
+        if (moveLeft) fighter2.x -= curWalkSpd * 0.85 * dt;
+        if (moveRight) fighter2.x += curWalkSpd * 0.85 * dt;
     }
 
     if (fighter2.actionDuration > 0 || fighter2.dashTimer > 0) return;
 
-    fighter2.isBlocking = block && fighter2.y <= 0.01;
-    if (fighter2.isBlocking) {
+    // Garde Basse J2
+    if (isDown && fighter2.y <= 0.01) {
+        fighter2.isBlocking = true;
+        fighter2.blockType = 'low';
         fighter2.action = 'crouch';
         return;
     }
+
+    // Garde Haute J2
+    if (isBack && !jump && fighter2.y <= 0.01) {
+        fighter2.isBlocking = true;
+        fighter2.blockType = 'high';
+        fighter2.action = 'walk';
+        fighter2.x -= fighter2.facing * curWalkSpd * 0.55 * dt;
+        return;
+    }
+
+    fighter2.isBlocking = false;
+    fighter2.blockType = 'none';
+
     if (jump && fighter2.y <= 0.01) {
-        fighter2.vy = 11.8;
-        if (moveLeft) fighter2.vx = -fighter2.dino.walkSpeed * 0.65;
-        if (moveRight) fighter2.vx = fighter2.dino.walkSpeed * 0.65;
+        fighter2.vy = fighter2.jumpVy || 11.8;
+        if (moveLeft) fighter2.vx = -curWalkSpd * 0.65;
+        if (moveRight) fighter2.vx = curWalkSpd * 0.65;
     }
     if (moveLeft) {
-        fighter2.x -= fighter2.dino.walkSpeed * dt;
+        fighter2.x -= curWalkSpd * dt;
         fighter2.action = 'walk';
     } else if (moveRight) {
-        fighter2.x += fighter2.dino.walkSpeed * dt;
+        fighter2.x += curWalkSpd * dt;
         fighter2.action = 'walk';
     } else {
         fighter2.action = 'idle';

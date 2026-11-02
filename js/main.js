@@ -16,7 +16,9 @@ function mainGameLoop(now) {
     } else if (matchState === 'main_menu') {
         // Menu principal actif
     } else {
-        updateBattle3D(dt, now * 0.001);
+        if (!isMatchPaused) {
+            updateBattle3D(dt, now * 0.001);
+        }
         renderBattle3D(now);
     }
 
@@ -66,6 +68,11 @@ function bootGame() {
     } else if (urlParams.get('screen') === 'arena') {
         openArenaChooser();
         updateArenaPreview(16);
+    } else if (urlParams.get('screen') === 'battle') {
+        startMatch();
+        if (urlParams.get('pause') === '1' && typeof openPauseMenu === 'function') {
+            openPauseMenu();
+        }
     } else {
         goToMainMenu();
     }

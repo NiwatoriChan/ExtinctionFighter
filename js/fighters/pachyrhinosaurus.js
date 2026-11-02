@@ -108,22 +108,58 @@ registerFighter({
         rig.legs[2].rotation.z = -s;
     },
 
-    // Animations d'attaques (light / heavy / special / special2 / xray)
+    hasCustomDirectionals: true,
+
+    // Animations d'attaques claires et distinctes pour chaque coup
     animateAttack(ctx) {
-        const { rig, act, prog, swing } = ctx;
+        const { rig, act, prog, swing, strike, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
+
         if (act === 'light') {
-            // Coup de cornes de collerette vers le haut
-            rig.headGroup.rotation.z = swing * 0.75;
-        } else if (act === 'heavy' || act === 'special') {
+            // Coup Léger 1 : Coup de cornes de collerette gauche
+            rig.headGroup.rotation.z = s * 0.75;
+            rig.headGroup.rotation.y = s * 0.35;
+        } else if (act === 'light2') {
+            // Coup Léger 2 (Combo 1-2) : Coup de corne croisé vers la droite
+            rig.headGroup.rotation.z = s * 0.85;
+            rig.headGroup.rotation.y = -s * 0.45;
+        } else if (act === 'fwd_light') {
+            // Avant + Léger (Bélier perçant) : Allongement de la bosse nasale
+            rig.hips.position.x = s * 0.95;
+            rig.torso.rotation.z = -s * 0.35;
+            rig.headGroup.rotation.z = -0.3 + s * 0.65;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Direction BAS ⬇️ (Balayage bas) : Mufle au ras du sol
+            rig.hips.position.y = (baseHipsY || 2.1) * 0.58;
+            rig.headGroup.rotation.z = -0.65 + s * 0.45;
+            rig.headGroup.rotation.y = Math.cos(prog * Math.PI) * 0.65;
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Direction HAUT ⬆️ (Anti-Air Launcher / Ciel) : Soulèvement violent vers le ciel
+            rig.hips.position.y = (baseHipsY || 2.1) + s * 0.65;
+            rig.torso.rotation.z = s * 0.55;
+            rig.headGroup.rotation.z = s * 1.05;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Recul compact et coup de bosse nasale protecteur
+            rig.hips.position.x = -s * 0.7;
+            rig.headGroup.rotation.z = s * 0.55;
+        } else if (act === 'throw') {
+            // Chope : Soulèvement sur les cornes et projection
+            rig.hips.position.x = s * 0.85;
+            rig.headGroup.rotation.z = prog < 0.35 ? -0.45 : 0.85;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            // Plongeon aérien tête et cornes baissées
+            rig.torso.rotation.z = -s * 0.5;
+            rig.headGroup.rotation.z = -0.5 - s * 0.4;
+        } else if (act === 'heavy' || act === 'fwd_heavy' || act === 'special') {
             // Coup de bélier de la bosse nasale
-            rig.hips.position.x = swing * 0.85;
-            rig.torso.rotation.z = -swing * 0.25;
-            rig.headGroup.rotation.z = -0.45 + swing * 0.65;
-        } else {
-            // Piétinement des pattes avant (Cornes Sismiques)
+            rig.hips.position.x = s * (act === 'fwd_heavy' ? 1.35 : 0.85);
+            rig.torso.rotation.z = -s * 0.25;
+            rig.headGroup.rotation.z = -0.45 + s * 0.65;
+        } else if (act === 'special2') {
+            // Piétinement des pattes avant (Cornes Sismiques / Ultra)
             rig.torso.rotation.z = Math.sin(prog * Math.PI * 2) * 0.38;
-            rig.legs[0].rotation.z = swing * 0.8;
-            rig.legs[1].rotation.z = swing * 0.8;
+            rig.legs[0].rotation.z = s * 0.8;
+            rig.legs[1].rotation.z = s * 0.8;
         }
     },
 

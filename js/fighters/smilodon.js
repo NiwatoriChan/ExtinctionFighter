@@ -14,7 +14,7 @@ registerFighter({
     secondaryColor: 0x78350f,
     accentColor: 0xfef08a,
     cssPrimary: '#f59e0b',
-    scale: 1.02,
+    scale: 0.84,
     stats: { pow: 92, spd: 94, def: 78 },
     maxHp: 1000,
     walkSpeed: 8.8,
@@ -185,37 +185,87 @@ registerFighter({
         });
     },
 
-    // Animations des différentes attaques
+    hasCustomDirectionals: true,
+
+    // Animations des différentes attaques claires et lisibles
     animateAttack(ctx) {
-        const { rig, act, swing, prog, baseHipsY } = ctx;
+        const { rig, act, swing, strike, prog, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
 
         if (act === 'light') {
-            // Coup de patte griffu foudroyant
-            rig.torso.rotation.z = -swing * 0.42;
-            if (rig.legs[0]) rig.legs[0].rotation.z = swing * 1.35;
-            rig.headGroup.rotation.z = -swing * 0.35;
-            rig.jaw.rotation.z = -swing * 0.65;
-        } else if (act === 'heavy') {
+            // Coup 1 : Coup de patte griffu foudroyant gauche
+            rig.torso.rotation.z = -s * 0.42;
+            rig.torso.rotation.y = s * 0.25;
+            if (rig.legs[0]) rig.legs[0].rotation.z = s * 1.35;
+            rig.headGroup.rotation.z = -s * 0.35;
+            rig.jaw.rotation.z = -s * 0.65;
+        } else if (act === 'light2') {
+            // Coup 2 (Combo 1-2) : Coup de patte croisé opposé droite avec morsure
+            rig.torso.rotation.z = -s * 0.48;
+            rig.torso.rotation.y = -s * 0.38;
+            if (rig.legs[1]) rig.legs[1].rotation.z = s * 1.45;
+            rig.headGroup.rotation.z = -s * 0.45;
+            rig.jaw.rotation.z = -s * 0.95;
+        } else if (act === 'fwd_light') {
+            // Avant + Léger (Poke félin) : Bond rasoir et lacération allongée
+            rig.hips.position.x = s * 0.95;
+            rig.torso.rotation.z = -s * 0.45;
+            if (rig.legs[0]) rig.legs[0].rotation.z = s * 1.5;
+            rig.headGroup.rotation.z = -s * 0.4;
+            rig.jaw.rotation.z = -s * 0.8;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Bas + Attaque : Affaissement très bas et balayage félin au ras du sol
+            rig.hips.position.y = baseHipsY * 0.52;
+            rig.torso.rotation.z = -0.32;
+            if (rig.legs[0]) rig.legs[0].rotation.y = s * 1.25;
+            rig.jaw.rotation.z = -s * 0.65;
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Haut + Attaque : Saut vertical spectaculaire vers le ciel et griffes ascendantes
+            rig.hips.position.y = baseHipsY + s * 1.05;
+            rig.torso.rotation.z = s * 0.65;
+            if (rig.legs[0]) rig.legs[0].rotation.z = s * 1.6;
+            if (rig.legs[1]) rig.legs[1].rotation.z = s * 1.6;
+            rig.headGroup.rotation.z = s * 0.65;
+            rig.jaw.rotation.z = -s * 1.25;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Retrait félin et coup de patte d'interception
+            rig.hips.position.x = -s * 0.75;
+            rig.torso.rotation.z = s * 0.25;
+            if (rig.legs[0]) rig.legs[0].rotation.z = s * 1.1;
+        } else if (act === 'throw') {
+            // Chope : Placage au sol et saisie sauvage
+            rig.hips.position.x = s * 0.9;
+            rig.hips.position.y = baseHipsY * 0.65;
+            rig.headGroup.rotation.z = 0.55 * s;
+            rig.jaw.rotation.z = -1.15 * s;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            // Piqué félin toutes griffes et crocs en avant
+            rig.torso.rotation.z = -s * 0.55;
+            if (rig.legs[0]) rig.legs[0].rotation.z = s * 1.35;
+            if (rig.legs[1]) rig.legs[1].rotation.z = s * 1.35;
+            rig.jaw.rotation.z = -s * 0.95;
+        } else if (act === 'heavy' || act === 'fwd_heavy') {
             // Double bond percutant avec les deux pattes avant
-            rig.hips.position.y = baseHipsY + swing * 0.55;
-            rig.torso.rotation.z = swing * 0.5;
-            if (rig.legs[0]) rig.legs[0].rotation.z = swing * 1.1;
-            if (rig.legs[1]) rig.legs[1].rotation.z = swing * 1.1;
-            rig.jaw.rotation.z = -swing * 0.95;
+            rig.hips.position.y = baseHipsY + s * 0.55;
+            rig.hips.position.x = s * (act === 'fwd_heavy' ? 1.2 : 0.6);
+            rig.torso.rotation.z = s * 0.5;
+            if (rig.legs[0]) rig.legs[0].rotation.z = s * 1.1;
+            if (rig.legs[1]) rig.legs[1].rotation.z = s * 1.1;
+            rig.jaw.rotation.z = -s * 0.95;
         } else if (act === 'special') {
             // Bond Prédateur : arc aérien majestueux toutes griffes dehors
-            rig.hips.position.y = baseHipsY + swing * 0.85;
-            rig.torso.rotation.z = -0.2 + swing * 0.4;
+            rig.hips.position.y = baseHipsY + s * 0.85;
+            rig.torso.rotation.z = -0.2 + s * 0.4;
             if (rig.legs[0]) rig.legs[0].rotation.z = 0.9;
             if (rig.legs[1]) rig.legs[1].rotation.z = 0.9;
             rig.jaw.rotation.z = -1.0;
         } else if (act === 'special2') {
             // Morsure Mortelle : ouverture à 110° des mâchoires puis projection des sabres
-            rig.hips.position.x = swing * 0.85;
-            rig.headGroup.rotation.z = -0.4 + swing * 0.8;
-            rig.jaw.rotation.z = -1.25 * swing;
+            rig.hips.position.x = s * 0.85;
+            rig.headGroup.rotation.z = -0.4 + s * 0.8;
+            rig.jaw.rotation.z = -1.25 * s;
         } else {
-            rig.torso.rotation.z = swing * 0.3;
+            rig.torso.rotation.z = s * 0.3;
         }
     },
 

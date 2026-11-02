@@ -13,7 +13,7 @@ registerFighter({
     secondaryColor: 0x4c1d95,
     accentColor: 0x38bdf8,
     cssPrimary: '#7c3aed',
-    scale: 1.15,
+    scale: 1.25,
     stats: { pow: 98, spd: 58, def: 94 },
     maxHp: 1250,
     walkSpeed: 6.2,
@@ -121,21 +121,70 @@ registerFighter({
         rig.legs[2].rotation.z = -s;
     },
 
+    hasCustomDirectionals: true,
+
     // Animations d'attaques (light / heavy / special / special2 / xray)
     animateAttack(ctx) {
-        const { rig, act, prog, swing } = ctx;
+        const { rig, act, prog, swing, baseHipsY } = ctx;
         if (act === 'light') {
-            // Grand balayage du long cou
+            // Grand balayage du long cou vers la gauche
             rig.specialParts.neckSegments.forEach((nSeg, i) => {
                 nSeg.rotation.z = -swing * (0.42 - i * 0.08);
-                nSeg.rotation.y = Math.sin(prog * Math.PI * 2) * 0.45;
+                nSeg.rotation.y = swing * 0.45;
             });
+            rig.headGroup.rotation.y = swing * 0.55;
+        } else if (act === 'light2') {
+            // Coup de cou en retour vers la droite
+            rig.specialParts.neckSegments.forEach((nSeg, i) => {
+                nSeg.rotation.z = -swing * (0.35 - i * 0.06);
+                nSeg.rotation.y = -swing * 0.45;
+            });
+            rig.headGroup.rotation.y = -swing * 0.55;
+        } else if (act === 'fwd_light') {
+            // Harponnage perforant du cou en avant
+            rig.hips.position.x = swing * 0.8;
+            rig.specialParts.neckSegments.forEach((nSeg, i) => {
+                nSeg.rotation.z = -swing * 0.38;
+            });
+            rig.headGroup.position.x = swing * 0.6;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Direction BAS ⬇️ (Balayage bas) : Fouet caudal au ras du sol fauchant l'ennemi
+            rig.hips.rotation.y = Math.PI * swing * 0.75;
+            rig.hips.position.y = baseHipsY - swing * 0.2;
+            rig.tailSegments.forEach((s, i) => {
+                s.rotation.y = Math.sin(prog * Math.PI * 2 - i * 0.3) * 0.6;
+                s.position.y = -swing * 0.25;
+            });
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Direction HAUT ⬆️ (Anti-Air Launcher / Ciel) : Cabré sauropode avec cou et tête projetés vers le ciel
+            rig.hips.rotation.z = swing * 0.7;
+            rig.specialParts.neckSegments.forEach(n => { n.rotation.z = swing * 0.45; });
+            rig.headGroup.rotation.z = swing * 0.6;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Retrait du cou et coup de fouet protecteur
+            rig.hips.position.x = -swing * 0.65;
+            rig.specialParts.neckSegments.forEach(n => { n.rotation.z = swing * 0.35; });
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            rig.hips.rotation.z = -swing * 0.4;
+            rig.legs.forEach(l => { l.rotation.z = swing * 0.6; });
+        } else if (act === 'fwd_heavy') {
+            // Épaulement colossale en charge
+            rig.hips.position.x = swing * 1.2;
+            rig.torso.rotation.z = -swing * 0.45;
+            rig.specialParts.neckSegments.forEach(n => { n.rotation.z = -swing * 0.5; });
+        } else if (act === 'throw') {
+            // Écope au cou et projection par-dessus bord
+            rig.specialParts.neckSegments.forEach(n => { n.rotation.z = -swing * 0.6; });
+            rig.headGroup.rotation.z = swing * 0.9;
+        } else if (act === 'throw_whiff') {
+            rig.hips.position.x = swing * 0.35;
+            rig.specialParts.neckSegments.forEach(n => { n.rotation.z = -swing * 0.3; });
         } else if (act === 'heavy' || act === 'special2') {
             // Cabré titanesque et piétinement sismique
             rig.hips.rotation.z = Math.sin(prog * Math.PI) * 0.58;
             rig.legs[0].rotation.z = swing * 0.7;
             rig.legs[1].rotation.z = swing * 0.7;
-        } else {
+        } else if (act === 'special') {
             // Claquement de queue Fouet Supersonique
             rig.hips.rotation.y = Math.PI * swing;
             rig.tailSegments.forEach((s, i) => {

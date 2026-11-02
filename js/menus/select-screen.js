@@ -268,144 +268,224 @@ const FIGHTER_PORTRAITS = {
 };
 
 const SELECT_SCREEN_HTML = `
-        <!-- ==================== SCREEN 1: CHARACTER SELECT ==================== -->
-        <section id="selectScreen" class="w-full h-full flex-1 flex flex-col justify-between gap-2 py-1 max-w-7xl mx-auto select-none">
-            <!-- Top Navigation Bar (Clean & Focused: Back button + Mode title badge) -->
-            <div class="stone-panel rounded-xl px-4 py-2 flex items-center justify-between gap-2 shrink-0">
-                <button id="btnSelectBackToMain" class="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold text-zinc-300 hover:text-white transition flex items-center gap-1.5 border border-white/10">
-                    <span>←</span> <span>Menu Principal</span>
-                </button>
-                <div id="selectScreenModeBadge" class="text-xs sm:text-sm font-bold text-amber-400 tracking-wider uppercase">
-                    JOUEUR VS IA
+        <!-- ==================== SCREEN 1: CHARACTER SELECT (IMAGE 2 HOMAGE) ==================== -->
+        <section id="selectScreen" class="w-full h-full flex-1 flex flex-col justify-between p-2 sm:p-3 max-w-7xl mx-auto select-none relative z-10 overflow-hidden">
+            
+            <!-- Hanging Vines at top left and right (Image 2 ancient ruins ambiance) -->
+            <div class="absolute -top-2 left-4 w-28 h-36 pointer-events-none opacity-40 z-0">
+                <svg viewBox="0 0 100 130" class="w-full h-full drop-shadow">
+                    <path d="M12 0 Q30 45 18 85 Q12 110 24 130" stroke="#15803d" stroke-width="3" fill="none"/>
+                    <path d="M35 0 Q22 35 38 65 Q48 95 42 125" stroke="#16a34a" stroke-width="2" fill="none"/>
+                    <circle cx="18" cy="55" r="4.5" fill="#15803d"/>
+                    <circle cx="38" cy="85" r="5" fill="#22c55e"/>
+                    <polygon points="18,52 28,48 24,58" fill="#15803d"/>
+                    <polygon points="38,82 48,78 44,88" fill="#22c55e"/>
+                </svg>
+            </div>
+            <div class="absolute -top-2 right-4 w-28 h-36 pointer-events-none opacity-40 z-0">
+                <svg viewBox="0 0 100 130" class="w-full h-full drop-shadow">
+                    <path d="M88 0 Q70 45 82 85 Q88 110 76 130" stroke="#15803d" stroke-width="3" fill="none"/>
+                    <path d="M65 0 Q78 35 62 65 Q52 95 58 125" stroke="#16a34a" stroke-width="2" fill="none"/>
+                    <circle cx="82" cy="55" r="4.5" fill="#15803d"/>
+                    <circle cx="62" cy="85" r="5" fill="#22c55e"/>
+                    <polygon points="82,52 72,48 76,58" fill="#15803d"/>
+                    <polygon points="62,82 52,78 56,88" fill="#22c55e"/>
+                </svg>
+            </div>
+
+            <!-- TOP HEADER (MATCHING IMAGE 2: PLAYER 1 | SELECT YOUR BEAST | PLAYER 2) -->
+            <div class="w-full flex items-center justify-between px-2 sm:px-6 py-1 relative shrink-0">
+                <!-- Left: PLAYER 1 -->
+                <div class="flex flex-col items-start min-w-[120px]">
+                    <span class="font-chakra font-black text-lg sm:text-2xl text-sky-400 uppercase tracking-widest drop-shadow-[0_0_12px_#38bdf8]">
+                        PLAYER 1
+                    </span>
+                    <div class="w-28 sm:w-40 h-1 bg-gradient-to-r from-sky-400 to-transparent mt-0.5 shadow-[0_0_8px_#38bdf8]"></div>
                 </div>
-                <div class="text-[11px] text-zinc-400 hidden sm:block">
-                    Extinction Kombat 3D
+
+                <!-- Center: SELECT YOUR BEAST with dual glowing underlines -->
+                <div class="flex flex-col items-center justify-center text-center">
+                    <h1 class="beast-header-title text-xl sm:text-3xl md:text-4xl uppercase tracking-[0.2em]">
+                        SELECT YOUR BEAST
+                    </h1>
+                    <div class="w-48 sm:w-72 beast-underline-bar mt-1"></div>
+                    <div class="w-32 sm:w-48 beast-underline-bar mt-0.5 opacity-60"></div>
+                </div>
+
+                <!-- Right: PLAYER 2 / IA -->
+                <div class="flex flex-col items-end min-w-[120px]">
+                    <span id="p2HeaderLabel" class="font-chakra font-black text-lg sm:text-2xl text-red-500 uppercase tracking-widest drop-shadow-[0_0_12px_#ef4444]">
+                        PLAYER 2
+                    </span>
+                    <div class="w-28 sm:w-40 h-1 bg-gradient-to-l from-red-500 to-transparent mt-0.5 shadow-[0_0_8px_#ef4444]"></div>
                 </div>
             </div>
 
-            <!-- Fighter Preview & Roster Grid (Sketch layout: P1 3D - Center Roster - P2 3D) -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch flex-1 min-h-0">
-                <!-- P1 Preview Card (Left Column) -->
-                <div class="lg:col-span-3 stone-panel rounded-2xl p-3 flex flex-col justify-between overflow-y-auto">
-                    <div>
-                        <!-- Header pill -->
-                        <div class="flex items-center justify-between pb-1.5 border-b border-white/5">
-                            <span class="px-2 py-0.5 rounded-md bg-red-600/80 text-white text-[11px] font-black uppercase tracking-wider">Joueur 1</span>
-                            <span id="p1RoleBadge" class="text-[11px] text-amber-400 font-bold uppercase">Apex Carnivore</span>
-                        </div>
-                        <h2 id="p1NameDisplay" class="mk-title text-xl sm:text-2xl font-black text-white mt-1.5">T-REX</h2>
-                        <p id="p1TitleDisplay" class="text-xs text-red-400/90 font-medium italic">« Le Roi Sanglant du Crétacé »</p>
-
-                        <!-- 3D Preview (Prend plus de place dans la boîte, visage en focus, surplus masqué) -->
-                        <div class="w-full h-64 sm:h-76 my-1 relative flex items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-white/[0.04] via-black/20 to-black/60 shadow-inner">
-                            <canvas id="p1PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
-                            <img id="p1PreviewImg" alt="P1 Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-0" />
-                            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs shadow-lg z-20">
-                                <button id="btnP1PrevSkin" class="px-1.5 py-0.5 rounded text-amber-300 font-bold hover:text-white transition">&lt;</button>
-                                <span id="p1SkinName" class="font-bold text-amber-300 tracking-wide text-[11px] truncate">Skin: Primal</span>
-                                <button id="btnP1NextSkin" class="px-1.5 py-0.5 rounded text-amber-300 font-bold hover:text-white transition">&gt;</button>
-                            </div>
-                        </div>
-
-                        <!-- Stats -->
-                        <div class="space-y-2 text-xs mt-2">
-                            <div>
-                                <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>PUISSANCE</span><span id="p1StatPow" class="text-red-400">95%</span></div>
-                                <div class="w-full h-1.5 bg-zinc-800/80 rounded-full overflow-hidden"><div id="p1BarPow" class="h-full bg-gradient-to-r from-amber-500 to-red-600 rounded-full" style="width:95%"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>VITESSE</span><span id="p1StatSpd" class="text-amber-400">70%</span></div>
-                                <div class="w-full h-1.5 bg-zinc-800/80 rounded-full overflow-hidden"><div id="p1BarSpd" class="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full" style="width:70%"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>ARMURE / PV</span><span id="p1StatDef" class="text-emerald-400">85%</span></div>
-                                <div class="w-full h-1.5 bg-zinc-800/80 rounded-full overflow-hidden"><div id="p1BarDef" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style="width:85%"></div></div>
-                            </div>
+            <!-- THREE COLUMN ARENA SHOWCASE (P1 3D - CENTER 5-COL GRID - P2 3D) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3 items-stretch flex-1 min-h-0 my-auto">
+                
+                <!-- ================= LEFT COLUMN: P1 SHOWCASE ================= -->
+                <div class="lg:col-span-3 flex flex-col justify-between gap-1 overflow-hidden">
+                    <!-- 3D Pedestal Canvas Box -->
+                    <div class="w-full flex-1 relative flex items-center justify-center overflow-hidden min-h-[220px]">
+                        <canvas id="p1PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
+                        <img id="p1PreviewImg" alt="P1 3D Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-10" />
+                        <!-- Skin Selector Pill -->
+                        <div class="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-sky-400/40 text-[10px] text-sky-200 shadow-lg z-20">
+                            <button id="btnP1PrevSkin" class="px-1 text-sky-400 hover:text-white font-black">&lt;</button>
+                            <span id="p1SkinName" class="font-bold tracking-wide truncate max-w-[110px]">Skin: Primal</span>
+                            <button id="btnP1NextSkin" class="px-1 text-sky-400 hover:text-white font-black">&gt;</button>
                         </div>
                     </div>
 
-                    <div class="mt-3 pt-2 border-t border-white/5 text-[11px] space-y-1">
-                        <div class="text-amber-400 font-bold">⚡ Spécial : <span id="p1SpecName" class="text-zinc-300 font-normal">Morsure Sismique & Rugissement</span></div>
-                        <div class="text-red-400 font-bold">💀 Fatalité : <span id="p1FatalityName" class="text-zinc-300 font-normal">Dévoration Royale</span></div>
+                    <!-- P1 Recessed Stone Stat Box (Image 2) -->
+                    <div class="stone-panel rounded-xl p-2 sm:p-2.5 flex flex-col gap-1.5 shrink-0 border-sky-500/30">
+                        <!-- Stat Rows -->
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-chakra font-black text-[10px] sm:text-[11px] text-stone-300 w-16 uppercase">ATTACK</span>
+                                <div class="flex-1 stat-slot-trough"><div id="p1BarPow" class="stat-bar-cyan" style="width:95%"></div></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-chakra font-black text-[10px] sm:text-[11px] text-stone-300 w-16 uppercase">SPEED</span>
+                                <div class="flex-1 stat-slot-trough"><div id="p1BarSpd" class="stat-bar-cyan" style="width:70%"></div></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-chakra font-black text-[10px] sm:text-[11px] text-stone-300 w-16 uppercase">DEFENSE</span>
+                                <div class="flex-1 stat-slot-trough"><div id="p1BarDef" class="stat-bar-cyan" style="width:85%"></div></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-chakra font-black text-[10px] sm:text-[11px] text-stone-300 w-16 uppercase">RAGE</span>
+                                <div class="flex-1 stat-slot-trough"><div id="p1BarRage" class="stat-bar-red" style="width:80%"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Class & Special (Image 2) -->
+                        <div class="pt-1 border-t border-stone-700/60 font-chakra text-[10px] sm:text-[11px] leading-tight">
+                            <div class="text-amber-300/90 font-black tracking-wider uppercase">
+                                CLASS: <span id="p1ClassText" class="text-amber-100 font-extrabold">APEX PREDATOR</span>
+                            </div>
+                            <div class="text-amber-300/90 font-black tracking-wider uppercase mt-0.5">
+                                SPECIAL: <span id="p1SpecialText" class="text-amber-200 font-extrabold">CRUSHING BITE</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Center: 13-Dino Grid & Selection Actions (Roster with visual previews) -->
-                <div class="lg:col-span-6 stone-panel rounded-2xl p-3.5 flex flex-col justify-between overflow-hidden">
-                    <div class="text-center mb-1 shrink-0">
-                        <h3 class="mk-title text-base sm:text-lg text-amber-400 font-black tracking-wider uppercase">CHOISISSEZ VOTRE COMBATTANT</h3>
-                        <p id="selectPromptText" class="text-xs text-zinc-400 mt-0.5">Cliquez pour assigner votre champion</p>
+                <!-- ================= CENTER COLUMN: THE BEAST GRID (ROSTER) ================= -->
+                <div class="lg:col-span-6 beast-grid-frame rounded-2xl p-2 sm:p-3 flex flex-col justify-between overflow-hidden relative">
+                    <!-- Vine accents on corners -->
+                    <div class="absolute -top-1 -left-1 w-8 h-8 pointer-events-none text-emerald-500">
+                        <svg viewBox="0 0 32 32" class="w-full h-full"><path d="M0 0 Q16 4 28 20" fill="none" stroke="#22c55e" stroke-width="2.5"/><polygon points="12,2 18,8 10,10" fill="#16a34a"/></svg>
+                    </div>
+                    <div class="absolute -top-1 -right-1 w-8 h-8 pointer-events-none text-emerald-500">
+                        <svg viewBox="0 0 32 32" class="w-full h-full"><path d="M32 0 Q16 4 4 20" fill="none" stroke="#22c55e" stroke-width="2.5"/><polygon points="20,2 14,8 22,10" fill="#16a34a"/></svg>
                     </div>
 
-                    <!-- 13 Fighter Grid with visual previews -->
-                    <div id="rosterGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 my-auto flex-1 overflow-y-auto pr-1 min-h-[220px]">
-                        <!-- Populated dynamically by JS with visual portraits -->
+                    <!-- 5-Columns Grid of Dinosaur Cards (Image 2) -->
+                    <div id="rosterGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 my-auto flex-1 overflow-y-auto pr-0.5">
+                        <!-- Populated by initRosterUI with beast-card elements -->
                     </div>
 
-                    <div class="mt-2.5 flex flex-col gap-2 shrink-0">
-                        <div class="flex flex-wrap items-center justify-center gap-2">
-                            <button id="btnSelectSlotP1" class="px-3 py-1.5 rounded-lg bg-red-950/80 border border-red-500/80 text-xs font-bold text-white uppercase transition">
-                                Sélection : Joueur 1
+                    <!-- CTA Combat Button -->
+                    <div class="mt-2 flex flex-col gap-1.5 shrink-0">
+                        <div class="flex items-center justify-center gap-2">
+                            <button id="btnSelectSlotP1" class="px-2.5 py-1 rounded bg-red-950/90 border border-sky-400 text-[10px] font-black text-sky-200 uppercase tracking-wider">
+                                Choisir J1
                             </button>
-                            <button id="btnSelectSlotP2" class="px-3 py-1.5 rounded-lg bg-zinc-900 border border-blue-500/50 text-xs font-bold text-blue-300 uppercase transition">
-                                Sélection : Adversaire
+                            <button id="btnSelectSlotP2" class="px-2.5 py-1 rounded bg-stone-900 border border-red-500 text-[10px] font-black text-red-300 uppercase tracking-wider">
+                                Choisir J2
                             </button>
-                            <button id="btnRandomFighters" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-amber-300 uppercase transition flex items-center gap-1">
+                            <button id="btnRandomFighters" class="px-2.5 py-1 rounded bg-stone-900 hover:bg-stone-800 border border-amber-500/50 text-[10px] font-black text-amber-300 uppercase tracking-wider flex items-center gap-1">
                                 <span>🎲</span> <span>Aléatoire</span>
                             </button>
                         </div>
 
-                        <!-- Transition Button matching user's sketch: "When Selected ->" -->
-                        <button id="btnGoToArena" class="w-full py-2.5 px-6 rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl border border-white/10 finish-pulse flex items-center justify-center gap-2">
+                        <button id="btnGoToArena" class="w-full py-2 sm:py-2.5 px-4 rounded-xl bg-gradient-to-r from-red-700 via-amber-600 to-red-700 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl border border-amber-400/60 finish-pulse flex items-center justify-center gap-2">
                             <span>CHOISIR L'ARÈNE DE KOMBAT</span>
                             <span class="text-base">➔</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- P2 / CPU / Boss Preview Card (Right Column) -->
-                <div class="lg:col-span-3 stone-panel rounded-2xl p-3 flex flex-col justify-between overflow-y-auto">
-                    <div>
-                        <!-- Header pill -->
-                        <div class="flex items-center justify-between pb-1.5 border-b border-white/5">
-                            <span id="p2TagLabel" class="px-2 py-0.5 rounded-md bg-blue-600/80 text-white text-[11px] font-black uppercase tracking-wider">IA / J2</span>
-                            <span id="p2RoleBadge" class="text-[11px] text-amber-400 font-bold uppercase">Bélier Blindé</span>
-                        </div>
-                        <h2 id="p2NameDisplay" class="mk-title text-xl sm:text-2xl font-black text-white mt-1.5">PACHYRHINOSAURE</h2>
-                        <p id="p2TitleDisplay" class="text-xs text-blue-400/90 font-medium italic">« Le Colosse à Bosse d'Acier »</p>
-
-                        <!-- 3D Preview (Prend plus de place dans la boîte, visage en focus, surplus masqué) -->
-                        <div class="w-full h-64 sm:h-76 my-1 relative flex items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-white/[0.04] via-black/20 to-black/60 shadow-inner">
-                            <canvas id="p2PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
-                            <img id="p2PreviewImg" alt="P2 Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-0" />
-                            <div id="p2SkinSelector" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs shadow-lg z-20">
-                                <button id="btnP2PrevSkin" class="px-1.5 py-0.5 rounded text-blue-300 font-bold hover:text-white transition">&lt;</button>
-                                <span id="p2SkinName" class="font-bold text-blue-300 tracking-wide text-[11px] truncate">Skin: Primal</span>
-                                <button id="btnP2NextSkin" class="px-1.5 py-0.5 rounded text-blue-300 font-bold hover:text-white transition">&gt;</button>
-                            </div>
-                        </div>
-
-                        <!-- Stats -->
-                        <div class="space-y-2 text-xs mt-2">
-                            <div>
-                                <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>PUISSANCE</span><span id="p2StatPow" class="text-red-400">90%</span></div>
-                                <div class="w-full h-1.5 bg-zinc-800/80 rounded-full overflow-hidden"><div id="p2BarPow" class="h-full bg-gradient-to-r from-amber-500 to-red-600 rounded-full" style="width:90%"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>VITESSE</span><span id="p2StatSpd" class="text-amber-400">55%</span></div>
-                                <div class="w-full h-1.5 bg-zinc-800/80 rounded-full overflow-hidden"><div id="p2BarSpd" class="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full" style="width:55%"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>ARMURE / PV</span><span id="p2StatDef" class="text-emerald-400">100%</span></div>
-                                <div class="w-full h-1.5 bg-zinc-800/80 rounded-full overflow-hidden"><div id="p2BarDef" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style="width:100%"></div></div>
-                            </div>
+                <!-- ================= RIGHT COLUMN: P2 SHOWCASE ================= -->
+                <div class="lg:col-span-3 flex flex-col justify-between gap-1 overflow-hidden">
+                    <!-- 3D Pedestal Canvas Box -->
+                    <div class="w-full flex-1 relative flex items-center justify-center overflow-hidden min-h-[220px]">
+                        <canvas id="p2PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
+                        <img id="p2PreviewImg" alt="P2 3D Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-10" />
+                        <!-- Skin Selector Pill -->
+                        <div id="p2SkinSelector" class="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-red-500/40 text-[10px] text-red-200 shadow-lg z-20">
+                            <button id="btnP2PrevSkin" class="px-1 text-red-400 hover:text-white font-black">&lt;</button>
+                            <span id="p2SkinName" class="font-bold tracking-wide truncate max-w-[110px]">Skin: Primal</span>
+                            <button id="btnP2NextSkin" class="px-1 text-red-400 hover:text-white font-black">&gt;</button>
                         </div>
                     </div>
 
-                    <div class="mt-3 pt-2 border-t border-white/5 text-[11px] space-y-1">
-                        <div class="text-amber-400 font-bold">⚡ Spécial : <span id="p2SpecName" class="text-zinc-300 font-normal">Charge Boréale & Cornes Sismiques</span></div>
-                        <div class="text-red-400 font-bold">💀 Fatalité : <span id="p2FatalityName" class="text-zinc-300 font-normal">Impact Crânien Polaire</span></div>
+                    <!-- P2 Recessed Stone Stat Box (Image 2) -->
+                    <div class="stone-panel rounded-xl p-2 sm:p-2.5 flex flex-col gap-1.5 shrink-0 border-red-500/30">
+                        <!-- Stat Rows -->
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-chakra font-black text-[10px] sm:text-[11px] text-stone-300 w-16 uppercase">ATTACK</span>
+                                <div class="flex-1 stat-slot-trough"><div id="p2BarPow" class="stat-bar-fire" style="width:90%"></div></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-chakra font-black text-[10px] sm:text-[11px] text-stone-300 w-16 uppercase">SPEED</span>
+                                <div class="flex-1 stat-slot-trough"><div id="p2BarSpd" class="stat-bar-red" style="width:55%"></div></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-chakra font-black text-[10px] sm:text-[11px] text-stone-300 w-16 uppercase">DEFENSE</span>
+                                <div class="flex-1 stat-slot-trough"><div id="p2BarDef" class="stat-bar-fire" style="width:100%"></div></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-chakra font-black text-[10px] sm:text-[11px] text-stone-300 w-16 uppercase">RAGE</span>
+                                <div class="flex-1 stat-slot-trough"><div id="p2BarRage" class="stat-bar-fire" style="width:75%"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Class & Special (Image 2) -->
+                        <div class="pt-1 border-t border-stone-700/60 font-chakra text-[10px] sm:text-[11px] leading-tight">
+                            <div class="text-amber-300/90 font-black tracking-wider uppercase">
+                                CLASS: <span id="p2ClassText" class="text-amber-100 font-extrabold">TANK</span>
+                            </div>
+                            <div class="text-amber-300/90 font-black tracking-wider uppercase mt-0.5">
+                                SPECIAL: <span id="p2SpecialText" class="text-amber-200 font-extrabold">HORN CHARGE</span>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+            </div>
+
+            <!-- BOTTOM CONTROLLER BAR (MATCHING IMAGE 2) -->
+            <div class="w-full stone-panel rounded-xl px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs z-30 shrink-0">
+                <button id="btnSelectBackToMain" class="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 font-chakra text-xs font-bold flex items-center gap-1">
+                    <span>←</span> <span>MENU</span>
+                </button>
+
+                <!-- Hints matching Image 2: P1 [A] CONFIRM | [B] BACK   P2 [X] RANDOM | [Y] SKINS -->
+                <div class="flex items-center gap-4 sm:gap-6 font-chakra text-[11px] sm:text-xs font-black tracking-wider mx-auto">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-sky-400">P1</span>
+                        <span class="px-1.5 py-0.2 rounded bg-emerald-600 text-white">[A]</span>
+                        <span class="text-stone-300">CONFIRMER</span>
+                        <span class="text-stone-600">|</span>
+                        <span class="px-1.5 py-0.2 rounded bg-red-600 text-white">[B]</span>
+                        <span class="text-stone-300">RETOUR</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-red-400">P2</span>
+                        <span class="px-1.5 py-0.2 rounded bg-sky-600 text-white">[X]</span>
+                        <span class="text-stone-300">ALÉATOIRE</span>
+                        <span class="text-stone-600">|</span>
+                        <span class="px-1.5 py-0.2 rounded bg-amber-600 text-white">[Y]</span>
+                        <span class="text-stone-300">SKINS</span>
+                    </div>
+                </div>
+
+                <div id="selectScreenModeBadge" class="text-[10px] sm:text-xs font-extrabold text-amber-400 tracking-wider uppercase">
+                    JOUEUR VS IA
                 </div>
             </div>
         </section>
@@ -500,7 +580,7 @@ function getDino3DThumbnail(dino, skinIndex = 0) {
 let preview1 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, rimLight: null, targetDist: 6.8, targetY: 1.3 };
 let preview2 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, rimLight: null, targetDist: 6.8, targetY: 1.3 };
 
-function setupPreviewScene(previewObj, canvasId) {
+function setupPreviewScene(previewObj, canvasId, isP1 = true) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
@@ -508,25 +588,73 @@ function setupPreviewScene(previewObj, canvasId) {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(36, 1.4, 0.1, 100);
-    camera.position.set(0, 1.8, 6.8);
+    camera.position.set(0, 1.9, 6.7);
     camera.lookAt(0, 1.25, 0);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.95));
-    const dirLight = new THREE.DirectionalLight(0xffedd5, 1.4);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.78));
+    const dirLight = new THREE.DirectionalLight(0xffeedd, 1.25);
     dirLight.position.set(4, 7, 5);
     scene.add(dirLight);
 
-    const rimLight = new THREE.DirectionalLight(0xef4444, 0.9);
-    rimLight.position.set(-4, 5, -4);
+    // Warm torch light
+    const torch = new THREE.PointLight(0xf59e0b, 1.3, 14);
+    torch.position.set(isP1 ? 2.5 : -2.5, 2.4, 2.5);
+    scene.add(torch);
+
+    // Rim light: Sky Blue for P1, Crimson Red for P2
+    const rimLight = new THREE.DirectionalLight(isP1 ? 0x38bdf8 : 0xef4444, 1.35);
+    rimLight.position.set(isP1 ? -4 : 4, 5, -4);
     scene.add(rimLight);
 
-    // Ombre de contact discrète au sol (pas de socle lourd ni de boîte)
-    const shadowGeo = new THREE.CircleGeometry(2.4, 32);
-    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
+    // 3D Carved Prehistoric Pedestal Altar (Matching Image 2)
+    const pedestalGroup = new THREE.Group();
+    // Lower wider stone base
+    const baseGeo = new THREE.CylinderGeometry(2.7, 3.1, 0.4, 28);
+    const baseMat = new THREE.MeshStandardMaterial({
+        color: 0x24201c,
+        roughness: 0.95,
+        metalness: 0.08
+    });
+    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+    baseMesh.position.y = -0.42;
+    pedestalGroup.add(baseMesh);
+
+    // Upper altar stone slab
+    const cylGeo = new THREE.CylinderGeometry(2.45, 2.7, 0.45, 28);
+    const cylMat = new THREE.MeshStandardMaterial({
+        color: 0x322b25,
+        roughness: 0.9,
+        metalness: 0.1
+    });
+    const pedestalMesh = new THREE.Mesh(cylGeo, cylMat);
+    pedestalMesh.position.y = -0.18;
+    pedestalGroup.add(pedestalMesh);
+
+    // Carved upper stone rim
+    const rimGeo = new THREE.TorusGeometry(2.46, 0.09, 14, 32);
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0x483e35, roughness: 0.75 });
+    const rimMesh = new THREE.Mesh(rimGeo, rimMat);
+    rimMesh.rotation.x = Math.PI / 2;
+    rimMesh.position.y = 0.02;
+    pedestalGroup.add(rimMesh);
+
+    // Moss / ancient creeping vine around stone rim
+    const mossGeo = new THREE.TorusGeometry(2.48, 0.04, 8, 24);
+    const mossMat = new THREE.MeshStandardMaterial({ color: 0x224820, roughness: 0.85 });
+    const mossMesh = new THREE.Mesh(mossGeo, mossMat);
+    mossMesh.rotation.x = Math.PI / 2;
+    mossMesh.position.y = -0.06;
+    pedestalGroup.add(mossMesh);
+
+    // Contact shadow atop the altar
+    const shadowGeo = new THREE.CircleGeometry(2.25, 32);
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x050508, transparent: true, opacity: 0.7 });
     const contactShadow = new THREE.Mesh(shadowGeo, shadowMat);
     contactShadow.rotation.x = -Math.PI / 2;
-    contactShadow.position.y = 0.01;
-    scene.add(contactShadow);
+    contactShadow.position.y = 0.03;
+    pedestalGroup.add(contactShadow);
+
+    scene.add(pedestalGroup);
 
     previewObj.renderer = renderer;
     previewObj.scene = scene;
@@ -550,8 +678,8 @@ function updatePreviewModels(time) {
     const selectSec = document.getElementById('selectScreen');
     if (!selectSec || selectSec.classList.contains('hidden')) return;
 
-    if (!preview1.renderer) setupPreviewScene(preview1, 'p1PreviewCanvas');
-    if (!preview2.renderer) setupPreviewScene(preview2, 'p2PreviewCanvas');
+    if (!preview1.renderer) setupPreviewScene(preview1, 'p1PreviewCanvas', true);
+    if (!preview2.renderer) setupPreviewScene(preview2, 'p2PreviewCanvas', false);
 
     const p1Dino = DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0];
     const p2Dino = getP2EffectiveDino();
@@ -582,8 +710,7 @@ function updatePreviewModels(time) {
             item.p.scene.add(item.p.rig.root);
             item.p.dinoId = item.dino.id;
             item.p.skinIndex = item.skinIndex;
-
-            // Cadrage héroïque : le personnage prend plus de place dans la boîte, le visage est en focus, le surplus dépasse
+            item.p.syncCount = 0;
             item.p.rig.root.updateMatrixWorld(true);
         }
 
@@ -603,13 +730,10 @@ function updatePreviewModels(time) {
             }, time * 0.001, 0.016);
             item.p.rig.root.updateMatrixWorld(true);
 
-            // Cible centrée sur le visage / la tête APRÈS orientation et animation
-            const headWorld = new THREE.Vector3();
-            item.p.rig.headGroup.getWorldPosition(headWorld);
-            const target = new THREE.Vector3(headWorld.x * 0.9, headWorld.y - 0.12, headWorld.z * 0.9);
-
-            const dist = 4.4;
-            item.p.camera.position.set(target.x + item.dir * 0.22, target.y + 0.16, target.z + dist);
+            // Cadrage héroïque montrant le combattant entier sur son autel de pierre (Image 2)
+            const target = new THREE.Vector3(0, 0.90, 0);
+            const dist = 12.5;
+            item.p.camera.position.set(item.dir * 0.45, 1.70, dist);
             item.p.camera.lookAt(target.x, target.y, target.z);
         }
 
@@ -620,8 +744,8 @@ function updatePreviewModels(time) {
         item.p.renderer.render(item.p.scene, item.p.camera);
 
         // Synchroniser l'image de prévisualisation (pour affichage instantané et capture sans perte)
-        if (!item.p.hasSyncedImg || item.p.lastDinoForImg !== item.dino.id || item.p.lastSkinForImg !== item.skinIndex) {
-            item.p.hasSyncedImg = true;
+        item.p.syncCount = (item.p.syncCount || 0) + 1;
+        if (item.p.syncCount <= 8 || item.p.lastDinoForImg !== item.dino.id || item.p.lastSkinForImg !== item.skinIndex) {
             item.p.lastDinoForImg = item.dino.id;
             item.p.lastSkinForImg = item.skinIndex;
             const img = document.getElementById(item.imgId);
@@ -643,19 +767,15 @@ function initRosterUI() {
         const isLocked = dino.isUnlockable && !isFighterUnlocked(dino.id);
 
         const card = document.createElement('div');
-        card.className = `stone-card rounded-xl p-2 cursor-pointer flex flex-col items-center justify-between text-center relative overflow-hidden ${
-            idx === p1ChoiceIndex ? 'selected-p1' : ''
-        } ${idx === p2ChoiceIndex ? 'selected-p2' : ''} ${isLocked ? 'opacity-65 border-dashed border-amber-500/30 bg-black/40' : ''}`;
+        card.className = `beast-card ${idx === p1ChoiceIndex ? 'selected-p1' : ''} ${idx === p2ChoiceIndex ? 'selected-p2' : ''} ${isLocked ? 'opacity-70 border-dashed border-amber-500/40' : ''}`;
         card.dataset.index = idx;
 
         if (isLocked) {
             card.innerHTML = `
-                <span class="badge-slot absolute top-1.5 right-1.5 text-[10px] font-black z-10 text-amber-400">🔒</span>
-                <div class="w-full h-24 sm:h-28 mx-auto my-0.5 flex flex-col items-center justify-center relative dino-face-slot overflow-hidden rounded-lg bg-black/30">
-                    <span class="text-3xl filter drop-shadow">🔒</span>
-                    <span class="text-[9px] text-amber-400/90 font-bold uppercase tracking-wide text-center px-1 mt-1">Déblocable en Campagne</span>
+                <div class="w-full flex-1 flex flex-col items-center justify-center relative p-1 bg-black/50">
+                    <span class="text-2xl filter drop-shadow">🔒</span>
                 </div>
-                <div class="mk-title text-[10px] sm:text-[11px] font-black text-zinc-400 tracking-wider uppercase text-center w-full mt-auto px-0.5 truncate z-10 drop-shadow-md">???</div>
+                <div class="beast-name-plaque text-stone-400">???</div>
             `;
 
             card.addEventListener('click', () => {
@@ -663,38 +783,32 @@ function initRosterUI() {
                 spawnFloatingPopup(0, "🔒 COMBATTANT VERROUILLÉ ! Battez la Campagne pour débloquer Smilodon !", '#ef4444');
             });
         } else {
-            // Aperçu 3D du visage du monstre (visage en focus, prend plus de place, surplus masqué)
             const thumb3D = getDino3DThumbnail(dino, 0);
             const portraitVisual = thumb3D ? `
-                <img src="${thumb3D}" alt="${dino.name}" class="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] transform scale-110 transition-transform duration-200" />
+                <img src="${thumb3D}" alt="${dino.name}" class="w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] transform scale-110" />
             ` : (FIGHTER_PORTRAITS[dino.id] || `
-                <div class="w-14 h-14 rounded-full flex items-center justify-center border border-white/10" style="background:${dino.cssPrimary}44">
-                    <span class="mk-title text-base font-black text-white">${dino.name.substring(0, 2)}</span>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center border border-white/10" style="background:${dino.cssPrimary}44">
+                    <span class="font-cinzel text-xs font-black text-white">${dino.name.substring(0, 2)}</span>
                 </div>
             `);
 
-            const unlockBadge = dino.isUnlockable ? `<span class="absolute top-1 left-1 px-1.5 py-0.2 rounded bg-amber-500 text-black text-[8px] font-black uppercase tracking-wider z-10 shadow">DÉBLOQUÉ</span>` : '';
-
-            // Le visage du monstre prend plus de place dans la boîte, surplus masqué, nom centré au bas
             card.innerHTML = `
-                ${unlockBadge}
-                <span class="badge-slot absolute top-1.5 right-1.5 text-[10px] font-black z-10"></span>
-                <div class="w-full h-24 sm:h-28 mx-auto my-0.5 flex items-center justify-center relative dino-face-slot overflow-hidden rounded-lg">
+                <div class="p1-flag-badge ${idx === p1ChoiceIndex ? '' : 'hidden'}">P1</div>
+                <div class="p2-flag-badge ${idx === p2ChoiceIndex ? '' : 'hidden'}">P2</div>
+                <div class="w-full flex-1 flex items-center justify-center relative overflow-hidden p-0.5">
                     ${portraitVisual}
                 </div>
-                <div class="mk-title text-[10px] sm:text-[11px] font-black text-zinc-100 tracking-wider uppercase text-center w-full mt-auto px-0.5 truncate z-10 drop-shadow-md">${dino.name}</div>
+                <div class="beast-name-plaque">${dino.name}</div>
             `;
 
             card.addEventListener('click', () => {
                 sfx.playHit(false);
                 if (gameMode === 'campaign') {
                     if (p1ChoiceIndex === idx) {
-                        // Cliquer sur le combattant déjà sélectionné lance immédiatement le combat
                         startMatch();
                         return;
                     }
                     p1ChoiceIndex = idx;
-                    // S'assurer que l'adversaire de l'étape n'est pas le même que le personnage choisi
                     if (campaignStage < 6 && campaignOpponents && campaignOpponents[campaignStage - 1] === idx) {
                         for (let k = 0; k < DINO_ROSTER.length; k++) {
                             if (k !== idx && !DINO_ROSTER[k].isBoss && (!DINO_ROSTER[k].isUnlockable || isFighterUnlocked(DINO_ROSTER[k].id))) {
@@ -722,15 +836,47 @@ function initRosterUI() {
                 }
             });
         }
-
         grid.appendChild(card);
+    });
+
+    // Slot 15: Boss Drak'Zul (Complète la rangée 3 de 5 cartes)
+    const bossCard = document.createElement('div');
+    bossCard.className = 'beast-card opacity-80 border-dashed border-red-500/50 cursor-pointer';
+    bossCard.innerHTML = `
+        <div class="w-full flex-1 flex flex-col items-center justify-center relative p-1 bg-gradient-to-b from-red-950/40 to-black/60">
+            <span class="text-xl sm:text-2xl filter drop-shadow">🐉</span>
+            <span class="text-[9px] font-black text-red-400 uppercase tracking-widest mt-0.5">BOSS</span>
+        </div>
+        <div class="beast-name-plaque text-red-300">DRAK'ZUL</div>
+    `;
+    bossCard.addEventListener('click', () => {
+        sfx.playCooldownWarning();
+        spawnFloatingPopup(0, "🔥 BOSS ANCESTRAL ! Terrassez les 5 étapes de la Campagne pour affronter Drak'Zul !", '#ef4444');
+    });
+    grid.appendChild(bossCard);
+
+    // Rangée 4 (Slots 16 à 20): 5 emplacements verrouillés secrets avec cadenas (Hommage fidèle Image 2)
+    const secretTitles = ['ANCESTRAL', 'TITAN', 'COLOSSE', 'LÉGENDE', 'PRIMAL'];
+    secretTitles.forEach((secName) => {
+        const secretCard = document.createElement('div');
+        secretCard.className = 'beast-card opacity-65 border-stone-800 bg-stone-950/80 cursor-pointer';
+        secretCard.innerHTML = `
+            <div class="w-full flex-1 flex flex-col items-center justify-center relative p-1 bg-black/40">
+                <span class="text-xl sm:text-2xl opacity-75 filter drop-shadow">🔒</span>
+            </div>
+            <div class="beast-name-plaque text-stone-500">${secName}</div>
+        `;
+        secretCard.addEventListener('click', () => {
+            sfx.playCooldownWarning();
+            spawnFloatingPopup(0, `🔒 COMBATTANT ${secName} VERROUILLÉ ! Complétez les défis secrets de l'Extinction !`, '#f59e0b');
+        });
+        grid.appendChild(secretCard);
     });
 
     updateSelectScreenUI();
 }
 
 function updateSelectScreenUI() {
-    // Si l'index pointe sur un personnage encore verrouillé, replier sur un personnage débloqué
     if (DINO_ROSTER[p1ChoiceIndex] && DINO_ROSTER[p1ChoiceIndex].isUnlockable && !isFighterUnlocked(DINO_ROSTER[p1ChoiceIndex].id)) {
         p1ChoiceIndex = 0;
     }
@@ -743,33 +889,20 @@ function updateSelectScreenUI() {
 
     // Mode Badge & instructions
     const modeBadge = document.getElementById('selectScreenModeBadge');
-    const promptText = document.getElementById('selectPromptText');
     const slot1Btn = document.getElementById('btnSelectSlotP1');
     const slot2Btn = document.getElementById('btnSelectSlotP2');
-    const p2TagLabel = document.getElementById('p2TagLabel');
     const p2SkinSelector = document.getElementById('p2SkinSelector');
+    const p2HeaderLabel = document.getElementById('p2HeaderLabel');
 
     if (gameMode === 'campaign') {
         if (modeBadge) {
             modeBadge.innerHTML = `<span class="text-amber-400">🏆 CAMPAGNE : ÉTAPE ${campaignStage} / ${CAMPAIGN_TOTAL_STAGES}</span>`;
         }
-        if (promptText) {
-            promptText.textContent = campaignStage === 6
-                ? "Ultime épreuve d'Extinction ! Cliquez sur votre champion pour affronter Drak'Zul"
-                : `Choisissez votre champion pour l'étape ${campaignStage} (Adversaire & Arène sélectionnés par le jeu)`;
-        }
         if (slot1Btn) slot1Btn.classList.add('hidden');
         if (slot2Btn) slot2Btn.classList.add('hidden');
         if (p2SkinSelector) p2SkinSelector.classList.add('hidden');
-
-        if (p2TagLabel) {
-            if (campaignStage === 6) {
-                p2TagLabel.textContent = "BOSS DE FIN";
-                p2TagLabel.className = "px-2 py-0.5 rounded-md bg-gradient-to-r from-red-600 to-amber-500 text-white text-[11px] font-black uppercase tracking-wider animate-pulse";
-            } else {
-                p2TagLabel.textContent = `ADVERSAIRE ÉTAPE ${campaignStage} / 6`;
-                p2TagLabel.className = "px-2 py-0.5 rounded-md bg-blue-700 text-white text-[11px] font-black uppercase tracking-wider";
-            }
+        if (p2HeaderLabel) {
+            p2HeaderLabel.textContent = campaignStage === 6 ? "DRAK'ZUL" : `ÉTAPE ${campaignStage}`;
         }
     } else {
         if (slot1Btn) slot1Btn.classList.remove('hidden');
@@ -780,16 +913,8 @@ function updateSelectScreenUI() {
                 ? `<span>👥 2 JOUEURS (1 VS 1)</span>`
                 : (gameMode === 'practice' ? `<span>🥋 ENTRAÎNEMENT</span>` : `<span>👤 JOUEUR VS IA</span>`);
         }
-        if (promptText) {
-            promptText.textContent = gameMode === 'pvp'
-                ? "Cliquez pour assigner le Joueur 1, puis le Joueur 2"
-                : "Cliquez pour assigner votre combattant";
-        }
-        if (slot2Btn) slot2Btn.classList.remove('hidden');
-        if (p2SkinSelector) p2SkinSelector.classList.remove('hidden');
-        if (p2TagLabel) {
-            p2TagLabel.textContent = gameMode === 'pvp' ? 'Joueur 2' : (gameMode === 'practice' ? 'Mannequin' : 'IA');
-            p2TagLabel.className = "px-2 py-0.5 rounded-md bg-blue-600/80 text-white text-[11px] font-black uppercase tracking-wider";
+        if (p2HeaderLabel) {
+            p2HeaderLabel.textContent = gameMode === 'pvp' ? 'PLAYER 2' : (gameMode === 'practice' ? 'MANNEQUIN' : 'PLAYER 2 (IA)');
         }
     }
 
@@ -807,42 +932,43 @@ function updateSelectScreenUI() {
         if (skinP2El) skinP2El.textContent = `Skin: ${p2.skins[p2SkinIndex].name}`;
     }
 
-    // P1 Details
-    document.getElementById('p1NameDisplay').textContent = p1.name;
-    document.getElementById('p1RoleBadge').textContent = p1.role;
-    document.getElementById('p1TitleDisplay').textContent = p1.title;
-    document.getElementById('p1StatPow').textContent = p1.stats.pow + '%';
-    document.getElementById('p1BarPow').style.width = p1.stats.pow + '%';
-    document.getElementById('p1StatSpd').textContent = p1.stats.spd + '%';
-    document.getElementById('p1BarSpd').style.width = p1.stats.spd + '%';
-    document.getElementById('p1StatDef').textContent = p1.stats.def + '%';
-    document.getElementById('p1BarDef').style.width = p1.stats.def + '%';
-    document.getElementById('p1SpecName').textContent = `${p1.special1Name} • ${p1.special2Name}`;
-    document.getElementById('p1FatalityName').textContent = p1.fatalityName;
-
-    // P2 Details
-    document.getElementById('p2NameDisplay').textContent = p2.name;
-    document.getElementById('p2RoleBadge').textContent = p2.role;
-
-    if (gameMode === 'campaign') {
-        const themedArenaId = typeof getThemedArenaForFighter === 'function' ? getThemedArenaForFighter(p2.id) : 'volcano';
-        const arenaObj = typeof ARENAS !== 'undefined' && ARENAS[themedArenaId];
-        const arenaLabel = arenaObj ? arenaObj.label : themedArenaId;
-        document.getElementById('p2TitleDisplay').textContent = `${p2.title} • Arène : ${arenaLabel}`;
-    } else {
-        document.getElementById('p2TitleDisplay').textContent = p2.title;
+    // P1 Stats & Details (Matching Image 2)
+    const p1BarPow = document.getElementById('p1BarPow');
+    if (p1BarPow) p1BarPow.style.width = (p1.stats ? p1.stats.pow : 95) + '%';
+    const p1BarSpd = document.getElementById('p1BarSpd');
+    if (p1BarSpd) p1BarSpd.style.width = (p1.stats ? p1.stats.spd : 70) + '%';
+    const p1BarDef = document.getElementById('p1BarDef');
+    if (p1BarDef) p1BarDef.style.width = (p1.stats ? p1.stats.def : 85) + '%';
+    const p1BarRage = document.getElementById('p1BarRage');
+    if (p1BarRage) {
+        const rVal = Math.min(100, Math.round(((p1.stats ? p1.stats.pow : 90) * 0.75) + ((100 - (p1.stats ? p1.stats.def : 80)) * 0.45)));
+        p1BarRage.style.width = rVal + '%';
     }
 
-    document.getElementById('p2StatPow').textContent = p2.stats.pow + '%';
-    document.getElementById('p2BarPow').style.width = p2.stats.pow + '%';
-    document.getElementById('p2StatSpd').textContent = p2.stats.spd + '%';
-    document.getElementById('p2BarSpd').style.width = p2.stats.spd + '%';
-    document.getElementById('p2StatDef').textContent = p2.stats.def + '%';
-    document.getElementById('p2BarDef').style.width = p2.stats.def + '%';
-    document.getElementById('p2SpecName').textContent = `${p2.special1Name} • ${p2.special2Name}`;
-    document.getElementById('p2FatalityName').textContent = p2.fatalityName;
+    const p1ClassText = document.getElementById('p1ClassText');
+    if (p1ClassText) p1ClassText.textContent = (p1.role || 'APEX PREDATOR').toUpperCase();
+    const p1SpecialText = document.getElementById('p1SpecialText');
+    if (p1SpecialText) p1SpecialText.textContent = (p1.special1Name || 'MORSURE PRIMALE').split('(')[0].trim().toUpperCase();
 
-    // Bouton d'action principal au bas de l'écran (En campagne : direct vers le combat, pas de choix d'arène)
+    // P2 Stats & Details (Matching Image 2)
+    const p2BarPow = document.getElementById('p2BarPow');
+    if (p2BarPow) p2BarPow.style.width = (p2.stats ? p2.stats.pow : 90) + '%';
+    const p2BarSpd = document.getElementById('p2BarSpd');
+    if (p2BarSpd) p2BarSpd.style.width = (p2.stats ? p2.stats.spd : 55) + '%';
+    const p2BarDef = document.getElementById('p2BarDef');
+    if (p2BarDef) p2BarDef.style.width = (p2.stats ? p2.stats.def : 100) + '%';
+    const p2BarRage = document.getElementById('p2BarRage');
+    if (p2BarRage) {
+        const rVal2 = Math.min(100, Math.round(((p2.stats ? p2.stats.pow : 85) * 0.75) + ((100 - (p2.stats ? p2.stats.def : 90)) * 0.45)));
+        p2BarRage.style.width = rVal2 + '%';
+    }
+
+    const p2ClassText = document.getElementById('p2ClassText');
+    if (p2ClassText) p2ClassText.textContent = (p2.role || 'TANK').toUpperCase();
+    const p2SpecialText = document.getElementById('p2SpecialText');
+    if (p2SpecialText) p2SpecialText.textContent = (p2.special1Name || 'CHARGE SISMIQUE').split('(')[0].trim().toUpperCase();
+
+    // Bouton d'action principal au bas de l'écran
     const btnGoToArena = document.getElementById('btnGoToArena');
     if (btnGoToArena) {
         if (gameMode === 'campaign') {
@@ -852,15 +978,15 @@ function updateSelectScreenUI() {
             btnGoToArena.innerHTML = campaignStage === 6
                 ? `🔥 DÉFIER LE BOSS DRAK'ZUL ➔`
                 : `⚔️ DÉFIER L'ÉTAPE ${campaignStage} • ${p2.name} (${arenaLabel}) ➔`;
-            btnGoToArena.className = 'w-full py-2.5 px-6 rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-amber-500 hover:from-red-600 hover:to-amber-400 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-lg border border-amber-300 finish-pulse transition';
+            btnGoToArena.className = 'w-full py-2 sm:py-2.5 px-4 rounded-xl bg-gradient-to-r from-red-700 via-amber-600 to-red-700 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-lg border border-amber-300 finish-pulse transition';
         } else {
             btnGoToArena.innerHTML = `CHOISIR L'ARÈNE DE KOMBAT ➔`;
-            btnGoToArena.className = 'w-full py-2.5 px-6 rounded-xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg border border-white/10 transition';
+            btnGoToArena.className = 'w-full py-2 sm:py-2.5 px-4 rounded-xl bg-gradient-to-r from-red-700 via-amber-600 to-red-700 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg border border-white/10 transition';
         }
     }
 
     // Roster grid badges & highlight
-    document.querySelectorAll('#rosterGrid .stone-card').forEach((card, i) => {
+    document.querySelectorAll('#rosterGrid .beast-card').forEach((card, i) => {
         const isP1 = i === p1ChoiceIndex;
         const isP2 = (gameMode === 'campaign' && campaignStage < 6)
             ? (campaignOpponents && i === campaignOpponents[campaignStage - 1])
@@ -868,39 +994,11 @@ function updateSelectScreenUI() {
 
         card.classList.toggle('selected-p1', isP1);
         card.classList.toggle('selected-p2', isP2);
-        const badge = card.querySelector('.badge-slot');
-        if (badge) {
-            if (isP1 && isP2) {
-                badge.textContent = 'J1 & J2';
-                badge.className = 'badge-slot text-amber-400 font-bold';
-            } else if (isP1) {
-                badge.textContent = 'J1';
-                badge.className = 'badge-slot text-red-400 font-bold';
-            } else if (isP2) {
-                badge.textContent = gameMode === 'campaign' ? `Étape ${campaignStage}` : (gameMode === 'pvp' ? 'J2' : 'IA');
-                badge.className = 'badge-slot text-blue-400 font-bold';
-            } else {
-                badge.textContent = '';
-            }
-        }
+        const p1Badge = card.querySelector('.p1-flag-badge');
+        const p2Badge = card.querySelector('.p2-flag-badge');
+        if (p1Badge) p1Badge.classList.toggle('hidden', !isP1);
+        if (p2Badge) p2Badge.classList.toggle('hidden', !isP2);
     });
-
-    if (slot1Btn && slot2Btn) {
-        if (gameMode === 'campaign') {
-            slot1Btn.classList.add('hidden');
-            slot2Btn.classList.add('hidden');
-        } else if (activeSelectSlot === 1) {
-            slot1Btn.classList.remove('hidden');
-            slot2Btn.classList.remove('hidden');
-            slot1Btn.className = 'px-3 py-1.5 rounded-lg bg-red-800 text-xs font-bold text-white uppercase shadow-sm border border-red-500/50';
-            slot2Btn.className = 'px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-zinc-400 uppercase';
-        } else {
-            slot1Btn.classList.remove('hidden');
-            slot2Btn.classList.remove('hidden');
-            slot1Btn.className = 'px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-zinc-400 uppercase';
-            slot2Btn.className = 'px-3 py-1.5 rounded-lg bg-blue-800 text-xs font-bold text-white uppercase shadow-sm border border-blue-500/50';
-        }
-    }
 }
 
 function returnToSelect() {
@@ -909,8 +1007,10 @@ function returnToSelect() {
     document.getElementById('battleScreen').classList.remove('flex');
     document.getElementById('arenaScreen').classList.add('hidden');
     document.getElementById('selectScreen').classList.remove('hidden');
-    document.getElementById('btnBackToSelect').classList.add('hidden');
-    document.getElementById('btnResetCam').classList.add('hidden');
+    const btnBack = document.getElementById('btnBackToSelect');
+    if (btnBack) btnBack.classList.add('hidden');
+    const btnCam = document.getElementById('btnResetCam');
+    if (btnCam) btnCam.classList.add('hidden');
     const pmm = document.getElementById('postMatchMenu');
     if (pmm) pmm.classList.add('hidden');
     initRosterUI();

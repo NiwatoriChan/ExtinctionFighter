@@ -13,7 +13,7 @@ registerFighter({
     secondaryColor: 0x082f49,
     accentColor: 0x38bdf8,
     cssPrimary: '#0284c7',
-    scale: 1.12,
+    scale: 1.16,
     stats: { pow: 95, spd: 74, def: 88 },
     maxHp: 1120,
     walkSpeed: 7.6,
@@ -123,22 +123,69 @@ registerFighter({
         });
     },
 
-    // Animations d'attaques (light / heavy / special / special2 / xray)
+    hasCustomDirectionals: true,
+
+    // Animations d'attaques claires et distinctes pour chaque coup
     animateAttack(ctx) {
-        const { rig, act, prog, swing } = ctx;
+        const { rig, act, prog, swing, strike, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
+
         if (act === 'light') {
-            // Lacération alternée des griffes géantes
-            rig.arms[0].rotation.z = swing * 1.35;
-            rig.arms[1].rotation.z = -swing * 0.95;
-            rig.torso.rotation.y = Math.sin(prog * Math.PI * 2) * 0.35;
-        } else if (act === 'heavy') {
+            // Coup Léger 1 : Lacération avant gauche des griffes géantes
+            rig.arms[0].rotation.z = s * 1.35;
+            rig.arms[1].rotation.z = -s * 0.45;
+            rig.torso.rotation.y = s * 0.35;
+            rig.jaw.rotation.z = -s * 0.45;
+        } else if (act === 'light2') {
+            // Coup Léger 2 (Combo 1-2) : Lacération croisée droite avec morsure
+            rig.arms[0].rotation.z = -s * 0.45;
+            rig.arms[1].rotation.z = s * 1.45;
+            rig.torso.rotation.y = -s * 0.45;
+            rig.jaw.rotation.z = -s * 0.85;
+        } else if (act === 'fwd_light') {
+            // Avant + Léger (Poke piscivore) : Allongement du long museau crocodile
+            rig.hips.position.x = s * 0.95;
+            rig.torso.rotation.z = -s * 0.40;
+            rig.jaw.rotation.z = -s * 0.95;
+            rig.arms[0].rotation.z = s * 1.1;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Direction BAS ⬇️ (Balayage bas) : Rasant le sol, fauchage de griffes
+            rig.hips.position.y = (baseHipsY || 2.1) * 0.55;
+            rig.torso.rotation.z = -0.32;
+            rig.arms[0].rotation.y = s * 1.25;
+            rig.jaw.rotation.z = -s * 0.65;
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Direction HAUT ⬆️ (Anti-Air Launcher / Ciel) : Voile dressée et griffes vers le ciel
+            rig.hips.position.y = (baseHipsY || 2.1) + s * 0.75;
+            rig.torso.rotation.z = s * 0.55;
+            rig.arms[0].rotation.z = s * 1.6;
+            rig.arms[1].rotation.z = s * 1.6;
+            rig.jaw.rotation.z = -s * 1.15;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Recul de léviathan et balayage de griffes défensif
+            rig.hips.position.x = -s * 0.75;
+            rig.arms[0].rotation.z = s * 1.1;
+            rig.jaw.rotation.z = -s * 0.65;
+        } else if (act === 'throw') {
+            // Chope : Saisie dans les mâchoires de crocodile et secousse
+            rig.hips.position.x = s * 0.85;
+            rig.torso.rotation.y = Math.sin(prog * 24) * 0.45;
+            rig.jaw.rotation.z = prog < 0.35 ? -1.2 : -0.25;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            // Piqué aérien toutes griffes et gueule déployée
+            rig.torso.rotation.z = -s * 0.6;
+            rig.arms[0].rotation.z = s * 1.5;
+            rig.arms[1].rotation.z = s * 1.5;
+            rig.jaw.rotation.z = -s * 0.95;
+        } else if (act === 'heavy' || act === 'fwd_heavy') {
             // Double coup de griffes plongeant + morsure
-            rig.torso.rotation.z = -swing * 0.35;
-            rig.arms[0].rotation.z = swing * 1.45;
-            rig.arms[1].rotation.z = swing * 1.45;
-            rig.jaw.rotation.z = -swing * 0.65;
-        } else {
-            // Illumination thermique de la voile dorsale + balayage
+            rig.hips.position.x = s * (act === 'fwd_heavy' ? 1.25 : 0.6);
+            rig.torso.rotation.z = -s * 0.35;
+            rig.arms[0].rotation.z = s * 1.45;
+            rig.arms[1].rotation.z = s * 1.45;
+            rig.jaw.rotation.z = -s * 0.65;
+        } else if (act === 'special' || act === 'special2') {
+            // Illumination thermique de la voile dorsale + balayage (Spéciaux)
             rig.hips.rotation.y = prog * Math.PI * 2;
         }
     },

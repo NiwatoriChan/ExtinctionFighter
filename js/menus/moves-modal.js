@@ -12,13 +12,27 @@ const MOVES_MODAL_HTML = `
             </div>
             <div class="p-4 overflow-y-auto space-y-3 text-xs sm:text-sm">
                 <div class="p-3 rounded-xl bg-zinc-900/90 border border-zinc-700">
-                    <h4 class="font-black text-amber-400 uppercase mb-1">Commandes Pro, Temps de Recharge (Cooldown) & Jauge de Rage</h4>
-                    <p class="text-zinc-300">
-                        • <strong>Joueur 1 :</strong> <code class="text-amber-300">A/D</code> ou <code class="text-amber-300">Q/D</code> (Déplacement), <code class="text-amber-300">E</code> ou <strong>Double-Direction</strong> (Dash rapide avant/arrière), <code class="text-amber-300">W/Z</code> (Saut + Attaques sautées), <code class="text-amber-300">S</code> (Garde), <code class="text-amber-300">F</code> (Léger), <code class="text-amber-300">G</code> (Lourd), <code class="text-amber-300">H</code> (Spécial 1), <code class="text-amber-300">T</code> (Ultra), <code class="text-amber-300">R</code> / <code class="text-amber-300">Espace</code> (X-Ray ou <strong>FATALITÉ</strong>).<br>
-                        • <strong>Système de Cooldown :</strong> Plus l'attaque est puissante, plus son temps de recharge est long : <span class="text-amber-300">Léger (0.45s)</span> &lt; <span class="text-orange-400">Lourd (1.10s)</span> &lt; <span class="text-purple-400">Spécial (2.80s)</span> &lt; <span class="text-emerald-400">Ultra (4.50s)</span>.<br>
-                        • <strong>X-Ray & Fatalité Ultime :</strong> Le coup destructeur X-Ray nécessite <span class="text-red-400 font-extrabold uppercase">100% de jauge de rage</span> pendant le combat. En revanche, la <span class="text-amber-400 font-extrabold uppercase">FATALITÉ</span> peut TOUJOURS être exécutée pendant la phase finale « ACHEVEZ-LE ! », même sans jauge de rage (via <code class="text-amber-300">R</code>, <code class="text-amber-300">Espace</code> ou boutons d'attaque) !<br>
-                        • <strong>Joueur 2 (Mode 2J Local) :</strong> Flèches directionnelles + Pavé Numérique <code class="text-blue-300">1/I</code> (Léger), <code class="text-blue-300">2/O</code> (Lourd), <code class="text-blue-300">3/P</code> (Spécial 1), <code class="text-blue-300">4</code> (Ultra), <code class="text-blue-300">5</code> (Dash), <code class="text-blue-300">0/M</code> (X-Ray / Fatalité). Compatible manettes USB/Bluetooth !
-                    </p>
+                    <h4 class="font-black text-amber-400 uppercase mb-1">Moteur de Combat Pro, Triangle Attaque/Garde/Chope & Passifs</h4>
+                    <div class="space-y-1.5 text-zinc-300 text-xs">
+                        <p>
+                            • <strong>Système de Défense Moderne :</strong> Maintenez <code class="text-amber-300">Arrière</code> pour la <strong>Garde Haute</strong> (bloque les coups hauts et aériens) ou <code class="text-amber-300">Bas</code> / <code class="text-amber-300">Bas+Arrière</code> pour la <strong>Garde Basse</strong> (accroupi).<br>
+                            • <strong>Attaques Directionnelles au Stick / Croix (4 Directions) :</strong><br>
+                            &nbsp;&nbsp;⬆️ <strong>Haut + Attaque :</strong> Frappe vers le HAUT (Uppercut / Mâchoire au zénith, brise la garde basse accroupie).<br>
+                            &nbsp;&nbsp;⬇️ <strong>Bas + Attaque :</strong> Frappe vers le BAS (Balayage et pilonnage au sol, brise la garde haute debout).<br>
+                            &nbsp;&nbsp;➡️ <strong>Avant + Attaque :</strong> Percée vers l'AVANT (Allongement horizontal à longue portée / Charge).<br>
+                            &nbsp;&nbsp;⬅️ <strong>Arrière + Attaque :</strong> Contre défensif en repli / Anti-Air d'interception.<br>
+                            &nbsp;&nbsp;⏺️ <strong>Neutre (sans direction) :</strong> Enchaînement 1-2 fluide au centre.<br>
+                            • <strong>Impact & Rebond Mural (Wall Splat) :</strong> Percutez violemment l'adversaire contre les parois de l'arène pour provoquer un rebond mural et prolonger votre combo en jonglage aérien.<br>
+                            • <strong>Passifs d'Espèces :</strong> 
+                            <span class="text-red-400 font-bold">Smilodon :</span> Saignement viscéral cumulable (×3). 
+                            <span class="text-emerald-400 font-bold">Pulmonoscorpius :</span> Neurotoxine empoisonnante et ralentissement. 
+                            <span class="text-sky-400 font-bold">Ankylosaure :</span> Hyper-Armure sur coups lourds & renvoi de projectiles. 
+                            <span class="text-amber-400 font-bold">Quetzalcoatlus :</span> Plané stratosphérique aérien en maintenant Saut. 
+                            <span class="text-orange-400 font-bold">Thérizinosaure :</span> 40% de dégâts de gratte à travers la garde. 
+                            <span class="text-yellow-400 font-bold">Apatosaure :</span> Séisme au sol inbloquable (saut obligatoire !). 
+                            <span class="text-red-300 font-bold">T-Rex :</span> Rugissement d'intimidation réduisant de 25% la force adverse.
+                        </p>
+                    </div>
                 </div>
                 <div id="modalRosterMoves" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <!-- Populated by JS -->
@@ -60,6 +74,18 @@ function renderMovesModalList() {
     }).join('');
 }
 
+function closeMovesModal() {
+    const modal = document.getElementById('movesModal');
+    if (modal) modal.classList.add('hidden');
+    if (typeof isMatchPaused !== 'undefined' && isMatchPaused) {
+        const pauseModal = document.getElementById('pauseModal');
+        if (pauseModal) {
+            pauseModal.classList.remove('hidden');
+            if (typeof updatePauseFocus === 'function') updatePauseFocus();
+        }
+    }
+}
+
 function initMovesModal() {
     renderMovesModalList();
 
@@ -70,7 +96,8 @@ function initMovesModal() {
             document.getElementById('movesModal').classList.remove('hidden');
         });
     }
-    document.getElementById('btnCloseMoves').addEventListener('click', () => {
-        document.getElementById('movesModal').classList.add('hidden');
-    });
+    const btnClose = document.getElementById('btnCloseMoves');
+    if (btnClose) {
+        btnClose.addEventListener('click', closeMovesModal);
+    }
 }

@@ -4,17 +4,17 @@
 
 const POST_MATCH_MENU_HTML = `
                 <!-- POST-MATCH OVERLAY BUTTONS -->
-                <div id="postMatchMenu" class="hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-wrap items-center justify-center gap-2.5 pointer-events-auto">
-                    <button id="btnRematch" class="px-5 py-2 rounded-xl bg-gradient-to-r from-red-700 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider border border-amber-300 shadow-xl">
+                <div id="postMatchMenu" class="hidden absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex flex-wrap items-center justify-center gap-3 pointer-events-auto">
+                    <button id="btnRematch" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-800 via-red-600 to-amber-600 hover:from-red-700 hover:to-amber-500 text-white font-cinzel font-black text-xs sm:text-sm uppercase tracking-wider border-2 border-amber-300 shadow-2xl finish-pulse">
                         🔄 Revanche Immédiate
                     </button>
-                    <button id="btnNextOpponent" class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider border border-emerald-400 shadow-xl">
+                    <button id="btnNextOpponent" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-800 to-teal-700 hover:from-emerald-700 hover:to-teal-600 text-white font-cinzel font-black text-xs sm:text-sm uppercase tracking-wider border-2 border-emerald-400 shadow-2xl">
                         🏆 Adversaire Suivant
                     </button>
-                    <button id="btnReturnRoster" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-bold text-xs sm:text-sm uppercase border border-zinc-600 shadow-xl">
+                    <button id="btnReturnRoster" class="stone-btn px-5 py-2.5 rounded-xl text-stone-200 font-chakra font-black text-xs sm:text-sm uppercase shadow-xl">
                         🦖 Changer de Combattant
                     </button>
-                    <button id="btnPostMatchMainMenu" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-amber-300 font-bold text-xs sm:text-sm uppercase border border-zinc-600 shadow-xl">
+                    <button id="btnPostMatchMainMenu" class="stone-btn px-5 py-2.5 rounded-xl text-amber-300 font-chakra font-black text-xs sm:text-sm uppercase shadow-xl">
                         🏠 Menu Principal
                     </button>
                 </div>

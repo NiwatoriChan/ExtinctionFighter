@@ -32,8 +32,10 @@ class Fighter3D {
         this.actionTimer = 0;
         this.actionDuration = 0;
         this.hasHitCurrentAttack = false;
+        this.hasHitConfirmed = false;
         this.hitStun = 0;
         this.isBlocking = false;
+        this.blockType = 'none'; // 'none' | 'high' | 'low'
         this.isDizzy = false;
         this.isDead = false;
         this.decapitated = false;
@@ -46,49 +48,123 @@ class Fighter3D {
         this.dashCooldown = 0;
         this.bufferedAction = null;
         this.bufferTimer = 0;
+        this.inputBuffer = []; // File d'attente d'inputs (~130ms)
+        this.hasHyperArmor = false;
+        this.lightComboStep = 0;
+        this.lastAttackType = null;
         this.rig.headGroup.scale.setScalar(1);
 
-        // Cooldowns d'attaque : plus l'attaque est puissante, plus le cooldown est long
+        // --- PROFILES DE POIDS & GRAVITÉ PAR ARCHÉTYPE ---
+        const id = this.dino.id;
+        if (id === 'apatosaurus' || id === 'ankylosaurus' || id === 'pachyrhinosaurus' || id === 'dragon') {
+            this.weightClass = 'heavy';
+            this.gravityScale = 1.30;
+            this.jumpVy = 10.5;
+            this.knockbackMult = 0.65;
+        } else if (id === 'smilodon' || id === 'terror-bird' || id === 'quetzalcoatlus' || id === 'pulmonoscorpius' || id === 'maiasaura' || id === 'postosuchus') {
+            this.weightClass = 'speed';
+            this.gravityScale = 0.82;
+            this.jumpVy = 12.8;
+            this.knockbackMult = 1.25;
+        } else {
+            this.weightClass = 'brawler';
+            this.gravityScale = 1.0;
+            this.jumpVy = 11.8;
+            this.knockbackMult = 1.0;
+        }
+
+        // --- STATUTS ET GIMMICKS DE COMBAT ---
+        this.bleedStacks = 0;
+        this.bleedTimer = 0;
+        this.bleedTickTimer = 0;
+        this.poisonStacks = 0;
+        this.poisonTimer = 0;
+        this.poisonTickTimer = 0;
+        this.atkPowerMod = 1.0;
+        this.atkPowerModTimer = 0;
+
+        // Seules les compétences Spéciales et l'X-Ray possèdent un temps de recharge.
+        // Les attaques de base (Légère & Lourde) sont débloquées pour un enchaînement fluide (Frame Data).
         this.cooldowns = {
-            light: 0,
-            heavy: 0,
             special: 0,
             special2: 0,
             xray: 0
         };
         const spdMod = Math.max(0.85, Math.min(1.15, 1.25 - (this.dino.stats.spd / 100) * 0.35));
         this.maxCooldowns = {
-            light: 0.45 * spdMod,    // Coup léger : 0.45s (rapide)
-            heavy: 1.10 * spdMod,    // Coup lourd : 1.10s (moyen)
-            special: 2.80 * spdMod,  // Coup spécial 1 : 2.80s (long)
-            special2: 4.50 * spdMod, // Coup spécial 2 / Ultra : 4.50s (très long)
-            xray: 8.00 * spdMod      // X-Ray / Fatal : 8.00s + 100% Rage
+            special: 2.0 * spdMod,   // Spécial 1 : 2.0s
+            special2: 3.6 * spdMod,  // Spécial 2 / Ultra : 3.6s
+            xray: 8.0 * spdMod       // X-Ray : 8.0s + 100% Rage
         };
     }
 
     canCancelInto(nextType) {
         if (this.actionDuration <= 0) return true;
         const progress = this.actionTimer / this.actionDuration;
-        // Fenêtre de Combo Cancel dès 42% de l'animation en cours
-        if (progress < 0.42) return false;
-        if (this.action === 'light' && (nextType === 'heavy' || nextType === 'special' || nextType === 'special2' || nextType === 'xray')) {
-            return true;
+
+        // 1. RÈGLE STRICTE DU HIT-CONFIRM (INTERDICTION DU WHIFF-CANCEL) :
+        // Un coup manqué dans le vide ne peut JAMAIS être annulé !
+        // L'attaquant subit obligatoirement tout le recovery frames et devient punissable.
+        if (!this.hasHitConfirmed) return false;
+
+        // 2. FENÊTRE DE CANCEL POST-IMPACT (52% à 88%) :
+        // Le coup doit avoir connecté visuellement et son impact avoir eu lieu.
+        if (progress < 0.52 || progress > 0.88) return false;
+
+        // 3. HIÉRARCHIE STRICTE DES COMBOS (CHAÎNE À SENS UNIQUE) :
+        // Étape A : 'light' (1er coup léger) peut s'enchaîner vers :
+        // - 'light2' (2e coup léger de la chaîne)
+        // - un coup lourd / anti-air
+        // - un spécial / X-Ray
+        if (this.action === 'light') {
+            if (nextType === 'light' || nextType === 'light2' || nextType.includes('heavy') || nextType === 'anti_air' || nextType.startsWith('special') || nextType === 'xray') {
+                return true;
+            }
+            return false;
         }
-        if (this.action === 'heavy' && (nextType === 'special' || nextType === 'special2' || nextType === 'xray')) {
-            return true;
+
+        // Étape B : Command Normals légers (fwd_light, low_light, up_light, back_light, air_light) :
+        // Ne peuvent s'annuler que vers un Finisher (Lourd / Anti-Air / Spécial), JAMAIS vers un autre léger.
+        if (this.action === 'fwd_light' || this.action === 'low_light' || this.action === 'up_light' || this.action === 'back_light' || this.action === 'air_light') {
+            if (nextType.includes('heavy') || nextType === 'anti_air' || nextType.startsWith('special') || nextType === 'xray') {
+                return true;
+            }
+            return false;
         }
+
+        // Étape C : 'light2' (2e coup léger) :
+        // NE PEUT PLUS JAMAIS s'annuler vers un coup léger ! La chaîne de coups légers est terminée.
+        // Seuls un coup Lourd, Anti-Air, Spécial ou X-Ray peuvent conclure le combo.
+        if (this.action === 'light2') {
+            if (nextType.includes('heavy') || nextType === 'anti_air' || nextType.startsWith('special') || nextType === 'xray') {
+                return true;
+            }
+            return false;
+        }
+
+        // Étape D : Coups Lourds (heavy, fwd_heavy, anti_air, air_heavy) :
+        // Fin de chaîne normale : ne peuvent s'annuler que vers un Spécial, Ultra ou X-Ray (Special Cancel).
+        const isHeavyAct = this.action.includes('heavy') || this.action === 'anti_air';
+        if (isHeavyAct) {
+            if (nextType.startsWith('special') || nextType === 'xray') {
+                return true;
+            }
+            return false;
+        }
+
         return false;
     }
 
     startDash(dir) {
         if (xrayCinematicTimer > 0 || this.hitStun > 0 || this.isDizzy || this.isDead || this.dashCooldown > 0) return;
-        if (this.action === 'xray' || this.action === 'fatality') return;
+        if (this.action === 'xray' || this.action === 'fatality' || this.action === 'throw') return;
 
         this.isBlocking = false;
+        this.blockType = 'none';
         this.dashTimer = 0.18;
-        this.dashCooldown = 0.42;
+        this.dashCooldown = 0.38;
         const dashDir = dir !== 0 ? dir : this.facing;
-        this.vx = dashDir * (this.dino.walkSpeed * 2.45);
+        this.vx = dashDir * (this.dino.walkSpeed * (this.weightClass === 'speed' ? 2.65 : 2.35));
         this.action = 'walk';
         this.actionDuration = 0;
         this.actionTimer = 0;
@@ -100,13 +176,11 @@ class Fighter3D {
         if (xrayCinematicTimer > 0 || this.hitStun > 0 || this.isDizzy || this.isDead) return;
         if (this.action === 'xray' || this.action === 'fatality') return;
 
-        // Vérification stricte du cooldown d'attaque
-        if (this.cooldowns && this.cooldowns[type] > 0) {
+        // Vérification de cooldown uniquement pour les capacités spéciales / X-Ray
+        if (this.cooldowns && this.cooldowns[type] !== undefined && this.cooldowns[type] > 0) {
             if (this.isP1 || gameMode === 'pvp') {
                 sfx.playCooldownWarning();
                 const labels = {
-                    light: 'LÉGER',
-                    heavy: 'LOURD',
                     special: this.dino.special1Name ? this.dino.special1Name.replace(/ \(.*?\)/, '').toUpperCase() : 'SPÉCIAL',
                     special2: this.dino.special2Name ? this.dino.special2Name.replace(/ \(.*?\)/, '').toUpperCase() : 'ULTRA',
                     xray: 'X-RAY'
@@ -116,43 +190,111 @@ class Fighter3D {
             return;
         }
 
-        // Gestion du Combo Cancel ou mise en mémoire tampon (Input Buffer)
-        if (this.action === 'light' || this.action === 'heavy' || this.action === 'special' || this.action === 'special2') {
+        // Gestion de l'annulation de combo ou de la mise en mémoire tampon (Input Buffer)
+        const inActiveAttack = this.actionDuration > 0 && this.action !== 'idle' && this.action !== 'walk' && this.action !== 'crouch';
+        if (inActiveAttack) {
             if (!this.canCancelInto(type)) {
                 this.bufferedAction = type;
-                this.bufferTimer = 0.24;
+                this.bufferTimer = 0.18;
                 return;
             }
         }
 
+        // Gestion des enchaînements 1-2 pour les attaques légères
+        if (type === 'light') {
+            if (this.lastAttackType === 'light' && inActiveAttack) {
+                type = 'light2';
+            }
+        }
+
         this.isBlocking = false;
+        this.blockType = 'none';
         this.action = type;
+        this.lastAttackType = type;
         this.hasHitCurrentAttack = false;
+        this.hasHitConfirmed = false;
         this.actionTimer = 0;
         this.bufferedAction = null;
 
-        // Déclencher le cooldown dès le lancement de l'attaque
+        // Déclencher le cooldown si applicable (spéciaux uniquement)
         if (this.cooldowns && this.maxCooldowns && this.maxCooldowns[type]) {
             this.cooldowns[type] = this.maxCooldowns[type];
         }
 
-        // Léger pas d'engagement en avant pour dynamiser les coups au corps à corps
+        // Ankylosaure : Hyper-Armure sur les attaques lourdes durant le démarrage
+        if (this.dino.id === 'ankylosaurus' && (type === 'heavy' || type === 'fwd_heavy' || type === 'low_heavy' || type === 'anti_air')) {
+            this.hasHyperArmor = true;
+        } else {
+            this.hasHyperArmor = false;
+        }
+
+        // Calibrage fin des Frame States (Durée, Récupération & Vélocité équilibrées)
         if (type === 'light') {
-            this.actionDuration = 0.26;
-            this.vx = this.facing * 4.2;
+            this.actionDuration = 0.28;
+            this.vx = this.facing * 2.8;
+            sfx.playRoar(160, 0.12);
+        } else if (type === 'light2') {
+            this.actionDuration = 0.30;
+            this.vx = this.facing * 2.4;
+            sfx.playRoar(140, 0.15);
+        } else if (type === 'up_light') {
+            this.actionDuration = 0.28;
+            this.vx = this.facing * 1.5;
+            this.vy = Math.max(this.vy, 1.8);
+            sfx.playRoar(155, 0.14);
+        } else if (type === 'fwd_light') {
+            this.actionDuration = 0.30;
+            this.vx = this.facing * 4.6;
             sfx.playRoar(150, 0.14);
+        } else if (type === 'low_light') {
+            this.actionDuration = 0.28;
+            this.vx = this.facing * 2.0;
+            sfx.playRoar(145, 0.13);
+        } else if (type === 'back_light') {
+            this.actionDuration = 0.26;
+            this.vx = -this.facing * 3.2;
+            sfx.playRoar(145, 0.12);
+        } else if (type === 'air_light') {
+            this.actionDuration = 0.28;
+            this.vy = Math.min(this.vy, 2.0);
+            sfx.playRoar(155, 0.14);
         } else if (type === 'heavy') {
             this.actionDuration = 0.44;
-            this.vx = this.facing * 6.5;
-            sfx.playRoar(95, 0.25);
+            this.vx = this.facing * 4.2;
+            sfx.playRoar(95, 0.24);
+        } else if (type === 'fwd_heavy') {
+            this.actionDuration = 0.48;
+            this.vx = this.facing * 5.6;
+            sfx.playRoar(90, 0.28);
+        } else if (type === 'low_heavy') {
+            this.actionDuration = 0.44;
+            this.vx = this.facing * 2.8;
+            sfx.playRoar(90, 0.25);
+        } else if (type === 'anti_air') {
+            this.actionDuration = 0.42;
+            this.vx = this.facing * 1.8;
+            this.vy = Math.max(this.vy, 1.5);
+            sfx.playRoar(85, 0.30);
+        } else if (type === 'air_heavy') {
+            this.actionDuration = 0.44;
+            this.vy = -6.5; // Piqué violent vers le sol
+            this.vx = this.facing * 3.8;
+            sfx.playRoar(92, 0.32);
+        } else if (type === 'throw') {
+            this.actionDuration = 0.48;
+            this.vx = this.facing * 1.8;
+            sfx.playRoar(110, 0.35);
+        } else if (type === 'throw_whiff') {
+            this.actionDuration = 0.38;
+            this.vx = 0;
         } else if (type === 'special') {
-            this.actionDuration = 0.54;
-            this.vx = this.facing * 5.2;
-            sfx.playRoar(80, 0.38);
+            this.actionDuration = 0.52;
+            this.vx = this.facing * 4.6;
+            sfx.playRoar(80, 0.36);
         } else if (type === 'special2') {
             this.actionDuration = 0.60;
-            this.vx = this.facing * 3.5;
-            sfx.playRoar(115, 0.42);
+            this.vx = this.facing * 3.2;
+            sfx.playRoar(115, 0.40);
         }
     }
 }
@@ -167,6 +309,7 @@ let roundTimerAccum = 0;
 let matchState = 'select';
 let stateTimer = 0;
 let screenShake = 0;
+let hitstopTimer = 0;
 let xrayCinematicTimer = 0;
 let xrayStage = 0;
 let xrayLockPositions = null;

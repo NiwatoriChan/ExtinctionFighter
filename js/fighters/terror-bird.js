@@ -13,7 +13,7 @@ registerFighter({
     secondaryColor: 0x9a3412,
     accentColor: 0xfacc15,
     cssPrimary: '#ea580c',
-    scale: 0.98,
+    scale: 0.88,
     stats: { pow: 92, spd: 98, def: 68 },
     maxHp: 920,
     walkSpeed: 10.4,
@@ -106,13 +106,63 @@ registerFighter({
         rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.72 : 0;
     },
 
+    hasCustomDirectionals: true,
+
     // Animations d'attaques (light / heavy / special / special2 / xray)
     animateAttack(ctx) {
         const { rig, act, prog, swing, baseHipsY } = ctx;
         if (act === 'light') {
-            // Coup de bec guillotine ultra-rapide
-            rig.neck.rotation.z = -swing * 0.85;
+            // Coup de bec hachoir gauche
+            rig.neck.rotation.z = -swing * 0.75;
             rig.headGroup.rotation.z = -swing * 0.45;
+            rig.jaw.rotation.z = -swing * 0.5;
+        } else if (act === 'light2') {
+            // Coup de bec croisé droit avec torsion
+            rig.torso.rotation.y = swing * 0.35;
+            rig.neck.rotation.z = -swing * 0.9;
+            rig.headGroup.rotation.z = -swing * 0.55;
+            rig.jaw.rotation.z = -swing * 0.7;
+        } else if (act === 'fwd_light') {
+            // Ruée agressive et picotement perforant
+            rig.hips.position.x = swing * 0.85;
+            rig.neck.rotation.z = -swing * 0.8;
+            rig.arms[0].rotation.x = -0.6;
+            rig.arms[1].rotation.x = 0.6;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Direction BAS ⬇️ (Balayage bas) : Balayage des serres au sol
+            rig.hips.position.y = baseHipsY - swing * 0.35;
+            rig.legs[0].rotation.z = swing * 1.2;
+            rig.torso.rotation.z = 0.35;
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Direction HAUT ⬆️ (Anti-Air Launcher / Ciel) : Décollage vertical bec pointé vers le ciel et battement d'ailes
+            rig.neck.rotation.z = swing * 0.85;
+            rig.headGroup.rotation.z = swing * 0.6;
+            rig.jaw.rotation.z = -swing * 0.8;
+            rig.arms[0].rotation.x = -1.2;
+            rig.arms[1].rotation.x = 1.2;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Saut en arrière et frappe de bec rapide
+            rig.hips.position.x = -s * 0.75;
+            rig.neck.rotation.z = -s * 0.65;
+            rig.jaw.rotation.z = -s * 0.55;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            // Plongeon serres déployées
+            rig.torso.rotation.z = -swing * 0.7;
+            rig.legs[0].rotation.z = swing * 1.3;
+            rig.legs[1].rotation.z = swing * 1.1;
+        } else if (act === 'fwd_heavy') {
+            // Grand bond en avant serres en avant
+            rig.hips.position.x = swing * 1.1;
+            rig.hips.position.y = baseHipsY + swing * 0.8;
+            rig.legs[0].rotation.z = swing * 1.2;
+            rig.legs[1].rotation.z = swing * 1.0;
+        } else if (act === 'throw') {
+            // Saisie au bec et projection violente
+            rig.neck.rotation.z = -swing * 0.95;
+            rig.headGroup.rotation.y = swing * 1.2;
+        } else if (act === 'throw_whiff') {
+            rig.hips.position.x = swing * 0.45;
+            rig.neck.rotation.z = -swing * 0.4;
         } else if (act === 'heavy' || act === 'special2') {
             // Saut de rapace toutes serres en avant
             rig.hips.position.y = baseHipsY + swing * 1.5;
@@ -121,7 +171,7 @@ registerFighter({
             rig.legs[1].rotation.z = swing * 0.9;
             rig.arms[0].rotation.x = -0.85;
             rig.arms[1].rotation.x = 0.85;
-        } else {
+        } else if (act === 'special') {
             // Plongeon Guillotine Aviaire
             rig.hips.position.y = baseHipsY + Math.sin(prog * Math.PI) * 1.8;
             rig.neck.rotation.z = -swing * 0.95;

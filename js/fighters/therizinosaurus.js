@@ -121,22 +121,72 @@ registerFighter({
         rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.55 : 0;
     },
 
-    // Animations d'attaques (light / heavy / special / special2 / xray)
+    hasCustomDirectionals: true,
+
+    // Animations d'attaques claires et distinctes pour chaque coup
     animateAttack(ctx) {
-        const { rig, act, prog, swing } = ctx;
+        const { rig, act, prog, swing, strike, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
+
         if (act === 'light') {
-            // Entaille croisée rapide des faux d'un mètre
-            rig.arms[0].rotation.y = swing * 1.15;
-            rig.arms[1].rotation.y = -swing * 1.15;
-            rig.arms[0].rotation.z = -swing * 0.65;
-            rig.arms[1].rotation.z = -swing * 0.65;
-        } else if (act === 'heavy' || act === 'special') {
+            // Coup Léger 1 : Entaille de la faux gauche d'un mètre
+            rig.arms[0].rotation.y = s * 1.25;
+            rig.arms[0].rotation.z = -s * 0.75;
+            rig.arms[1].rotation.z = s * 0.25;
+            rig.torso.rotation.y = s * 0.35;
+        } else if (act === 'light2') {
+            // Coup Léger 2 (Combo 1-2) : Entaille croisée opposée de la faux droite
+            rig.arms[0].rotation.z = s * 0.25;
+            rig.arms[1].rotation.y = -s * 1.35;
+            rig.arms[1].rotation.z = -s * 0.85;
+            rig.torso.rotation.y = -s * 0.45;
+        } else if (act === 'fwd_light') {
+            // Avant + Léger (Poke tranchant) : Allongement des faux à portée maximale
+            rig.hips.position.x = s * 0.95;
+            rig.torso.rotation.z = -s * 0.38;
+            rig.arms[0].rotation.z = -s * 1.1;
+            rig.arms[1].rotation.z = -s * 1.1;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Direction BAS ⬇️ (Balayage bas) : Faux d'un mètre rasant le sol
+            rig.hips.position.y = (baseHipsY || 2.1) * 0.55;
+            rig.torso.rotation.z = -0.32;
+            rig.arms[0].rotation.y = s * 1.45;
+            rig.arms[1].rotation.y = -s * 1.45;
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Direction HAUT ⬆️ (Anti-Air Launcher / Ciel) : Double coup de faux en V vers le ciel
+            rig.hips.position.y = (baseHipsY || 2.1) + s * 0.75;
+            rig.torso.rotation.z = s * 0.55;
+            rig.arms[0].rotation.z = s * 1.6;
+            rig.arms[1].rotation.z = s * 1.6;
+            rig.headGroup.rotation.z = s * 0.55;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Retrait des faux en garde haute défensive
+            rig.hips.position.x = -s * 0.75;
+            rig.arms[0].rotation.z = -s * 0.9;
+            rig.arms[1].rotation.z = -s * 0.9;
+        } else if (act === 'throw') {
+            // Chope : Étreinte en ciseaux des 6 lames et projection
+            rig.hips.position.x = s * 0.85;
+            rig.arms[0].rotation.z = Math.sin(prog * 20) * 0.85;
+            rig.arms[1].rotation.z = Math.sin(prog * 20) * 0.85;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            // Plongeon aérien fendant de ses faux d'un mètre
+            rig.torso.rotation.z = -s * 0.65;
+            rig.arms[0].rotation.z = -s * 1.5;
+            rig.arms[1].rotation.z = -s * 1.5;
+        } else if (act === 'heavy' || act === 'fwd_heavy') {
             // Guillotine en X des 6 lames géantes
-            rig.torso.rotation.z = -swing * 0.3;
+            rig.hips.position.x = s * (act === 'fwd_heavy' ? 1.25 : 0.5);
+            rig.torso.rotation.z = -s * 0.38;
+            rig.arms[0].rotation.z = Math.cos(prog * Math.PI) * 1.35;
+            rig.arms[1].rotation.z = Math.cos(prog * Math.PI) * 1.35;
+        } else if (act === 'special') {
+            // Entaille spéciale
+            rig.torso.rotation.z = -s * 0.3;
             rig.arms[0].rotation.z = Math.cos(prog * Math.PI) * 1.2;
             rig.arms[1].rotation.z = Math.cos(prog * Math.PI) * 1.2;
-        } else {
-            // Tourbillon de Lames 360°
+        } else if (act === 'special2') {
+            // Tourbillon de Lames 360° (Ultra)
             rig.hips.rotation.y = prog * Math.PI * 4;
             rig.arms[0].rotation.x = -0.75;
             rig.arms[1].rotation.x = 0.75;

@@ -13,7 +13,7 @@ registerFighter({
     secondaryColor: 0x065f46,
     accentColor: 0xfbbf24,
     cssPrimary: '#10b981',
-    scale: 1.0,
+    scale: 0.98,
     stats: { pow: 82, spd: 86, def: 78 },
     maxHp: 980,
     walkSpeed: 9.2,
@@ -107,21 +107,61 @@ registerFighter({
         rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.62 : 0;
     },
 
+    hasCustomDirectionals: true,
+
     // Animations d'attaques (light / heavy / special / special2 / xray)
     animateAttack(ctx) {
         const { rig, act, prog, swing, baseHipsY } = ctx;
         if (act === 'light') {
-            // Double frappe rapide
-            rig.arms[0].rotation.z = swing * 1.1;
-            rig.arms[1].rotation.z = swing * 1.1;
-            rig.headGroup.rotation.z = -swing * 0.4;
+            // Frappe de sabot gauche rapide
+            rig.arms[0].rotation.z = swing * 1.2;
+            rig.headGroup.rotation.z = -swing * 0.35;
+        } else if (act === 'light2') {
+            // Coup croisé de sabot droit
+            rig.arms[1].rotation.z = swing * 1.2;
+            rig.headGroup.rotation.z = swing * 0.35;
+        } else if (act === 'fwd_light') {
+            // Coup de boule de la crête en avant
+            rig.hips.position.x = swing * 0.75;
+            rig.neck.rotation.z = -swing * 0.6;
+            rig.headGroup.rotation.z = -swing * 0.45;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Direction BAS ⬇️ (Balayage bas) : Balayage caudal bas
+            rig.hips.position.y = baseHipsY - swing * 0.3;
+            rig.tailSegments.forEach(s => { s.rotation.y = -swing * 0.85; });
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Direction HAUT ⬆️ (Anti-Air Launcher / Ciel) : Émission ultrasonique vers le ciel
+            rig.neck.rotation.z = swing * 0.75;
+            rig.headGroup.rotation.z = swing * 0.55;
+            if (rig.specialParts.sonicCrest) rig.specialParts.sonicCrest.scale.setScalar(1 + swing * 0.5);
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Pas de recul et onde de crête préventive
+            rig.hips.position.x = -swing * 0.7;
+            rig.headGroup.rotation.z = swing * 0.45;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            rig.hips.rotation.z = -swing * 0.4;
+            rig.legs[0].rotation.z = swing * 0.9;
+        } else if (act === 'fwd_heavy') {
+            // Ruée sonique lourde
+            rig.hips.position.x = swing * 1.1;
+            rig.neck.rotation.z = -swing * 0.55;
+            rig.arms[0].rotation.z = swing * 1.2;
+            rig.arms[1].rotation.z = swing * 1.2;
+        } else if (act === 'throw') {
+            // Prise rapprochée et souffle sonique à bout portant
+            rig.arms[0].rotation.z = 0.8;
+            rig.arms[1].rotation.z = 0.8;
+            rig.headGroup.rotation.z = -0.6;
+        } else if (act === 'throw_whiff') {
+            rig.hips.position.x = swing * 0.35;
+            rig.arms[0].rotation.z = 0.5;
         } else if (act === 'heavy' || act === 'special2') {
             // Salto / Ruée de coups de pied sautés
             rig.hips.position.y = baseHipsY + swing * 1.35;
             rig.hips.rotation.z = prog * Math.PI * 2;
             rig.legs[0].rotation.z = 0.85;
             rig.legs[1].rotation.z = -0.85;
-        } else {
+        } else if (act === 'special') {
             // Onde Ultrasonique de la crête
             rig.neck.rotation.z = -swing * 0.35;
             rig.headGroup.rotation.z = swing * 0.25;

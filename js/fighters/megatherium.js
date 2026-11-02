@@ -13,7 +13,7 @@ registerFighter({
     secondaryColor: 0x543209,
     accentColor: 0xfacc15,
     cssPrimary: '#854d0e',
-    scale: 1.06,
+    scale: 1.08,
     stats: { pow: 96, spd: 70, def: 93 },
     maxHp: 1180,
     walkSpeed: 7.4,
@@ -111,12 +111,54 @@ registerFighter({
         rig.legs[1].rotation.z = isWalk ? -Math.sin(time * freq) * 0.42 : 0;
     },
 
+    hasCustomDirectionals: true,
+
     // Animations d'attaques (light / heavy / special / special2 / xray)
     animateAttack(ctx) {
         const { rig, act, swing, baseHipsY } = ctx;
         if (act === 'light') {
-            rig.arms[0].rotation.z = -swing * 1.15;
+            rig.arms[0].rotation.z = -swing * 1.3;
             rig.arms[0].rotation.y = swing * 0.65;
+            rig.torso.rotation.y = swing * 0.35;
+        } else if (act === 'light2') {
+            rig.arms[1].rotation.z = -swing * 1.3;
+            rig.arms[1].rotation.y = -swing * 0.65;
+            rig.torso.rotation.y = -swing * 0.35;
+        } else if (act === 'fwd_light') {
+            rig.hips.position.x = swing * 0.75;
+            rig.arms[0].rotation.z = -swing * 1.2;
+            rig.torso.rotation.z = -0.25;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Direction BAS ⬇️ (Balayage bas) : Griffes massives rasant le sol
+            rig.hips.position.y = baseHipsY - swing * 0.4;
+            rig.arms[0].rotation.z = -swing * 1.5;
+            rig.torso.rotation.z = 0.25;
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Direction HAUT ⬆️ (Anti-Air Launcher / Ciel) : Griffes de béhémoth projetées vers le ciel
+            rig.arms[0].rotation.z = -swing * 1.8;
+            rig.arms[1].rotation.z = -swing * 1.8;
+            rig.torso.rotation.z = swing * 0.45;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Garde lourde en recul et revers de griffe
+            rig.hips.position.x = -swing * 0.7;
+            rig.arms[0].rotation.z = -swing * 1.1;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            rig.torso.rotation.z = -swing * 0.5;
+            rig.arms[0].rotation.z = -swing * 1.6;
+            rig.arms[1].rotation.z = -swing * 1.6;
+        } else if (act === 'fwd_heavy') {
+            rig.hips.position.x = swing * 1.1;
+            rig.torso.rotation.z = -swing * 0.4;
+            rig.arms[0].rotation.z = -swing * 1.5;
+            rig.arms[1].rotation.z = -swing * 1.5;
+        } else if (act === 'throw') {
+            rig.arms[0].rotation.y = swing * 1.4;
+            rig.arms[1].rotation.y = -swing * 1.4;
+            rig.torso.rotation.z = swing * 0.35;
+        } else if (act === 'throw_whiff') {
+            rig.hips.position.x = swing * 0.35;
+            rig.arms[0].rotation.y = swing * 0.6;
+            rig.arms[1].rotation.y = -swing * 0.6;
         } else if (act === 'heavy') {
             rig.torso.rotation.z = -swing * 0.45;
             rig.arms[0].rotation.z = -swing * 1.45;
@@ -124,7 +166,7 @@ registerFighter({
         } else if (act === 'special') {
             rig.hips.position.y = baseHipsY + swing * 0.65;
             rig.torso.rotation.z = 0.35 - swing * 0.75;
-        } else {
+        } else if (act === 'special2') {
             rig.arms[0].rotation.y = swing * 1.35;
             rig.arms[1].rotation.y = -swing * 1.35;
         }

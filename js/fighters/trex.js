@@ -13,7 +13,7 @@ registerFighter({
     secondaryColor: 0x7f1d1d,
     accentColor: 0xf59e0b,
     cssPrimary: '#dc2626',
-    scale: 1.05,
+    scale: 1.10,
     stats: { pow: 96, spd: 72, def: 85 },
     maxHp: 1050,
     walkSpeed: 7.8,
@@ -125,22 +125,69 @@ registerFighter({
         });
     },
 
-    // Animations d'attaques (light / heavy / special / special2 / xray)
+    hasCustomDirectionals: true,
+
+    // Animations d'attaques claires et distinctes pour chaque coup
     animateAttack(ctx) {
-        const { rig, act, prog, swing } = ctx;
+        const { rig, act, prog, swing, strike } = ctx;
+        const s = strike !== undefined ? strike : swing;
+
         if (act === 'light') {
-            // Morsure plongeante en avant
-            rig.torso.rotation.z = -swing * 0.35;
-            rig.neck.rotation.z = -swing * 0.3;
-            rig.jaw.rotation.z = -swing * 0.65;
-        } else if (act === 'heavy') {
+            // Coup Léger 1 : Morsure plongeante avant gauche
+            rig.torso.rotation.z = -s * 0.35;
+            rig.torso.rotation.y = s * 0.25;
+            rig.neck.rotation.z = -s * 0.30;
+            rig.jaw.rotation.z = -s * 0.75;
+        } else if (act === 'light2') {
+            // Coup Léger 2 (Combo 1-2) : Claquement de mâchoire opposé venant de droite
+            rig.torso.rotation.z = -s * 0.42;
+            rig.torso.rotation.y = -s * 0.35;
+            rig.neck.rotation.z = -s * 0.38;
+            rig.jaw.rotation.z = -s * 1.05;
+            rig.tailSegments.forEach(seg => { seg.rotation.y = s * 0.4; });
+        } else if (act === 'fwd_light') {
+            // Avant + Léger (Poke / Percée) : Allongement maximal du cou et des crocs
+            rig.hips.position.x = s * 0.95;
+            rig.torso.rotation.z = -s * 0.42;
+            rig.neck.rotation.z = -s * 0.45;
+            rig.jaw.rotation.z = -s * 0.85;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Bas + Attaque : Morsure au ras du sol et balayage caudal bas
+            rig.hips.position.y = 1.35;
+            rig.torso.rotation.z = -0.38;
+            rig.neck.rotation.z = -0.40;
+            rig.jaw.rotation.z = -s * 0.75;
+            rig.tailSegments.forEach((seg, i) => { seg.rotation.y = Math.cos(prog * Math.PI) * 0.75; });
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Haut + Attaque : Redressement titanesque, mâchoires projetées vers le ciel
+            rig.hips.position.y = 2.1 + s * 0.65;
+            rig.torso.rotation.z = s * 0.55;
+            rig.neck.rotation.z = s * 0.45;
+            rig.headGroup.rotation.z = s * 0.65;
+            rig.jaw.rotation.z = -s * 1.25;
+            rig.tailSegments.forEach(seg => { seg.rotation.z = -s * 0.45; });
+        } else if (act === 'throw') {
+            // Chope : Saisie au corps à corps et secousse brutale
+            rig.hips.position.x = s * 0.85;
+            rig.torso.rotation.y = Math.sin(prog * 22) * 0.45;
+            rig.jaw.rotation.z = prog < 0.35 ? -1.15 : -0.25;
+        } else if (act === 'heavy' || act === 'fwd_heavy') {
             // Balayage caudal rotatif à 360°
             rig.hips.rotation.y = prog * Math.PI * 2;
-            rig.tailSegments.forEach(s => { s.rotation.y = 0.35; });
-        } else {
-            // Rugissement volcanique / Morsure sismique
-            rig.torso.rotation.z = swing * 0.28;
-            rig.headGroup.rotation.z = swing * 0.45;
+            rig.tailSegments.forEach(s => { s.rotation.y = 0.42; });
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            // Piqué aérien
+            rig.torso.rotation.z = -0.58;
+            rig.jaw.rotation.z = -s * 0.85;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Pas de retrait défensif et claquement préventif
+            rig.hips.position.x = -s * 0.75;
+            rig.torso.rotation.z = s * 0.25;
+            rig.jaw.rotation.z = -s * 0.85;
+        } else if (act === 'special' || act === 'special2') {
+            // Rugissement volcanique / Morsure sismique (Spéciaux)
+            rig.torso.rotation.z = s * 0.28;
+            rig.headGroup.rotation.z = s * 0.45;
             rig.jaw.rotation.z = -0.75;
         }
     },

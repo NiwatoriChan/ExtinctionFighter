@@ -108,19 +108,69 @@ registerFighter({
         rig.legs[1].rotation.z = isWalk ? Math.sin(time * freq) * 0.45 : 0;
     },
 
-    // Animations d'attaques (light / heavy / special / special2 / xray)
+    hasCustomDirectionals: true,
+
+    // Animations d'attaques claires et distinctes pour chaque coup
     animateAttack(ctx) {
-        const { rig, act, prog, swing, baseHipsY } = ctx;
+        const { rig, act, prog, swing, strike, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
+
         if (act === 'light') {
-            rig.neck.rotation.z = -swing * 0.85;
-            rig.headGroup.rotation.z = -swing * 0.45;
-        } else if (act === 'heavy') {
-            rig.arms[0].rotation.y = swing * 1.45;
-            rig.arms[1].rotation.y = -swing * 1.45;
+            // Coup Léger 1 : Estoc rapide du long bec en dague
+            rig.neck.rotation.z = -s * 0.85;
+            rig.neck.rotation.y = s * 0.25;
+            rig.headGroup.rotation.z = -s * 0.45;
+        } else if (act === 'light2') {
+            // Coup Léger 2 (Combo 1-2) : Estoc croisé opposé avec impulsion de l'aile
+            rig.neck.rotation.z = -s * 0.95;
+            rig.neck.rotation.y = -s * 0.35;
+            rig.headGroup.rotation.z = -s * 0.55;
+            rig.arms[1].rotation.y = -s * 0.85;
+        } else if (act === 'fwd_light') {
+            // Avant + Léger (Poke aérien) : Harponnage maximal à longue portée
+            rig.hips.position.x = s * 1.15;
+            rig.neck.rotation.z = -s * 1.05;
+            rig.headGroup.rotation.z = -s * 0.45;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Direction BAS ⬇️ (Balayage bas) : Bec au ras du sol et fauchage de l'aile
+            rig.hips.position.y = baseHipsY * 0.55;
+            rig.neck.rotation.z = -0.95;
+            rig.arms[0].rotation.y = s * 1.25;
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Direction HAUT ⬆️ (Anti-Air Launcher / Envol vers le ciel) : Bec pointé vers le zénith
+            rig.hips.position.y = baseHipsY + s * 1.25;
+            rig.neck.rotation.z = s * 0.95;
+            rig.headGroup.rotation.z = s * 0.75;
+            rig.arms[0].rotation.z = s * 1.5;
+            rig.arms[1].rotation.z = -s * 1.5;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ (Battement de recul et estoc de bec défensif)
+            rig.hips.position.x = -s * 0.8;
+            rig.neck.rotation.z = -s * 0.65;
+            rig.arms[0].rotation.y = s * 0.9;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            // Piqué plongeant aérien, serres en avant et ailes profilées
+            rig.torso.rotation.z = -0.75;
+            rig.neck.rotation.z = -s * 1.1;
+            rig.arms[0].rotation.y = s * 1.2;
+            rig.arms[1].rotation.y = -s * 1.2;
+        } else if (act === 'throw') {
+            // Saisie au bec et projection en vrille aérienne
+            rig.hips.position.x = s * 0.95;
+            rig.neck.rotation.z = -s * 0.9;
+            rig.arms[0].rotation.y = s * 1.1;
+            rig.arms[1].rotation.y = -s * 1.1;
+        } else if (act === 'heavy' || act === 'fwd_heavy') {
+            // Bourrasque d'ailes dévastatrice
+            rig.arms[0].rotation.y = s * 1.45;
+            rig.arms[1].rotation.y = -s * 1.45;
+            rig.neck.rotation.z = -s * 0.4;
         } else if (act === 'special') {
-            rig.hips.position.y = baseHipsY + swing * 1.5;
-            rig.neck.rotation.z = -swing * 1.2;
-        } else {
+            // Piqué Sonique
+            rig.hips.position.y = baseHipsY + s * 1.5;
+            rig.neck.rotation.z = -s * 1.2;
+        } else if (act === 'special2') {
+            // Bourrasque tourbillonnaire (Ultra)
             rig.arms[0].rotation.z = Math.sin(prog * Math.PI * 8) * 0.9;
             rig.arms[1].rotation.z = -Math.sin(prog * Math.PI * 8) * 0.9;
         }

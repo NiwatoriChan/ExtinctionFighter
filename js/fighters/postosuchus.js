@@ -13,7 +13,7 @@ registerFighter({
     secondaryColor: 0x450a0a,
     accentColor: 0xf97316,
     cssPrimary: '#b91c1c',
-    scale: 0.95,
+    scale: 0.92,
     stats: { pow: 91, spd: 80, def: 84 },
     maxHp: 1020,
     walkSpeed: 8.4,
@@ -117,20 +117,64 @@ registerFighter({
         });
     },
 
+    hasCustomDirectionals: true,
+
     // Animations d'attaques (light / heavy / special / special2 / xray)
     animateAttack(ctx) {
         const { rig, act, prog, swing, baseHipsY } = ctx;
         if (act === 'light') {
-            // Bond bipède et claquement de mâchoires du Trias
+            // Bond bipède et claquement de mâchoires gauche
             rig.hips.rotation.z = swing * 0.45;
             rig.headGroup.rotation.z = -swing * 0.4;
             rig.jaw.rotation.z = -swing * 0.75;
+        } else if (act === 'light2') {
+            // Claquement croisé de mâchoires flanc droit
+            rig.torso.rotation.y = swing * 0.45;
+            rig.headGroup.rotation.z = -swing * 0.45;
+            rig.jaw.rotation.z = -swing * 0.85;
+        } else if (act === 'fwd_light') {
+            // Ruée agressive et morsure allongée du Trias
+            rig.hips.position.x = swing * 0.85;
+            rig.hips.rotation.z = swing * 0.3;
+            rig.headGroup.rotation.z = -swing * 0.35;
+            rig.jaw.rotation.z = -swing * 0.8;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Direction BAS ⬇️ (Balayage bas) : Balayage caudal bas et morsure ras du sol
+            rig.hips.position.y = baseHipsY - swing * 0.35;
+            rig.headGroup.rotation.z = -0.45;
+            rig.jaw.rotation.z = -swing * 0.7;
+            rig.tailSegments.forEach(s => { s.rotation.y = -swing * 0.8; });
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Direction HAUT ⬆️ (Anti-Air Launcher / Ciel) : Cabré dressé du Trias avec mâchoire projetée vers le ciel
+            rig.hips.rotation.z = swing * 0.75;
+            rig.headGroup.rotation.z = swing * 0.6;
+            rig.jaw.rotation.z = -swing * 1.1;
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Retrait bas et snap de mâchoire défensif
+            rig.hips.position.x = -s * 0.75;
+            rig.jaw.rotation.z = -s * 0.75;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            rig.torso.rotation.z = -swing * 0.6;
+            rig.jaw.rotation.z = -swing * 0.9;
+        } else if (act === 'fwd_heavy') {
+            // Grande ruée et coup de mâchoire lourd
+            rig.hips.position.x = swing * 1.15;
+            rig.hips.rotation.z = swing * 0.4;
+            rig.jaw.rotation.z = -swing * 1.0;
+        } else if (act === 'throw') {
+            // Verrouillage de la mâchoire et projection latérale
+            rig.jaw.rotation.z = -0.9;
+            rig.torso.rotation.y = swing * 1.5;
+            rig.headGroup.rotation.y = swing * 1.2;
+        } else if (act === 'throw_whiff') {
+            rig.hips.position.x = swing * 0.4;
+            rig.jaw.rotation.z = -0.4;
         } else if (act === 'heavy' || act === 'special') {
             // TONNEAU DE LA MORT (Rotation longitudinale Death Roll sur l'axe X !)
             rig.hips.position.y = baseHipsY + swing * 0.65;
             rig.torso.rotation.x = prog * Math.PI * 4;
             rig.jaw.rotation.z = -0.5;
-        } else {
+        } else if (act === 'special2') {
             // Ruée Mâchoire du Trias
             rig.hips.position.x = swing * 0.9;
             rig.jaw.rotation.z = -0.8;

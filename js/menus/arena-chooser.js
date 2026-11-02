@@ -7,52 +7,52 @@ const ARENA_CHOOSER_HTML = `
     <!-- ==================== SCREEN 1.5: ARENA CHOOSER ==================== -->
     <section id="arenaScreen" class="hidden w-full h-full flex-1 flex flex-col justify-between gap-2 py-1 max-w-7xl mx-auto select-none">
         <!-- Top bar: Header & Stage Title -->
-        <div class="stone-panel rounded-xl p-2.5 flex items-center justify-between gap-3 shrink-0">
+        <div class="stone-panel rounded-xl p-2.5 flex items-center justify-between gap-3 shrink-0 border-2 border-[#525567]">
             <div class="flex items-center gap-2.5">
-                <button id="btnArenaBackToCreatures" class="px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-black text-amber-300 transition flex items-center gap-1.5">
+                <button id="btnArenaBackToCreatures" class="stone-btn px-3.5 py-1.5 rounded-lg text-xs font-black text-amber-300 flex items-center gap-1.5 font-chakra shadow">
                     <span>⬅</span> <span>Changer de Créature</span>
                 </button>
-                <div class="h-5 w-px bg-zinc-700 hidden sm:block"></div>
-                <div id="arenaModeLabel" class="text-xs sm:text-sm font-black text-amber-400 uppercase tracking-wider">
+                <div class="h-5 w-px bg-stone-700 hidden sm:block"></div>
+                <div id="arenaModeLabel" class="font-cinzel text-xs sm:text-base font-black text-amber-300 uppercase tracking-wider drop-shadow">
                     CHOIX DU CHAMP DE BATAILLE
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <button id="btnArenaRandom" class="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-bold text-amber-400 transition flex items-center gap-1">
+                <button id="btnArenaRandom" class="stone-btn px-3 py-1.5 rounded-lg text-xs font-black text-amber-300 flex items-center gap-1 font-chakra shadow">
                     <span>🎲</span> <span>Arène Aléatoire</span>
                 </button>
-                <button id="btnArenaFight" class="px-6 py-2 rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-lg shadow-red-900/60 border border-amber-300 finish-pulse">
+                <button id="btnArenaFight" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-800 via-red-600 to-amber-600 hover:from-red-700 hover:to-amber-500 text-white font-cinzel font-black text-xs sm:text-sm uppercase tracking-widest shadow-2xl border-2 border-amber-300 finish-pulse">
                     🔥 LANCER LE KOMBAT !
                 </button>
             </div>
         </div>
 
-        <!-- Main Arena Layout (as in sketch): Big 'Arena selected' on left + Grid 'preview' on right -->
+        <!-- Main Arena Layout: Big 'Arena selected' on left + Grid 'preview' on right -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch flex-1 min-h-0">
-            <!-- Left Large Viewport: Arena Selected (3D live rotating view + details) -->
-            <div class="lg:col-span-8 stone-panel rounded-2xl p-3 flex flex-col justify-between relative overflow-hidden">
+            <!-- Left Large Viewport: Arena Selected -->
+            <div class="lg:col-span-8 stone-panel rounded-2xl p-3 flex flex-col justify-between relative overflow-hidden border-2 border-[#5a5d70]">
                 <!-- 3D Canvas Viewport -->
-                <div class="w-full h-full flex-1 rounded-xl bg-black/60 relative overflow-hidden border border-white/5 min-h-[300px]">
+                <div class="w-full h-full flex-1 rounded-xl bg-black/80 relative overflow-hidden border-2 border-stone-700 min-h-[300px]">
                     <canvas id="arenaPreviewCanvas" class="w-full h-full block"></canvas>
 
                     <!-- Top-Left Arena Badge -->
-                    <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 shadow-lg pointer-events-none">
-                        <span class="text-[10px] text-amber-400 font-bold uppercase tracking-widest block">ARÈNE SÉLECTIONNÉE</span>
-                        <h2 id="arenaHeroTitle" class="mk-title text-lg sm:text-2xl font-black text-white">🌋 CRATÈRE DU CHICXULUB</h2>
+                    <div class="absolute top-3 left-3 bg-stone-950/85 backdrop-blur-md px-4 py-2 rounded-xl border border-stone-600 shadow-xl pointer-events-none">
+                        <span class="font-chakra text-[10px] text-amber-400 font-extrabold uppercase tracking-widest block">ARÈNE SÉLECTIONNÉE</span>
+                        <h2 id="arenaHeroTitle" class="mk-title text-lg sm:text-2xl font-black text-amber-200">🌋 CRATÈRE DU CHICXULUB</h2>
                     </div>
 
                     <!-- Bottom Overlay: Atmosphere & Hazard description -->
-                    <div class="absolute bottom-3 left-3 right-3 bg-black/70 backdrop-blur-md p-2.5 sm:p-3 rounded-xl border border-white/10 pointer-events-none flex flex-wrap items-center justify-between gap-2">
+                    <div class="absolute bottom-3 left-3 right-3 bg-stone-950/90 backdrop-blur-md p-3 rounded-xl border border-stone-700 pointer-events-none flex flex-wrap items-center justify-between gap-2">
                         <div>
-                            <div id="arenaHeroSub" class="text-xs sm:text-sm font-semibold text-zinc-200">
+                            <div id="arenaHeroSub" class="font-chakra text-xs sm:text-sm font-bold text-stone-200">
                                 Lave en fusion, météores incandescents et ciel de cendres apocalyptique
                             </div>
-                            <div class="text-[10px] text-zinc-400 mt-0.5">
-                                Propriétés : <span id="arenaHeroHazard" class="text-amber-400 font-medium">Magma tellurique • Impacts d'astéroïdes • Sol sismique</span>
+                            <div class="font-chakra text-[10px] text-stone-400 mt-0.5">
+                                Propriétés : <span id="arenaHeroHazard" class="text-amber-300 font-extrabold">Magma tellurique • Impacts d'astéroïdes • Sol sismique</span>
                             </div>
                         </div>
-                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-950/60 text-red-300 border border-red-500/30">
+                        <span class="font-chakra text-[10px] uppercase font-black px-2.5 py-1 rounded bg-red-950/80 text-amber-300 border border-amber-500/40 shadow">
                             Arène 3D Interactive
                         </span>
                     </div>
@@ -237,8 +237,6 @@ function openArenaChooser() {
     document.getElementById('battleScreen').classList.add('hidden');
     document.getElementById('battleScreen').classList.remove('flex');
     document.getElementById('arenaScreen').classList.remove('hidden');
-    document.getElementById('btnBackToSelect').classList.add('hidden');
-    document.getElementById('btnResetCam').classList.add('hidden');
 
     renderArenaCards();
 
@@ -248,5 +246,9 @@ function openArenaChooser() {
     if (arenaPreview.group && arenaPreview.scene) {
         buildArena3D(currentArena, arenaPreview.group, arenaPreview.scene);
         arenaPreview.arenaId = currentArena;
+    }
+
+    if (typeof updateGamepadHelperHUD === 'function') {
+        updateGamepadHelperHUD();
     }
 }

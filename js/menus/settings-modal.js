@@ -98,7 +98,16 @@ function openSettingsModal() {
 }
 
 function closeSettingsModal() {
-    document.getElementById('settingsModal').classList.add('hidden');
+    const modal = document.getElementById('settingsModal');
+    if (modal) modal.classList.add('hidden');
+    if (typeof isMatchPaused !== 'undefined' && isMatchPaused) {
+        const pauseModal = document.getElementById('pauseModal');
+        if (pauseModal) {
+            pauseModal.classList.remove('hidden');
+            if (typeof updatePauseAudioUI === 'function') updatePauseAudioUI();
+            if (typeof updatePauseFocus === 'function') updatePauseFocus();
+        }
+    }
 }
 
 function updateSettingsUI() {

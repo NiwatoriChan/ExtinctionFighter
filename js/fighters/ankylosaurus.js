@@ -114,20 +114,65 @@ registerFighter({
         });
     },
 
-    // Animations d'attaques (light / heavy / special / special2 / xray)
+    hasCustomDirectionals: true,
+
+    // Animations d'attaques claires et distinctes pour chaque coup
     animateAttack(ctx) {
-        const { rig, act, prog, swing, baseHipsY } = ctx;
+        const { rig, act, prog, swing, strike, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
+
         if (act === 'light') {
-            // Coup d'épaule épineuse
-            rig.hips.position.x = swing * 0.75;
-            rig.torso.rotation.x = swing * 0.45;
+            // Coup Léger 1 : Coup d'épaule épineuse avant gauche
+            rig.hips.position.x = s * 0.75;
+            rig.torso.rotation.x = s * 0.45;
+            rig.headGroup.rotation.y = s * 0.35;
+        } else if (act === 'light2') {
+            // Coup Léger 2 (Combo 1-2) : Coup de tête blindée et cornes vers la droite
+            rig.hips.position.x = s * 0.85;
+            rig.torso.rotation.x = -s * 0.35;
+            rig.headGroup.rotation.y = -s * 0.45;
+            rig.headGroup.rotation.z = -s * 0.35;
+        } else if (act === 'fwd_light') {
+            // Avant + Léger (Percée cuirassée) : Charge bélier plongeante
+            rig.hips.position.x = s * 1.1;
+            rig.torso.rotation.z = -s * 0.38;
+            rig.headGroup.rotation.z = -s * 0.45;
+        } else if (act === 'low_light' || act === 'low_heavy') {
+            // Bas + Attaque : Marteau d'os pilonnant et rasant le sol
+            rig.hips.position.y = baseHipsY * 0.6;
+            rig.torso.rotation.z = -0.25;
+            rig.tailSegments.forEach((seg, i) => {
+                seg.rotation.y = Math.cos(prog * Math.PI) * 1.15;
+                seg.rotation.z = -0.22;
+            });
+        } else if (act === 'anti_air' || act === 'up_light') {
+            // Haut + Attaque : Fouet ascendant du marteau d'os projeté vers le ciel
+            rig.hips.position.y = baseHipsY + s * 0.45;
+            rig.torso.rotation.z = -s * 0.45;
+            rig.tailSegments.forEach(seg => { seg.rotation.z = s * 0.85; });
+        } else if (act === 'throw') {
+            // Chope : Crochet caudal et projection lourde
+            rig.hips.position.x = s * 0.85;
+            rig.tailSegments.forEach(seg => { seg.rotation.y = Math.sin(prog * 20) * 0.65; });
         } else if (act === 'heavy' || act === 'special') {
-            // Tourbillon 360° du Marteau d'Os
+            // Tourbillon 360° du Marteau d'Os (Dévastateur & Renvoi de projectiles)
             rig.hips.rotation.y = prog * Math.PI * 2;
-            rig.tailSegments.forEach(s => { s.rotation.y = 0.42; });
-        } else {
-            // Roulade en Boulet Tectonique
-            rig.hips.position.y = baseHipsY + swing * 0.8;
+            rig.tailSegments.forEach(s => { s.rotation.y = 0.48; });
+        } else if (act === 'fwd_heavy') {
+            // Charge blindée lourde avec Hyper-Armure
+            rig.hips.position.x = s * 1.35;
+            rig.torso.rotation.z = -s * 0.45;
+        } else if (act === 'air_light' || act === 'air_heavy') {
+            // Écrasement cuirassé plongeant
+            rig.torso.rotation.z = -s * 0.45;
+            rig.tailSegments.forEach(s => { s.rotation.z = 0.55; });
+        } else if (act === 'back_light') {
+            // Direction ARRIÈRE ⬅️ : Retrait blindé et coup d'épaule protecteur
+            rig.hips.position.x = -s * 0.65;
+            rig.torso.rotation.x = s * 0.35;
+        } else if (act === 'special2') {
+            // Roulade en Boulet Tectonique (Ultra)
+            rig.hips.position.y = baseHipsY + s * 0.8;
             rig.torso.rotation.z = -prog * Math.PI * 4;
         }
     },

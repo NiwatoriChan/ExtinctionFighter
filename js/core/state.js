@@ -15,3 +15,4 @@ const CAMPAIGN_TOTAL_STAGES = 6;
 
 // Paramètres graphiques & affichage
 let graphicsQuality = localStorage.getItem('ek3d_graphics_quality') || 'high'; // 'low', 'medium', 'high', 'ultra'
+let isMatchPaused = false;
