@@ -189,7 +189,8 @@ registerBoss({
 
     // Animations d'attaques
     animateAttack(ctx) {
-        const { rig, act, swing, prog, baseHipsY } = ctx;
+        const { rig, act, swing, strike, prog, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
 
         // Déploiement spectaculaire des ailes
         if (rig.specialParts.leftWing) rig.specialParts.leftWing.rotation.x = -0.7 - swing * 0.6;

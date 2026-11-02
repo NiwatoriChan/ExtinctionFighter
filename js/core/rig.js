@@ -68,12 +68,78 @@ function createDino3DRig(dino, skinIndex = 0) {
         bodyMat,
         darkMat,
         accentMat,
-        skinMeshes
+        skinMeshes,
+        armorRig: null
     };
 
     hips.add(rig.torso);
 
-    // Bouclier de garde 3D
+    // --- ARMURE DIRECTIONNELLE 3-VOIES (HIGH / MID / LOW) ---
+    // Matériau d'armure ostéodermique renforcée avec lueur prismatique
+    const armorMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.85,
+        roughness: 0.25,
+        metalness: 0.75
+    });
+    const armorRuneMat = new THREE.MeshBasicMaterial({
+        color: 0xfef08a,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.75
+    });
+
+    // 1. Armure Haute (Head / Horns / Crest Shield)
+    const armorHighGroup = new THREE.Group();
+    const highPlate = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.75, 0.85), armorMat);
+    const highPlateGlow = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.85, 0.95), armorRuneMat);
+    const highHornL = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.65, 5), armorMat);
+    highHornL.position.set(0.2, 0.45, 0.35);
+    highHornL.rotation.z = -0.4;
+    const highHornR = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.65, 5), armorMat);
+    highHornR.position.set(0.2, 0.45, -0.35);
+    highHornR.rotation.z = -0.4;
+    armorHighGroup.add(highPlate, highPlateGlow, highHornL, highHornR);
+    armorHighGroup.position.set(0.35, 0.25, 0);
+    armorHighGroup.visible = false;
+    rig.headGroup.add(armorHighGroup);
+
+    // 2. Armure Médiane (Torso / Ribs / Flank Carapace)
+    const armorMidGroup = new THREE.Group();
+    const midCarapace = new THREE.Mesh(new THREE.BoxGeometry(1.65, 1.25, 1.35), armorMat);
+    const midCarapaceGlow = new THREE.Mesh(new THREE.BoxGeometry(1.80, 1.35, 1.45), armorRuneMat);
+    for (let s = -1; s <= 1; s += 2) {
+        for (let i = 0; i < 3; i++) {
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.55, 4), armorMat);
+            spike.position.set(-0.45 + i * 0.45, 0.35, s * 0.75);
+            spike.rotation.x = s * 0.7;
+            armorMidGroup.add(spike);
+        }
+    }
+    armorMidGroup.add(midCarapace, midCarapaceGlow);
+    armorMidGroup.position.set(0.15, 0.1, 0);
+    armorMidGroup.visible = false;
+    rig.torso.add(armorMidGroup);
+
+    // 3. Armure Basse (Legs / Ankle / Ground Greaves Barricade)
+    const armorLowGroup = new THREE.Group();
+    const lowGroundPlate = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.65, 1.45), armorMat);
+    const lowGroundPlateGlow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.75, 1.55), armorRuneMat);
+    armorLowGroup.add(lowGroundPlate, lowGroundPlateGlow);
+    armorLowGroup.position.set(0, -1.2, 0);
+    armorLowGroup.visible = false;
+    hips.add(armorLowGroup);
+
+    rig.armorRig = {
+        high: armorHighGroup,
+        mid: armorMidGroup,
+        low: armorLowGroup,
+        mat: armorMat,
+        runeMat: armorRuneMat
+    };
+
+    // Bouclier d'énergie complémentaire 3D
     rig.shieldMesh = new THREE.Mesh(new THREE.SphereGeometry(2.2, 16, 12), shieldMat);
     rig.shieldMesh.position.set(0.6, 2.0, 0);
     rig.shieldMesh.visible = false;
@@ -156,6 +222,32 @@ function createDino3DRig(dino, skinIndex = 0) {
     if (fighterImpl && fighterImpl.buildRig) {
         fighterImpl.buildRig({ dino, skin, root, hips, rig, addMesh, bodyMat, darkMat, accentMat, boneMat, eyeMat, shieldMat, skinMeshes });
     }
+
+    // Nommage standardisé des nœuds d'articulation pour THREE.AnimationMixer & ColliderRig (Update 2.0)
+    root.name = 'Bone_Root';
+    hips.name = 'Bone_Hips';
+    rig.torso.name = 'Bone_Torso';
+    rig.neck.name = 'Bone_Neck';
+    rig.headGroup.name = 'Bone_Head';
+    rig.jaw.name = 'Bone_Jaw';
+    rig.legs.forEach((leg, idx) => { if (leg) leg.name = `Bone_Leg${idx}`; });
+    rig.arms.forEach((arm, idx) => { if (arm) arm.name = `Bone_Arm${idx}`; });
+    rig.tailSegments.forEach((seg, idx) => { if (seg) seg.name = `Bone_Tail${idx}`; });
+
+    // Sauvegarde de la pose de repos initiale (Rest Pose) pour éviter toute dérive de position/échelle entre les mouvements
+    rig.restPose = {
+        hipsPos: hips.position.clone(),
+        torsoPos: rig.torso.position.clone(),
+        neckPos: rig.neck.position.clone(),
+        headPos: rig.headGroup.position.clone(),
+        jawPos: rig.jaw.position.clone(),
+        armsPos: rig.arms.map(a => a ? a.position.clone() : null),
+        legsPos: rig.legs.map(l => l ? l.position.clone() : null),
+        tailPos: rig.tailSegments.map(s => s ? s.position.clone() : null),
+        neckSegmentsPos: (rig.specialParts && rig.specialParts.neckSegments)
+            ? rig.specialParts.neckSegments.map(n => n.position.clone())
+            : null
+    };
 
     root.scale.setScalar(dino.scale);
     return rig;

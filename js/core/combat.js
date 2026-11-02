@@ -1,5 +1,5 @@
 function resolveAttackVariant(attacker, type) {
-    if (type !== 'light' && type !== 'heavy') return type;
+    if (type !== 'strike' && type !== 'light' && type !== 'heavy') return type;
 
     const isP1 = attacker.isP1;
 
@@ -17,38 +17,24 @@ function resolveAttackVariant(attacker, type) {
         ? (keys['KeyS'] || keys['ShiftLeft'] || (gameMode !== 'pvp' && keys['ArrowDown']) || touchState.down)
         : (keys['ArrowDown'] || p2TouchState.down);
 
-    const isForward = (attacker.facing === 1 && moveRight) || (attacker.facing === -1 && moveLeft);
-    const isBack = (attacker.facing === 1 && moveLeft) || (attacker.facing === -1 && moveRight);
-
-    // 1. DIRECTION HAUT (STICK / CROIX VERS LE HAUT) ⬆️ : Frappes dirigées vers le HAUT (Ciel)
+    // 1. DIRECTION HAUT (STICK / CROIX VERS LE HAUT) ⬆️ : Frappes dirigées vers le HAUT (Zone HIGH)
     if (isUp) {
-        return type === 'light' ? 'up_light' : 'anti_air';
+        return 'up_light';
     }
 
-    // 2. DIRECTION BAS (STICK / CROIX VERS LE BAS) ⬇️ : Frappes dirigées vers le BAS (Sol)
+    // 2. DIRECTION BAS (STICK / CROIX VERS LE BAS) ⬇️ : Frappes dirigées vers le BAS (Zone LOW)
     if (isDown) {
-        if (attacker.y > 0.15) return 'air_heavy'; // En l'air : piqué plongeant lourd vers le sol
-        return type === 'light' ? 'low_light' : 'low_heavy';
+        if (attacker.y > 0.15) return 'air_light';
+        return 'low_light';
     }
 
-    // 3. DIRECTION AVANT (STICK / CROIX VERS L'AVANT) ➡️ : Frappes dirigées vers l'AVANT (Horizontale)
-    if (isForward) {
-        if (attacker.y > 0.15) return 'air_light'; // En l'air : frappe volante vers l'avant
-        return type === 'light' ? 'fwd_light' : 'fwd_heavy';
-    }
-
-    // 4. DIRECTION ARRIÈRE (STICK / CROIX VERS L'ARRIÈRE) ⬅️ : Frappes défensives en recul
-    if (isBack) {
-        return type === 'light' ? 'back_light' : 'anti_air';
-    }
-
-    // 5. EN L'AIR SANS DIRECTION PARTICULIÈRE (NEUTRE EN VOL)
+    // 3. EN VOL AÉRIEN SANS HAUT/BAS (Attaque sautée)
     if (attacker.y > 0.15) {
-        return type === 'light' ? 'air_light' : 'air_heavy';
+        return 'air_light';
     }
 
-    // 6. NEUTRE AU SOL (AUCUNE DIRECTION) ⏺️ : Frappes directes au centre (mi-hauteur)
-    return type;
+    // 4. NEUTRE OU AVANT AU SOL ⏺️ : Frappe directe au MILIEU (Zone MID)
+    return 'light';
 }
 
 function triggerPlayerAction(attacker, defender, type) {
@@ -63,6 +49,43 @@ function triggerPlayerAction(attacker, defender, type) {
     }
     if (matchState !== 'fight') return;
 
+    // SAUTER : Action de saut dédiée découplée de la direction Haut
+    if (type === 'jump') {
+        if (attacker.y <= 0.01) {
+            attacker.vy = attacker.jumpVy || 11.8;
+            const moveLeft = attacker.isP1
+                ? (keys['KeyA'] || keys['KeyQ'] || (gameMode !== 'pvp' && keys['ArrowLeft']) || touchState.left)
+                : (keys['ArrowLeft'] || p2TouchState.left);
+            const moveRight = attacker.isP1
+                ? (keys['KeyD'] || (gameMode !== 'pvp' && keys['ArrowRight']) || touchState.right)
+                : (keys['ArrowRight'] || p2TouchState.right);
+            const curWalkSpd = (attacker.dino && attacker.dino.walkSpeed) || 7.5;
+            if (moveLeft) attacker.vx = -curWalkSpd * 0.70;
+            if (moveRight) attacker.vx = curWalkSpd * 0.70;
+            sfx.playHit(false);
+            spawnFloatingPopup(attacker.x, '🦘 SAUT !', '#38bdf8');
+        }
+        return;
+    }
+
+    // PROTÉGER : Armure directionnelle 3-voies (Haute, Médiane, Basse)
+    if (type === 'guard') {
+        const isP1 = attacker.isP1;
+        const isUp = isP1
+            ? (keys['KeyW'] || keys['KeyZ'] || (gameMode !== 'pvp' && keys['ArrowUp']) || touchState.up)
+            : (keys['ArrowUp'] || p2TouchState.up);
+        const isDown = isP1
+            ? (keys['KeyS'] || keys['ShiftLeft'] || (gameMode !== 'pvp' && keys['ArrowDown']) || touchState.down)
+            : (keys['ArrowDown'] || p2TouchState.down);
+
+        attacker.isBlocking = true;
+        attacker.blockType = isUp ? 'high' : (isDown ? 'low' : 'mid');
+        attacker.action = attacker.blockType === 'low' ? 'crouch' : 'walk';
+        attacker.vx = 0;
+        return;
+    }
+
+    // DASH : Ruée rapide et esquive
     if (type === 'dash') {
         const moveLeft = attacker.isP1
             ? (keys['KeyA'] || keys['KeyQ'] || (gameMode !== 'pvp' && keys['ArrowLeft']) || touchState.left)
@@ -75,30 +98,8 @@ function triggerPlayerAction(attacker, defender, type) {
         return;
     }
 
-    // --- MÉCANIQUE DE CHOPE / PROJECTION (UNBLOCKABLE THROW) ---
-    if (type === 'throw') {
-        const dist = Math.abs(attacker.x - defender.x);
-        const inThrowRange = dist <= 2.95 && Math.abs(attacker.y - defender.y) < 2.0 && !defender.isDead;
-        if (inThrowRange) {
-            attacker.startAttack('throw');
-            defender.isBlocking = false;
-            defender.blockType = 'none';
-            sfx.playBoneCrack();
-            sfx.playHit(true);
-            screenShake = 0.55;
-            applyDamage(attacker, defender, Math.round(attacker.dino.stats.pow * 0.75), true, '🤜 PROJECTION !', false, 'throw');
-            defender.vx = attacker.facing * 12.0;
-            defender.vy = 5.2;
-            spawn3DBloodAndBones(defender.x, 1.8, 18, true);
-        } else {
-            attacker.startAttack('throw_whiff');
-            spawnFloatingPopup(attacker.x, 'CHOPE MANQUÉE !', '#94a3b8');
-        }
-        return;
-    }
-
+    // SUPER ATTAQUE : Attaque X-Ray / Rage ultime
     if (type === 'xray') {
-        // Le X-Ray Fatal est UNIQUEMENT disponible lorsque la jauge de rage est à 100%
         if (attacker.rage < 100) {
             if (attacker.isP1 || gameMode === 'pvp') {
                 sfx.playCooldownWarning();
@@ -120,7 +121,7 @@ function triggerPlayerAction(attacker, defender, type) {
         return;
     }
 
-    // Résolution contextuelle des Command Normals selon la direction tenue
+    // FRAPPER & SPÉCIAL : Résolution contextuelle (Haut, Mid, Bas) ou Spécial unique
     const finalType = resolveAttackVariant(attacker, type);
     attacker.startAttack(finalType);
 }
@@ -257,6 +258,12 @@ function executeUnique3DFatality(winner, loser) {
 }
 
 function checkAttackCollision3D(attacker, defender) {
+    // Invulnérabilité pendant la séquence de relevé (Wake_Up_Stand) ou Grounded_Idle
+    if (defender.combatController && defender.combatController.state === CombatState.WAKE_UP_STAND) {
+        spawnFloatingPopup(defender.x, '🛡️ INVULNÉRABLE (RELEVÉ) !', '#38bdf8');
+        return;
+    }
+
     const dist = Math.abs(attacker.x - defender.x);
     const basePow = attacker.dino.stats.pow;
 
@@ -291,11 +298,22 @@ function checkAttackCollision3D(attacker, defender) {
     else if (act === 'heavy' || act === 'low_heavy') reach += 0.55;
     else if (act === 'anti_air' || act === 'up_light') reach += 0.35;
 
+    // Évaluation découplée des volumes THREE.Box3 (ColliderRig Hitbox vs Hurtbox)
+    let box3Hit = false;
+    if (attacker.colliderRig && defender.colliderRig && attacker.combatController) {
+        const atkKey = attacker.combatController.activeAttackKey || AnimationKey.ATTACK_MID;
+        attacker.colliderRig.setHitboxActive(atkKey, true);
+        const boxResult = attacker.colliderRig.checkIntersection(atkKey, defender.colliderRig);
+        attacker.colliderRig.setHitboxActive(atkKey, false);
+        box3Hit = boxResult.intersected;
+    }
+
     const yDiff = Math.abs(attacker.y - defender.y);
+    const inRange = (dist <= reach) || box3Hit;
 
     if (act === 'up_light') {
-        // Direction HAUT ⬆️ : Uppercut / Morsure haute ascendante (touche au ciel et debout, brise la garde basse)
-        if (dist <= reach && (defender.y > 0.25 || yDiff < 2.9)) {
+        // Direction HAUT ⬆️ : Uppercut / Morsure haute ascendante (Zone HIGH)
+        if (inRange && (defender.y > 0.25 || yDiff < 2.9)) {
             applyDamage(attacker, defender, Math.round(basePow * 0.52), false, '👆 UPPERCUT HAUT !', false, 'high');
             defender.vy = Math.max(defender.vy, 4.6);
         }
@@ -303,48 +321,48 @@ function checkAttackCollision3D(attacker, defender) {
     }
 
     if (act === 'anti_air') {
-        // Direction HAUT/ARRIÈRE ⬆️ : Launcher céleste (propulse puissamment l'ennemi dans les airs)
-        if (dist <= reach && (defender.y > 0.35 || dist < 2.6)) {
+        // Direction HAUT/ARRIÈRE ⬆️ : Launcher céleste (Zone HIGH)
+        if (inRange && (defender.y > 0.35 || dist < 2.6 || box3Hit)) {
             applyDamage(attacker, defender, Math.round(basePow * 0.84), true, '🚀 LAUNCHER CÉLESTE !', false, 'antiair');
         }
         return;
     }
 
     if (act === 'low_light') {
-        // Direction BAS ⬇️ : Balayage bas des chevilles au ras du sol
-        if (dist <= reach && yDiff < 1.6) {
+        // Direction BAS ⬇️ : Balayage bas des chevilles au ras du sol (Zone LOW)
+        if (inRange && yDiff < 1.6) {
             applyDamage(attacker, defender, Math.round(basePow * 0.46), false, '🦶 BALAYAGE BAS !', false, 'low');
         }
         return;
     }
 
     if (act === 'low_heavy') {
-        // Direction BAS LOURD ⬇️ : Écrasement pilonnage lourd au ras du sol
-        if (dist <= reach && yDiff < 1.7) {
+        // Direction BAS LOURD ⬇️ : Écrasement pilonnage lourd au ras du sol (Zone LOW)
+        if (inRange && yDiff < 1.7) {
             applyDamage(attacker, defender, Math.round(basePow * 0.86), true, '💥 ÉCRASEMENT BAS !', false, 'low');
         }
         return;
     }
 
     if (act === 'back_light') {
-        // Direction ARRIÈRE ⬅️ : Coup défensif en recul
-        if (dist <= reach && yDiff < 2.2) {
+        // Direction ARRIÈRE ⬅️ : Coup défensif en recul (Zone MID)
+        if (inRange && yDiff < 2.2) {
             applyDamage(attacker, defender, Math.round(basePow * 0.44), false, '🛡️ CONTRE ARRIÈRE !', false, 'mid');
         }
         return;
     }
 
     if (act === 'air_light' || act === 'air_heavy') {
-        // Attaque sautée plongeante : coup Overhead (brise la garde basse accroupie)
-        if (dist <= reach && yDiff < 2.9) {
+        // Attaque sautée plongeante : coup Overhead (Zone HIGH)
+        if (inRange && yDiff < 2.9) {
             const isH = act === 'air_heavy';
             applyDamage(attacker, defender, Math.round(basePow * (isH ? 0.92 : 0.52)), isH, isH ? '🦅 DIVE HEAVY !' : '🦅 DIVE KICK !', false, 'overhead');
         }
         return;
     }
 
-    // Coups standards et frappes avancées au sol
-    if (dist <= reach && yDiff < 2.5) {
+    // Coups standards et frappes avancées au sol (Zone MID)
+    if (inRange && yDiff < 2.5) {
         if (act === 'light') {
             applyDamage(attacker, defender, Math.round(basePow * 0.48), false, '', false, 'mid');
         } else if (act === 'light2') {
@@ -362,6 +380,10 @@ function checkAttackCollision3D(attacker, defender) {
 // Spécial 2 sismique partagé (Apatosaure, Pachyrhinosaure, Mégathérium, Stégosaure)
 function special2SeismicQuake(attacker, defender, dist, basePow) {
     screenShake = 0.65;
+    if (typeof spawn3DGroundShockwave === 'function') {
+        spawn3DGroundShockwave(attacker.x + attacker.facing * 2.0, 0xf59e0b, 4.2, true);
+        spawn3DGroundShockwave(defender.x, 0xef4444, 3.0, true);
+    }
     spawn3DBloodAndBones(defender.x, 0.3, 18, true);
     if (dist < 8.5) {
         // Si l'adversaire saute, il évite l'onde de choc sismique qui se propage au sol

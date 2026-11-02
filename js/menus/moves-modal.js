@@ -12,25 +12,20 @@ const MOVES_MODAL_HTML = `
             </div>
             <div class="p-4 overflow-y-auto space-y-3 text-xs sm:text-sm">
                 <div class="p-3 rounded-xl bg-zinc-900/90 border border-zinc-700">
-                    <h4 class="font-black text-amber-400 uppercase mb-1">Moteur de Combat Pro, Triangle Attaque/Garde/Chope & Passifs</h4>
+                    <h4 class="font-black text-amber-400 uppercase mb-1">Moteur de Combat Épuré : Commandes Directionnelles & Armures 3D</h4>
                     <div class="space-y-1.5 text-zinc-300 text-xs">
                         <p>
-                            • <strong>Système de Défense Moderne :</strong> Maintenez <code class="text-amber-300">Arrière</code> pour la <strong>Garde Haute</strong> (bloque les coups hauts et aériens) ou <code class="text-amber-300">Bas</code> / <code class="text-amber-300">Bas+Arrière</code> pour la <strong>Garde Basse</strong> (accroupi).<br>
-                            • <strong>Attaques Directionnelles au Stick / Croix (4 Directions) :</strong><br>
-                            &nbsp;&nbsp;⬆️ <strong>Haut + Attaque :</strong> Frappe vers le HAUT (Uppercut / Mâchoire au zénith, brise la garde basse accroupie).<br>
-                            &nbsp;&nbsp;⬇️ <strong>Bas + Attaque :</strong> Frappe vers le BAS (Balayage et pilonnage au sol, brise la garde haute debout).<br>
-                            &nbsp;&nbsp;➡️ <strong>Avant + Attaque :</strong> Percée vers l'AVANT (Allongement horizontal à longue portée / Charge).<br>
-                            &nbsp;&nbsp;⬅️ <strong>Arrière + Attaque :</strong> Contre défensif en repli / Anti-Air d'interception.<br>
-                            &nbsp;&nbsp;⏺️ <strong>Neutre (sans direction) :</strong> Enchaînement 1-2 fluide au centre.<br>
-                            • <strong>Impact & Rebond Mural (Wall Splat) :</strong> Percutez violemment l'adversaire contre les parois de l'arène pour provoquer un rebond mural et prolonger votre combo en jonglage aérien.<br>
-                            • <strong>Passifs d'Espèces :</strong> 
-                            <span class="text-red-400 font-bold">Smilodon :</span> Saignement viscéral cumulable (×3). 
-                            <span class="text-emerald-400 font-bold">Pulmonoscorpius :</span> Neurotoxine empoisonnante et ralentissement. 
-                            <span class="text-sky-400 font-bold">Ankylosaure :</span> Hyper-Armure sur coups lourds & renvoi de projectiles. 
-                            <span class="text-amber-400 font-bold">Quetzalcoatlus :</span> Plané stratosphérique aérien en maintenant Saut. 
-                            <span class="text-orange-400 font-bold">Thérizinosaure :</span> 40% de dégâts de gratte à travers la garde. 
-                            <span class="text-yellow-400 font-bold">Apatosaure :</span> Séisme au sol inbloquable (saut obligatoire !). 
-                            <span class="text-red-300 font-bold">T-Rex :</span> Rugissement d'intimidation réduisant de 25% la force adverse.
+                            • 💥 <strong>FRAPPER [F / Manette X] (Action Unique Directionnelle) :</strong><br>
+                            &nbsp;&nbsp;⬆️ <strong>Haut + Frappe (Zone HAUTE) :</strong> Coup de tête / morsure ascendante (perce les gardes Médiane et Basse).<br>
+                            &nbsp;&nbsp;⏺️ <strong>Neutre ou Avant + Frappe (Zone MILIEU) :</strong> Morsure au torse / coup de mâchoire direct.<br>
+                            &nbsp;&nbsp;⬇️ <strong>Bas + Frappe (Zone BASSE) :</strong> Balayage des chevilles / frappe au ras du sol.<br>
+                            • ⭐ <strong>COUP SPÉCIAL UNIQUE [H / Manette Y] :</strong> La signature mortelle propre à chaque espèce.<br>
+                            • 🛡️ <strong>PROTÉGER & ARMURE DIRECTIONNELLE [SHIFT / S / Manette B ou Arrière] :</strong><br>
+                            &nbsp;&nbsp;Fait apparaître une <strong>Armure Ostéodermique 3D</strong> à l'endroit protégé (Crâne en Haut, Torse au Milieu, Pattes en Bas). Une garde ajustée dévie l'attaque !<br>
+                            • 💀 <strong>SUPER ATTAQUE RAGE [R / Manette RT] :</strong> Déclenche le X-Ray anatomique en 3 phases à 100% de Rage.<br>
+                            • 🦘 <strong>SAUTER [ESPACE / Manette A] :</strong> Action de saut dédiée, découplée de la direction Haut pour frapper en l'air ou en l'air sans sauter au sol.<br>
+                            • 💨 <strong>DASH [E / Manette RB] :</strong> Ruée rapide et esquive d'urgence.<br>
+                            • <strong>Inertie & Anti-Spam :</strong> La vitesse de course multiplie vos dégâts ($1 + k \cdot \Vert\vec{v}\Vert$). Répéter le même coup réduit ses dégâts et sa vitesse ($0.85\times$).
                         </p>
                     </div>
                 </div>
@@ -65,8 +60,7 @@ function renderMovesModalList() {
                 </div>
                 <p class="text-xs text-zinc-300 mt-1"><strong>Animation 3D :</strong> ${d.moveStyle}</p>
                 <ul class="mt-2 space-y-0.5 text-xs">
-                    <li>⚡ <strong>Spécial 1 :</strong> <span class="text-amber-300">${d.special1Name}</span></li>
-                    <li>🌪️ <strong>Spécial 2 :</strong> <span class="text-emerald-300">${d.special2Name}</span></li>
+                    <li>⭐ <strong>Coup Spécial Unique [H] :</strong> <span class="text-amber-300 font-bold">${d.special1Name}</span></li>
                     <li>💀 <strong>Fatalité 3D (${d.fatalityName}) :</strong> <span class="text-red-400">${d.fatalityDesc}</span></li>
                 </ul>
             </div>

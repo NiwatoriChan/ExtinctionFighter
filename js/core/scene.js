@@ -9,6 +9,13 @@ let fxGroup = null;
 let isDraggingCam = false;
 let prevMouse = { x: 0, y: 0 };
 let camOrbit = { yaw: 0, pitch: 0.12 };
+let _battleCanvasNeedsResize = true;
+let _arenaPreviewNeedsResize = true;
+
+window.addEventListener('resize', () => {
+    _battleCanvasNeedsResize = true;
+    _arenaPreviewNeedsResize = true;
+});
 
 // Gestion des paramètres graphiques (Faible / Moyen / Élevé / Ultra)
 function applyGraphicsSettings(quality) {
@@ -37,9 +44,14 @@ function applyGraphicsSettings(quality) {
 }
 
 function initBattle3DScene() {
+    _battleCanvasNeedsResize = true;
     if (battleRenderer) return;
     const canvas = document.getElementById('battleCanvas');
-    battleRenderer = new THREE.WebGLRenderer({ canvas, antialias: graphicsQuality !== 'low' });
+    battleRenderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: graphicsQuality !== 'low',
+        powerPreference: 'high-performance'
+    });
     applyGraphicsSettings(graphicsQuality);
 
     battleScene = new THREE.Scene();
@@ -51,6 +63,14 @@ function initBattle3DScene() {
     const sunLight = new THREE.DirectionalLight(0xfff7ed, 1.35);
     sunLight.position.set(8, 18, 12);
     sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+    sunLight.shadow.camera.near = 2;
+    sunLight.shadow.camera.far = 42;
+    sunLight.shadow.camera.left = -15;
+    sunLight.shadow.camera.right = 15;
+    sunLight.shadow.camera.top = 10;
+    sunLight.shadow.camera.bottom = -4;
     battleScene.add(sunLight);
 
     const rimLight = new THREE.PointLight(0xef4444, 1.2, 35);
@@ -126,12 +146,15 @@ function updateArenaPreview(time) {
     const canvas = document.getElementById('arenaPreviewCanvas');
     if (!canvas || !canvas.parentElement) return;
 
-    const rect = canvas.parentElement.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) {
-        if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
-            arenaPreview.renderer.setSize(rect.width, rect.height, false);
-            arenaPreview.camera.aspect = rect.width / rect.height;
-            arenaPreview.camera.updateProjectionMatrix();
+    if (_arenaPreviewNeedsResize || canvas.width < 10) {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+            _arenaPreviewNeedsResize = false;
+            if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
+                arenaPreview.renderer.setSize(rect.width, rect.height, false);
+                arenaPreview.camera.aspect = rect.width / rect.height;
+                arenaPreview.camera.updateProjectionMatrix();
+            }
         }
     }
 
@@ -160,12 +183,15 @@ function updateArenaPreview(time) {
 function renderBattle3D(now) {
     if (!battleRenderer || !fighter1 || !fighter2) return;
     const canvas = document.getElementById('battleCanvas');
-    const rect = canvas.parentElement.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) {
-        if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
-            battleRenderer.setSize(rect.width, rect.height, false);
-            battleCamera.aspect = rect.width / rect.height;
-            battleCamera.updateProjectionMatrix();
+    if (_battleCanvasNeedsResize || canvas.width < 10) {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+            _battleCanvasNeedsResize = false;
+            if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
+                battleRenderer.setSize(rect.width, rect.height, false);
+                battleCamera.aspect = rect.width / rect.height;
+                battleCamera.updateProjectionMatrix();
+            }
         }
     }
 

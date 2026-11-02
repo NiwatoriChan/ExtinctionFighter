@@ -173,11 +173,19 @@ window.addEventListener('keydown', (e) => {
         return;
     }
 
+    // Validation au clavier (Entrée / Espace) sur l'écran de choix d'arène
+    if (matchState === 'arena_select' && (e.code === 'Enter' || e.code === 'Space')) {
+        e.preventDefault();
+        sfx.playHit(false);
+        startMatch();
+        return;
+    }
+
     // Bloquer tous les contrôles si une cinématique X-Ray est en cours
     if (xrayCinematicTimer > 0) return;
 
     if (matchState === 'fight' || matchState === 'finish_him') {
-        // Double-tap Gauche/Droite ou touche E pour Dash J1
+        // Double-tap Gauche/Droite pour Dash rapide
         if (e.code === 'KeyA' || e.code === 'KeyQ' || (gameMode !== 'pvp' && e.code === 'ArrowLeft')) {
             if (now - lastTapTime.left < 240 && fighter1) fighter1.startDash(-1);
             lastTapTime.left = now;
@@ -186,22 +194,42 @@ window.addEventListener('keydown', (e) => {
             if (now - lastTapTime.right < 240 && fighter1) fighter1.startDash(1);
             lastTapTime.right = now;
         }
+
+        // 1. SAUTER : Touche Espace dédiée (séparée de Haut pour pouvoir frapper en haut sans sauter)
+        if (e.code === 'Space') {
+            flashArcadeButton('uiBtnJump', true);
+            triggerPlayerAction(fighter1, fighter2, 'jump');
+        }
+
+        // 2. DASHER : Touche E
         if (e.code === 'KeyE') {
             flashArcadeButton('uiBtnDash', true);
             triggerPlayerAction(fighter1, fighter2, 'dash');
         }
 
-        // Chope / Projection au corps à corps (Touche C ou F+G simultanés)
-        if (e.code === 'KeyC' || ((e.code === 'KeyF' || e.code === 'KeyJ') && (keys['KeyG'] || keys['KeyK'])) || ((e.code === 'KeyG' || e.code === 'KeyK') && (keys['KeyF'] || keys['KeyJ']))) {
-            flashArcadeButton('uiBtnThrow', true);
-            triggerPlayerAction(fighter1, fighter2, 'throw');
-        } else {
-            if (e.code === 'KeyF' || e.code === 'KeyJ') { flashArcadeButton('uiBtnLight', true); triggerPlayerAction(fighter1, fighter2, 'light'); }
-            if (e.code === 'KeyG' || e.code === 'KeyK') { flashArcadeButton('uiBtnHeavy', true); triggerPlayerAction(fighter1, fighter2, 'heavy'); }
+        // 3. FRAPPER (Haut / Milieu / Bas selon direction) : Touche F ou J
+        if (e.code === 'KeyF' || e.code === 'KeyJ') {
+            flashArcadeButton('uiBtnStrike', true);
+            triggerPlayerAction(fighter1, fighter2, 'strike');
         }
-        if (e.code === 'KeyH' || e.code === 'KeyL') { flashArcadeButton('uiBtnSpecial', true); triggerPlayerAction(fighter1, fighter2, 'special'); }
-        if (e.code === 'KeyT' || e.code === 'KeyU') { flashArcadeButton('uiBtnSpecial2', true); triggerPlayerAction(fighter1, fighter2, 'special2'); }
-        if (e.code === 'KeyR' || e.code === 'Space') { flashArcadeButton('btnRageFatality', true); triggerPlayerAction(fighter1, fighter2, 'xray'); }
+
+        // 4. ACTION SPÉCIALE UNIQUE PAR ANIMAL : Touche H ou L
+        if (e.code === 'KeyH' || e.code === 'KeyL') {
+            flashArcadeButton('uiBtnSpecial', true);
+            triggerPlayerAction(fighter1, fighter2, 'special');
+        }
+
+        // 5. PROTÉGER (Armure 3D Haute, Médiane ou Basse à l'endroit défendu) : Touche Shift ou S
+        if (e.code === 'ShiftLeft' || e.code === 'KeyS') {
+            flashArcadeButton('uiBtnGuard', true);
+            triggerPlayerAction(fighter1, fighter2, 'guard');
+        }
+
+        // 6. SUPER ATTAQUE (Rage / Frenzy / X-Ray à 100% de Rage) : Touche R
+        if (e.code === 'KeyR') {
+            flashArcadeButton('btnRageFatality', true);
+            triggerPlayerAction(fighter1, fighter2, 'xray');
+        }
 
         if (gameMode === 'pvp') {
             if (e.code === 'ArrowLeft') {
@@ -212,15 +240,11 @@ window.addEventListener('keydown', (e) => {
                 if (now - lastTapTime.p2Right < 240 && fighter2) fighter2.startDash(1);
                 lastTapTime.p2Right = now;
             }
-            if (e.code === 'Numpad5') triggerPlayerAction(fighter2, fighter1, 'dash');
-            if (e.code === 'Numpad6' || ((e.code === 'Numpad1' || e.code === 'KeyI') && (keys['Numpad2'] || keys['KeyO']))) {
-                triggerPlayerAction(fighter2, fighter1, 'throw');
-            } else {
-                if (e.code === 'Numpad1' || e.code === 'KeyI') triggerPlayerAction(fighter2, fighter1, 'light');
-                if (e.code === 'Numpad2' || e.code === 'KeyO') triggerPlayerAction(fighter2, fighter1, 'heavy');
-            }
-            if (e.code === 'Numpad3' || e.code === 'KeyP') triggerPlayerAction(fighter2, fighter1, 'special');
-            if (e.code === 'Numpad4') triggerPlayerAction(fighter2, fighter1, 'special2');
+            if (e.code === 'Numpad8') triggerPlayerAction(fighter2, fighter1, 'jump');
+            if (e.code === 'Numpad6') triggerPlayerAction(fighter2, fighter1, 'dash');
+            if (e.code === 'Numpad1' || e.code === 'KeyI') triggerPlayerAction(fighter2, fighter1, 'strike');
+            if (e.code === 'Numpad2' || e.code === 'KeyO') triggerPlayerAction(fighter2, fighter1, 'special');
+            if (e.code === 'Numpad5' || e.code === 'KeyK') triggerPlayerAction(fighter2, fighter1, 'guard');
             if (e.code === 'Numpad0' || e.code === 'KeyM') triggerPlayerAction(fighter2, fighter1, 'xray');
         }
     }
@@ -232,13 +256,12 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'KeyD' || e.code === 'ArrowRight') flashArcadeButton('uiBtnRight', false);
     if (e.code === 'KeyW' || e.code === 'KeyZ' || e.code === 'ArrowUp') flashArcadeButton('uiBtnUp', false);
     if (e.code === 'KeyS' || e.code === 'ArrowDown') flashArcadeButton('uiBtnDown', false);
+    if (e.code === 'Space') flashArcadeButton('uiBtnJump', false);
     if (e.code === 'KeyE') flashArcadeButton('uiBtnDash', false);
-    if (e.code === 'KeyC') flashArcadeButton('uiBtnThrow', false);
-    if (e.code === 'KeyF' || e.code === 'KeyJ') flashArcadeButton('uiBtnLight', false);
-    if (e.code === 'KeyG' || e.code === 'KeyK') flashArcadeButton('uiBtnHeavy', false);
+    if (e.code === 'KeyF' || e.code === 'KeyJ') flashArcadeButton('uiBtnStrike', false);
     if (e.code === 'KeyH' || e.code === 'KeyL') flashArcadeButton('uiBtnSpecial', false);
-    if (e.code === 'KeyT' || e.code === 'KeyU') flashArcadeButton('uiBtnSpecial2', false);
-    if (e.code === 'KeyR' || e.code === 'Space') flashArcadeButton('btnRageFatality', false);
+    if (e.code === 'ShiftLeft' || e.code === 'KeyS') flashArcadeButton('uiBtnGuard', false);
+    if (e.code === 'KeyR') flashArcadeButton('btnRageFatality', false);
 });
 
 
@@ -337,21 +360,27 @@ function createGamepadHelperHUD() {
     document.body.appendChild(bar);
 }
 
+let _lastGamepadHelperKey = '';
+
 function updateGamepadHelperHUD() {
     const bar = document.getElementById('gamepadHelperBar');
     if (!bar) return;
 
     const movesModal = document.getElementById('movesModal');
-    const isMovesModalOpen = movesModal && !movesModal.classList.contains('hidden');
+    const isMovesModalOpen = !!(movesModal && !movesModal.classList.contains('hidden'));
 
     const settingsModal = document.getElementById('settingsModal');
-    const isSettingsModalOpen = settingsModal && !settingsModal.classList.contains('hidden');
+    const isSettingsModalOpen = !!(settingsModal && !settingsModal.classList.contains('hidden'));
 
     const pauseModal = document.getElementById('pauseModal');
-    const isPauseOpen = pauseModal && !pauseModal.classList.contains('hidden');
+    const isPauseOpen = !!(pauseModal && !pauseModal.classList.contains('hidden'));
 
     const postMatchMenu = document.getElementById('postMatchMenu');
-    const isPostMatchOpen = postMatchMenu && !postMatchMenu.classList.contains('hidden');
+    const isPostMatchOpen = !!(postMatchMenu && !postMatchMenu.classList.contains('hidden'));
+
+    const stateKey = `${matchState}|${isMovesModalOpen ? 1 : 0}|${isSettingsModalOpen ? 1 : 0}|${isPauseOpen ? 1 : 0}|${isPostMatchOpen ? 1 : 0}`;
+    if (stateKey === _lastGamepadHelperKey) return;
+    _lastGamepadHelperKey = stateKey;
 
     if (isMovesModalOpen) {
         bar.style.display = 'flex';
@@ -417,8 +446,13 @@ function updateGamepadHelperHUD() {
         } else {
             bar.style.display = 'flex';
             bar.innerHTML = `
-                <span class="gp-key gp-key-gold font-chakra">START / ÉCHAP</span> Pause & Options
-                <span class="gp-key font-chakra">SELECT</span> Grimoire
+                <span class="gp-key gp-key-action font-chakra">A</span> Saut
+                <span class="gp-key font-chakra">X</span> Frappe (H/M/B)
+                <span class="gp-key font-chakra">Y</span> Spécial
+                <span class="gp-key font-chakra">B</span> Garde
+                <span class="gp-key font-chakra">RB</span> Dash
+                <span class="gp-key gp-key-gold font-chakra">RT</span> Rage
+                <span class="gp-key font-chakra">START</span> Pause
             `;
         }
     }
@@ -1021,18 +1055,43 @@ function handleGamepadBattle(pad, pad2, dt) {
         flashArcadeButton('uiBtnUp', touchState.up);
         flashArcadeButton('uiBtnDown', touchState.down);
 
-        // Actions J1 (Attaques, Projection & Dash)
-        if (isGpBtnJustPressed(0, 4) || (isGpBtnJustPressed(0, 0) && pad.buttons[2]?.pressed) || (isGpBtnJustPressed(0, 2) && pad.buttons[0]?.pressed)) {
-            flashArcadeButton('uiBtnThrow', true);
-            triggerPlayerAction(fighter1, fighter2, 'throw');
-        } else {
-            if (isGpBtnJustPressed(0, 0)) { flashArcadeButton('uiBtnLight', true); triggerPlayerAction(fighter1, fighter2, 'light'); }
-            if (isGpBtnJustPressed(0, 2)) { flashArcadeButton('uiBtnHeavy', true); triggerPlayerAction(fighter1, fighter2, 'heavy'); }
+        // 1. SAUTER : Bouton A (0)
+        if (isGpBtnJustPressed(0, 0)) {
+            flashArcadeButton('uiBtnJump', true);
+            triggerPlayerAction(fighter1, fighter2, 'jump');
         }
-        if (isGpBtnJustPressed(0, 3)) { flashArcadeButton('uiBtnSpecial', true); triggerPlayerAction(fighter1, fighter2, 'special'); }
-        if (isGpBtnJustPressed(0, 1)) { flashArcadeButton('uiBtnSpecial2', true); triggerPlayerAction(fighter1, fighter2, 'special2'); }
-        if (isGpBtnJustPressed(0, 5)) { flashArcadeButton('uiBtnDash', true); triggerPlayerAction(fighter1, fighter2, 'dash'); }
-        if (isGpBtnJustPressed(0, 7) || isGpBtnJustPressed(0, 6)) { flashArcadeButton('btnRageFatality', true); triggerPlayerAction(fighter1, fighter2, 'xray'); }
+
+        // 2. FRAPPER : Bouton X (2) - directionnel Haut / Mid / Bas selon le stick
+        if (isGpBtnJustPressed(0, 2)) {
+            flashArcadeButton('uiBtnStrike', true);
+            triggerPlayerAction(fighter1, fighter2, 'strike');
+        }
+
+        // 3. SPÉCIAL UNIQUE : Bouton Y (3)
+        if (isGpBtnJustPressed(0, 3)) {
+            flashArcadeButton('uiBtnSpecial', true);
+            triggerPlayerAction(fighter1, fighter2, 'special');
+        }
+
+        // 4. PROTÉGER : Bouton B (1) ou LB (4)
+        const gpGuard = isGpBtnDown(pad, 1) || isGpBtnDown(pad, 4);
+        touchState.guard = gpGuard;
+        flashArcadeButton('uiBtnGuard', gpGuard);
+        if (isGpBtnJustPressed(0, 1) || isGpBtnJustPressed(0, 4)) {
+            triggerPlayerAction(fighter1, fighter2, 'guard');
+        }
+
+        // 5. DASHER : Bouton RB (5)
+        if (isGpBtnJustPressed(0, 5)) {
+            flashArcadeButton('uiBtnDash', true);
+            triggerPlayerAction(fighter1, fighter2, 'dash');
+        }
+
+        // 6. SUPER ATTAQUE (RAGE) : Gâchette RT (7) ou LT (6)
+        if (isGpBtnJustPressed(0, 7) || isGpBtnJustPressed(0, 6)) {
+            flashArcadeButton('btnRageFatality', true);
+            triggerPlayerAction(fighter1, fighter2, 'xray');
+        }
     }
 
     // CONTRÔLES JOUEUR 2 (Manette 2 en mode PvP)
@@ -1044,14 +1103,11 @@ function handleGamepadBattle(pad, pad2, dt) {
         p2TouchState.up = axY2 < -0.28 || !!(pad2.buttons[12]?.pressed);
         p2TouchState.down = axY2 > 0.28 || !!(pad2.buttons[13]?.pressed);
 
-        if (isGpBtnJustPressed(1, 4) || (isGpBtnJustPressed(1, 0) && pad2.buttons[2]?.pressed) || (isGpBtnJustPressed(1, 2) && pad2.buttons[0]?.pressed)) {
-            triggerPlayerAction(fighter2, fighter1, 'throw');
-        } else {
-            if (isGpBtnJustPressed(1, 0)) triggerPlayerAction(fighter2, fighter1, 'light');
-            if (isGpBtnJustPressed(1, 2)) triggerPlayerAction(fighter2, fighter1, 'heavy');
-        }
+        if (isGpBtnJustPressed(1, 0)) triggerPlayerAction(fighter2, fighter1, 'jump');
+        if (isGpBtnJustPressed(1, 2)) triggerPlayerAction(fighter2, fighter1, 'strike');
         if (isGpBtnJustPressed(1, 3)) triggerPlayerAction(fighter2, fighter1, 'special');
-        if (isGpBtnJustPressed(1, 1)) triggerPlayerAction(fighter2, fighter1, 'special2');
+        p2TouchState.guard = isGpBtnDown(pad2, 1) || isGpBtnDown(pad2, 4);
+        if (isGpBtnJustPressed(1, 1) || isGpBtnJustPressed(1, 4)) triggerPlayerAction(fighter2, fighter1, 'guard');
         if (isGpBtnJustPressed(1, 5)) triggerPlayerAction(fighter2, fighter1, 'dash');
         if (isGpBtnJustPressed(1, 7) || isGpBtnJustPressed(1, 6)) triggerPlayerAction(fighter2, fighter1, 'xray');
     }
@@ -1134,22 +1190,27 @@ function pollGamepadInputs(dt = 0.016, now = performance.now()) {
 // 7. FONCTIONS DE DÉPLACEMENT EN COMBAT (J1 & J2)
 function handlePlayer1Inputs(dt) {
     if (xrayCinematicTimer > 0 || fighter1.hitStun > 0 || fighter1.isDead || fighter1.isDizzy) return;
+    if (fighter1.combatController && (fighter1.combatController.isInKnockdownSequence() || fighter1.combatController.state === CombatState.BLOCK_DEFLECTED)) {
+        fighter1.vx = 0;
+        return;
+    }
 
     const moveLeft = keys['KeyA'] || keys['KeyQ'] || (gameMode !== 'pvp' && keys['ArrowLeft']) || touchState.left;
     const moveRight = keys['KeyD'] || (gameMode !== 'pvp' && keys['ArrowRight']) || touchState.right;
-    const jump = keys['KeyW'] || keys['KeyZ'] || (gameMode !== 'pvp' && keys['ArrowUp']) || touchState.up;
-    const crouchKey = keys['KeyS'] || keys['ShiftLeft'] || (gameMode !== 'pvp' && keys['ArrowDown']) || touchState.down;
+    const isUp = keys['KeyW'] || keys['KeyZ'] || (gameMode !== 'pvp' && keys['ArrowUp']) || touchState.up;
+    const isDown = keys['KeyS'] || (gameMode !== 'pvp' && keys['ArrowDown']) || touchState.down;
+    const jump = keys['Space'] || touchState.jump;
+    const guardKey = keys['ShiftLeft'] || touchState.guard;
 
     // Détection directionnelle absolue relative à l'adversaire
     const isBack = (fighter1.facing === 1 && moveLeft) || (fighter1.facing === -1 && moveRight);
     const isForward = (fighter1.facing === 1 && moveRight) || (fighter1.facing === -1 && moveLeft);
-    const isDown = crouchKey;
 
     // Vitesse de base modifiée par le poison éventuel
     let curWalkSpd = fighter1.dino.walkSpeed;
     if (fighter1.poisonStacks >= 2) curWalkSpd *= 0.65;
 
-    // Quetzalcoatlus : Mécanique de Plané Stratosphérique (Glide)
+    // Quetzalcoatlus : Mécanique de Plané Stratosphérique (Glide en maintenant Saut dans les airs)
     if (fighter1.dino.id === 'quetzalcoatlus' && jump && fighter1.y > 0.35 && fighter1.vy < 0) {
         fighter1.vy = Math.max(fighter1.vy, -1.6);
         if (moveLeft) fighter1.x -= curWalkSpd * 1.25 * dt;
@@ -1162,23 +1223,28 @@ function handlePlayer1Inputs(dt) {
         if (moveRight) fighter1.x += curWalkSpd * 0.85 * dt;
     }
 
+    // Verrouillage complet de l'input pendant les phases d'attaque (Windup, Active, Recovery)
     if (fighter1.actionDuration > 0 || fighter1.dashTimer > 0) return;
 
-    // --- SYSTÈME DE GARDE MODERNE (HAUTE / BASSE) ---
-    // 1. Garde Basse : Bas + Arrière OU Touche Bas seule
-    if (isDown && fighter1.y <= 0.01) {
+    // --- MATRICE DE GARDE DIRECTIONNELLE 3-VOIES (HIGH / MID / LOW) ---
+    // Représentée par une armure ostéodermique 3D à l'endroit défendu (Haute, Médiane ou Basse)
+    const wantsGuard = isBack || guardKey || (isDown && !moveLeft && !moveRight);
+    if (wantsGuard && fighter1.y <= 0.01) {
         fighter1.isBlocking = true;
-        fighter1.blockType = 'low';
-        fighter1.action = 'crouch';
-        return;
-    }
-
-    // 2. Garde Haute : Maintenir Arrière (s'éloigner de l'adversaire)
-    if (isBack && !jump && fighter1.y <= 0.01) {
-        fighter1.isBlocking = true;
-        fighter1.blockType = 'high';
-        fighter1.action = 'walk';
-        fighter1.x -= fighter1.facing * curWalkSpd * 0.55 * dt;
+        if (isUp) {
+            fighter1.blockType = 'high'; // Protège le crâne / cornes
+            fighter1.action = 'walk';
+        } else if (isDown) {
+            fighter1.blockType = 'low';  // Protège les pattes / queue
+            fighter1.action = 'crouch';
+        } else {
+            fighter1.blockType = 'mid';  // Protège le torse / flanc
+            fighter1.action = 'crouch';
+        }
+        fighter1.sprintDuration = 0;
+        fighter1.isSprinting = false;
+        fighter1.vx = isBack ? -fighter1.facing * curWalkSpd * 0.45 : 0;
+        fighter1.x += fighter1.vx * dt;
         return;
     }
 
@@ -1186,35 +1252,51 @@ function handlePlayer1Inputs(dt) {
     fighter1.isBlocking = false;
     fighter1.blockType = 'none';
 
-    // Saut avec vélocité de classe de poids (Heavy: 10.5, Brawler: 11.8, Speed: 12.8)
+    // SAUTER : Action de saut dédiée (Espace), complètement découplée de Haut pour frapper en haut sans sauter
     if (jump && fighter1.y <= 0.01) {
         fighter1.vy = fighter1.jumpVy || 11.8;
         if (moveLeft) fighter1.vx = -curWalkSpd * 0.65;
         if (moveRight) fighter1.vx = curWalkSpd * 0.65;
+        fighter1.action = 'jump';
+        return;
     }
 
-    if (moveLeft) {
-        fighter1.x -= curWalkSpd * dt;
-        fighter1.action = 'walk';
-    } else if (moveRight) {
-        fighter1.x += curWalkSpd * dt;
+    // Accélération progressive : Walk -> Run -> Sprint (Momentum Velocity ||v||)
+    if (moveLeft || moveRight) {
+        const moveDir = moveLeft ? -1 : 1;
+        if (isForward) {
+            fighter1.sprintDuration = (fighter1.sprintDuration || 0) + dt;
+        } else {
+            fighter1.sprintDuration = 0;
+        }
+        const accelMult = fighter1.sprintDuration > 0.45 ? 1.55 : (fighter1.sprintDuration > 0.18 ? 1.25 : 1.0);
+        fighter1.isSprinting = fighter1.sprintDuration > 0.45;
+        fighter1.vx = moveDir * curWalkSpd * accelMult;
+        fighter1.x += fighter1.vx * dt;
         fighter1.action = 'walk';
     } else {
+        fighter1.sprintDuration = 0;
+        fighter1.isSprinting = false;
         fighter1.action = 'idle';
     }
 }
 
 function handlePlayer2Inputs(dt) {
     if (xrayCinematicTimer > 0 || fighter2.hitStun > 0 || fighter2.isDead || fighter2.isDizzy) return;
+    if (fighter2.combatController && (fighter2.combatController.isInKnockdownSequence() || fighter2.combatController.state === CombatState.BLOCK_DEFLECTED)) {
+        fighter2.vx = 0;
+        return;
+    }
 
     const moveLeft = keys['ArrowLeft'] || p2TouchState.left;
     const moveRight = keys['ArrowRight'] || p2TouchState.right;
-    const jump = keys['ArrowUp'] || p2TouchState.up;
-    const crouchKey = keys['ArrowDown'] || p2TouchState.down;
+    const isUp = keys['ArrowUp'] || p2TouchState.up;
+    const isDown = keys['ArrowDown'] || p2TouchState.down;
+    const jump = keys['Numpad8'] || keys['KeyU'] || p2TouchState.jump;
+    const guardKey = keys['Numpad5'] || keys['KeyK'] || p2TouchState.guard;
 
     const isBack = (fighter2.facing === 1 && moveLeft) || (fighter2.facing === -1 && moveRight);
     const isForward = (fighter2.facing === 1 && moveRight) || (fighter2.facing === -1 && moveLeft);
-    const isDown = crouchKey;
 
     let curWalkSpd = fighter2.dino.walkSpeed;
     if (fighter2.poisonStacks >= 2) curWalkSpd *= 0.65;
@@ -1233,20 +1315,24 @@ function handlePlayer2Inputs(dt) {
 
     if (fighter2.actionDuration > 0 || fighter2.dashTimer > 0) return;
 
-    // Garde Basse J2
-    if (isDown && fighter2.y <= 0.01) {
+    // Garde directionnelle 3-voies J2
+    const wantsGuard2 = isBack || guardKey || (isDown && !moveLeft && !moveRight);
+    if (wantsGuard2 && fighter2.y <= 0.01) {
         fighter2.isBlocking = true;
-        fighter2.blockType = 'low';
-        fighter2.action = 'crouch';
-        return;
-    }
-
-    // Garde Haute J2
-    if (isBack && !jump && fighter2.y <= 0.01) {
-        fighter2.isBlocking = true;
-        fighter2.blockType = 'high';
-        fighter2.action = 'walk';
-        fighter2.x -= fighter2.facing * curWalkSpd * 0.55 * dt;
+        if (isUp) {
+            fighter2.blockType = 'high';
+            fighter2.action = 'walk';
+        } else if (isDown) {
+            fighter2.blockType = 'low';
+            fighter2.action = 'crouch';
+        } else {
+            fighter2.blockType = 'mid';
+            fighter2.action = 'crouch';
+        }
+        fighter2.sprintDuration = 0;
+        fighter2.isSprinting = false;
+        fighter2.vx = isBack ? -fighter2.facing * curWalkSpd * 0.45 : 0;
+        fighter2.x += fighter2.vx * dt;
         return;
     }
 
@@ -1257,14 +1343,25 @@ function handlePlayer2Inputs(dt) {
         fighter2.vy = fighter2.jumpVy || 11.8;
         if (moveLeft) fighter2.vx = -curWalkSpd * 0.65;
         if (moveRight) fighter2.vx = curWalkSpd * 0.65;
+        fighter2.action = 'jump';
+        return;
     }
-    if (moveLeft) {
-        fighter2.x -= curWalkSpd * dt;
-        fighter2.action = 'walk';
-    } else if (moveRight) {
-        fighter2.x += curWalkSpd * dt;
+
+    if (moveLeft || moveRight) {
+        const moveDir = moveLeft ? -1 : 1;
+        if (isForward) {
+            fighter2.sprintDuration = (fighter2.sprintDuration || 0) + dt;
+        } else {
+            fighter2.sprintDuration = 0;
+        }
+        const accelMult = fighter2.sprintDuration > 0.45 ? 1.55 : (fighter2.sprintDuration > 0.18 ? 1.25 : 1.0);
+        fighter2.isSprinting = fighter2.sprintDuration > 0.45;
+        fighter2.vx = moveDir * curWalkSpd * accelMult;
+        fighter2.x += fighter2.vx * dt;
         fighter2.action = 'walk';
     } else {
+        fighter2.sprintDuration = 0;
+        fighter2.isSprinting = false;
         fighter2.action = 'idle';
     }
 }

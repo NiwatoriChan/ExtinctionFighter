@@ -408,33 +408,39 @@ const BATTLE_SCREEN_HTML = `
                     </div>
                 </div>
 
-                <!-- ================= CENTER D-PAD & DASH CONTROLS ================= -->
+                <!-- ================= CENTER D-PAD, JUMP & DASH CONTROLS ================= -->
                 <div class="flex items-center gap-1 sm:gap-1.5">
-                    <button id="uiBtnLeft" data-ctrl="left" class="ctrl-btn stone-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center text-white font-black shadow">
+                    <button id="uiBtnLeft" data-ctrl="left" class="ctrl-btn stone-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center text-white font-black shadow" title="Aller à Gauche">
                         <span class="text-base leading-none">◀</span>
                         <span class="text-[9px] text-stone-400">A / Q</span>
                     </button>
                     <div class="flex flex-col gap-1">
-                        <button id="uiBtnUp" data-ctrl="up" class="ctrl-btn stone-btn w-14 sm:w-16 h-8 sm:h-9 px-1 rounded-lg flex items-center justify-center gap-1 text-white font-black text-[9.5px] sm:text-[10.5px] shadow">
+                        <button id="uiBtnUp" data-ctrl="up" class="ctrl-btn stone-btn w-14 sm:w-16 h-8 sm:h-9 px-1 rounded-lg flex items-center justify-center gap-1 text-sky-300 font-black text-[9px] sm:text-[10px] shadow" title="Viser Haut (Frappe Haute / Garde Haute)">
                             <span>▲</span>
-                            <span>Saut (W)</span>
+                            <span>HAUT [W]</span>
                         </button>
-                        <button id="uiBtnDown" data-ctrl="down" class="ctrl-btn stone-btn w-14 sm:w-16 h-8 sm:h-9 px-1 rounded-lg flex items-center justify-center gap-1 text-amber-300 font-black text-[9.5px] sm:text-[10.5px] shadow">
-                            <span>🛡️</span>
-                            <span>Garde (S)</span>
+                        <button id="uiBtnDown" data-ctrl="down" class="ctrl-btn stone-btn w-14 sm:w-16 h-8 sm:h-9 px-1 rounded-lg flex items-center justify-center gap-1 text-amber-300 font-black text-[9px] sm:text-[10px] shadow" title="Viser Bas (Frappe Basse / Garde Basse)">
+                            <span>▼</span>
+                            <span>BAS [S]</span>
                         </button>
                     </div>
-                    <button id="uiBtnRight" data-ctrl="right" class="ctrl-btn stone-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center text-white font-black shadow">
+                    <button id="uiBtnRight" data-ctrl="right" class="ctrl-btn stone-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex flex-col items-center justify-center text-white font-black shadow" title="Aller à Droite">
                         <span class="text-base leading-none">▶</span>
                         <span class="text-[9px] text-stone-400">D / ➡</span>
                     </button>
-                    <button id="uiBtnDash" data-action="dash" class="act-btn stone-btn px-2.5 h-10 sm:h-12 rounded-xl flex flex-col items-center justify-center text-cyan-300 font-black text-xs shadow border-cyan-500/60">
-                        <span>💨 DASH</span>
-                        <span class="text-[9px] text-stone-400">[E]</span>
-                    </button>
+                    <div class="flex flex-col gap-1">
+                        <button id="uiBtnJump" data-action="jump" class="act-btn stone-btn px-2 h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1 text-emerald-300 font-black text-[8.5px] sm:text-[9.5px] shadow border-emerald-500/60" title="Sauter (Espace)">
+                            <span>🦘</span>
+                            <span>SAUT</span>
+                        </button>
+                        <button id="uiBtnDash" data-action="dash" class="act-btn stone-btn px-2 h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1 text-cyan-300 font-black text-[8.5px] sm:text-[9.5px] shadow border-cyan-500/60" title="Dasher / Esquive (E)">
+                            <span>💨</span>
+                            <span>DASH</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- ================= BOTTOM-RIGHT: STATUS BADGES & CIRCULAR ACTION MEDALLIONS ================= -->
+                <!-- ================= BOTTOM-RIGHT: ACTIONS (FRAPPER, SPÉCIAL, PROTÉGER, RAGE) ================= -->
                 <div class="flex flex-col items-end gap-1.5">
                     <!-- Status Buffs Row -->
                     <div class="flex items-center gap-1.5">
@@ -455,65 +461,43 @@ const BATTLE_SCREEN_HTML = `
                         </div>
                     </div>
 
-                    <!-- Circular Action Medallions (Exact match to reference style) -->
+                    <!-- Circular Action Medallions (4 Unobtrusive Controls) -->
                     <div class="flex items-center gap-1.5 sm:gap-2">
-                        <!-- Light Attack (Léger) -->
-                        <button id="uiBtnLight" data-action="light" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative border-amber-400 group p-1.5">
+                        <!-- 1. FRAPPER (Strike: Haut, Milieu, Bas selon direction) -->
+                        <button id="uiBtnStrike" data-action="strike" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative border-amber-400 group p-1.5" title="Frapper (Haut, Milieu, Bas selon orientation)">
                             <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6 fill-amber-300">
                                 <path d="M4 18 C6 20 10 20 14 18 C18 16 20 12 20 8 C18 6 14 6 10 8 C6 10 4 14 4 18 Z M8 12 L11 11 L10 14 Z M13 11 L16 10 L15 13 Z"/>
                             </svg>
-                            <span class="text-[8px] font-black text-amber-200">LÉGER [F]</span>
+                            <span class="text-[7.5px] sm:text-[8px] font-black text-amber-200">FRAPPE [F]</span>
                             <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-amber-400 text-[9px] font-black text-amber-200 flex items-center justify-center shadow">
-                                LT
+                                X
                             </div>
                         </button>
 
-                        <!-- Heavy Attack (Lourd) -->
-                        <button id="uiBtnHeavy" data-action="heavy" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5">
-                            <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6 fill-orange-400">
-                                <path d="M12 4 V1 L8 5 L12 9 V6 C15.3 6 18 8.7 18 12 C18 13.6 17.4 15 16.3 16.1 L17.8 17.5 C19.2 16.1 20 14.1 20 12 C20 7.6 16.4 4 12 4 Z M6.2 6.5 L4.7 7.9 C3.3 9.4 2.5 11.3 2.5 13.5 C2.5 17.9 6.1 21.5 10.5 21.5 V24.5 L14.5 20.5 L10.5 16.5 V19.5 C7.2 19.5 4.5 16.8 4.5 13.5 C4.5 11.9 5.1 10.5 6.2 9.4 Z"/>
-                            </svg>
-                            <span class="text-[8px] font-black text-orange-200">LOURD [G]</span>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-orange-400 text-[9px] font-black text-orange-300 flex items-center justify-center shadow">
-                                B
-                            </div>
-                        </button>
-
-                        <!-- Throw Attack (Chope) -->
-                        <button id="uiBtnThrow" data-action="throw" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-sky-400">
-                            <span class="text-base sm:text-lg leading-none">🤜</span>
-                            <span class="text-[8px] font-black text-sky-200">CHOPE [C]</span>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-sky-400 text-[9px] font-black text-sky-300 flex items-center justify-center shadow">
-                                LB
-                            </div>
-                        </button>
-
-                        <!-- Special Attack (Spécial) -->
-                        <button id="uiBtnSpecial" data-action="special" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5">
+                        <!-- 2. SPÉCIAL UNIQUE DE L'ANIMAL -->
+                        <button id="uiBtnSpecial" data-action="special" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-purple-400" title="Coup Spécial Unique de l'animal">
                             <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6 fill-purple-400">
                                 <path d="M12 2 C8 7 6 10 6 14 C6 18.4 9.6 22 14 22 C18.4 22 22 18.4 22 14 C22 10 18 5 15 3 C15 6 13 8 11 8 C11 5 12 3 12 2 Z"/>
                             </svg>
-                            <span class="text-[8px] font-black text-purple-200">SPÉCIAL [H]</span>
+                            <span class="text-[7.5px] sm:text-[8px] font-black text-purple-200">SPÉCIAL [H]</span>
                             <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-purple-400 text-[9px] font-black text-purple-300 flex items-center justify-center shadow">
                                 Y
                             </div>
                         </button>
 
-                        <!-- Ultra Attack (Ultra) -->
-                        <button id="uiBtnSpecial2" data-action="special2" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5">
-                            <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6 fill-emerald-400">
-                                <path d="M12 3 C7 3 3 7 3 12 C3 17 7 21 12 21 C17 21 21 17 21 12 C21 7 17 3 12 3 Z M12 6 C15.3 6 18 8.7 18 12 C18 15.3 15.3 18 12 18 C8.7 18 6 15.3 6 12 C6 8.7 8.7 6 12 6 Z"/>
-                            </svg>
-                            <span class="text-[8px] font-black text-emerald-200">ULTRA [T]</span>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-emerald-400 text-[9px] font-black text-emerald-300 flex items-center justify-center shadow">
-                                RB
+                        <!-- 3. PROTÉGER (ARMURE DIRECTIONNELLE HAUT, MILIEU, BAS) -->
+                        <button id="uiBtnGuard" data-action="guard" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-sky-400" title="Protéger (Armure 3D à l'endroit protégé)">
+                            <span class="text-base sm:text-lg leading-none">🛡️</span>
+                            <span class="text-[7.5px] sm:text-[8px] font-black text-sky-200">GARDE [S]</span>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-sky-400 text-[9px] font-black text-sky-300 flex items-center justify-center shadow">
+                                B
                             </div>
                         </button>
 
-                        <!-- Fatality / X-Ray (btnRageFatality) -->
-                        <button id="btnRageFatality" data-action="xray" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-red-500 shadow-lg">
+                        <!-- 4. SUPER ATTAQUE (RAGE 100%) -->
+                        <button id="btnRageFatality" data-action="xray" class="act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-red-500 shadow-lg" title="Super Attaque X-Ray (Rage 100%)">
                             <span class="text-base leading-none">💀</span>
-                            <span class="text-[7.5px] font-black text-amber-200">X-RAY [R]</span>
+                            <span class="text-[7.5px] font-black text-amber-200">RAGE [R]</span>
                             <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-red-400 text-[9px] font-black text-red-300 flex items-center justify-center shadow">
                                 RT
                             </div>
@@ -526,10 +510,16 @@ const BATTLE_SCREEN_HTML = `
 `;
 document.getElementById('appMain').insertAdjacentHTML('beforeend', BATTLE_SCREEN_HTML);
 
+const _arcadeBtnCache = {};
+const _arcadeBtnState = {};
+
 function flashArcadeButton(btnId, active) {
-    const el = document.getElementById(btnId);
+    const isPressed = !!active;
+    if (_arcadeBtnState[btnId] === isPressed) return;
+    _arcadeBtnState[btnId] = isPressed;
+    const el = _arcadeBtnCache[btnId] || (_arcadeBtnCache[btnId] = document.getElementById(btnId));
     if (!el) return;
-    el.classList.toggle('active-press', active);
+    el.classList.toggle('active-press', isPressed);
 }
 
 function spawnFloatingPopup(worldX, text, colorHex = '#fde047') {
@@ -578,17 +568,21 @@ function hideComboHUD() {
 function showAnnouncer(mainText, subText = '') {
     const mainEl = document.getElementById('announcerMain');
     const subEl = document.getElementById('announcerSub');
-    mainEl.textContent = mainText;
-    subEl.textContent = subText;
-    mainEl.style.transform = 'scale(1.25)';
-    setTimeout(() => {
-        mainEl.style.transform = 'scale(1)';
-    }, 180);
+    if (mainEl) {
+        mainEl.textContent = mainText;
+        mainEl.style.transform = 'scale(1.25)';
+        setTimeout(() => {
+            if (mainEl) mainEl.style.transform = 'scale(1)';
+        }, 180);
+    }
+    if (subEl) subEl.textContent = subText;
 }
 
 function clearAnnouncer() {
-    document.getElementById('announcerMain').textContent = '';
-    document.getElementById('announcerSub').textContent = '';
+    const mainEl = document.getElementById('announcerMain');
+    const subEl = document.getElementById('announcerSub');
+    if (mainEl) mainEl.textContent = '';
+    if (subEl) subEl.textContent = '';
 }
 
 // Récupérateur d'avatar ou portrait détaillé pour le cadre en pierre du HUD
@@ -633,33 +627,83 @@ function updateHudPortraits() {
     }
 }
 
+function renderFighterStatusBadges(fighter) {
+    if (!fighter) return '';
+    let html = '';
+    if (fighter.isBlocking && fighter.blockType && fighter.blockType !== 'none') {
+        const gZoneLabel = fighter.blockType === 'high' ? 'HAUTE' : (fighter.blockType === 'low' ? 'BASSE' : 'MID');
+        const gStam = Math.round(fighter.guardStamina !== undefined ? fighter.guardStamina : 100);
+        html += `<span class="px-1 py-0.2 rounded bg-sky-950/90 text-sky-300 border border-sky-400/80 text-[8px] font-black" title="Garde directionnelle active">🛡️ ${gZoneLabel} ${gStam}%</span>`;
+    }
+    if (fighter.combatController) {
+        const st = fighter.combatController.state;
+        if (st === CombatState.KNOCKDOWN_FALL || st === CombatState.GROUNDED_IDLE) {
+            html += `<span class="px-1 py-0.2 rounded bg-red-950/90 text-amber-300 border border-amber-500/80 text-[8px] font-black animate-pulse" title="Au sol (Knockdown)">💥 AU SOL</span>`;
+        } else if (st === CombatState.WAKE_UP_STAND) {
+            html += `<span class="px-1 py-0.2 rounded bg-cyan-950/90 text-cyan-300 border border-cyan-400 text-[8px] font-black" title="Relevé invulnérable">⬆️ RELEVÉ</span>`;
+        } else if (st === CombatState.BLOCK_DEFLECTED) {
+            html += `<span class="px-1 py-0.2 rounded bg-orange-950/90 text-orange-300 border border-orange-400 text-[8px] font-black" title="Attaque déviée">⚡ DÉVIÉ</span>`;
+        }
+    }
+    if (fighter.staleMultiplier !== undefined && fighter.staleMultiplier < 1.0) {
+        html += `<span class="px-1 py-0.2 rounded bg-zinc-900/90 text-amber-400 border border-amber-500/70 text-[8px] font-black" title="Pénalité Anti-Spam (Stale-Move)">⚠️ USURE ${Math.round(fighter.staleMultiplier * 100)}%</span>`;
+    }
+    if (fighter.bleedStacks > 0) {
+        html += `<span class="px-1 py-0.2 rounded bg-red-950/90 text-red-400 border border-red-500/80 text-[8px] font-black animate-pulse" title="Saignement actif">🩸 ×${fighter.bleedStacks}</span>`;
+    }
+    if (fighter.poisonStacks > 0) {
+        html += `<span class="px-1 py-0.2 rounded bg-emerald-950/90 text-emerald-400 border border-emerald-500/80 text-[8px] font-black animate-pulse" title="Neurotoxine active">🧪 ×${fighter.poisonStacks}</span>`;
+    }
+    if (fighter.atkPowerModTimer > 0) {
+        html += `<span class="px-1 py-0.2 rounded bg-amber-950/90 text-amber-300 border border-amber-500/80 text-[8px] font-black" title="Attaque affaiblie">🦖 -25% ATQ</span>`;
+    }
+    if (fighter.hasHyperArmor) {
+        html += `<span class="px-1 py-0.2 rounded bg-cyan-950/90 text-cyan-300 border border-cyan-400 text-[8px] font-black animate-pulse" title="Armure active">🛡️ ARMURE</span>`;
+    }
+    return html;
+}
+
 // MISE À JOUR DU HUD HTML & RENDU CAMÉRA 3D DYNAMIQUE
 function updateBattleHUD() {
     if (!fighter1 || !fighter2) return;
     const p1Pct = Math.max(0, Math.round((fighter1.hp / fighter1.maxHp) * 100));
     const p2Pct = Math.max(0, Math.round((fighter2.hp / fighter2.maxHp) * 100));
 
-    document.getElementById('hudP1HealthBar').style.width = p1Pct + '%';
-    document.getElementById('hudP1DamageBar').style.width = p1Pct + '%';
-    document.getElementById('hudP1HpText').textContent = p1Pct + '%';
+    const p1HealthEl = document.getElementById('hudP1HealthBar');
+    if (p1HealthEl) p1HealthEl.style.width = p1Pct + '%';
+    const p1DmgEl = document.getElementById('hudP1DamageBar');
+    if (p1DmgEl) p1DmgEl.style.width = p1Pct + '%';
+    const p1HpTextEl = document.getElementById('hudP1HpText');
+    if (p1HpTextEl) p1HpTextEl.textContent = p1Pct + '%';
 
-    document.getElementById('hudP2HealthBar').style.width = p2Pct + '%';
-    document.getElementById('hudP2DamageBar').style.width = p2Pct + '%';
-    document.getElementById('hudP2HpText').textContent = p2Pct + '%';
+    const p2HealthEl = document.getElementById('hudP2HealthBar');
+    if (p2HealthEl) p2HealthEl.style.width = p2Pct + '%';
+    const p2DmgEl = document.getElementById('hudP2DamageBar');
+    if (p2DmgEl) p2DmgEl.style.width = p2Pct + '%';
+    const p2HpTextEl = document.getElementById('hudP2HpText');
+    if (p2HpTextEl) p2HpTextEl.textContent = p2Pct + '%';
 
-    document.getElementById('hudP1RageBar').style.width = fighter1.rage + '%';
+    const p1RageEl = document.getElementById('hudP1RageBar');
+    if (p1RageEl) p1RageEl.style.width = fighter1.rage + '%';
     const r1Badge = document.getElementById('hudP1RageBadge');
-    r1Badge.textContent = fighter1.rage >= 100 ? '💀 FRENZY 100%' : `RAGE ${Math.floor(fighter1.rage)}%`;
-    r1Badge.className = fighter1.rage >= 100
-        ? 'text-[9px] font-black uppercase px-2 py-0.2 rounded bg-red-600 text-white border border-amber-300 animate-pulse shadow'
-        : 'text-[9px] font-black uppercase px-2 py-0.2 rounded bg-stone-900 text-cyan-300 border border-cyan-700 shadow';
+    if (r1Badge) {
+        r1Badge.textContent = fighter1.rage >= 100 ? '💀 FRENZY 100%' : `RAGE ${Math.floor(fighter1.rage)}%`;
+        r1Badge.className = fighter1.rage >= 100
+            ? 'text-[9px] font-black uppercase px-2 py-0.2 rounded bg-red-600 text-white border border-amber-300 animate-pulse shadow'
+            : 'text-[9px] font-black uppercase px-2 py-0.2 rounded bg-stone-900 text-cyan-300 border border-cyan-700 shadow';
+    }
 
-    document.getElementById('hudP2RageBar').style.width = fighter2.rage + '%';
+    const p2RageEl = document.getElementById('hudP2RageBar');
+    if (p2RageEl) p2RageEl.style.width = fighter2.rage + '%';
     const r2Badge = document.getElementById('hudP2RageBadge');
-    r2Badge.textContent = fighter2.rage >= 100 ? '💀 X-RAY PRÊT' : `RAGE ${Math.floor(fighter2.rage)}%`;
+    if (r2Badge) {
+        r2Badge.textContent = fighter2.rage >= 100 ? '💀 X-RAY PRÊT' : `RAGE ${Math.floor(fighter2.rage)}%`;
+    }
 
-    document.getElementById('hudP1Rounds').innerHTML = '💀'.repeat(fighter1.roundsWon);
-    document.getElementById('hudP2Rounds').innerHTML = '💀'.repeat(fighter2.roundsWon);
+    const p1RoundsEl = document.getElementById('hudP1Rounds');
+    if (p1RoundsEl) p1RoundsEl.innerHTML = '💀'.repeat(fighter1.roundsWon);
+    const p2RoundsEl = document.getElementById('hudP2Rounds');
+    if (p2RoundsEl) p2RoundsEl.innerHTML = '💀'.repeat(fighter2.roundsWon);
 
     // Update Bottom-Left Frenzy Wheel State
     const frenzyCorona = document.getElementById('hudFrenzyCorona');
@@ -678,35 +722,22 @@ function updateBattleHUD() {
         }
     }
 
-    // Badges de statuts dynamiques sous les plaques de vie (Saignement, Poison, Débuff, Armure)
-    function renderStatusBadges(fighter) {
-        if (!fighter) return '';
-        let html = '';
-        if (fighter.bleedStacks > 0) {
-            html += `<span class="px-1 py-0.2 rounded bg-red-950/90 text-red-400 border border-red-500/80 text-[8px] font-black animate-pulse" title="Saignement actif">🩸 ×${fighter.bleedStacks}</span>`;
-        }
-        if (fighter.poisonStacks > 0) {
-            html += `<span class="px-1 py-0.2 rounded bg-emerald-950/90 text-emerald-400 border border-emerald-500/80 text-[8px] font-black animate-pulse" title="Neurotoxine active">🧪 ×${fighter.poisonStacks}</span>`;
-        }
-        if (fighter.atkPowerModTimer > 0) {
-            html += `<span class="px-1 py-0.2 rounded bg-amber-950/90 text-amber-300 border border-amber-500/80 text-[8px] font-black" title="Attaque affaiblie">🦖 -25% ATQ</span>`;
-        }
-        if (fighter.hasHyperArmor) {
-            html += `<span class="px-1 py-0.2 rounded bg-cyan-950/90 text-cyan-300 border border-cyan-400 text-[8px] font-black animate-pulse" title="Armure active">🛡️ ARMURE</span>`;
-        }
-        return html;
-    }
-
-    const p1Badges = document.getElementById('hudP1StatusBadges');
-    if (p1Badges) p1Badges.innerHTML = renderStatusBadges(fighter1);
-    const p2Badges = document.getElementById('hudP2StatusBadges');
-    if (p2Badges) p2Badges.innerHTML = renderStatusBadges(fighter2);
-
     updateBattleHUDCooldowns();
 }
 
 function updateBattleHUDCooldowns() {
     if (!fighter1 || !fighter1.cooldowns) return;
+
+    const p1Badges = document.getElementById('hudP1StatusBadges');
+    if (p1Badges) {
+        const b1 = renderFighterStatusBadges(fighter1);
+        if (p1Badges.innerHTML !== b1) p1Badges.innerHTML = b1;
+    }
+    const p2Badges = document.getElementById('hudP2StatusBadges');
+    if (p2Badges && fighter2) {
+        const b2 = renderFighterStatusBadges(fighter2);
+        if (p2Badges.innerHTML !== b2) p2Badges.innerHTML = b2;
+    }
 
     // Seules les attaques Spéciale 1 et Ultra 2 disposent d'un temps de recharge
     const cdSpecial = fighter1.cooldowns['special'] || 0;
@@ -724,24 +755,6 @@ function updateBattleHUDCooldowns() {
             }
             const cdSpan = btnSpecial.querySelector('span');
             if (cdSpan) cdSpan.textContent = 'SPÉCIAL [H]';
-        }
-    }
-
-    const cdSpecial2 = fighter1.cooldowns['special2'] || 0;
-    const btnSpecial2 = document.getElementById('uiBtnSpecial2');
-    if (btnSpecial2) {
-        if (cdSpecial2 > 0.05) {
-            btnSpecial2.classList.add('btn-on-cooldown');
-            const cdSpan = btnSpecial2.querySelector('span');
-            if (cdSpan) cdSpan.textContent = `${cdSpecial2.toFixed(1)}s`;
-        } else {
-            if (btnSpecial2.classList.contains('btn-on-cooldown')) {
-                btnSpecial2.classList.remove('btn-on-cooldown');
-                btnSpecial2.classList.add('cooldown-ready-flash');
-                setTimeout(() => btnSpecial2.classList.remove('cooldown-ready-flash'), 350);
-            }
-            const cdSpan = btnSpecial2.querySelector('span');
-            if (cdSpan) cdSpan.textContent = 'ULTRA [T]';
         }
     }
 

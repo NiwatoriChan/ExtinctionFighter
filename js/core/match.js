@@ -57,19 +57,28 @@ function startMatch() {
     const pauseModal = document.getElementById('pauseModal');
     if (pauseModal) pauseModal.classList.add('hidden');
 
-    document.getElementById('selectScreen').classList.add('hidden');
-    document.getElementById('arenaScreen').classList.add('hidden');
-    document.getElementById('mainMenu').classList.add('hidden');
-    document.getElementById('battleScreen').classList.remove('hidden');
-    document.getElementById('battleScreen').classList.add('flex');
+    const selScreen = document.getElementById('selectScreen');
+    if (selScreen) selScreen.classList.add('hidden');
+    const arScreen = document.getElementById('arenaScreen');
+    if (arScreen) arScreen.classList.add('hidden');
+    const mmScreen = document.getElementById('mainMenu');
+    if (mmScreen) mmScreen.classList.add('hidden');
+    const btScreen = document.getElementById('battleScreen');
+    if (btScreen) {
+        btScreen.classList.remove('hidden');
+        btScreen.classList.add('flex');
+    }
     const btnBack = document.getElementById('btnBackToSelect');
     if (btnBack) btnBack.classList.add('hidden');
     const btnCam = document.getElementById('btnResetCam');
     if (btnCam) btnCam.classList.add('hidden');
-    document.getElementById('postMatchMenu').classList.add('hidden');
+    const pmmMenu = document.getElementById('postMatchMenu');
+    if (pmmMenu) pmmMenu.classList.add('hidden');
 
-    document.getElementById('hudP1Name').textContent = fighter1.dino.name;
-    document.getElementById('hudP2Name').textContent = fighter2.dino.name;
+    const p1NameEl = document.getElementById('hudP1Name');
+    if (p1NameEl) p1NameEl.textContent = fighter1.dino.name;
+    const p2NameEl = document.getElementById('hudP2Name');
+    if (p2NameEl) p2NameEl.textContent = fighter2.dino.name;
     if (typeof updateHudPortraits === 'function') {
         updateHudPortraits();
     }
@@ -84,7 +93,16 @@ function startNewRound() {
     fighter1.resetForRound();
     fighter2.resetForRound();
 
-    while (fxGroup.children.length > 0) fxGroup.remove(fxGroup.children[0]);
+    while (fxGroup.children.length > 0) {
+        const child = fxGroup.children[0];
+        fxGroup.remove(child);
+    }
+    for (let i = 0; i < particles3D.length; i++) {
+        const pt = particles3D[i];
+        if (pt && pt.ownsMaterial && pt.mesh && pt.mesh.material) {
+            pt.mesh.material.dispose();
+        }
+    }
     projectiles3D = [];
     particles3D = [];
     roundTimer = 99;
@@ -94,14 +112,18 @@ function startNewRound() {
     xrayLockPositions = null;
     fatalityFocusFighter = null;
 
-    document.getElementById('hudRoundText').textContent = `ROUND ${roundNumber}`;
+    const roundTextEl = document.getElementById('hudRoundText');
+    if (roundTextEl) roundTextEl.textContent = `ROUND ${roundNumber}`;
     const timerEl = document.getElementById('hudTimer');
     if (timerEl) {
         timerEl.textContent = typeof formatHudTimer === 'function' ? formatHudTimer(roundTimer) : roundTimer;
     }
-    document.getElementById('xrayOverlayHud').classList.add('hidden');
-    document.getElementById('fatalityPromptBox').classList.add('hidden');
-    document.getElementById('postMatchMenu').classList.add('hidden');
+    const xrayOverlay = document.getElementById('xrayOverlayHud');
+    if (xrayOverlay) xrayOverlay.classList.add('hidden');
+    const fatalityBox = document.getElementById('fatalityPromptBox');
+    if (fatalityBox) fatalityBox.classList.add('hidden');
+    const postMatchEl = document.getElementById('postMatchMenu');
+    if (postMatchEl) postMatchEl.classList.add('hidden');
     if (typeof hideComboHUD === 'function') hideComboHUD();
 
     matchState = 'intro';
@@ -123,7 +145,31 @@ function startNewRound() {
 function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLockedXrayHit = false, attackCategory = 'mid') {
     if (defender.isDead) return;
 
+    // Invulnérabilité pendant l'animation de relevé (Wake_Up_Stand)
+    if (!isLockedXrayHit && defender.combatController && defender.combatController.state === CombatState.WAKE_UP_STAND) {
+        spawnFloatingPopup(defender.x, '🛡️ INVULNÉRABLE (RELEVÉ) !', '#38bdf8');
+        return;
+    }
+
+    const attackZone = typeof DinosaurCombatController !== 'undefined'
+        ? DinosaurCombatController.resolveAttackZoneFromAction(attackCategory)
+        : 'mid';
+
     let finalDamage = rawDamage;
+    let momentumMult = 1.0;
+    let staleMult = 1.0;
+
+    // --- ÉQUATION UPDATE 2.0 : MOMENTUM DAMAGE & STALE-MOVE NEGATION ---
+    // Total Damage = Base Damage * (1 + k * ||v||) * StaleMultiplier
+    if (!isLockedXrayHit && attacker.combatController) {
+        const dmgEval = attacker.combatController.evaluateScaledDamage(rawDamage);
+        finalDamage = dmgEval.scaledDamage;
+        momentumMult = dmgEval.momentumMultiplier;
+        staleMult = dmgEval.staleMultiplier;
+        attacker.momentumMultiplier = momentumMult;
+        attacker.staleMultiplier = staleMult;
+    }
+
     // Modificateur de puissance d'attaque de l'attaquant (débuff d'intimidation du T-Rex, etc.)
     if (attacker.atkPowerMod !== undefined && attacker.atkPowerMod !== 1.0) {
         finalDamage = Math.round(finalDamage * attacker.atkPowerMod);
@@ -160,34 +206,61 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
         return;
     }
 
-    // --- RÉSOLUTION DE LA DÉFENSE (TRIANGLE ATTAQUE / GARDE / CHOPE) ---
+    // --- MATRICE DIRECTIONNELLE 3-VOIES : ATTAQUE (HIGH / MID / LOW) VS GARDE (HIGH / MID / LOW) ---
     const isBlocking = defender.isBlocking && !defender.isDizzy && !isLockedXrayHit && !defender.isXrayTarget;
     let guardBroken = false;
 
     if (isBlocking) {
-        if (attackCategory === 'throw') {
-            // La chope est strictement inbloquable !
+        if (attackCategory === 'throw' || attackCategory === 'seismic') {
+            // Chope et Séisme sont strictement inbloquables !
             guardBroken = true;
-        } else if (attackCategory === 'low' && defender.blockType === 'high') {
-            // Coup bas contre garde haute = garde brisée !
-            guardBroken = true;
-            spawnFloatingPopup(defender.x, '🦶 COUP BAS (GARDE BRISÉE) !', '#ef4444');
-        } else if ((attackCategory === 'overhead' || attackCategory === 'high') && defender.blockType === 'low') {
-            // Coup haut / uppercut / overhead contre garde basse accroupie = garde brisée !
-            guardBroken = true;
-            spawnFloatingPopup(defender.x, attackCategory === 'high' ? '👆 FRAPPE HAUTE (GARDE BRISÉE) !' : '🦅 OVERHEAD (GARDE BRISÉE) !', '#ef4444');
-        } else if (attackCategory === 'seismic') {
-            guardBroken = true;
+        } else {
+            const isMatchedGuard = typeof DinosaurCombatController !== 'undefined'
+                ? DinosaurCombatController.isDirectionalGuardMatched(attackCategory, defender.blockType)
+                : (defender.blockType === attackZone);
+
+            if (!isMatchedGuard) {
+                // Garde directionnelle non correspondante -> Coup net traversant la défense !
+                guardBroken = true;
+                const zoneLabels = {
+                    high: '👆 FRAPPE HAUTE (GARDE PERCÉE) !',
+                    mid: '👉 FRAPPE MÉDIANE (GARDE PERCÉE) !',
+                    low: '🦶 FRAPPE BASSE (GARDE PERCÉE) !'
+                };
+                spawnFloatingPopup(defender.x, zoneLabels[attackZone] || '💥 GARDE PERCÉE !', '#ef4444');
+            } else {
+                // Garde correspondante : consomme l'endurance de garde du défenseur
+                const staminaCost = isHeavy ? 28 : 14;
+                defender.guardStamina = Math.max(0, (defender.guardStamina !== undefined ? defender.guardStamina : 100) - staminaCost);
+                if (defender.guardStamina <= 0) {
+                    guardBroken = true;
+                    defender.guardStamina = 50;
+                    spawnFloatingPopup(defender.x, '💥 GARDE BRISÉE (ENDURANCE ÉPUISÉE) !', '#ef4444');
+                }
+            }
         }
     }
 
     if (isBlocking && !guardBroken) {
-        // --- PARADE RÉUSSIE : DEGATS DE GRATTE (CHIP DAMAGE) & BLOCAGE ---
+        // --- PARADE DIRECTIONNELLE RÉUSSIE : DÉVIATION (BLOCK_DEFLECT_[ZONE]) & DÉSAVANTAGE DE FRAMES ---
         const isCorner = Math.abs(defender.x) >= STAGE_RIGHT_3D - 1.2;
+        const staleBlockstunMult = attacker.combatController
+            ? attacker.combatController.calculateStaleBlockstunMultiplier(attacker.lastStaleCount || 0)
+            : 1.0;
+
+        // Déclencher Block_Deflect_[Zone] sur l'attaquant (recul & désavantage de recovery)
+        if (attacker.combatController) {
+            attacker.combatController.triggerAttackerBlockDeflect(attackZone);
+            attacker.actionDuration = 0;
+            attacker.actionTimer = 0;
+            attacker.action = 'idle';
+            attacker.hitStun = 0.24;
+        }
+
         if (attacker.dino && attacker.dino.id === 'therizinosaurus') {
             // Thérizinosaure : Griffes déchiqueteuses qui traversent la garde (40% de dégâts)
             finalDamage = Math.max(14, Math.round(rawDamage * 0.40));
-            defender.hitStun = 0.22;
+            defender.hitStun = 0.22 * staleBlockstunMult;
             if (isCorner) {
                 attacker.vx = -attacker.facing * 5.2;
                 defender.vx = 0;
@@ -197,20 +270,28 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
             sfx.playHit(true);
             screenShake = 0.25;
             spawnFloatingPopup(defender.x, '⚔️ GRIFFES DÉCHIQUETEUSES (CHIP 40%) !', '#f97316');
+            if (typeof spawn3DGuardDeflectEffect === 'function') {
+                spawn3DGuardDeflectEffect(defender, defender.blockType || attackZone);
+            }
             spawn3DBloodAndBones(defender.x, 1.8, 8, false);
         } else {
-            // Blocage normal : Gratte légère uniquement sur coup lourd / spécial (10%), 0% sur coup léger
-            finalDamage = isHeavy ? Math.max(6, Math.round(rawDamage * 0.10)) : 0;
-            defender.hitStun = isHeavy ? 0.24 : 0.12;
-            if (isCorner) {
-                // Reversal pushback : si le défenseur est au mur, l'attaquant rebondit en arrière
-                attacker.vx = -attacker.facing * (isHeavy ? 6.5 : 4.5);
-                defender.vx = 0;
-            } else {
-                defender.vx = attacker.facing * (isHeavy ? 7.2 : 5.0);
+            // Garde directionnelle parfaite (High/Mid/Low) : 0 dégât subi & déviation de l'attaquant !
+            finalDamage = 0;
+            defender.hitStun = (isHeavy ? 0.22 : 0.11) * staleBlockstunMult;
+            attacker.vx = -attacker.facing * (isHeavy ? 6.2 : 4.5);
+            if (!isCorner) {
+                defender.vx = attacker.facing * (isHeavy ? 4.2 : 2.5);
             }
             sfx.playHit(false);
-            spawnFloatingPopup(defender.x, defender.blockType === 'low' ? '🛡️ PARADE BASSE !' : '🛡️ PARADE HAUTE !', '#fbbf24');
+            const deflectLabels = {
+                high: '🛡️ DÉVIATION HAUTE !',
+                mid: '🛡️ DÉVIATION MÉDIANE !',
+                low: '🛡️ DÉVIATION BASSE !'
+            };
+            spawnFloatingPopup(defender.x, deflectLabels[defender.blockType] || '🛡️ DÉVIATION !', '#fbbf24');
+            if (typeof spawn3DGuardDeflectEffect === 'function') {
+                spawn3DGuardDeflectEffect(defender, defender.blockType || attackZone);
+            }
             spawn3DBloodAndBones(defender.x, 1.8, 4, false);
         }
 
@@ -221,7 +302,7 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
         return;
     }
 
-    // --- IMPACT DIRECT RÉUSSI (COUP NET / GARDE BRISÉE) ---
+    // --- IMPACT DIRECT RÉUSSI (COUP NET / GARDE PERCÉE) ---
     sfx.playHit(isHeavy);
 
     // Hitstop : Impact Freeze pour un ressenti percutant et viscéral
@@ -253,6 +334,18 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
     const isBossDef = defender.dino && defender.dino.isBoss;
     const stunDecay = Math.max(0.55, 1.0 - (attacker.comboCount || 0) * 0.14);
     defender.hitStun = (isLockedXrayHit ? 1.2 : (isHeavy ? (isBossDef ? 0.46 : 0.35) : (isBossDef ? 0.30 : 0.20))) * stunDecay;
+    defender.lastHitZone = attackZone;
+
+    // --- DÉCLENCHEMENT DE LA SÉQUENCE KNOCKDOWN -> GROUNDED_IDLE -> WAKE_UP_STAND ---
+    const causesKnockdown = !isLockedXrayHit && !isBossDef && (
+        isHeavy ||
+        attackCategory === 'throw' ||
+        attackCategory === 'seismic' ||
+        momentumMult >= 1.28
+    );
+    if (defender.combatController && !isLockedXrayHit) {
+        defender.combatController.triggerDefenderHitOrKnockdown(attackZone, causesKnockdown, 1.15);
+    }
 
     // Ne pas repousser les personnages pendant que le X-Ray verrouille leurs positions
     if (!isLockedXrayHit && !xrayLockPositions) {
@@ -285,13 +378,30 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
         defender.vy = 0;
     }
     screenShake = isHeavy ? 0.38 : 0.16;
+    if (typeof spawn3DHitImpactBurst === 'function') {
+        spawn3DHitImpactBurst(defender, attackZone, isHeavy);
+    }
+    if (causesKnockdown && typeof spawn3DGroundShockwave === 'function') {
+        spawn3DGroundShockwave(defender.x, 0xef4444, 2.4, true);
+    }
     spawn3DBloodAndBones(defender.x, 2.0, isHeavy ? 18 : 8, isHeavy);
 
     attacker.comboCount++;
     if (attacker.isP1 && attacker.comboCount >= 2 && typeof showComboHUD === 'function') {
         showComboHUD(attacker.comboCount);
     }
-    const textLabel = label || (attacker.comboCount > 1 ? `${attacker.comboCount} HITS ! -${finalDamage}` : `-${finalDamage}`);
+
+    // Feedback visuel pour Momentum Damage et Stale-Move Negation
+    let extraTag = '';
+    if (!isLockedXrayHit) {
+        if (momentumMult >= 1.12) {
+            extraTag += ` ⚡+${Math.round((momentumMult - 1) * 100)}%`;
+        }
+        if (staleMult < 1.0) {
+            extraTag += ` ⚠️USÉ ${Math.round(staleMult * 100)}%`;
+        }
+    }
+    const textLabel = (label || (attacker.comboCount > 1 ? `${attacker.comboCount} HITS ! -${finalDamage}` : `-${finalDamage}`)) + extraTag;
     spawnFloatingPopup(defender.x, textLabel, isHeavy ? '#ef4444' : '#fde047');
 
     if (gameMode === 'practice' && !defender.isP1) {
@@ -371,6 +481,95 @@ function handleKnockout(winner, loser) {
         showAnnouncer('K.O. !', `${winner.dino.name} REMPORTE LE ROUND ${roundNumber}`);
     }
 }
+
+// ============================================================================
+// BLOQUEUR PHYSIQUE ANTI-TRAVERSÉE (BODY BLOCKER / PUSHBOX COLLISION SYSTEM)
+// Empêche strictement les deux animaux de se traverser au sol, en course, en dash,
+// lors des attaques spéciales ou contre les bords de l'arène.
+// ============================================================================
+function resolveFighterBodyBlocker(f1, f2) {
+    if (!f1 || !f2 || matchState === 'fatality_anim' || xrayLockPositions) return;
+
+    const minSep = (f1.bodyRadius || 1.32) + (f2.bodyRadius || 1.32);
+
+    // Autoriser le franchissement aérien (Cross-Up) UNIQUEMENT en cas de saut très haut au-dessus du crâne adverse
+    const isHighAirCross = Math.max(f1.y, f2.y) >= 2.85 && Math.abs(f1.y - f2.y) >= 2.20;
+
+    if (f1._lockedSide === undefined) {
+        f1._lockedSide = f1.x <= f2.x ? -1 : 1;
+    }
+
+    if (isHighAirCross) {
+        if (Math.abs(f1.x - f2.x) > 0.35) {
+            f1._lockedSide = f1.x < f2.x ? -1 : 1;
+        }
+        return;
+    }
+
+    // Side verrouillé : -1 signifie que f1 doit rester à GAUCHE de f2 (f1.x <= f2.x - minSep)
+    //                  +1 signifie que f1 doit rester à DROITE de f2 (f1.x >= f2.x + minSep)
+    const side = f1._lockedSide || (f1.x <= f2.x ? -1 : 1);
+
+    // Distance signée actuelle le long de l'axe autorisé : doit être >= minSep
+    const currentSignedSep = (f1.x - f2.x) * side;
+
+    if (currentSignedSep < minSep) {
+        const overlap = minSep - currentSignedSep;
+
+        // Répartition de la poussée selon le mouvement et la classe de poids
+        const w1 = f1.weightClass === 'heavy' ? 1.35 : (f1.weightClass === 'speed' ? 0.80 : 1.0);
+        const w2 = f2.weightClass === 'heavy' ? 1.35 : (f2.weightClass === 'speed' ? 0.80 : 1.0);
+
+        // Si un seul combattant avance activement vers l'autre, celui qui est en garde/immobile résiste davantage
+        const f1Pushing = (side === -1 && f1.vx > 0.2) || (side === 1 && f1.vx < -0.2);
+        const f2Pushing = (side === -1 && f2.vx < -0.2) || (side === 1 && f2.vx > 0.2);
+
+        let push1Ratio = w2 / (w1 + w2);
+        let push2Ratio = w1 / (w1 + w2);
+
+        if (f1Pushing && !f2Pushing) {
+            push1Ratio = f2.isBlocking ? 0.78 : 0.62;
+            push2Ratio = 1.0 - push1Ratio;
+        } else if (f2Pushing && !f1Pushing) {
+            push2Ratio = f1.isBlocking ? 0.78 : 0.62;
+            push1Ratio = 1.0 - push2Ratio;
+        }
+
+        f1.x += side * overlap * push1Ratio;
+        f2.x -= side * overlap * push2Ratio;
+
+        // Contrainte stricte aux murs de l'arène : si f2 est bloqué contre un mur, f1 subit 100% du recul
+        if (f2.x < STAGE_LEFT_3D) {
+            f2.x = STAGE_LEFT_3D;
+            f1.x = f2.x + side * minSep;
+        } else if (f2.x > STAGE_RIGHT_3D) {
+            f2.x = STAGE_RIGHT_3D;
+            f1.x = f2.x + side * minSep;
+        }
+
+        if (f1.x < STAGE_LEFT_3D) {
+            f1.x = STAGE_LEFT_3D;
+            f2.x = f1.x - side * minSep;
+        } else if (f1.x > STAGE_RIGHT_3D) {
+            f1.x = STAGE_RIGHT_3D;
+            f2.x = f1.x - side * minSep;
+        }
+
+        f1.x = Math.max(STAGE_LEFT_3D, Math.min(STAGE_RIGHT_3D, f1.x));
+        f2.x = Math.max(STAGE_LEFT_3D, Math.min(STAGE_RIGHT_3D, f2.x));
+
+        // Annuler la vélocité entrante pour empêcher l'accumulation de vitesse à travers le bloqueur
+        if (side === -1) {
+            if (f1.vx > 0 && f1.vx > f2.vx) f1.vx = Math.min(0, f2.vx);
+            if (f2.vx < 0 && f2.vx < f1.vx) f2.vx = Math.max(0, f1.vx);
+        } else {
+            if (f1.vx < 0 && f1.vx < f2.vx) f1.vx = Math.max(0, f2.vx);
+            if (f2.vx > 0 && f2.vx > f1.vx) f2.vx = Math.min(0, f1.vx);
+        }
+    }
+}
+
+let _hudCooldownThrottle = 0;
 
 function updateBattle3D(dt, nowSec) {
     // Hitstop (Impact Freeze) : Fige temporairement la physique et les animations pour le punch
@@ -465,6 +664,14 @@ function updateBattle3D(dt, nowSec) {
         }
     }
 
+    // Verrouiller l'ordre gauche/droite initial avant les déplacements d'inputs et d'IA
+    if (fighter1 && fighter2 && !xrayLockPositions && matchState !== 'fatality_anim') {
+        const isHighAir = Math.max(fighter1.y, fighter2.y) >= 2.85 && Math.abs(fighter1.y - fighter2.y) >= 2.20;
+        if (!isHighAir && fighter1._lockedSide === undefined) {
+            fighter1._lockedSide = fighter1.x <= fighter2.x ? -1 : 1;
+        }
+    }
+
     // Bloquer tous les inputs de déplacement et d'IA pendant le X-Ray
     if ((matchState === 'fight' || matchState === 'finish_him') && xrayCinematicTimer <= 0) {
         handlePlayer1Inputs(dt);
@@ -473,6 +680,8 @@ function updateBattle3D(dt, nowSec) {
         } else if ((gameMode === 'cpu' || gameMode === 'campaign') && matchState === 'fight') {
             updateAI(fighter2, fighter1, dt);
         }
+        // Appliquer le bloqueur dès la sortie des inputs pour empêcher tout franchissement instantané
+        resolveFighterBodyBlocker(fighter1, fighter2);
     }
 
     [fighter1, fighter2].forEach(f => {
@@ -480,6 +689,7 @@ function updateBattle3D(dt, nowSec) {
 
         if (f.dashCooldown > 0) f.dashCooldown = Math.max(0, f.dashCooldown - dt);
         if (f.dashTimer > 0) f.dashTimer = Math.max(0, f.dashTimer - dt);
+        if (f.beingThrownTimer > 0) f.beingThrownTimer = Math.max(0, f.beingThrownTimer - dt);
         if (f.bufferTimer > 0) {
             f.bufferTimer -= dt;
             if (f.bufferTimer <= 0) f.bufferedAction = null;
@@ -516,6 +726,11 @@ function updateBattle3D(dt, nowSec) {
         if (f.atkPowerModTimer > 0) {
             f.atkPowerModTimer -= dt;
             if (f.atkPowerModTimer <= 0) f.atkPowerMod = 1.0;
+        }
+
+        // Régénération de l'endurance de garde hors blocage (Update 2.0)
+        if (!f.isBlocking && f.guardStamina !== undefined && f.guardStamina < 100) {
+            f.guardStamina = Math.min(100, f.guardStamina + 14 * dt);
         }
 
         // Décrémenter les cooldowns d'attaque
@@ -574,10 +789,33 @@ function updateBattle3D(dt, nowSec) {
         }
 
         f.x = Math.max(STAGE_LEFT_3D, Math.min(STAGE_RIGHT_3D, f.x));
+        resolveFighterBodyBlocker(fighter1, fighter2);
+
+        if (!f.isDead && f.action !== 'special' && f.action !== 'fatality' && f.dashTimer <= 0) {
+            f.facing = f.x <= other.x ? 1 : -1;
+        }
 
         if (f.actionDuration > 0) {
             f.actionTimer += dt;
             const progress = f.actionTimer / f.actionDuration;
+
+            // Synchronisation des phases Windup -> Active -> Recovery du DinosaurCombatController
+            if (f.combatController && f.action !== 'fatality' && f.action !== 'xray') {
+                if (progress < 0.32) {
+                    f.combatController.state = CombatState.ATTACK_WINDUP;
+                } else if (progress <= 0.70) {
+                    f.combatController.state = CombatState.ATTACK_ACTIVE;
+                } else {
+                    f.combatController.state = CombatState.ATTACK_RECOVERY;
+                }
+            }
+
+            if (f.action !== 'fatality' && f.action !== 'xray' && f.action !== 'throw_whiff' && !f.hasSpawnedAttackFx && progress >= 0.24) {
+                f.hasSpawnedAttackFx = true;
+                if (typeof spawn3DAttackEffect === 'function') {
+                    spawn3DAttackEffect(f, f.action);
+                }
+            }
 
             if (f.action !== 'fatality' && f.action !== 'xray' && !f.hasHitCurrentAttack && progress >= 0.32 && progress <= 0.70) {
                 f.hasHitCurrentAttack = true;
@@ -597,6 +835,13 @@ function updateBattle3D(dt, nowSec) {
                 f.hasHyperArmor = false;
                 f.hasHitConfirmed = false;
                 f.lastAttackType = null;
+                if (f.combatController && (
+                    f.combatController.state === CombatState.ATTACK_WINDUP ||
+                    f.combatController.state === CombatState.ATTACK_ACTIVE ||
+                    f.combatController.state === CombatState.ATTACK_RECOVERY
+                )) {
+                    f.combatController.state = CombatState.IDLE;
+                }
                 // Si le coup a manqué dans le vide (Whiff), punition : annuler toute action mise en tampon pendant le recovery
                 if (!hadHit) {
                     f.bufferedAction = null;
@@ -607,27 +852,23 @@ function updateBattle3D(dt, nowSec) {
                 }
             }
         }
-
-        // Synchroniser position et orientation du modèle 3D
-        f.rig.root.position.set(f.x, f.y, 0);
-        const targetRotY = f.facing === 1 ? 0 : Math.PI;
-        f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * 0.25;
-
-        animateDino3DRig(f, nowSec, dt);
     });
 
-    // Collision physique entre les 2 dinosaures
-    const minSep = 2.25;
-    const dx = fighter2.x - fighter1.x;
-    if (Math.abs(dx) < minSep && Math.abs(fighter1.y - fighter2.y) < 1.8 && matchState !== 'fatality_anim') {
-        const push = (minSep - Math.abs(dx)) * 0.5;
-        if (dx >= 0) {
-            fighter1.x = Math.max(STAGE_LEFT_3D, fighter1.x - push);
-            fighter2.x = Math.min(STAGE_RIGHT_3D, fighter2.x + push);
-        } else {
-            fighter1.x = Math.min(STAGE_RIGHT_3D, fighter1.x + push);
-            fighter2.x = Math.max(STAGE_LEFT_3D, fighter2.x - push);
-        }
+    // Résolution stricte du bloqueur physique (Body Blocker) AVANT la mise à jour des matrices 3D et animations
+    resolveFighterBodyBlocker(fighter1, fighter2);
+
+    // Synchroniser l'orientation, la position 3D et l'animation sur les positions finales garanties sans chevauchement
+    if (!xrayLockPositions) {
+        [fighter1, fighter2].forEach(f => {
+            const other = f === fighter1 ? fighter2 : fighter1;
+            if (!f.isDead && f.action !== 'special' && f.action !== 'fatality' && f.dashTimer <= 0) {
+                f.facing = f.x <= other.x ? 1 : -1;
+            }
+            f.rig.root.position.set(f.x, f.y, 0);
+            const targetRotY = f.facing === 1 ? 0 : Math.PI;
+            f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * 0.25;
+            animateDino3DRig(f, nowSec, dt);
+        });
     }
 
     // Mise à jour des projectiles 3D
@@ -660,28 +901,39 @@ function updateBattle3D(dt, nowSec) {
         }
     }
 
-    // Mise à jour des particules 3D de sang et d'os
+    // Mise à jour des particules 3D et des effets visuels d'attaques (arcs, ondes de choc, sillages)
     for (let i = particles3D.length - 1; i >= 0; i--) {
         const pt = particles3D[i];
         pt.mesh.position.x += pt.vx * dt;
         pt.mesh.position.y += pt.vy * dt;
         pt.mesh.position.z += pt.vz * dt;
-        pt.mesh.rotation.x += 6 * dt;
-        pt.mesh.rotation.y += 6 * dt;
-        pt.vy -= 22 * dt;
-        if (pt.mesh.position.y < 0.15) {
-            pt.mesh.position.y = 0.15;
-            pt.vx *= 0.6;
-            pt.vy = 0;
+        if (pt.onUpdate) {
+            pt.onUpdate(pt, dt);
+        } else {
+            pt.mesh.rotation.x += 6 * dt;
+            pt.mesh.rotation.y += 6 * dt;
+        }
+        if (!pt.noGravity) {
+            pt.vy -= 22 * dt;
+            if (pt.mesh.position.y < 0.15) {
+                pt.mesh.position.y = 0.15;
+                pt.vx *= 0.6;
+                pt.vy = 0;
+            }
         }
         pt.life -= dt;
         if (pt.life <= 0) {
             fxGroup.remove(pt.mesh);
+            if (pt.ownsMaterial && pt.mesh && pt.mesh.material) {
+                pt.mesh.material.dispose();
+            }
             particles3D.splice(i, 1);
         }
     }
 
-    if (typeof updateBattleHUDCooldowns === 'function') {
+    _hudCooldownThrottle += dt;
+    if (_hudCooldownThrottle >= 0.08 && typeof updateBattleHUDCooldowns === 'function') {
+        _hudCooldownThrottle = 0;
         updateBattleHUDCooldowns();
     }
 }

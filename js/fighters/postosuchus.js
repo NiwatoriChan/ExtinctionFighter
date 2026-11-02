@@ -121,7 +121,8 @@ registerFighter({
 
     // Animations d'attaques (light / heavy / special / special2 / xray)
     animateAttack(ctx) {
-        const { rig, act, prog, swing, baseHipsY } = ctx;
+        const { rig, act, prog, swing, strike, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
         if (act === 'light') {
             // Bond bipède et claquement de mâchoires gauche
             rig.hips.rotation.z = swing * 0.45;

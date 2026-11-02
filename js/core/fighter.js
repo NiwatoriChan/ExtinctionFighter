@@ -2,18 +2,64 @@
 const STAGE_LEFT_3D = -11.0;
 const STAGE_RIGHT_3D = 11.0;
 
-class Fighter3D {
+class Fighter3D extends AnimalPrototype {
     constructor(dino, isP1, skinIndex = 0) {
+        const rig = createDino3DRig(dino, skinIndex);
+        const fighterImpl = FIGHTER_IMPLS[dino.id] || {};
+        const baseHipsY = fighterImpl.animBaseHipsY !== undefined ? fighterImpl.animBaseHipsY : 2.1;
+        const mandatoryClips = buildMandatoryDinoAnimationClips(dino, rig, baseHipsY);
+
+        // Initialisation et validation stricte du contrat AnimalPrototype (19 clips obligatoires)
+        super(rig.root, mandatoryClips, {
+            dino,
+            speciesName: dino.fullName || dino.name
+        });
+
         this.dino = dino;
         this.isP1 = isP1;
         this.skinIndex = skinIndex;
         this.roundsWon = 0;
-        this.rig = createDino3DRig(dino, skinIndex);
-        battleScene.add(this.rig.root);
+        this.rig = rig;
+        this.combatController = new DinosaurCombatController(this);
+        if (battleScene) {
+            battleScene.add(this.rig.root);
+        }
         this.resetForRound();
     }
 
+    getAnimationMap() {
+        const dinoId = (this.dino && this.dino.id) || (this.customOptions && this.customOptions.dino && this.customOptions.dino.id) || 'dino';
+        const fighterImpl = FIGHTER_IMPLS[dinoId] || {};
+        if (fighterImpl.animationMap) {
+            return fighterImpl.animationMap;
+        }
+        return buildCanonicalAnimationMapForSpecies(dinoId);
+    }
+
+    getCombatConfig() {
+        const d = this.dino || (this.customOptions && this.customOptions.dino) || { maxHp: 1050, walkSpeed: 7.5, id: 'dino' };
+        const id = d.id;
+        const isHeavy = id === 'apatosaurus' || id === 'ankylosaurus' || id === 'pachyrhinosaurus' || id === 'dragon';
+        const isSpeed = id === 'smilodon' || id === 'terror-bird' || id === 'quetzalcoatlus' || id === 'pulmonoscorpius' || id === 'maiasaura' || id === 'postosuchus';
+
+        return {
+            maxHealth: d.maxHp || 1050,
+            maxStamina: 100,
+            staminaRegenRate: 15,
+            walkSpeed: d.walkSpeed || 7.5,
+            runSpeed: (d.walkSpeed || 7.5) * 1.35,
+            sprintSpeed: (d.walkSpeed || 7.5) * 1.85,
+            // Coefficient k dans Total Damage = Base * (1 + k * ||v||)
+            momentumCoefficient: isHeavy ? 0.062 : (isSpeed ? 0.042 : 0.052),
+            lungeDamping: 6.0,
+            knockdownGroundedDuration: 1.35
+        };
+    }
+
     destroy() {
+        if (this.animationController) {
+            this.animationController.dispose();
+        }
         if (this.rig && this.rig.root && battleScene) {
             battleScene.remove(this.rig.root);
         }
@@ -25,17 +71,23 @@ class Fighter3D {
         this.vx = 0;
         this.vy = 0;
         this.facing = this.isP1 ? 1 : -1;
+        this._lockedSide = this.isP1 ? -1 : 1;
         this.hp = this.dino.maxHp;
         this.maxHp = this.dino.maxHp;
         this.rage = 0;
+        this.guardStamina = 100;
+        this.maxGuardStamina = 100;
         this.action = 'idle';
         this.actionTimer = 0;
         this.actionDuration = 0;
         this.hasHitCurrentAttack = false;
+        this.hasSpawnedAttackFx = false;
         this.hasHitConfirmed = false;
+        this.beingThrownTimer = 0;
+        this.thrownBy = null;
         this.hitStun = 0;
         this.isBlocking = false;
-        this.blockType = 'none'; // 'none' | 'high' | 'low'
+        this.blockType = 'none'; // 'none' | 'high' | 'mid' | 'low'
         this.isDizzy = false;
         this.isDead = false;
         this.decapitated = false;
@@ -46,16 +98,30 @@ class Fighter3D {
         this.comboCount = 0;
         this.dashTimer = 0;
         this.dashCooldown = 0;
+        this.sprintDuration = 0;
+        this.isSprinting = false;
         this.bufferedAction = null;
         this.bufferTimer = 0;
         this.inputBuffer = []; // File d'attente d'inputs (~130ms)
         this.hasHyperArmor = false;
         this.lightComboStep = 0;
         this.lastAttackType = null;
+        this.staleMultiplier = 1.0;
+        this.momentumMultiplier = 1.0;
+        this.lastStaleCount = 0;
         this.rig.headGroup.scale.setScalar(1);
 
-        // --- PROFILES DE POIDS & GRAVITÉ PAR ARCHÉTYPE ---
+        if (this.combatController) {
+            this.combatController.reset();
+        }
+
+        // --- PROFILES DE POIDS, RAYON DE BLOCAGE PHYSIQUE (BODY BLOCKER) & GRAVITÉ ---
         const id = this.dino.id;
+        const baseRadius = (id === 'apatosaurus' || id === 'ankylosaurus' || id === 'pachyrhinosaurus' || id === 'stegosaurus' || id === 'dragon')
+            ? 1.42
+            : ((id === 'trex' || id === 'spinosaurus' || id === 'giantsloth' || id === 'postosuchus') ? 1.32 : 1.18);
+        this.bodyRadius = baseRadius * (this.dino.scale || 1.0);
+
         if (id === 'apatosaurus' || id === 'ankylosaurus' || id === 'pachyrhinosaurus' || id === 'dragon') {
             this.weightClass = 'heavy';
             this.gravityScale = 1.30;
@@ -157,23 +223,30 @@ class Fighter3D {
 
     startDash(dir) {
         if (xrayCinematicTimer > 0 || this.hitStun > 0 || this.isDizzy || this.isDead || this.dashCooldown > 0) return;
+        if (this.combatController && (this.combatController.isInKnockdownSequence() || this.combatController.state === CombatState.BLOCK_DEFLECTED)) return;
         if (this.action === 'xray' || this.action === 'fatality' || this.action === 'throw') return;
 
         this.isBlocking = false;
         this.blockType = 'none';
-        this.dashTimer = 0.18;
+        this.dashTimer = 0.22;
         this.dashCooldown = 0.38;
+        this.isSprinting = true;
         const dashDir = dir !== 0 ? dir : this.facing;
         this.vx = dashDir * (this.dino.walkSpeed * (this.weightClass === 'speed' ? 2.65 : 2.35));
         this.action = 'walk';
         this.actionDuration = 0;
         this.actionTimer = 0;
+        this.playSprint(0.08);
+        if (typeof spawn3DMomentumTrail === 'function') {
+            spawn3DMomentumTrail(this);
+        }
         sfx.playHit(false);
-        spawnFloatingPopup(this.x, dashDir === this.facing ? '💨 DASH !' : '💨 ESQUIVE !', '#38bdf8');
+        spawnFloatingPopup(this.x, dashDir === this.facing ? '💨 SPRINT / DASH !' : '💨 ESQUIVE !', '#38bdf8');
     }
 
     startAttack(type) {
         if (xrayCinematicTimer > 0 || this.hitStun > 0 || this.isDizzy || this.isDead) return;
+        if (this.combatController && (this.combatController.isInKnockdownSequence() || this.combatController.state === CombatState.BLOCK_DEFLECTED)) return;
         if (this.action === 'xray' || this.action === 'fatality') return;
 
         // Vérification de cooldown uniquement pour les capacités spéciales / X-Ray
@@ -207,11 +280,15 @@ class Fighter3D {
             }
         }
 
+        // Capturer la vélocité instantanée ||v|| avant le déclenchement pour le calcul de Momentum Damage
+        const preAttackVelocity = Math.abs(this.vx) + (this.isSprinting ? this.dino.walkSpeed * 0.45 : 0);
+
         this.isBlocking = false;
         this.blockType = 'none';
         this.action = type;
         this.lastAttackType = type;
         this.hasHitCurrentAttack = false;
+        this.hasSpawnedAttackFx = false;
         this.hasHitConfirmed = false;
         this.actionTimer = 0;
         this.bufferedAction = null;
@@ -296,26 +373,25 @@ class Fighter3D {
             this.vx = this.facing * 3.2;
             sfx.playRoar(115, 0.40);
         }
+
+        // Intégration Update 2.0 : Évaluation du Momentum, File Stale-Move & TimeScale (0.85x si usé)
+        if (this.combatController && type !== 'throw_whiff') {
+            const effectiveSpeed = Math.max(preAttackVelocity, Math.abs(this.vx));
+            const atkEval = this.combatController.recordAttackExecution(type, effectiveSpeed);
+            this.staleMultiplier = atkEval.staleDamageMultiplier;
+            this.lastStaleCount = atkEval.staleRepeatCount;
+
+            // Si le coup est usé (staled), ralentir l'animation (0.85x) et allonger la fenêtre de punition (recovery)
+            if (atkEval.timeScale < 1.0) {
+                this.actionDuration = this.actionDuration / atkEval.timeScale;
+            }
+
+            // Conserver l'élan cinématique lors d'une attaque lancée en Sprint (évite le glissement des pieds)
+            if (preAttackVelocity > 4.5 && type !== 'back_light') {
+                this.vx += this.facing * (preAttackVelocity * 0.32);
+            }
+        }
+        this.isSprinting = false;
     }
 }
 
-let fighter1 = null;
-let fighter2 = null;
-let projectiles3D = [];
-let particles3D = [];
-let roundNumber = 1;
-let roundTimer = 99;
-let roundTimerAccum = 0;
-let matchState = 'select';
-let stateTimer = 0;
-let screenShake = 0;
-let hitstopTimer = 0;
-let xrayCinematicTimer = 0;
-let xrayStage = 0;
-let xrayLockPositions = null;
-let fatalityFocusFighter = null;
-
-const keys = {};
-const touchState = { left: false, right: false, up: false, down: false };
-const p2TouchState = { left: false, right: false, up: false, down: false };
-const lastTapTime = { left: 0, right: 0, p2Left: 0, p2Right: 0 };

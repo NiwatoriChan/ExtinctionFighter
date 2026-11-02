@@ -110,7 +110,8 @@ registerFighter({
 
     // Animations d'attaques (light / heavy / special / special2 / xray)
     animateAttack(ctx) {
-        const { rig, act, prog, swing, baseHipsY } = ctx;
+        const { rig, act, prog, swing, strike, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
         if (act === 'light') {
             // Coup de bec hachoir gauche
             rig.neck.rotation.z = -swing * 0.75;

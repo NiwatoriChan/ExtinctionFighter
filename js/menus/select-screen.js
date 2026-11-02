@@ -833,6 +833,13 @@ function initRosterUI() {
                 if (gameMode === 'campaign') {
                     p1ChoiceIndex = idx;
                     startMatch();
+                } else {
+                    if (activeSelectSlot === 1) {
+                        p1ChoiceIndex = idx;
+                    } else {
+                        p2ChoiceIndex = idx;
+                    }
+                    openArenaChooser();
                 }
             });
         }
@@ -1001,20 +1008,36 @@ function updateSelectScreenUI() {
     });
 }
 
-function returnToSelect() {
+function goToSelectScreen() {
     matchState = 'select';
-    document.getElementById('battleScreen').classList.add('hidden');
-    document.getElementById('battleScreen').classList.remove('flex');
-    document.getElementById('arenaScreen').classList.add('hidden');
-    document.getElementById('selectScreen').classList.remove('hidden');
+    const mainMenu = document.getElementById('mainMenu');
+    if (mainMenu) mainMenu.classList.add('hidden');
+    const battleScreen = document.getElementById('battleScreen');
+    if (battleScreen) {
+        battleScreen.classList.add('hidden');
+        battleScreen.classList.remove('flex');
+    }
+    const arenaScreen = document.getElementById('arenaScreen');
+    if (arenaScreen) arenaScreen.classList.add('hidden');
+    const selectScreen = document.getElementById('selectScreen');
+    if (selectScreen) selectScreen.classList.remove('hidden');
+
     const btnBack = document.getElementById('btnBackToSelect');
     if (btnBack) btnBack.classList.add('hidden');
     const btnCam = document.getElementById('btnResetCam');
     if (btnCam) btnCam.classList.add('hidden');
     const pmm = document.getElementById('postMatchMenu');
     if (pmm) pmm.classList.add('hidden');
+
     initRosterUI();
     updateSelectScreenUI();
+    if (typeof updateGamepadHelperHUD === 'function') {
+        updateGamepadHelperHUD();
+    }
+}
+
+function returnToSelect() {
+    goToSelectScreen();
 }
 
 function initSelectScreenMenu() {

@@ -140,7 +140,8 @@ registerFighter({
 
     // Animations d'attaques (light / heavy / special / special2 / xray)
     animateAttack(ctx) {
-        const { rig, act, prog, swing, baseHipsY } = ctx;
+        const { rig, act, prog, swing, strike, baseHipsY } = ctx;
+        const s = strike !== undefined ? strike : swing;
         if (act === 'light') {
             rig.torso.rotation.y = swing * 0.55;
             rig.headGroup.rotation.y = swing * 0.65;
