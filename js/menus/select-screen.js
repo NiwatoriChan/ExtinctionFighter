@@ -317,7 +317,6 @@ const SELECT_SCREEN_HTML = `
                     <!-- 3D Pedestal Canvas Box -->
                     <div class="w-full flex-1 relative flex items-center justify-center overflow-hidden min-h-[200px]">
                         <canvas id="p1PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
-                        <img id="p1PreviewImg" alt="P1 3D Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-10" />
                         <!-- Skin Selector Pill -->
                         <div class="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-stone-950/90 backdrop-blur-md px-3 py-1 rounded-full border border-stone-700 text-[10px] text-sky-200 shadow-xl z-20">
                             <button id="btnP1PrevSkin" class="px-1 text-sky-400 hover:text-white font-black cursor-pointer">&lt;</button>
@@ -401,7 +400,6 @@ const SELECT_SCREEN_HTML = `
                     <!-- 3D Pedestal Canvas Box -->
                     <div class="w-full flex-1 relative flex items-center justify-center overflow-hidden min-h-[200px]">
                         <canvas id="p2PreviewCanvas" class="w-full h-full block relative z-10"></canvas>
-                        <img id="p2PreviewImg" alt="P2 3D Preview" class="w-full h-full object-contain pointer-events-none absolute inset-0 z-10" />
                         <!-- Skin Selector Pill -->
                         <div id="p2SkinSelector" class="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-stone-950/90 backdrop-blur-md px-3 py-1 rounded-full border border-stone-700 text-[10px] text-red-200 shadow-xl z-20">
                             <button id="btnP2PrevSkin" class="px-1 text-red-400 hover:text-white font-black cursor-pointer">&lt;</button>
@@ -539,18 +537,22 @@ function getDino3DThumbnail(dino, skinIndex = 0) {
         }
 
         const rig = createDino3DRig(dino, skinIndex);
+        const prevScale = getDinoPreviewScale(dino, rig);
+        rig.root.scale.setScalar(prevScale);
         offscreen3DScene.add(rig.root);
         rig.root.rotation.y = -0.44; // Vue 3/4 profil héroïque montrant tête, corps, pattes et queue
         rig.root.updateMatrixWorld(true);
 
         animateDino3DRig({
             dino,
+            scale: prevScale,
             rig,
             action: 'idle',
             actionDuration: 0,
             hitStun: 0,
             isBlocking: false
         }, 0.5, 0.016);
+        rig.root.scale.setScalar(prevScale);
         rig.root.updateMatrixWorld(true);
 
         // Focalisation sur le visage : le modèle prend une place majeure, le surplus dépasse
@@ -585,6 +587,34 @@ function getDino3DThumbnail(dino, skinIndex = 0) {
     }
 }
 
+// Échelle adaptée pour une présentation équilibrée et majestueuse sur le piédestal du menu de sélection
+function getDinoPreviewScale(dino, rig) {
+    if (dino && dino.previewScale) return dino.previewScale;
+    const TUNED_PREVIEW_SCALES = {
+        apato: 0.72,
+        dragon: 0.75,
+        spinosaurus: 0.88,
+        stegosaurus: 0.88,
+        trex: 0.92,
+        therizino: 0.92,
+        ankylo: 0.95
+    };
+    if (dino && TUNED_PREVIEW_SCALES[dino.id]) {
+        return TUNED_PREVIEW_SCALES[dino.id];
+    }
+    if (rig && rig.root) {
+        rig.root.updateMatrixWorld(true);
+        const bbox = new THREE.Box3().setFromObject(rig.root);
+        const size = new THREE.Vector3();
+        bbox.getSize(size);
+        const maxSpan = Math.max(size.x, size.z);
+        if (maxSpan > 7.2 || size.y > 5.2) {
+            return Math.min(dino.scale, dino.scale * (7.2 / maxSpan), dino.scale * (5.2 / size.y));
+        }
+    }
+    return dino ? dino.scale : 1.0;
+}
+
 // Aperçus 3D pour P1 et P2 dans le menu de sélection (idling libre sans boîte artificielle)
 let preview1 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, rimLight: null, targetDist: 6.8, targetY: 1.3 };
 let preview2 = { renderer: null, scene: null, camera: null, rig: null, dinoId: null, rimLight: null, targetDist: 6.8, targetY: 1.3 };
@@ -592,13 +622,13 @@ let preview2 = { renderer: null, scene: null, camera: null, rig: null, dinoId: n
 function setupPreviewScene(previewObj, canvasId, isP1 = true) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(36, 1.4, 0.1, 100);
-    camera.position.set(0, 1.9, 6.7);
-    camera.lookAt(0, 1.25, 0);
+    camera.position.set(0, 2.1, 13.0);
+    camera.lookAt(0, 1.70, 0);
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.78));
     const dirLight = new THREE.DirectionalLight(0xffeedd, 1.25);
@@ -695,8 +725,8 @@ function updatePreviewModels(time) {
     const p2Skin = (gameMode === 'campaign' && campaignStage === 6) ? 0 : p2SkinIndex;
 
     [
-        { p: preview1, dino: p1Dino, skinIndex: p1SkinIndex, canvasId: 'p1PreviewCanvas', imgId: 'p1PreviewImg', dir: 1 },
-        { p: preview2, dino: p2Dino, skinIndex: p2Skin, canvasId: 'p2PreviewCanvas', imgId: 'p2PreviewImg', dir: -1 }
+        { p: preview1, dino: p1Dino, skinIndex: p1SkinIndex, canvasId: 'p1PreviewCanvas', dir: 1 },
+        { p: preview2, dino: p2Dino, skinIndex: p2Skin, canvasId: 'p2PreviewCanvas', dir: -1 }
     ].forEach(item => {
         if (!item.p.renderer) return;
         const canvas = document.getElementById(item.canvasId);
@@ -716,14 +746,17 @@ function updatePreviewModels(time) {
         if (item.p.dinoId !== item.dino.id || item.p.skinIndex !== item.skinIndex) {
             if (item.p.rig) item.p.scene.remove(item.p.rig.root);
             item.p.rig = createDino3DRig(item.dino, item.skinIndex);
+            const prevScale = getDinoPreviewScale(item.dino, item.p.rig);
+            item.p.rig.root.scale.setScalar(prevScale);
             item.p.scene.add(item.p.rig.root);
             item.p.dinoId = item.dino.id;
             item.p.skinIndex = item.skinIndex;
-            item.p.syncCount = 0;
+            item.p.previewScale = prevScale;
             item.p.rig.root.updateMatrixWorld(true);
         }
 
         if (item.p.rig) {
+            const prevScale = item.p.previewScale || getDinoPreviewScale(item.dino, item.p.rig);
             // Orientation vivante : P1 regarde vers la droite/centre, P2 regarde vers la gauche/centre
             const baseRot = item.dir === 1 ? -0.42 : (Math.PI + 0.42);
             const sway = Math.sin(time * 0.0012) * 0.05;
@@ -731,18 +764,21 @@ function updatePreviewModels(time) {
 
             animateDino3DRig({
                 dino: item.dino,
+                scale: prevScale,
                 rig: item.p.rig,
                 action: 'idle',
                 actionDuration: 0,
                 hitStun: 0,
                 isBlocking: false
             }, time * 0.001, 0.016);
+            item.p.rig.root.scale.setScalar(prevScale);
             item.p.rig.root.updateMatrixWorld(true);
 
-            // Cadrage héroïque montrant le combattant entier sur son autel de pierre (Image 2)
-            const target = new THREE.Vector3(0, 0.90, 0);
-            const dist = 12.5;
-            item.p.camera.position.set(item.dir * 0.45, 1.70, dist);
+            // Cadrage héroïque centré montrant le combattant entier sur son autel de pierre
+            const target = new THREE.Vector3(0, 1.70, 0);
+            const aspect = item.p.camera.aspect || 1.0;
+            const dist = Math.max(12.8, 12.0 / Math.min(aspect, 1.0));
+            item.p.camera.position.set(item.dir * 0.45, 2.10, dist);
             item.p.camera.lookAt(target.x, target.y, target.z);
         }
 
@@ -751,19 +787,6 @@ function updatePreviewModels(time) {
         }
 
         item.p.renderer.render(item.p.scene, item.p.camera);
-
-        // Synchroniser l'image de prévisualisation (pour affichage instantané et capture sans perte)
-        item.p.syncCount = (item.p.syncCount || 0) + 1;
-        if (item.p.syncCount <= 8 || item.p.lastDinoForImg !== item.dino.id || item.p.lastSkinForImg !== item.skinIndex) {
-            item.p.lastDinoForImg = item.dino.id;
-            item.p.lastSkinForImg = item.skinIndex;
-            const img = document.getElementById(item.imgId);
-            if (img) {
-                try {
-                    img.src = item.p.renderer.domElement.toDataURL('image/png');
-                } catch (err) {}
-            }
-        }
     });
 }
 

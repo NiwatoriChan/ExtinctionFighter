@@ -22,7 +22,7 @@ let matchState = 'main_menu';
 const keys = {};
 const touchState = { left: false, right: false, up: false, down: false, jump: false, guard: false };
 const p2TouchState = { left: false, right: false, up: false, down: false, jump: false, guard: false };
-const lastTapTime = { left: 0, right: 0, p2Left: 0, p2Right: 0 };
+const lastTapTime = { left: 0, right: 0, p2Left: 0, p2Right: 0, gp1Left: 0, gp1Right: 0, gp2Left: 0, gp2Right: 0 };
 
 // Combattants actifs & Session de combat 3D
 let fighter1 = null;

@@ -492,8 +492,8 @@ function resolveFighterBodyBlocker(f1, f2) {
 
     const minSep = (f1.bodyRadius || 1.32) + (f2.bodyRadius || 1.32);
 
-    // Autoriser le franchissement aérien (Cross-Up) UNIQUEMENT en cas de saut très haut au-dessus du crâne adverse
-    const isHighAirCross = Math.max(f1.y, f2.y) >= 2.85 && Math.abs(f1.y - f2.y) >= 2.20;
+    // Autoriser le franchissement aérien (Cross-Up) en cas de saut haut ou de vol au-dessus du crâne adverse
+    const isHighAirCross = (f1.isFlying || f2.isFlying || Math.max(f1.y, f2.y) >= 2.85) && Math.abs(f1.y - f2.y) >= 1.60;
 
     if (f1._lockedSide === undefined) {
         f1._lockedSide = f1.x <= f2.x ? -1 : 1;
@@ -769,12 +769,18 @@ function updateBattle3D(dt, nowSec) {
         f.y += f.vy * dt;
         f.vx *= f.dashTimer > 0 ? 0.94 : 0.82;
 
-        // Gravité personnalisée par classe de poids (Heavy, Brawler, Speed)
-        if (f.y > 0) {
+        // Gravité personnalisée par classe de poids (Heavy, Brawler, Speed) ou Vol Actif
+        if (f.isFlying) {
+            if (f.y > 6.2) {
+                f.y = 6.2;
+                if (f.vy > 0) f.vy = 0;
+            }
+        } else if (f.y > 0) {
             f.vy -= 26 * (f.gravityScale || 1.0) * dt;
         } else {
             f.y = 0;
             f.vy = 0;
+            if (f.isFlying) f.isFlying = false;
         }
 
         // Rebond mural dynamique (Wall Splat) en bordure d'arène

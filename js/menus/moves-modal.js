@@ -24,7 +24,7 @@ const MOVES_MODAL_HTML = `
                             &nbsp;&nbsp;Fait apparaître une <strong>Armure Ostéodermique 3D</strong> à l'endroit protégé (Crâne en Haut, Torse au Milieu, Pattes en Bas). Une garde ajustée dévie l'attaque !<br>
                             • 💀 <strong>SUPER ATTAQUE RAGE [R / Manette RT] :</strong> Déclenche le X-Ray anatomique en 3 phases à 100% de Rage.<br>
                             • 🦘 <strong>SAUTER [ESPACE / Manette A] :</strong> Action de saut dédiée, découplée de la direction Haut pour frapper en l'air ou en l'air sans sauter au sol.<br>
-                            • 💨 <strong>DASH [E / Manette RB] :</strong> Ruée rapide et esquive d'urgence.<br>
+                            • 💨 <strong>DASH DROITE & GAUCHE [E / Double-tap ◀ ▶ / Manette RB] :</strong> Ruée offensive vers l'avant ou esquive de repli vers l'arrière (Droite et Gauche).<br>
                             • <strong>Inertie & Anti-Spam :</strong> La vitesse de course multiplie vos dégâts ($1 + k \cdot \Vert\vec{v}\Vert$). Répéter le même coup réduit ses dégâts et sa vitesse ($0.85\times$).
                         </p>
                     </div>

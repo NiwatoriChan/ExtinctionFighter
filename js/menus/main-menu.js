@@ -163,8 +163,8 @@ const MAIN_MENU_HTML = `
             </div>
         </div>
 
-        <!-- BOTTOM CARVED STONE CONTROLS BASE BAR (MATCHING IMAGE 1) -->
-        <div class="w-full stone-panel rounded-xl px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs z-30 shrink-0">
+        <!-- BOTTOM CONTROLS BASE BAR -->
+        <div class="w-full px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs z-30 shrink-0">
             <!-- Left: Button Map & Controls Badge -->
             <div class="flex items-center gap-2 text-stone-400 font-chakra text-[11px] sm:text-xs font-bold">
                 <span class="text-amber-400 text-base">🎮</span>

@@ -80,7 +80,7 @@ function triggerPlayerAction(attacker, defender, type) {
 
         attacker.isBlocking = true;
         attacker.blockType = isUp ? 'high' : (isDown ? 'low' : 'mid');
-        attacker.action = attacker.blockType === 'low' ? 'crouch' : 'walk';
+        attacker.action = attacker.blockType === 'low' ? 'crouch' : 'idle';
         attacker.vx = 0;
         return;
     }

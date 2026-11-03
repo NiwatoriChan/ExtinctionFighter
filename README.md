@@ -50,7 +50,7 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 | **Déplacement Gauche / Droite** | <kbd>Q</kbd> / <kbd>D</kbd> ou <kbd>A</kbd> / <kbd>D</kbd> |
 | **Saut** | <kbd>Z</kbd> ou <kbd>W</kbd> |
 | **Garde / Accroupi** | <kbd>S</kbd> (réduit les dégâts de 78%) |
-| **Dash Rapide** | <kbd>E</kbd> ou Double-pression directionnelle |
+| **Dash Rapide (Gauche / Droite)** | <kbd>E</kbd> (avec Gauche/Droite) ou Double-pression directionnelle (<kbd>A</kbd><kbd>A</kbd> / <kbd>D</kbd><kbd>D</kbd>) |
 | **Attaque Légère** | <kbd>F</kbd> ou <kbd>J</kbd> |
 | **Attaque Lourde** | <kbd>G</kbd> ou <kbd>K</kbd> |
 | **Attaque Spéciale 1** | <kbd>H</kbd> ou <kbd>L</kbd> |
@@ -62,7 +62,7 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 | Action | Touche(s) Clavier |
 | :--- | :--- |
 | **Déplacement / Saut / Garde** | Flèches directionnelles <kbd>⬅</kbd> <kbd>⬆</kbd> <kbd>⬇</kbd> <kbd>➡</kbd> |
-| **Dash Rapide** | Pavé numérique <kbd>0</kbd> |
+| **Dash Rapide (Gauche / Droite)** | Pavé numérique <kbd>6</kbd> (avec Flèches) ou Double-pression <kbd>⬅</kbd><kbd>⬅</kbd> / <kbd>➡</kbd><kbd>➡</kbd> |
 | **Attaques (Léger / Lourd / Spéciaux)** | Pavé numérique <kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>, <kbd>4</kbd> ou <kbd>I</kbd>, <kbd>O</kbd>, <kbd>P</kbd>, <kbd>[</kbd> |
 | **X-Ray / Fatalité** | Pavé numérique <kbd>5</kbd> ou <kbd>Entrée</kbd> |
 

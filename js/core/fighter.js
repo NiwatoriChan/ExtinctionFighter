@@ -40,7 +40,7 @@ class Fighter3D extends AnimalPrototype {
         const d = this.dino || (this.customOptions && this.customOptions.dino) || { maxHp: 1050, walkSpeed: 7.5, id: 'dino' };
         const id = d.id;
         const isHeavy = id === 'apatosaurus' || id === 'ankylosaurus' || id === 'pachyrhinosaurus' || id === 'dragon';
-        const isSpeed = id === 'smilodon' || id === 'terror-bird' || id === 'quetzalcoatlus' || id === 'pulmonoscorpius' || id === 'maiasaura' || id === 'postosuchus';
+        const isSpeed = id === 'smilodon' || id === 'terror-bird' || id === 'quetzal' || id === 'quetzalcoatlus' || id === 'pulmonoscorpius' || id === 'maiasaura' || id === 'postosuchus';
 
         return {
             maxHealth: d.maxHp || 1050,
@@ -98,8 +98,11 @@ class Fighter3D extends AnimalPrototype {
         this.comboCount = 0;
         this.dashTimer = 0;
         this.dashCooldown = 0;
+        this.dashDir = 0;
         this.sprintDuration = 0;
         this.isSprinting = false;
+        this.flightEndurance = 2.0;
+        this.isFlying = false;
         this.bufferedAction = null;
         this.bufferTimer = 0;
         this.inputBuffer = []; // File d'attente d'inputs (~130ms)
@@ -127,7 +130,7 @@ class Fighter3D extends AnimalPrototype {
             this.gravityScale = 1.30;
             this.jumpVy = 10.5;
             this.knockbackMult = 0.65;
-        } else if (id === 'smilodon' || id === 'terror-bird' || id === 'quetzalcoatlus' || id === 'pulmonoscorpius' || id === 'maiasaura' || id === 'postosuchus') {
+        } else if (id === 'smilodon' || id === 'terror-bird' || id === 'quetzal' || id === 'quetzalcoatlus' || id === 'pulmonoscorpius' || id === 'maiasaura' || id === 'postosuchus') {
             this.weightClass = 'speed';
             this.gravityScale = 0.82;
             this.jumpVy = 12.8;
@@ -232,6 +235,7 @@ class Fighter3D extends AnimalPrototype {
         this.dashCooldown = 0.38;
         this.isSprinting = true;
         const dashDir = dir !== 0 ? dir : this.facing;
+        this.dashDir = dashDir;
         this.vx = dashDir * (this.dino.walkSpeed * (this.weightClass === 'speed' ? 2.65 : 2.35));
         this.action = 'walk';
         this.actionDuration = 0;
@@ -241,7 +245,10 @@ class Fighter3D extends AnimalPrototype {
             spawn3DMomentumTrail(this);
         }
         sfx.playHit(false);
-        spawnFloatingPopup(this.x, dashDir === this.facing ? '💨 SPRINT / DASH !' : '💨 ESQUIVE !', '#38bdf8');
+        const popupText = dashDir === this.facing
+            ? (dashDir === 1 ? '💨 DASH DROITE !' : '💨 DASH GAUCHE !')
+            : (dashDir === 1 ? '💨 ESQUIVE DROITE !' : '💨 ESQUIVE GAUCHE !');
+        spawnFloatingPopup(this.x, popupText, '#38bdf8');
     }
 
     startAttack(type) {

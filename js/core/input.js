@@ -205,11 +205,11 @@ window.addEventListener('keydown', (e) => {
     if (matchState === 'fight' || matchState === 'finish_him') {
         // Double-tap Gauche/Droite pour Dash rapide
         if (e.code === 'KeyA' || e.code === 'KeyQ' || (gameMode !== 'pvp' && e.code === 'ArrowLeft')) {
-            if (now - lastTapTime.left < 240 && fighter1) fighter1.startDash(-1);
+            if (now - lastTapTime.left < 280 && fighter1) fighter1.startDash(-1);
             lastTapTime.left = now;
         }
         if (e.code === 'KeyD' || (gameMode !== 'pvp' && e.code === 'ArrowRight')) {
-            if (now - lastTapTime.right < 240 && fighter1) fighter1.startDash(1);
+            if (now - lastTapTime.right < 280 && fighter1) fighter1.startDash(1);
             lastTapTime.right = now;
         }
 
@@ -251,11 +251,11 @@ window.addEventListener('keydown', (e) => {
 
         if (gameMode === 'pvp') {
             if (e.code === 'ArrowLeft') {
-                if (now - lastTapTime.p2Left < 240 && fighter2) fighter2.startDash(-1);
+                if (now - lastTapTime.p2Left < 280 && fighter2) fighter2.startDash(-1);
                 lastTapTime.p2Left = now;
             }
             if (e.code === 'ArrowRight') {
-                if (now - lastTapTime.p2Right < 240 && fighter2) fighter2.startDash(1);
+                if (now - lastTapTime.p2Right < 280 && fighter2) fighter2.startDash(1);
                 lastTapTime.p2Right = now;
             }
             if (e.code === 'Numpad8') triggerPlayerAction(fighter2, fighter1, 'jump');
@@ -289,8 +289,8 @@ let lastGamepadPollFrame = -1;
 let currentFocusedElement = null;
 
 const gpState = {
-    p1: { buttons: [], prevButtons: [], axes: [], navLastDir: null, navRepeatTimer: 0 },
-    p2: { buttons: [], prevButtons: [], axes: [], navLastDir: null, navRepeatTimer: 0 }
+    p1: { buttons: [], prevButtons: [], axes: [], prevAxes: [], navLastDir: null, navRepeatTimer: 0 },
+    p2: { buttons: [], prevButtons: [], axes: [], prevAxes: [], navLastDir: null, navRepeatTimer: 0 }
 };
 
 // Variables d'état de navigation pour chaque écran
@@ -1070,6 +1070,23 @@ function handleGamepadBattle(pad, pad2, dt) {
         flashArcadeButton('uiBtnUp', touchState.up);
         flashArcadeButton('uiBtnDown', touchState.down);
 
+        // Double-tap D-pad ou Stick gauche / droite pour Dash rapide (J1)
+        const dpadLeftJust1 = isGpBtnJustPressed(0, 14);
+        const dpadRightJust1 = isGpBtnJustPressed(0, 15);
+        const prevAxX1 = gpState.p1.prevAxes ? (gpState.p1.prevAxes[0] || 0) : 0;
+        const stickLeftFlick1 = axX < -0.55 && prevAxX1 >= -0.55;
+        const stickRightFlick1 = axX > 0.55 && prevAxX1 <= 0.55;
+        const nowMs = performance.now();
+
+        if (dpadLeftJust1 || stickLeftFlick1) {
+            if (nowMs - lastTapTime.gp1Left < 280 && fighter1) fighter1.startDash(-1);
+            lastTapTime.gp1Left = nowMs;
+        }
+        if (dpadRightJust1 || stickRightFlick1) {
+            if (nowMs - lastTapTime.gp1Right < 280 && fighter1) fighter1.startDash(1);
+            lastTapTime.gp1Right = nowMs;
+        }
+
         // 1. SAUTER : Bouton A (0)
         if (isGpBtnJustPressed(0, 0)) {
             flashArcadeButton('uiBtnJump', true);
@@ -1118,6 +1135,23 @@ function handleGamepadBattle(pad, pad2, dt) {
         p2TouchState.up = axY2 < -0.28 || !!(pad2.buttons[12]?.pressed);
         p2TouchState.down = axY2 > 0.28 || !!(pad2.buttons[13]?.pressed);
 
+        // Double-tap D-pad ou Stick gauche / droite pour Dash rapide (J2)
+        const dpadLeftJust2 = isGpBtnJustPressed(1, 14);
+        const dpadRightJust2 = isGpBtnJustPressed(1, 15);
+        const prevAxX2 = gpState.p2.prevAxes ? (gpState.p2.prevAxes[0] || 0) : 0;
+        const stickLeftFlick2 = axX2 < -0.55 && prevAxX2 >= -0.55;
+        const stickRightFlick2 = axX2 > 0.55 && prevAxX2 <= 0.55;
+        const nowMs2 = performance.now();
+
+        if (dpadLeftJust2 || stickLeftFlick2) {
+            if (nowMs2 - lastTapTime.gp2Left < 280 && fighter2) fighter2.startDash(-1);
+            lastTapTime.gp2Left = nowMs2;
+        }
+        if (dpadRightJust2 || stickRightFlick2) {
+            if (nowMs2 - lastTapTime.gp2Right < 280 && fighter2) fighter2.startDash(1);
+            lastTapTime.gp2Right = nowMs2;
+        }
+
         if (isGpBtnJustPressed(1, 0)) triggerPlayerAction(fighter2, fighter1, 'jump');
         if (isGpBtnJustPressed(1, 2)) triggerPlayerAction(fighter2, fighter1, 'strike');
         if (isGpBtnJustPressed(1, 3)) triggerPlayerAction(fighter2, fighter1, 'special');
@@ -1151,6 +1185,7 @@ function pollGamepadInputs(dt = 0.016, now = performance.now()) {
     // Mise à jour de l'historique des boutons pour J1
     if (pad1) {
         gpState.p1.prevButtons = gpState.p1.buttons.slice();
+        gpState.p1.prevAxes = gpState.p1.axes ? gpState.p1.axes.slice() : [];
         gpState.p1.buttons = pad1.buttons.map(b => b.pressed);
         gpState.p1.axes = pad1.axes.slice();
     }
@@ -1158,6 +1193,7 @@ function pollGamepadInputs(dt = 0.016, now = performance.now()) {
     // Mise à jour de l'historique des boutons pour J2
     if (pad2) {
         gpState.p2.prevButtons = gpState.p2.buttons.slice();
+        gpState.p2.prevAxes = gpState.p2.axes ? gpState.p2.axes.slice() : [];
         gpState.p2.buttons = pad2.buttons.map(b => b.pressed);
         gpState.p2.axes = pad2.axes.slice();
     }
@@ -1214,7 +1250,7 @@ function handlePlayer1Inputs(dt) {
     const moveRight = keys['KeyD'] || (gameMode !== 'pvp' && keys['ArrowRight']) || touchState.right;
     const isUp = keys['KeyW'] || keys['KeyZ'] || (gameMode !== 'pvp' && keys['ArrowUp']) || touchState.up;
     const isDown = keys['KeyS'] || (gameMode !== 'pvp' && keys['ArrowDown']) || touchState.down;
-    const jump = keys['Space'] || touchState.jump;
+    const jump = keys['Space'] || touchState.jump || !!(gpState.p1.buttons && gpState.p1.buttons[0]);
     const guardKey = keys['ShiftLeft'] || touchState.guard;
 
     // Détection directionnelle absolue relative à l'adversaire
@@ -1225,11 +1261,65 @@ function handlePlayer1Inputs(dt) {
     let curWalkSpd = fighter1.dino.walkSpeed;
     if (fighter1.poisonStacks >= 2) curWalkSpd *= 0.65;
 
-    // Quetzalcoatlus : Mécanique de Plané Stratosphérique (Glide en maintenant Saut dans les airs)
-    if (fighter1.dino.id === 'quetzalcoatlus' && jump && fighter1.y > 0.35 && fighter1.vy < 0) {
-        fighter1.vy = Math.max(fighter1.vy, -1.6);
-        if (moveLeft) fighter1.x -= curWalkSpd * 1.25 * dt;
-        if (moveRight) fighter1.x += curWalkSpd * 1.25 * dt;
+    // Quetzalcoatlus : Mécanique de Vol avec Endurance Circulaire de 2 secondes
+    // RÈGLES :
+    // 1. Appuyer sur "A" quand l'animal est dans les airs (y > 0.05) et maintenir "A" -> il vole
+    // 2. Quand on lâche "A" -> le Quetzalcoatlus descend (isFlying = false, gravité normale)
+    // 3. Si on réappuie sur "A" et qu'il n'est pas encore au sol -> il repart à voler
+    // 4. S'il est au sol (y <= 0.05) -> l'action se cancele, l'endurance se recharge
+    if (fighter1.dino.id === 'quetzal' || fighter1.dino.id === 'quetzalcoatlus') {
+        if (fighter1.flightEndurance === undefined) fighter1.flightEndurance = 2.0;
+
+        const isHoldA = !!(
+            (gpState.p1.buttons && gpState.p1.buttons[0]) || // Bouton A manette (0)
+            keys['KeyA'] ||                                  // Touche Clavier 'A'
+            keys['Space'] ||                                 // Touche Espace (Saut)
+            touchState.jump                                  // Bouton Saut tactile
+        );
+
+        const isInAir = fighter1.y > 0.05;
+
+        if (isInAir && isHoldA && fighter1.flightEndurance > 0 && fighter1.hitStun <= 0 && !fighter1.isDead) {
+            // En l'air + maintien de A : sustentation et vol actif
+            fighter1.isFlying = true;
+            fighter1.flightEndurance = Math.max(0, fighter1.flightEndurance - dt);
+
+            // Contrôle vertical du vol : réascension immédiate si en descente
+            if (isUp) {
+                fighter1.vy = Math.min(5.5, (fighter1.vy || 0) + 26 * dt);
+            } else if (isDown) {
+                fighter1.vy = Math.max(-4.2, (fighter1.vy || 0) - 22 * dt);
+            } else {
+                if (fighter1.vy < 0) {
+                    fighter1.vy = Math.min(3.0, fighter1.vy + 36 * dt);
+                } else {
+                    const timeSec = typeof nowSec !== 'undefined' ? nowSec : Date.now() * 0.001;
+                    fighter1.vy = Math.min(2.5, (fighter1.vy || 0) * 0.90 + Math.sin(timeSec * 7) * 0.35 + 0.6);
+                }
+            }
+
+            // Contrôle horizontal en vol
+            if (moveLeft) {
+                fighter1.vx = -curWalkSpd * 1.45;
+            } else if (moveRight) {
+                fighter1.vx = curWalkSpd * 1.45;
+            } else {
+                fighter1.vx *= 0.88;
+            }
+
+            if (fighter1.flightEndurance <= 0) {
+                fighter1.isFlying = false;
+                spawnFloatingPopup(fighter1.x, '⚡ ENDURANCE ÉPUISÉE !', '#f87171');
+            }
+        } else {
+            // Quand on lâche "A", ou au sol, ou endurance à 0 : le Quetzalcoatlus descend ou reste au sol
+            fighter1.isFlying = false;
+
+            if (fighter1.y <= 0.05) {
+                // Au sol : l'action se cancele et l'endurance se recharge
+                fighter1.flightEndurance = Math.min(2.0, fighter1.flightEndurance + dt * 1.25);
+            }
+        }
     }
 
     // Contrôle aérien pendant les sauts
@@ -1248,13 +1338,13 @@ function handlePlayer1Inputs(dt) {
         fighter1.isBlocking = true;
         if (isUp) {
             fighter1.blockType = 'high'; // Protège le crâne / cornes
-            fighter1.action = 'walk';
+            fighter1.action = isBack ? 'walk' : 'idle';
         } else if (isDown) {
             fighter1.blockType = 'low';  // Protège les pattes / queue
             fighter1.action = 'crouch';
         } else {
             fighter1.blockType = 'mid';  // Protège le torse / flanc
-            fighter1.action = 'crouch';
+            fighter1.action = isBack ? 'walk' : 'idle';
         }
         fighter1.sprintDuration = 0;
         fighter1.isSprinting = false;
@@ -1307,7 +1397,7 @@ function handlePlayer2Inputs(dt) {
     const moveRight = keys['ArrowRight'] || p2TouchState.right;
     const isUp = keys['ArrowUp'] || p2TouchState.up;
     const isDown = keys['ArrowDown'] || p2TouchState.down;
-    const jump = keys['Numpad8'] || keys['KeyU'] || p2TouchState.jump;
+    const jump = keys['Numpad8'] || keys['KeyU'] || p2TouchState.jump || !!(gpState.p2.buttons && gpState.p2.buttons[0]);
     const guardKey = keys['Numpad5'] || keys['KeyK'] || p2TouchState.guard;
 
     const isBack = (fighter2.facing === 1 && moveLeft) || (fighter2.facing === -1 && moveRight);
@@ -1316,11 +1406,60 @@ function handlePlayer2Inputs(dt) {
     let curWalkSpd = fighter2.dino.walkSpeed;
     if (fighter2.poisonStacks >= 2) curWalkSpd *= 0.65;
 
-    // Quetzalcoatlus Glide J2
-    if (fighter2.dino.id === 'quetzalcoatlus' && jump && fighter2.y > 0.35 && fighter2.vy < 0) {
-        fighter2.vy = Math.max(fighter2.vy, -1.6);
-        if (moveLeft) fighter2.x -= curWalkSpd * 1.25 * dt;
-        if (moveRight) fighter2.x += curWalkSpd * 1.25 * dt;
+    // Quetzalcoatlus Vol J2 avec Endurance Circulaire de 2 secondes
+    // RÈGLES :
+    // 1. Appuyer sur "A" quand l'animal est dans les airs (y > 0.05) et maintenir "A" -> il vole
+    // 2. Quand on lâche "A" -> le Quetzalcoatlus descend (isFlying = false, gravité normale)
+    // 3. Si on réappuie sur "A" et qu'il n'est pas encore au sol -> il repart à voler
+    // 4. S'il est au sol (y <= 0.05) -> l'action se cancele, l'endurance se recharge
+    if (fighter2.dino.id === 'quetzal' || fighter2.dino.id === 'quetzalcoatlus') {
+        if (fighter2.flightEndurance === undefined) fighter2.flightEndurance = 2.0;
+
+        const isHoldA2 = !!(
+            (gpState.p2.buttons && gpState.p2.buttons[0]) || // Bouton A manette J2
+            keys['Numpad8'] ||                               // Touche Saut J2 pavé num
+            keys['KeyU'] ||
+            keys['KeyA'] ||
+            p2TouchState.jump
+        );
+
+        const isInAir2 = fighter2.y > 0.05;
+
+        if (isInAir2 && isHoldA2 && fighter2.flightEndurance > 0 && fighter2.hitStun <= 0 && !fighter2.isDead) {
+            fighter2.isFlying = true;
+            fighter2.flightEndurance = Math.max(0, fighter2.flightEndurance - dt);
+
+            if (isUp) {
+                fighter2.vy = Math.min(5.5, (fighter2.vy || 0) + 26 * dt);
+            } else if (isDown) {
+                fighter2.vy = Math.max(-4.2, (fighter2.vy || 0) - 22 * dt);
+            } else {
+                if (fighter2.vy < 0) {
+                    fighter2.vy = Math.min(3.0, fighter2.vy + 36 * dt);
+                } else {
+                    const timeSec = typeof nowSec !== 'undefined' ? nowSec : Date.now() * 0.001;
+                    fighter2.vy = Math.min(2.5, (fighter2.vy || 0) * 0.90 + Math.sin(timeSec * 7) * 0.35 + 0.6);
+                }
+            }
+
+            if (moveLeft) {
+                fighter2.vx = -curWalkSpd * 1.45;
+            } else if (moveRight) {
+                fighter2.vx = curWalkSpd * 1.45;
+            } else {
+                fighter2.vx *= 0.88;
+            }
+
+            if (fighter2.flightEndurance <= 0) {
+                fighter2.isFlying = false;
+                spawnFloatingPopup(fighter2.x, '⚡ ENDURANCE ÉPUISÉE !', '#f87171');
+            }
+        } else {
+            fighter2.isFlying = false;
+            if (fighter2.y <= 0.05) {
+                fighter2.flightEndurance = Math.min(2.0, fighter2.flightEndurance + dt * 1.25);
+            }
+        }
     }
 
     if (fighter2.y > 0.05 && fighter2.dashTimer <= 0) {
@@ -1336,13 +1475,13 @@ function handlePlayer2Inputs(dt) {
         fighter2.isBlocking = true;
         if (isUp) {
             fighter2.blockType = 'high';
-            fighter2.action = 'walk';
+            fighter2.action = isBack ? 'walk' : 'idle';
         } else if (isDown) {
             fighter2.blockType = 'low';
             fighter2.action = 'crouch';
         } else {
             fighter2.blockType = 'mid';
-            fighter2.action = 'crouch';
+            fighter2.action = isBack ? 'walk' : 'idle';
         }
         fighter2.sprintDuration = 0;
         fighter2.isSprinting = false;

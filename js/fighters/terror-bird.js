@@ -1,6 +1,9 @@
 /* ============================================================================
  * COMBATTANT : OISEAU DE TERREUR (Phorusrhacos Longissimus)
  * Données (stats, skins, textes), modèle 3D, animations, coups spéciaux & fatalité.
+ * Silhouette paléoart : grand oiseau coureur prédateur à longues pattes écaillées,
+ * plumage gris-brun ébouriffé, petites ailes vestigiales repliées, long cou en S,
+ * huppe occipitale et gigantesque bec en hache jaune crochu à la pointe.
  * ============================================================================ */
 
 registerFighter({
@@ -9,11 +12,12 @@ registerFighter({
     fullName: 'Phorusrhacos Longissimus',
     role: 'Faucheur Véloce',
     title: '« La Hache Plumée du Miocène »',
-    primaryColor: 0xea580c,
-    secondaryColor: 0x9a3412,
-    accentColor: 0xfacc15,
+    primaryColor: 0x5c5349,
+    secondaryColor: 0x2b2623,
+    accentColor: 0xeab308,
     cssPrimary: '#ea580c',
     scale: 0.88,
+    previewScale: 0.92,
     stats: { pow: 92, spd: 98, def: 68 },
     maxHp: 920,
     walkSpeed: 10.4,
@@ -23,80 +27,175 @@ registerFighter({
     moveStyle: 'Sprinteur hyperkinétique bipède, frappes verticales de son bec tranchant en coin.',
     fatalityDesc: 'Assène une frappe verticale d’une violence inouïe avec son bec crochu, ouvrant le crâne adverse en deux avant de déchirer les viscères.',
     skins: [
-        { name: 'Terror Feather', primary: 0xea580c, secondary: 0x9a3412, accent: 0xfacc15 },
-        { name: 'Snow Owl', primary: 0xf1f5f9, secondary: 0x94a3b8, accent: 0xfacc15 },
-        { name: 'Raven Nightmare', primary: 0x18181b, secondary: 0x09090b, accent: 0xa855f7 },
-        { name: 'Blood Falcon', primary: 0x991b1b, secondary: 0x7f1d1d, accent: 0xfca5a5 }
+        { name: 'Patagonian Terror', primary: 0x5c5349, secondary: 0x2b2623, accent: 0xeab308, neck: 0x9ca3af, beak: 0xeab308 },
+        { name: 'Terror Feather', primary: 0xea580c, secondary: 0x9a3412, accent: 0xfacc15, neck: 0xfed7aa, beak: 0xfacc15 },
+        { name: 'Snow Owl', primary: 0xf1f5f9, secondary: 0x94a3b8, accent: 0xfacc15, neck: 0xffffff, beak: 0xf59e0b },
+        { name: 'Raven Nightmare', primary: 0x18181b, secondary: 0x09090b, accent: 0xa855f7, neck: 0x3f3f46, beak: 0xc084fc },
+        { name: 'Blood Falcon', primary: 0x991b1b, secondary: 0x450a0a, accent: 0xfca5a5, neck: 0xfecaca, beak: 0xfef08a }
     ]
 }, {
-    // Hauteur de base du bassin utilisée par le système d'animation
     animBaseHipsY: 2.25,
 
-    // Spécial 2 (T)
     onSpecial2(attacker, defender, dist, basePow) {
         spawn3DProjectile(attacker, 'boulder');
     },
 
-    // Construction du modèle 3D articulé
     buildRig(ctx) {
-        const { hips, rig, addMesh, bodyMat, darkMat, accentMat, boneMat, eyeMat } = ctx;
-        hips.position.y = 2.25;
-        // Corps d'oiseau-terreur profilé
-        addMesh(new THREE.BoxGeometry(1.75, 1.15, 1.05), bodyMat, rig.torso, 0, 0.15, 0, 0, 0, 0.25);
+        const { hips, rig, addMesh, bodyMat, darkMat, accentMat, boneMat, skin, skinMeshes } = ctx;
+        void accentMat;
+        void boneMat;
 
-        // Ailes griffues articulées
-        [-0.58, 0.58].forEach((zOff, idx) => {
+        const neckMat = new THREE.MeshStandardMaterial({ color: skin.neck || 0x9ca3af, roughness: 0.75 });
+        const beakMat = new THREE.MeshStandardMaterial({ color: skin.beak || 0xeab308, roughness: 0.35, metalness: 0.08 });
+        const beakTipMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.4 });
+        const tarsusMat = new THREE.MeshStandardMaterial({ color: 0xa88b67, roughness: 0.55 });
+        const irisMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+        const pupilMat = new THREE.MeshBasicMaterial({ color: 0x09090b });
+
+        const UP = new THREE.Vector3(0, 1, 0);
+        const bone = (parent, a, b, r1, r2, mat, seg = 8) => {
+            const A = new THREE.Vector3(a[0], a[1], a[2]);
+            const B = new THREE.Vector3(b[0], b[1], b[2]);
+            const dir = B.clone().sub(A);
+            const len = dir.length();
+            const m = addMesh(new THREE.CylinderGeometry(r2, r1, len, seg), mat, parent,
+                (A.x + B.x) / 2, (A.y + B.y) / 2, (A.z + B.z) / 2);
+            m.quaternion.setFromUnitVectors(UP, dir.normalize());
+            if (mat === neckMat) skinMeshes.push(m);
+            return m;
+        };
+        const joint = (parent, p, r, mat) => addMesh(new THREE.SphereGeometry(r, 10, 8), mat, parent, p[0], p[1], p[2]);
+        const blob = (parent, p, s, mat, rz = 0, ry = 0, rx = 0) => {
+            const m = addMesh(new THREE.SphereGeometry(1, 14, 10), mat, parent, p[0], p[1], p[2], rx, ry, rz);
+            m.scale.set(s[0], s[1], s[2]);
+            if (mat === neckMat) skinMeshes.push(m);
+            return m;
+        };
+
+        hips.position.y = 2.25;
+
+        // =====================================================================
+        // 1. CORPS D'OISEAU COUREUR : ovoïde compact à plumage étagé
+        // =====================================================================
+        blob(rig.torso, [0.05, 0.16, 0], [0.98, 0.62, 0.56], bodyMat, 0.18);
+        blob(rig.torso, [0.42, 0.24, 0], [0.58, 0.52, 0.52], neckMat, 0.28);       // poitrail clair duveteux
+        blob(rig.torso, [-0.15, 0.42, 0], [0.82, 0.34, 0.48], darkMat, 0.10);      // manteau dorsal sombre
+
+        // Petites ailes vestigiales repliées contre les flancs
+        [-1, 1].forEach(side => {
             const wing = new THREE.Group();
-            wing.position.set(0.2, 0.3, zOff);
-            addMesh(new THREE.BoxGeometry(1.15, 0.65, 0.12), darkMat, wing, -0.25, -0.1, 0);
-            addMesh(new THREE.BoxGeometry(0.95, 0.22, 0.14), accentMat, wing, -0.3, -0.35, 0);
+            wing.position.set(0.28, 0.26, side * 0.48);
+            blob(wing, [-0.24, -0.08, side * 0.05], [0.46, 0.24, 0.10], darkMat, 0.25, side * 0.12);
+            // Rémiges courtes en éventail
+            for (let r = 0; r < 4; r++) {
+                blob(wing, [-0.42 - r * 0.08, -0.14 - r * 0.04, side * 0.06], [0.24, 0.06, 0.04], bodyMat, 0.35 + r * 0.08);
+            }
             rig.torso.add(wing);
             rig.arms.push(wing);
         });
 
-        // Long cou vertical de rapace + ÉNORME BEC CROCHU
-        rig.neck.position.set(0.75, 0.55, 0);
-        rig.torso.add(rig.neck);
-        addMesh(new THREE.BoxGeometry(0.48, 1.25, 0.48), bodyMat, rig.neck, 0.1, 0.55, 0, 0, 0, -0.12);
-
-        rig.headGroup.position.set(0.18, 1.22, 0);
-        rig.neck.add(rig.headGroup);
-        addMesh(new THREE.BoxGeometry(0.72, 0.62, 0.58), bodyMat, rig.headGroup, 0.1, 0.1, 0);
-        // Crête de plumes écarlates
-        for (let f = 0; f < 4; f++) {
-            addMesh(new THREE.ConeGeometry(0.1, 0.55, 4), accentMat, rig.headGroup, -0.15 - f * 0.1, 0.48, 0, 0, 0, 0.75);
-        }
-        // Bec de hache géant crochu
-        addMesh(new THREE.BoxGeometry(0.95, 0.45, 0.42), boneMat, rig.headGroup, 0.72, 0.12, 0);
-        addMesh(new THREE.ConeGeometry(0.22, 0.55, 4), boneMat, rig.headGroup, 1.15, -0.15, 0, 0, 0, Math.PI * 0.92);
-        addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.25, 0.18, 0.3);
-        addMesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat, rig.headGroup, 0.25, 0.18, -0.3);
-
-        // Éventail de plumes caudales
+        // Queue tombante en éventail de plumes souples
         const tailFan = new THREE.Group();
-        tailFan.position.set(-0.9, 0.15, 0);
-        for (let z = -0.35; z <= 0.35; z += 0.35) {
-            addMesh(new THREE.BoxGeometry(0.95, 0.15, 0.32), darkMat, tailFan, -0.45, 0.1, z, 0, z * 0.4, -0.2);
+        tailFan.position.set(-0.82, 0.08, 0);
+        for (let i = -2; i <= 2; i++) {
+            const z = i * 0.10;
+            blob(tailFan, [-0.38, -0.14 - Math.abs(i) * 0.03, z], [0.48, 0.08, 0.12], i % 2 === 0 ? darkMat : bodyMat, 0.42, i * 0.14);
         }
         rig.torso.add(tailFan);
         rig.tailSegments.push(tailFan);
 
-        // Longues pattes d'échassier tueur avec serres
-        [-0.45, 0.45].forEach(zOff => {
+        // =====================================================================
+        // 2. COU PUISSANT EN S DE PHORUSRHACOS
+        // =====================================================================
+        rig.neck.position.set(0.68, 0.38, 0);
+        rig.torso.add(rig.neck);
+        const N0 = [0, 0, 0], N1 = [0.28, 0.55, 0], N2 = [0.20, 1.15, 0];
+        bone(rig.neck, N0, N1, 0.30, 0.23, neckMat, 9);
+        joint(rig.neck, N1, 0.23, neckMat);
+        bone(rig.neck, N1, N2, 0.23, 0.20, neckMat, 9);
+        // Nuque plus sombre
+        bone(rig.neck, [-0.05, 0.08, 0], [0.12, 1.15, 0], 0.18, 0.14, bodyMat, 7);
+
+        // =====================================================================
+        // 3. TÊTE & GIGANTESQUE BEC EN HACHE CROCHU
+        // =====================================================================
+        rig.headGroup.position.set(0.22, 1.22, 0);
+        rig.neck.add(rig.headGroup);
+
+        // Boîte crânienne allongée
+        blob(rig.headGroup, [0.06, 0.08, 0], [0.38, 0.28, 0.24], neckMat, -0.05);
+        blob(rig.headGroup, [0.02, 0.22, 0], [0.32, 0.14, 0.22], darkMat, -0.05);
+
+        // Huppe de plumes effilées à l'arrière du crâne (comme un cariama / Phorusrhacos)
+        for (let f = 0; f < 5; f++) {
+            const ang = 0.35 + f * 0.14;
+            blob(rig.headGroup, [-0.28 - f * 0.05, 0.22 - f * 0.04, (f % 2 === 0 ? 1 : -1) * 0.03], [0.26, 0.04, 0.05], darkMat, ang);
+        }
+
+        // Yeux perçants de rapace sous une arcade sourcilière sévère
+        [-1, 1].forEach(side => {
+            blob(rig.headGroup, [0.22, 0.14, side * 0.18], [0.15, 0.11, 0.08], darkMat); // cerne sombre
+            addMesh(new THREE.SphereGeometry(0.055, 8, 8), irisMat, rig.headGroup, 0.24, 0.14, side * 0.22);
+            addMesh(new THREE.SphereGeometry(0.028, 6, 6), pupilMat, rig.headGroup, 0.27, 0.14, side * 0.25);
+            addMesh(new THREE.BoxGeometry(0.22, 0.04, 0.08), darkMat, rig.headGroup, 0.23, 0.22, side * 0.21, 0, 0, -0.15);
+        });
+
+        // IMMENSE BEC SUPÉRIEUR EN HACHE (haut, comprimé latéralement, terminé par un croc)
+        // Base haute du bec
+        blob(rig.headGroup, [0.62, 0.12, 0], [0.42, 0.24, 0.13], beakMat, -0.08);
+        // Dos arqué du culmen
+        bone(rig.headGroup, [0.34, 0.28, 0], [0.98, 0.16, 0], 0.11, 0.08, beakMat, 6);
+        bone(rig.headGroup, [0.34, 0.02, 0], [0.98, -0.02, 0], 0.12, 0.07, beakMat, 6);
+        // Pointe crochue mortelle plongeant vers le bas
+        bone(rig.headGroup, [0.94, 0.14, 0], [1.14, -0.16, 0], 0.09, 0.015, beakTipMat, 6);
+        // Narine ovale sur le bec
+        [-1, 1].forEach(side => {
+            blob(rig.headGroup, [0.54, 0.16, side * 0.12], [0.07, 0.03, 0.02], beakTipMat);
+        });
+
+        // Mâchoire inférieure articulée
+        rig.jaw.position.set(0.25, -0.08, 0);
+        rig.headGroup.add(rig.jaw);
+        bone(rig.jaw, [0, 0, 0], [0.72, -0.02, 0], 0.09, 0.04, beakTipMat, 6);
+        bone(rig.jaw, [0.05, 0.03, 0], [0.68, 0.0, 0], 0.07, 0.03, beakMat, 6);
+
+        // =====================================================================
+        // 4. LONGUES PATTES DE COUREUR AVEC GRIFFE TUEUSE (sol à y = -2.25)
+        // =====================================================================
+        [-1, 1].forEach(side => {
             const leg = new THREE.Group();
-            leg.position.set(0, 0, zOff);
-            addMesh(new THREE.BoxGeometry(0.45, 1.0, 0.38), bodyMat, leg, 0, -0.45, 0);
-            addMesh(new THREE.CylinderGeometry(0.12, 0.1, 1.25, 6), boneMat, leg, -0.05, -1.45, 0);
-            addMesh(new THREE.BoxGeometry(0.85, 0.16, 0.42), boneMat, leg, 0.2, -2.15, 0);
+            leg.position.set(-0.05, 0, side * 0.36);
             hips.add(leg);
             rig.legs.push(leg);
+
+            const H = [0, 0, 0];
+            const K = [0.22, -0.78, 0];               // genou emplumé
+            const A = [-0.18, -1.48, 0];              // cheville / talon haut
+            const F = [0.14, -2.18, 0];               // base des orteils
+
+            // Cuisse / pilon emplumé
+            blob(leg, [0.08, -0.38, 0], [0.32, 0.46, 0.26], bodyMat, 0.22);
+            blob(leg, [0.02, -0.82, 0], [0.20, 0.32, 0.18], darkMat, -0.38);
+            // Long tarsométatarse écaillé
+            joint(leg, A, 0.10, tarsusMat);
+            bone(leg, A, F, 0.09, 0.075, tarsusMat, 8);
+
+            // 3 orteils puissants de rapace coureur (doigt interne armé d'une grande griffe courbe)
+            joint(leg, F, 0.08, tarsusMat);
+            [-0.11, 0, 0.11].forEach((dz, idx) => {
+                const isInner = (side < 0 && idx === 2) || (side > 0 && idx === 0);
+                const lenToe = idx === 1 ? 0.36 : 0.28;
+                const tip = [F[0] + lenToe, -2.22, dz];
+                bone(leg, F, tip, 0.045, 0.032, tarsusMat, 5);
+                addMesh(new THREE.ConeGeometry(isInner ? 0.038 : 0.028, isInner ? 0.18 : 0.13, 6),
+                    beakTipMat, leg, tip[0] + 0.06, tip[1] + (isInner ? 0.02 : 0), dz,
+                    0, 0, -Math.PI / 2 - (isInner ? 0.45 : 0.2));
+            });
         });
     },
 
-    // Animation d'attente (idle) / de marche
     animateIdle(ctx) {
         const { rig, baseHipsY, time, isWalk } = ctx;
-        // Terabird : Démarche d'oiseau de proie à grands pas + battements d'ailes nerveux
         const freq = isWalk ? 15 : 5.5;
         rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * freq)) * (isWalk ? 0.32 : 0.07);
         rig.neck.rotation.z = isWalk ? -0.25 + Math.sin(time * freq * 2) * 0.15 : Math.sin(time * 8) * 0.06;
@@ -108,64 +207,53 @@ registerFighter({
 
     hasCustomDirectionals: true,
 
-    // Animations d'attaques (light / heavy / special / special2 / xray)
     animateAttack(ctx) {
         const { rig, act, prog, swing, strike, baseHipsY } = ctx;
         const s = strike !== undefined ? strike : swing;
         if (act === 'light') {
-            // Coup de bec hachoir gauche
             rig.neck.rotation.z = -swing * 0.75;
             rig.headGroup.rotation.z = -swing * 0.45;
             rig.jaw.rotation.z = -swing * 0.5;
         } else if (act === 'light2') {
-            // Coup de bec croisé droit avec torsion
             rig.torso.rotation.y = swing * 0.35;
             rig.neck.rotation.z = -swing * 0.9;
             rig.headGroup.rotation.z = -swing * 0.55;
             rig.jaw.rotation.z = -swing * 0.7;
         } else if (act === 'fwd_light') {
-            // Ruée agressive et picotement perforant
             rig.hips.position.x = swing * 0.85;
             rig.neck.rotation.z = -swing * 0.8;
             rig.arms[0].rotation.x = -0.6;
             rig.arms[1].rotation.x = 0.6;
         } else if (act === 'low_light' || act === 'low_heavy') {
-            // Direction BAS ⬇️ (Balayage bas) : Balayage des serres au sol
             rig.hips.position.y = baseHipsY - swing * 0.35;
             rig.legs[0].rotation.z = swing * 1.2;
             rig.torso.rotation.z = 0.35;
         } else if (act === 'anti_air' || act === 'up_light') {
-            // Direction HAUT ⬆️ (Anti-Air Launcher / Ciel) : Décollage vertical bec pointé vers le ciel et battement d'ailes
             rig.neck.rotation.z = swing * 0.85;
             rig.headGroup.rotation.z = swing * 0.6;
             rig.jaw.rotation.z = -swing * 0.8;
             rig.arms[0].rotation.x = -1.2;
             rig.arms[1].rotation.x = 1.2;
         } else if (act === 'back_light') {
-            // Direction ARRIÈRE ⬅️ : Saut en arrière et frappe de bec rapide
             rig.hips.position.x = -s * 0.75;
             rig.neck.rotation.z = -s * 0.65;
             rig.jaw.rotation.z = -s * 0.55;
         } else if (act === 'air_light' || act === 'air_heavy') {
-            // Plongeon serres déployées
             rig.torso.rotation.z = -swing * 0.7;
             rig.legs[0].rotation.z = swing * 1.3;
             rig.legs[1].rotation.z = swing * 1.1;
         } else if (act === 'fwd_heavy') {
-            // Grand bond en avant serres en avant
             rig.hips.position.x = swing * 1.1;
             rig.hips.position.y = baseHipsY + swing * 0.8;
             rig.legs[0].rotation.z = swing * 1.2;
             rig.legs[1].rotation.z = swing * 1.0;
         } else if (act === 'throw') {
-            // Saisie au bec et projection violente
             rig.neck.rotation.z = -swing * 0.95;
             rig.headGroup.rotation.y = swing * 1.2;
         } else if (act === 'throw_whiff') {
             rig.hips.position.x = swing * 0.45;
             rig.neck.rotation.z = -swing * 0.4;
         } else if (act === 'heavy' || act === 'special2') {
-            // Saut de rapace toutes serres en avant
             rig.hips.position.y = baseHipsY + swing * 1.5;
             rig.torso.rotation.z = swing * 0.35;
             rig.legs[0].rotation.z = swing * 1.1;
@@ -173,7 +261,6 @@ registerFighter({
             rig.arms[0].rotation.x = -0.85;
             rig.arms[1].rotation.x = 0.85;
         } else if (act === 'special') {
-            // Plongeon Guillotine Aviaire
             rig.hips.position.y = baseHipsY + Math.sin(prog * Math.PI) * 1.8;
             rig.neck.rotation.z = -swing * 0.95;
             rig.arms[0].rotation.x = -1.1;
@@ -181,10 +268,8 @@ registerFighter({
         }
     },
 
-    // Chorégraphie 3D de la fatalité
     animateFatality(ctx) {
         const { rig, prog, baseHipsY } = ctx;
-        // TERABIRD : Bondit sur la victime et martèle 4 coups de bec avant d'arracher son cœur
         if (prog < 0.3) {
             rig.hips.position.y = baseHipsY + Math.sin((prog / 0.3) * Math.PI) * 2.5;
             rig.arms[0].rotation.x = -1.2;
@@ -199,9 +284,7 @@ registerFighter({
         }
     },
 
-    // Script de la fatalité (sons, sang, effets, annonce)
     executeFatality(winner, loser) {
-        // 6) TERABIRD : Martèle 4 coups de bec rapides puis arrache le cœur battant 3D
         [900, 1250, 1600].forEach(delay => {
             setTimeout(() => {
                 if (matchState !== 'fatality_anim') return;
@@ -215,7 +298,6 @@ registerFighter({
             sfx.playRoar(130, 0.7);
             loser.isDead = true;
             loser.hp = 0;
-            // Cœur 3D arraché au bout du bec
             const heart = new THREE.Mesh(
                 new THREE.SphereGeometry(0.38, 10, 10),
                 new THREE.MeshStandardMaterial({ color: 0xdc2626, emissive: 0x991b1b })

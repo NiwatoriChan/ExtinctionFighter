@@ -44,7 +44,7 @@ function updateAI(ai, target, dt) {
                 const zones = ['high', 'mid', 'low'];
                 ai.blockType = zones[Math.floor(Math.random() * zones.length)];
             }
-            ai.action = ai.blockType === 'low' ? 'crouch' : 'walk';
+            ai.action = ai.blockType === 'low' ? 'crouch' : 'idle';
             return;
         }
         ai.isBlocking = false;

@@ -151,7 +151,9 @@ function spawn3DGroundShockwave(x, colorHex = 0xf59e0b, maxScale = 3.2, includeD
 function spawn3DMomentumTrail(fighter) {
     if (typeof fxGroup === 'undefined' || !fxGroup || !fighter) return;
     const cache = getFxCache();
-    const dir = fighter.facing || 1;
+    const moveDir = fighter.dashDir !== undefined && fighter.dashDir !== 0
+        ? fighter.dashDir
+        : (Math.sign(fighter.vx) !== 0 ? Math.sign(fighter.vx) : (fighter.facing || 1));
     const color = (fighter.dino && fighter.dino.accentColor) ? fighter.dino.accentColor : 0x38bdf8;
     const count = (typeof graphicsQuality !== 'undefined' && graphicsQuality === 'low') ? 3 : 5;
 
@@ -163,7 +165,7 @@ function spawn3DMomentumTrail(fighter) {
         });
         const streak = new THREE.Mesh(cache.geo.streak, streakMat);
         streak.position.set(
-            fighter.x - dir * (0.4 + Math.random() * 1.1),
+            fighter.x - moveDir * (0.4 + Math.random() * 1.1),
             fighter.y + 0.85 + i * 0.42,
             (i % 2 === 0 ? 1 : -1) * (0.55 + Math.random() * 0.35)
         );
@@ -173,7 +175,7 @@ function spawn3DMomentumTrail(fighter) {
         pushParticle3D({
             mesh: streak,
             ownsMaterial: true,
-            vx: -dir * (8.5 + Math.random() * 4.0),
+            vx: -moveDir * (8.5 + Math.random() * 4.0),
             vy: 0,
             vz: 0,
             life: totalLife,

@@ -431,7 +431,7 @@ const BATTLE_SCREEN_HTML = `
                                 <span>🦘</span>
                                 <span>SAUT</span>
                             </button>
-                            <button id="uiBtnDash" data-action="dash" class="act-btn stone-btn px-2 h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1 text-cyan-300 font-black text-[8.5px] sm:text-[9.5px] shadow border-cyan-500/60 backdrop-blur-sm" title="Dasher / Esquive (E)">
+                            <button id="uiBtnDash" data-action="dash" class="act-btn stone-btn px-2 h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1 text-cyan-300 font-black text-[8.5px] sm:text-[9.5px] shadow border-cyan-500/60 backdrop-blur-sm" title="Dasher Droite & Gauche / Esquive (E / Double-tap ◀ ▶)">
                                 <span>💨</span>
                                 <span>DASH</span>
                             </button>
@@ -658,6 +658,14 @@ function renderFighterStatusBadges(fighter) {
     if (fighter.hasHyperArmor) {
         html += `<span class="px-1 py-0.2 rounded bg-cyan-950/90 text-cyan-300 border border-cyan-400 text-[8px] font-black animate-pulse" title="Armure active">🛡️ ARMURE</span>`;
     }
+    if (fighter.dino && (fighter.dino.id === 'quetzal' || fighter.dino.id === 'quetzalcoatlus')) {
+        const end = fighter.flightEndurance !== undefined ? fighter.flightEndurance : 2.0;
+        if (fighter.isFlying) {
+            html += `<span class="px-1 py-0.2 rounded bg-sky-900/90 text-cyan-200 border border-cyan-400 text-[8px] font-black animate-pulse" title="Vol Stratosphérique actif">🪽 VOL ${end.toFixed(1)}s</span>`;
+        } else if (end < 1.95) {
+            html += `<span class="px-1 py-0.2 rounded bg-stone-900/90 text-amber-300 border border-amber-600/70 text-[8px] font-black" title="Recharge d'endurance de vol">⚡ VOL ${end.toFixed(1)}s</span>`;
+        }
+    }
     return html;
 }
 
@@ -793,9 +801,26 @@ function initBattleScreenMenu() {
         });
     }
 
+    let lastTouchDirTap = { left: 0, right: 0 };
     document.querySelectorAll('.ctrl-btn').forEach(btn => {
         const dir = btn.dataset.ctrl;
-        const startDir = (e) => { e.preventDefault(); touchState[dir] = true; btn.classList.add('active-press'); };
+        const startDir = (e) => {
+            e.preventDefault();
+            touchState[dir] = true;
+            btn.classList.add('active-press');
+            const now = performance.now();
+            if (dir === 'left') {
+                if (now - lastTouchDirTap.left < 300 && fighter1 && (matchState === 'fight' || matchState === 'finish_him')) {
+                    fighter1.startDash(-1);
+                }
+                lastTouchDirTap.left = now;
+            } else if (dir === 'right') {
+                if (now - lastTouchDirTap.right < 300 && fighter1 && (matchState === 'fight' || matchState === 'finish_him')) {
+                    fighter1.startDash(1);
+                }
+                lastTouchDirTap.right = now;
+            }
+        };
         const endDir = (e) => { e.preventDefault(); touchState[dir] = false; btn.classList.remove('active-press'); };
         btn.addEventListener('mousedown', startDir);
         btn.addEventListener('mouseup', endDir);

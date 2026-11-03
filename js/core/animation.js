@@ -84,15 +84,9 @@ function animateDino3DRig(fighter, time, dt) {
     const bType = fighter.blockType || 'mid';
 
     if (rig.armorRig) {
-        rig.armorRig.high.visible = isBlocking && bType === 'high';
-        rig.armorRig.mid.visible = isBlocking && bType === 'mid';
-        rig.armorRig.low.visible = isBlocking && bType === 'low';
-
-        if (isBlocking) {
-            const glowPulse = 0.85 + Math.sin(time * 16) * 0.25;
-            rig.armorRig.mat.emissiveIntensity = glowPulse;
-            rig.armorRig.runeMat.opacity = 0.65 + Math.sin(time * 20) * 0.25;
-        }
+        rig.armorRig.high.visible = false;
+        rig.armorRig.mid.visible = false;
+        rig.armorRig.low.visible = false;
     }
 
     rig.shieldMesh.visible = isBlocking;
@@ -198,10 +192,12 @@ function animateDino3DRig(fighter, time, dt) {
     // État mort / aplati / décapité
     rig.headGroup.visible = !fighter.decapitated;
     if (fighter.flattened) {
-        rig.root.scale.set(fighter.dino.scale * 1.65, 0.12, fighter.dino.scale * 1.65);
+        const currentScale = fighter.scale !== undefined ? fighter.scale : fighter.dino.scale;
+        rig.root.scale.set(currentScale * 1.65, 0.12, currentScale * 1.65);
         return;
     } else {
-        rig.root.scale.setScalar(fighter.dino.scale);
+        const currentScale = fighter.scale !== undefined ? fighter.scale : fighter.dino.scale;
+        rig.root.scale.setScalar(currentScale);
     }
 
     if (fighter.isDead) {
@@ -391,7 +387,7 @@ function animateDino3DRig(fighter, time, dt) {
         rig.shieldMesh.visible = true;
         const bType = fighter.blockType || 'mid';
         const shieldPulse = 1 + Math.sin(time * 18) * 0.05;
-        if (typeof fighter.playGuard === 'function') {
+        if (typeof fighter.playGuard === 'function' && act !== 'walk') {
             fighter.playGuard(bType, 0.08);
         }
 
@@ -414,6 +410,7 @@ function animateDino3DRig(fighter, time, dt) {
                 s.rotation.y = (i + 1) * 0.28;
                 s.rotation.z = -0.25;
             });
+            return;
         } else if (bType === 'high') {
             // Garde Haute (Guard_High) : Buste cabré vers le haut, dôme cyan protégeant le crâne et les airs
             rig.shieldMesh.position.set(0.70, 2.75, 0);
@@ -421,7 +418,7 @@ function animateDino3DRig(fighter, time, dt) {
             rig.shieldMesh.rotation.z = 0.35;
             rig.shieldMesh.material.color.setHex(0x38bdf8); // Cyan pour Garde Haute
             rig.hips.position.x = -0.22;
-            rig.hips.position.y = baseHipsY * 1.08;
+            rig.hips.position.y = baseHipsY * (act === 'walk' ? 1.0 : 1.08);
             rig.torso.rotation.z = 0.28;
             rig.neck.rotation.z = 0.32;
             rig.headGroup.rotation.z = 0.30;
@@ -430,9 +427,12 @@ function animateDino3DRig(fighter, time, dt) {
                 if (rig.arms[0]) rig.arms[0].rotation.z = 1.05;
                 if (rig.arms[1]) rig.arms[1].rotation.z = 1.05;
             }
-            if (rig.legs) {
-                if (rig.legs[0]) rig.legs[0].rotation.z = 0.25;
-                if (rig.legs[1]) rig.legs[1].rotation.z = -0.35;
+            if (act !== 'walk') {
+                if (rig.legs) {
+                    if (rig.legs[0]) rig.legs[0].rotation.z = 0.25;
+                    if (rig.legs[1]) rig.legs[1].rotation.z = -0.35;
+                }
+                return;
             }
         } else {
             // Garde Médiane (Guard_Mid) : Ancrage défensif central, rempart doré vertical devant le torse
@@ -440,7 +440,7 @@ function animateDino3DRig(fighter, time, dt) {
             rig.shieldMesh.scale.set(0.92 * shieldPulse, 1.05 * shieldPulse, 1.05 * shieldPulse);
             rig.shieldMesh.material.color.setHex(0xf59e0b); // Or pour Garde Médiane
             rig.hips.position.x = -0.28;
-            rig.hips.position.y = baseHipsY * 0.92;
+            rig.hips.position.y = baseHipsY * (act === 'walk' ? 1.0 : 0.92);
             rig.torso.rotation.z = -0.25;
             rig.neck.rotation.z = -0.28;
             rig.headGroup.rotation.z = -0.22;
@@ -449,24 +449,75 @@ function animateDino3DRig(fighter, time, dt) {
                 if (rig.arms[0]) rig.arms[0].rotation.z = 0.75;
                 if (rig.arms[1]) rig.arms[1].rotation.z = 0.75;
             }
-            if (rig.legs) {
-                if (rig.legs[0]) rig.legs[0].rotation.z = 0.32;
-                if (rig.legs[1]) rig.legs[1].rotation.z = -0.38;
+            if (act !== 'walk') {
+                if (rig.legs) {
+                    if (rig.legs[0]) rig.legs[0].rotation.z = 0.32;
+                    if (rig.legs[1]) rig.legs[1].rotation.z = -0.38;
+                }
+                return;
             }
         }
-        return;
     }
 
-    // --- RUÉE / DASH AÉRODYNAMIQUE ---
+    // --- RUÉE / DASH AÉRODYNAMIQUE (AVANT / ARRIÈRE) ---
     if (fighter.dashTimer > 0) {
         const dashProg = Math.min(1.0, fighter.dashTimer / 0.22);
         const lunge = Math.sin(dashProg * Math.PI);
+        const dashDir = fighter.dashDir !== undefined && fighter.dashDir !== 0
+            ? fighter.dashDir
+            : (Math.sign(fighter.vx) || fighter.facing);
+        const isBackDash = dashDir !== fighter.facing;
+
+        // Animation spécifique au combattant si définie
+        if (fighterImpl && fighterImpl.animateDash) {
+            fighterImpl.animateDash({ fighter, rig, id, lunge, dashProg, isBackDash, baseHipsY, time });
+            return;
+        }
+
+        if (isBackDash) {
+            // Esquive / Retraite vive en arrière (Backdash) : Bond agile en retrait
+            rig.hips.position.y = baseHipsY * (0.84 + lunge * 0.22);
+            rig.hips.position.x = -lunge * 0.35;
+            rig.torso.rotation.z = 0.26;
+            rig.neck.rotation.z = 0.18;
+            rig.headGroup.rotation.z = -0.12;
+            rig.jaw.rotation.z = 0;
+            if (rig.arms && rig.arms.length >= 2) {
+                // Bras étendus vers l'arrière / équilibre
+                rig.arms[0].rotation.z = 0.45;
+                rig.arms[1].rotation.z = 0.45;
+                rig.arms[0].rotation.y = 0.22;
+                rig.arms[1].rotation.y = -0.22;
+            }
+            if (rig.legs) {
+                if (rig.legs[0]) rig.legs[0].rotation.z = -0.45 + lunge * 0.65;
+                if (rig.legs[1]) rig.legs[1].rotation.z = 0.35 - lunge * 0.55;
+            }
+            rig.tailSegments.forEach((s, i) => {
+                s.rotation.z = -0.22;
+                s.rotation.y = Math.sin(time * 24 - i * 0.5) * 0.18;
+            });
+            return;
+        }
+
+        // Ruée offensive vers l'avant (Forward Dash) : Aérodynamique et plongeante avec bras étendus
         rig.hips.position.y = baseHipsY * 0.74;
         rig.hips.position.x = lunge * 0.45;
         rig.torso.rotation.z = -0.48;
         rig.neck.rotation.z = -0.28;
         rig.headGroup.rotation.z = -0.18;
         rig.jaw.rotation.z = -0.35;
+        if (rig.arms && rig.arms.length >= 2) {
+            // Bras étendus vers l'avant en ruée aérodynamique
+            rig.arms[0].rotation.z = -1.25;
+            rig.arms[1].rotation.z = -1.25;
+            rig.arms[0].rotation.y = 0.28;
+            rig.arms[1].rotation.y = -0.28;
+        }
+        if (rig.specialParts) {
+            if (rig.specialParts.leftWing) rig.specialParts.leftWing.rotation.x = -1.4;
+            if (rig.specialParts.rightWing) rig.specialParts.rightWing.rotation.x = 1.4;
+        }
         if (rig.legs) {
             if (rig.legs[0]) rig.legs[0].rotation.z = 1.05 * Math.sin(time * 28);
             if (rig.legs[1]) rig.legs[1].rotation.z = -1.05 * Math.sin(time * 28);
@@ -485,7 +536,7 @@ function animateDino3DRig(fighter, time, dt) {
         act === 'up_light' || act === 'low_heavy' || act === 'back_light' ||
         act === 'throw' || act === 'throw_whiff';
 
-    if (fighter.y > 0.05 && !isAttackAction) {
+    if (fighter.y > 0.05 && !isAttackAction && !fighter.isFlying) {
         const isRising = fighter.vy > 0;
         rig.hips.position.y = baseHipsY + 0.18;
         rig.torso.rotation.z = isRising ? 0.24 : -0.26;
@@ -515,12 +566,30 @@ function animateDino3DRig(fighter, time, dt) {
     }
     const swing = Math.max(0, strike);
 
-    // Contexte enrichi transmis aux combattants
-    const animCtx = { fighter, rig, id, act, prog, strike, swing, anticipate, baseHipsY, time, dt };
+    if (fighter._walkAnimTime === undefined) {
+        fighter._walkAnimTime = time;
+    }
+    const isWalk = act === 'walk';
+    // Détection du recul : le déplacement effectif est opposé à l'orientation du combattant
+    const isMovingBackward = isWalk && (fighter.vx * fighter.facing < -0.05);
 
-    // --- 1. ANIMATIONS D'ATTENTE (IDLE), MARCHE (WALK), COURSE (RUN) & SPRINT ---
-    if (act === 'idle' || act === 'walk' || act === 'crouch') {
-        const isWalk = act === 'walk';
+    if (isWalk) {
+        const safeDt = Math.min(0.05, Math.max(0, dt || 0.016));
+        const walkSpeedRef = (fighter.dino && fighter.dino.walkSpeed) || 7.5;
+        const speedScale = Math.max(0.45, Math.min(1.8, Math.abs(fighter.vx) / walkSpeedRef));
+        const dirSign = isMovingBackward ? -1 : 1;
+        fighter._walkAnimTime += safeDt * speedScale * dirSign;
+    } else {
+        fighter._walkAnimTime = time;
+    }
+
+    const animTime = isWalk ? fighter._walkAnimTime : time;
+
+    // Contexte enrichi transmis aux combattants
+    const animCtx = { fighter, rig, id, act, prog, strike, swing, anticipate, baseHipsY, time: animTime, dt, isWalk, isMovingBackward };
+
+    // --- 1. ANIMATIONS D'ATTENTE (IDLE), MARCHE (WALK), VOL (FLY), SAUT (JUMP) & SPRINT ---
+    if (act === 'idle' || act === 'walk' || act === 'crouch' || act === 'fly' || (fighter && fighter.isFlying) || (act === 'jump' && fighter && fighter.isFlying)) {
         animCtx.isWalk = isWalk;
         if (fighter.animationController) {
             if (!isWalk && act === 'idle') {
@@ -531,7 +600,7 @@ function animateDino3DRig(fighter, time, dt) {
                 } else if (fighter.sprintDuration > 0.18) {
                     fighter.playRun(0.12);
                 } else {
-                    fighter.playWalk(0.15);
+                    fighter.playWalk(0.15, isMovingBackward ? -1.0 : 1.0);
                 }
             }
         }
@@ -543,6 +612,10 @@ function animateDino3DRig(fighter, time, dt) {
             rig.torso.rotation.z -= 0.18 * sprintBoost;
             rig.neck.rotation.z -= 0.14 * sprintBoost;
             rig.headGroup.rotation.z += 0.16 * sprintBoost;
+        } else if (isWalk && isMovingBackward) {
+            // En recul : posture défensive / alerte plus redressée
+            rig.torso.rotation.z += 0.08;
+            rig.neck.rotation.z += 0.05;
         }
 
         if (act === 'crouch') {
