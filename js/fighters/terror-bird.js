@@ -164,32 +164,60 @@ registerFighter({
         // =====================================================================
         [-1, 1].forEach(side => {
             const leg = new THREE.Group();
-            leg.position.set(-0.05, 0, side * 0.36);
+            leg.position.set(-0.04, 0, side * 0.35);
             hips.add(leg);
             rig.legs.push(leg);
 
-            const H = [0, 0, 0];
-            const K = [0.22, -0.78, 0];               // genou emplumé
-            const A = [-0.18, -1.48, 0];              // cheville / talon haut
-            const F = [0.14, -2.18, 0];               // base des orteils
+            const H = [0, 0, 0];                      // hanche
+            const K = [0.26, -0.54, 0];               // genou avancé sous le plumage
+            const M = [0.02, -0.96, 0];               // bas du pilon emplumé (tibiotarse)
+            const A = [-0.20, -1.34, 0];              // cheville / talon haut (articulation intertarsienne)
+            const F = [0.14, -2.16, 0];               // base des orteils (métatarse distal)
 
-            // Cuisse / pilon emplumé
-            blob(leg, [0.08, -0.38, 0], [0.32, 0.46, 0.26], bodyMat, 0.22);
-            blob(leg, [0.02, -0.82, 0], [0.20, 0.32, 0.18], darkMat, -0.38);
-            // Long tarsométatarse écaillé
-            joint(leg, A, 0.10, tarsusMat);
-            bone(leg, A, F, 0.09, 0.075, tarsusMat, 8);
+            // Cuisse (fémur) et haut du pilon emplumé
+            bone(leg, H, K, 0.28, 0.23, bodyMat, 10);
+            blob(leg, [0.10, -0.28, 0], [0.34, 0.42, 0.26], bodyMat, 0.35);
+            joint(leg, K, 0.22, bodyMat);
+
+            // Pilon musculaire (tibiotarse supérieur emplumé + manchon sombre)
+            bone(leg, K, M, 0.22, 0.14, darkMat, 10);
+            blob(leg, [0.13, -0.74, 0], [0.22, 0.30, 0.19], darkMat, -0.52);
+            joint(leg, M, 0.135, darkMat);
+
+            // Bas du tibiotarse écaillé rejoignant le talon haut (A)
+            bone(leg, M, A, 0.12, 0.095, tarsusMat, 8);
+            joint(leg, A, 0.105, tarsusMat);
+
+            // Long tarsométatarse écaillé incliné vers l'avant (A -> F)
+            bone(leg, A, F, 0.092, 0.076, tarsusMat, 8);
+            // Écailles scutellées sur la face antérieure du tarsométatarse
+            for (let s = 1; s <= 5; s++) {
+                const t = s / 6;
+                const sx = A[0] + (F[0] - A[0]) * t + 0.05;
+                const sy = A[1] + (F[1] - A[1]) * t;
+                blob(leg, [sx, sy, 0], [0.045, 0.035, 0.075], tarsusMat, 0.36);
+            }
+
+            // Ergot / hallux postérieur court au-dessus du pied
+            const halluxBase = [0.06, -1.96, 0];
+            const halluxTip = [-0.10, -2.06, 0];
+            bone(leg, halluxBase, halluxTip, 0.035, 0.024, tarsusMat, 5);
+            addMesh(new THREE.ConeGeometry(0.024, 0.10, 5), beakTipMat, leg, -0.14, -2.09, 0, 0, 0, Math.PI / 2 + 0.35);
 
             // 3 orteils puissants de rapace coureur (doigt interne armé d'une grande griffe courbe)
-            joint(leg, F, 0.08, tarsusMat);
-            [-0.11, 0, 0.11].forEach((dz, idx) => {
+            joint(leg, F, 0.088, tarsusMat);
+            [-0.12, 0, 0.12].forEach((dz, idx) => {
                 const isInner = (side < 0 && idx === 2) || (side > 0 && idx === 0);
-                const lenToe = idx === 1 ? 0.36 : 0.28;
-                const tip = [F[0] + lenToe, -2.22, dz];
-                bone(leg, F, tip, 0.045, 0.032, tarsusMat, 5);
-                addMesh(new THREE.ConeGeometry(isInner ? 0.038 : 0.028, isInner ? 0.18 : 0.13, 6),
-                    beakTipMat, leg, tip[0] + 0.06, tip[1] + (isInner ? 0.02 : 0), dz,
-                    0, 0, -Math.PI / 2 - (isInner ? 0.45 : 0.2));
+                const lenToe = idx === 1 ? 0.38 : 0.30;
+                const mid = [F[0] + lenToe * 0.5, -2.19, dz * 0.85];
+                const tip = [F[0] + lenToe, -2.21, dz * 1.15];
+                bone(leg, F, mid, 0.052, 0.042, tarsusMat, 6);
+                joint(leg, mid, 0.042, tarsusMat);
+                bone(leg, mid, tip, 0.040, 0.030, tarsusMat, 6);
+                joint(leg, tip, 0.030, tarsusMat);
+                addMesh(new THREE.ConeGeometry(isInner ? 0.042 : 0.032, isInner ? 0.20 : 0.14, 6),
+                    beakTipMat, leg, tip[0] + 0.07, tip[1] + (isInner ? 0.03 : 0.01), dz * 1.15,
+                    0, 0, -Math.PI / 2 - (isInner ? 0.45 : 0.22));
             });
         });
     },
