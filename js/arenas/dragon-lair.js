@@ -18,40 +18,6 @@ registerArena({
         return calderaPit + obsidianDais + cragRipples;
     },
 
-    // Surfaces praticables : Autels d'Obsidienne Draconique & Couronne de Magma
-    platforms: [
-        {
-            id: 'dragon_altar_left',
-            label: "🐲 Autel d'Obsidienne Ouest",
-            style: 'rock',
-            xMin: -9.2,
-            xMax: -3.8,
-            y: 2.50,
-            archHeight: 0.14,
-            slope: -0.15
-        },
-        {
-            id: 'dragon_altar_right',
-            label: "🐲 Autel d'Obsidienne Est",
-            style: 'rock',
-            xMin: 3.8,
-            xMax: 9.2,
-            y: 2.50,
-            archHeight: 0.14,
-            slope: 0.15
-        },
-        {
-            id: 'dragon_crown_center',
-            label: "🔥 Trône Suspendu de Drak'Zul",
-            style: 'rock',
-            xMin: -2.6,
-            xMax: 2.6,
-            y: 4.30,
-            archHeight: 0.18,
-            slope: 0
-        }
-    ],
-
     // Éléments de décor 3D dynamiques (ajoutés à arenaGroup)
     buildDecor(group, scene) {
         const targetGroup = group || arenaGroup;

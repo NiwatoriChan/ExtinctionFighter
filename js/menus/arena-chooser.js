@@ -230,78 +230,78 @@ const ARENA_DESCRIPTIONS = {
     volcano: {
         title: "CRATÈRE DU CHICXULUB",
         enTitle: "VOLCANIC CRATER",
-        sub: "Dôme de Magma • Corniches Basaltiques",
-        desc: "Fight across a buckled volcanic crater dome and molten lava troughs. Leap onto jagged basalt ledges and the central Chicxulub meteor slab for high-ground dominance.",
+        sub: "Dôme de Magma • Failles Escarpées",
+        desc: "Fight across a buckled volcanic crater floor with a raised central magma dome, rolling troughs, and treacherous brimstone edges.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
-            { icon: "🌋", name: "Lava Troughs" },
-            { icon: "🪨", name: "Basalt Ledges" }
+            { icon: "🌋", name: "Magma Dome" },
+            { icon: "☄️", name: "Lava Troughs" }
         ]
     },
     boneyard: {
         title: "CITADELLE CÉLESTE D'OS",
         enTitle: "SKELETON CANYON",
-        sub: "Tertres Fossiles • Ponts de Vertèbres",
-        desc: "Sacred burial mounds of prehistoric titans. Climb across colossal sauropod rib bridges and the suspended celestial skull altar above the bone pit.",
+        sub: "Tertres Fossiles • Dunes d'Os",
+        desc: "Sacred burial mounds of prehistoric titans. Undulating fossil dunes and ribbed bone ridges shape an uneven, atmospheric battlefield.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
-            { icon: "🦴", name: "Bone Bridges" },
-            { icon: "💀", name: "Skull Altar" }
+            { icon: "🦴", name: "Bone Ridges" },
+            { icon: "🌌", name: "Sacred Mounds" }
         ]
     },
     swamp: {
         title: "ABYSSE FONGIQUE TOXIQUE",
         enTitle: "PRIMEVAL SWAMP",
-        sub: "Bassin Palustre • Champignons Géants",
-        desc: "Wade through sunken mire basins and gnarled root hummocks, or bound across giant bioluminescent mushroom caps that boost your jump height.",
+        sub: "Bassin Palustre • Buttes Racines",
+        desc: "Wade through sunken mire hollows and rise onto gnarled cypress root mounds under suffocating mists and bubbling acid pools.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
-            { icon: "🍄", name: "Bouncy Shrooms" },
+            { icon: "🍄", name: "Root Hummocks" },
             { icon: "🧪", name: "Sunken Mire" }
         ]
     },
     storm: {
         title: "CANYON DE L'ORAGE PRIMORDIAL",
         enTitle: "TEMPEST CANYON",
-        sub: "Gradins Tectoniques • Arche Foudroyée",
-        desc: "Tilted tectonic basalt steps rise from west to east under diluvian lightning. Battle across elevated stone terraces and the high storm spire arch.",
+        sub: "Gradins Tectoniques • Basalte Incliné",
+        desc: "Tilted tectonic basalt steps rise from west to east under diluvian lightning, creating stepped inclines and slope advantages.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
             { icon: "⚡", name: "Lightning Strike" },
-            { icon: "⛰️", name: "Tectonic Steps" }
+            { icon: "⛰️", name: "Tectonic Slopes" }
         ]
     },
     iceage: {
         title: "GLACIER DE L'ÈRE GLACIAIRE",
         enTitle: "GLACIAL HIGHLANDS",
-        sub: "Crevasse Polaire • Corniches de Glace",
-        desc: "Snowdrifts flank a central frozen crevasse. Scale the mammoth-tusk ice shelves and the high crystal glacier arch above the blizzard.",
+        sub: "Crevasse Centrale • Congères Sculptées",
+        desc: "Blizzard-carved snowdrifts flank a sunken central frozen crevasse, challenging footwork across rolling permafrost banks.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
-            { icon: "❄️", name: "Ice Shelves" },
+            { icon: "❄️", name: "Snowdrifts" },
             { icon: "🏔️", name: "Glacial Crevasse" }
         ]
     },
     dragonlair: {
         title: "L'ANTRE DE DRAK'ZUL",
         enTitle: "DRAGON'S LAIR",
-        sub: "Fosse de Caldera • Autels d'Obsidienne",
-        desc: "A sunken caldera pit flanked by stepped obsidian approaches. Ascend the twin obsidian altars and the suspended golden throne of Drak'zul.",
+        sub: "Fosse de Caldera • Marches d'Obsidienne",
+        desc: "A sunken volcanic caldera pit flanked by elevated obsidian slopes, bathed in the magma glow of Drak'zul's lair.",
         suitability: "CHAMPIONS ONLY",
         hazards: [
-            { icon: "🐲", name: "Obsidian Altars" },
-            { icon: "🔥", name: "Caldera Pit" }
+            { icon: "🐲", name: "Caldera Pit" },
+            { icon: "🔥", name: "Obsidian Slopes" }
         ]
     },
     jungle: {
         title: "VALLÉE D'ÉMERAUDE",
         enTitle: "EMERALD JUNGLE",
-        sub: "Vallon Fluvial • Arbres Perchoirs",
-        desc: "Mossy root mounds slope into a shallow emerald riverbed. Leap onto ancient Araucaria tree branches and fight high in the central canopy bough!",
+        sub: "Vallon Fluvial • Berges Ondulées",
+        desc: "Mossy root mounds and ancient Jurassic riverbanks slope down into a shallow winding riverbed under towering Araucarias.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
-            { icon: "🌿", name: "Walkable Trees" },
-            { icon: "🦕", name: "Riverbed & Roots" }
+            { icon: "🌿", name: "Riverbed Slopes" },
+            { icon: "🦕", name: "Mossy Banks" }
         ]
     }
 };

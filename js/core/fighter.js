@@ -75,8 +75,6 @@ class Fighter3D extends AnimalPrototype {
         const initGroundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, this.x, 0) : 0;
         this.groundY = initGroundY;
         this.y = initGroundY;
-        this.onPlatform = null;
-        this.dropThroughTimer = 0;
         this.vx = 0;
         this.vy = 0;
         this.facing = this.isP1 ? 1 : -1;
