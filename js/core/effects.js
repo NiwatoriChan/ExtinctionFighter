@@ -97,9 +97,12 @@ function spawn3DBloodAndBones(x, y, count = 16, includeBones = false) {
 }
 
 // --- ONDE DE CHOC 3D AU SOL (BALAYAGES LOURDS, SÉISMES, CHUTES KNOCKDOWN) ---
-function spawn3DGroundShockwave(x, colorHex = 0xf59e0b, maxScale = 3.2, includeDebris = true) {
+function spawn3DGroundShockwave(x, colorHex = 0xf59e0b, maxScale = 3.2, includeDebris = true, surfaceY = null) {
     if (typeof fxGroup === 'undefined' || !fxGroup) return;
     const cache = getFxCache();
+    const baseGroundY = (surfaceY !== null && surfaceY !== undefined)
+        ? surfaceY
+        : (typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, x, 0) : 0);
 
     const ringMat = new THREE.MeshBasicMaterial({
         color: colorHex,
@@ -107,7 +110,7 @@ function spawn3DGroundShockwave(x, colorHex = 0xf59e0b, maxScale = 3.2, includeD
         opacity: 0.88
     });
     const ringMesh = new THREE.Mesh(cache.geo.shockwaveRing, ringMat);
-    ringMesh.position.set(x, 0.14, 0);
+    ringMesh.position.set(x, baseGroundY + 0.14, 0);
     ringMesh.rotation.x = Math.PI / 2;
     fxGroup.add(ringMesh);
 
@@ -134,7 +137,7 @@ function spawn3DGroundShockwave(x, colorHex = 0xf59e0b, maxScale = 3.2, includeD
         for (let i = 0; i < debrisCount; i++) {
             const rock = new THREE.Mesh(cache.geo.rock, i % 2 === 0 ? cache.mat.rockGrey : cache.mat.rockAmber);
             const ang = (i / debrisCount) * Math.PI * 2;
-            rock.position.set(x + Math.cos(ang) * 0.8, 0.2, Math.sin(ang) * 0.8);
+            rock.position.set(x + Math.cos(ang) * 0.8, baseGroundY + 0.2, Math.sin(ang) * 0.8);
             fxGroup.add(rock);
             pushParticle3D({
                 mesh: rock,
@@ -260,7 +263,7 @@ function spawn3DAttackEffect(attacker, moveType) {
         });
 
         if (isLauncher) {
-            spawn3DGroundShockwave(attacker.x + dir * 0.9, 0x38bdf8, 2.2, false);
+            spawn3DGroundShockwave(attacker.x + dir * 0.9, 0x38bdf8, 2.2, false, attacker.groundY ?? attacker.y);
         }
         return;
     }
@@ -274,7 +277,7 @@ function spawn3DAttackEffect(attacker, moveType) {
             opacity: 0.88
         });
         const sweepMesh = new THREE.Mesh(isHeavyLow ? cache.geo.sweepHeavyLow : cache.geo.sweepLow, sweepMat);
-        sweepMesh.position.set(attacker.x + dir * 1.25, 0.38, 0);
+        sweepMesh.position.set(attacker.x + dir * 1.25, (attacker.y || 0) + 0.38, 0);
         sweepMesh.rotation.x = Math.PI / 2;
         sweepMesh.rotation.z = dir === 1 ? -Math.PI * 0.45 : Math.PI * 0.55;
         fxGroup.add(sweepMesh);
@@ -297,7 +300,7 @@ function spawn3DAttackEffect(attacker, moveType) {
             }
         });
 
-        spawn3DGroundShockwave(attacker.x + dir * 1.5, isHeavyLow ? 0xf59e0b : 0x10b981, isHeavyLow ? 2.8 : 1.6, isHeavyLow);
+        spawn3DGroundShockwave(attacker.x + dir * 1.5, isHeavyLow ? 0xf59e0b : 0x10b981, isHeavyLow ? 2.8 : 1.6, isHeavyLow, attacker.groundY ?? attacker.y);
         return;
     }
 
@@ -559,7 +562,7 @@ function spawn3DProjectile(owner, kind) {
         });
     }
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(owner.x + dir * 2.1, 2.0, 0);
+    mesh.position.set(owner.x + dir * 2.1, (owner.y || 0) + 2.0, 0);
     if (kind === 'sonic') mesh.rotation.y = Math.PI / 2;
     fxGroup.add(mesh);
 

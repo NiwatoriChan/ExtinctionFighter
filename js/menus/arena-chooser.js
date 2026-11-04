@@ -230,67 +230,78 @@ const ARENA_DESCRIPTIONS = {
     volcano: {
         title: "CRATÈRE DU CHICXULUB",
         enTitle: "VOLCANIC CRATER",
-        sub: "Cratère Volcanique • Terre d'Extinction",
-        desc: "Fight on the edge of extinction. Molten lava hazards will damage any beast pushed into the vents. High intensity.",
+        sub: "Dôme de Magma • Corniches Basaltiques",
+        desc: "Fight across a buckled volcanic crater dome and molten lava troughs. Leap onto jagged basalt ledges and the central Chicxulub meteor slab for high-ground dominance.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
-            { icon: "🌋", name: "Lava Hazard" },
-            { icon: "☄️", name: "Falling Debris" }
+            { icon: "🌋", name: "Lava Troughs" },
+            { icon: "🪨", name: "Basalt Ledges" }
         ]
     },
     boneyard: {
         title: "CITADELLE CÉLESTE D'OS",
         enTitle: "SKELETON CANYON",
-        sub: "Cimetière Sacré des Titans Primordiaux",
-        desc: "Sacred burial ground of prehistoric titans. Colossal rib arches and cosmic rune stones channel ancient celestial energies.",
+        sub: "Tertres Fossiles • Ponts de Vertèbres",
+        desc: "Sacred burial mounds of prehistoric titans. Climb across colossal sauropod rib bridges and the suspended celestial skull altar above the bone pit.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
-            { icon: "🦴", name: "Bone Spires" },
-            { icon: "🌌", name: "Astral Runes" }
+            { icon: "🦴", name: "Bone Bridges" },
+            { icon: "💀", name: "Skull Altar" }
         ]
     },
     swamp: {
         title: "ABYSSE FONGIQUE TOXIQUE",
         enTitle: "PRIMEVAL SWAMP",
-        sub: "Marais Toxique • Marais Palustre",
-        desc: "Suffocating toxic mists and bubbling acid waters. Explosive spore pockets and deep mire threaten any unwary predator.",
+        sub: "Bassin Palustre • Champignons Géants",
+        desc: "Wade through sunken mire basins and gnarled root hummocks, or bound across giant bioluminescent mushroom caps that boost your jump height.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
-            { icon: "🍄", name: "Toxic Spores" },
-            { icon: "🧪", name: "Acid Pools" }
+            { icon: "🍄", name: "Bouncy Shrooms" },
+            { icon: "🧪", name: "Sunken Mire" }
         ]
     },
     storm: {
         title: "CANYON DE L'ORAGE PRIMORDIAL",
         enTitle: "TEMPEST CANYON",
-        sub: "Plateau de Basalte • Foudre Diluvienne",
-        desc: "The eternal storm roars across sheer basalt columns. Violent lightning bolts crash into the plateau, electrifying the arena.",
+        sub: "Gradins Tectoniques • Arche Foudroyée",
+        desc: "Tilted tectonic basalt steps rise from west to east under diluvian lightning. Battle across elevated stone terraces and the high storm spire arch.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
             { icon: "⚡", name: "Lightning Strike" },
-            { icon: "💨", name: "Gale Storm" }
+            { icon: "⛰️", name: "Tectonic Steps" }
         ]
     },
     iceage: {
         title: "GLACIER DE L'ÈRE GLACIAIRE",
         enTitle: "GLACIAL HIGHLANDS",
-        sub: "Banquise Polaire • Froid Polaire",
-        desc: "A merciless land of frost where freezing temperatures numb beast reflexes. Deep crevasses and blinding blizzards forgive no mistakes.",
+        sub: "Crevasse Polaire • Corniches de Glace",
+        desc: "Snowdrifts flank a central frozen crevasse. Scale the mammoth-tusk ice shelves and the high crystal glacier arch above the blizzard.",
         suitability: "SUITABLE FOR ALL CLASSES",
         hazards: [
-            { icon: "❄️", name: "Permafrost Slip" },
-            { icon: "🌪️", name: "Blizzard Blast" }
+            { icon: "❄️", name: "Ice Shelves" },
+            { icon: "🏔️", name: "Glacial Crevasse" }
         ]
     },
     dragonlair: {
         title: "L'ANTRE DE DRAK'ZUL",
         enTitle: "DRAGON'S LAIR",
-        sub: "Caldera Souterraine • Sanctuaire du Boss",
-        desc: "The sealed subterranean caldera of the Extinction Dragon. Obsidian spires bathed in gold magma and Drak'zul's searing fire.",
+        sub: "Fosse de Caldera • Autels d'Obsidienne",
+        desc: "A sunken caldera pit flanked by stepped obsidian approaches. Ascend the twin obsidian altars and the suspended golden throne of Drak'zul.",
         suitability: "CHAMPIONS ONLY",
         hazards: [
-            { icon: "🐲", name: "Dragon Breath" },
-            { icon: "🔥", name: "Molten Core" }
+            { icon: "🐲", name: "Obsidian Altars" },
+            { icon: "🔥", name: "Caldera Pit" }
+        ]
+    },
+    jungle: {
+        title: "VALLÉE D'ÉMERAUDE",
+        enTitle: "EMERALD JUNGLE",
+        sub: "Vallon Fluvial • Arbres Perchoirs",
+        desc: "Mossy root mounds slope into a shallow emerald riverbed. Leap onto ancient Araucaria tree branches and fight high in the central canopy bough!",
+        suitability: "SUITABLE FOR ALL CLASSES",
+        hazards: [
+            { icon: "🌿", name: "Walkable Trees" },
+            { icon: "🦕", name: "Riverbed & Roots" }
         ]
     }
 };
@@ -399,6 +410,69 @@ function getArenaCardArtwork(arenaId) {
                 <polygon points="20,260 80,120 140,260" fill="#e0f2fe" opacity="0.9"/>
                 <polygon points="110,260 170,140 230,260" fill="#f0f9ff" opacity="0.95"/>
                 <rect y="250" width="240" height="70" fill="#075985"/>
+            </svg>
+        `;
+    } else if (arenaId === 'jungle') {
+        return `
+            <svg viewBox="0 0 240 320" preserveAspectRatio="xMidYMid slice" class="w-full h-full">
+                <defs>
+                    <linearGradient id="jungleSky" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#051c14"/>
+                        <stop offset="40%" stop-color="#0a3324"/>
+                        <stop offset="75%" stop-color="#14532d"/>
+                        <stop offset="100%" stop-color="#166534"/>
+                    </linearGradient>
+                    <radialGradient id="jungleMist" cx="50%" cy="60%" r="60%">
+                        <stop offset="0%" stop-color="#4ade80" stop-opacity="0.35"/>
+                        <stop offset="50%" stop-color="#10b981" stop-opacity="0.15"/>
+                        <stop offset="100%" stop-color="#022c22" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+                <rect width="240" height="320" fill="url(#jungleSky)"/>
+                <!-- Distant volcanic mountain silhouette -->
+                <polygon points="-20,240 40,110 110,240" fill="#072017" opacity="0.85"/>
+                <polygon points="80,240 160,85 240,240" fill="#051912" opacity="0.9"/>
+                <!-- Atmospheric glow -->
+                <rect y="90" width="240" height="230" fill="url(#jungleMist)"/>
+                <!-- Winding Prehistoric River -->
+                <path d="M-10 240 Q60 215 120 238 Q180 260 250 245 L250 320 L-10 320 Z" fill="#052e16"/>
+                <path d="M-10 260 Q70 235 130 258 Q190 280 250 265" fill="none" stroke="#10b981" stroke-width="12" opacity="0.75" filter="blur(3px)"/>
+                <path d="M-10 260 Q70 235 130 258 Q190 280 250 265" fill="none" stroke="#6ee7b7" stroke-width="4" opacity="0.9"/>
+                <!-- Araucaria Conifer Silhouettes -->
+                <path d="M25 280 L28 120 L31 280 Z" fill="#03180f"/>
+                <ellipse cx="28" cy="120" rx="16" ry="6" fill="#03180f"/>
+                <ellipse cx="28" cy="138" rx="22" ry="7" fill="#03180f"/>
+                <ellipse cx="28" cy="158" rx="28" ry="8" fill="#03180f"/>
+                <path d="M210 290 L213 140 L216 290 Z" fill="#041f14"/>
+                <ellipse cx="213" cy="140" rx="14" ry="5" fill="#041f14"/>
+                <ellipse cx="213" cy="156" rx="20" ry="6" fill="#041f14"/>
+                <ellipse cx="213" cy="174" rx="24" ry="7" fill="#041f14"/>
+                <!-- Brachiosaurus silhouette with raised neck -->
+                <g transform="translate(105, 175) scale(0.68)">
+                    <!-- Legs -->
+                    <rect x="18" y="55" width="7" height="30" rx="3" fill="#02140c"/>
+                    <rect x="32" y="55" width="7" height="30" rx="3" fill="#02140c"/>
+                    <rect x="52" y="58" width="6" height="27" rx="3" fill="#02140c"/>
+                    <rect x="64" y="58" width="6" height="27" rx="3" fill="#02140c"/>
+                    <!-- Body -->
+                    <ellipse cx="44" cy="54" rx="24" ry="16" fill="#02140c"/>
+                    <!-- Tail -->
+                    <path d="M60 52 Q82 62 98 75 Q80 66 62 58 Z" fill="#02140c"/>
+                    <!-- Neck and Head -->
+                    <path d="M26 50 C22 25 10 5 12 -12 C14 -16 20 -15 20 -11 C18 5 32 25 36 50 Z" fill="#02140c"/>
+                    <ellipse cx="12" cy="-14" rx="5" ry="3.5" fill="#02140c"/>
+                    <circle cx="13" cy="-16" r="2.5" fill="#02140c"/>
+                </g>
+                <!-- Soaring Pterosaurs in sky -->
+                <path d="M70 50 Q85 45 95 40 Q85 52 70 50 Z" fill="#031a10"/>
+                <path d="M95 40 Q105 45 120 50 Q105 52 95 40 Z" fill="#031a10"/>
+                <path d="M140 75 Q152 70 160 66 Q152 76 140 75 Z" fill="#031a10"/>
+                <path d="M160 66 Q168 70 180 75 Q168 76 160 66 Z" fill="#031a10"/>
+                <!-- Bioluminescent Spores / Fireflies -->
+                <circle cx="45" cy="190" r="2" fill="#86efac" filter="drop-shadow(0 0 6px #4ade80)"/>
+                <circle cx="95" cy="225" r="2.5" fill="#fef08a" filter="drop-shadow(0 0 6px #facc15)"/>
+                <circle cx="165" cy="210" r="2" fill="#86efac" filter="drop-shadow(0 0 6px #4ade80)"/>
+                <circle cx="195" cy="245" r="1.5" fill="#6ee7b7" filter="drop-shadow(0 0 4px #34d399)"/>
             </svg>
         `;
     } else {

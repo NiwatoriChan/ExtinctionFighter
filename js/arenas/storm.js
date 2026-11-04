@@ -9,6 +9,13 @@ registerArena({
     floorColor: 0x18181b,
     accentColor: 0x38bdf8,
 
+    // Relief tectonique en terrasses de basalte inclinées
+    getGroundHeight(x, z = 0) {
+        const tectonicTilt = Math.sin(x * 0.32) * 0.42;
+        const basaltSteps = Math.tanh(Math.sin(x * 0.85) * 2.5) * 0.22;
+        return tectonicTilt + basaltSteps + 0.15;
+    },
+
     // Éléments de décor 3D dynamiques (ajoutés à arenaGroup)
     buildDecor(group, scene) {
         const targetGroup = group || arenaGroup;

@@ -100,6 +100,41 @@ class SoundEngine {
         osc.stop(now + duration);
         lfo.stop(now + duration);
     }
+    playSauropodCall() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const freqs = [95, 190, 285];
+        freqs.forEach((f, idx) => {
+            const osc = this.ctx.createOscillator();
+            const filter = this.ctx.createBiquadFilter();
+            const gain = this.ctx.createGain();
+
+            osc.type = idx === 0 ? 'sawtooth' : 'triangle';
+            osc.frequency.setValueAtTime(f * 0.88, now);
+            osc.frequency.exponentialRampToValueAtTime(f * 1.28, now + 1.2);
+            osc.frequency.exponentialRampToValueAtTime(f * 0.78, now + 3.4);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(340, now);
+            filter.frequency.linearRampToValueAtTime(680, now + 1.3);
+            filter.frequency.linearRampToValueAtTime(220, now + 3.4);
+
+            const amp = idx === 0 ? 0.22 : 0.12 / idx;
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(amp, now + 0.8);
+            gain.gain.setValueAtTime(amp, now + 1.8);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.6);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now);
+            osc.stop(now + 3.7);
+        });
+    }
     playGong() {
         if (!this.enabled) return;
         this.init();

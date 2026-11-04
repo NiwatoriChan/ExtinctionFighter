@@ -65,9 +65,18 @@ class Fighter3D extends AnimalPrototype {
         }
     }
 
+    isAirborne(threshold = 0.08) {
+        const gY = this.groundY !== undefined ? this.groundY : (typeof getFighterSupportHeight === 'function' ? getFighterSupportHeight(this, currentArena) : 0);
+        return (this.y - gY) > threshold || Boolean(this.isFlying);
+    }
+
     resetForRound() {
         this.x = this.isP1 ? -4.8 : 4.8;
-        this.y = 0;
+        const initGroundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, this.x, 0) : 0;
+        this.groundY = initGroundY;
+        this.y = initGroundY;
+        this.onPlatform = null;
+        this.dropThroughTimer = 0;
         this.vx = 0;
         this.vy = 0;
         this.facing = this.isP1 ? 1 : -1;

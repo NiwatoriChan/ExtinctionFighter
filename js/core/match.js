@@ -492,8 +492,15 @@ function resolveFighterBodyBlocker(f1, f2) {
 
     const minSep = (f1.bodyRadius || 1.32) + (f2.bodyRadius || 1.32);
 
-    // Autoriser le franchissement aérien (Cross-Up) en cas de saut haut ou de vol au-dessus du crâne adverse
-    const isHighAirCross = (f1.isFlying || f2.isFlying || Math.max(f1.y, f2.y) >= 2.85) && Math.abs(f1.y - f2.y) >= 1.60;
+    // Autoriser le franchissement aérien (Cross-Up) ou lorsque l'un des combattants est sur une branche/plateforme en hauteur
+    const f1Air = f1.y - (f1.groundY || 0);
+    const f2Air = f2.y - (f2.groundY || 0);
+    const isHighAirCross = (
+        f1.isFlying ||
+        f2.isFlying ||
+        Math.abs(f1.y - f2.y) >= 1.48 ||
+        (Math.max(f1Air, f2Air) >= 2.2 && Math.abs(f1.y - f2.y) >= 1.35)
+    );
 
     if (f1._lockedSide === undefined) {
         f1._lockedSide = f1.x <= f2.x ? -1 : 1;
@@ -588,15 +595,17 @@ function updateBattle3D(dt, nowSec) {
         xrayCinematicTimer -= dt;
         // Tant que la cinématique X-Ray est active, figer les positions des 2 combattants
         if (xrayLockPositions) {
-            const { attacker, defender, attX, defX, attFacing, defFacing } = xrayLockPositions;
+            const { attacker, defender, attX, defX, attY, defY, attFacing, defFacing } = xrayLockPositions;
             attacker.x = attX;
-            attacker.y = 0;
+            attacker.y = attY !== undefined ? attY : 0;
+            attacker.groundY = attacker.y;
             attacker.vx = 0;
             attacker.vy = 0;
             attacker.facing = attFacing;
 
             defender.x = defX;
-            defender.y = 0;
+            defender.y = defY !== undefined ? defY : 0;
+            defender.groundY = defender.y;
             defender.vx = 0;
             defender.vy = 0;
             defender.facing = defFacing;
@@ -666,7 +675,7 @@ function updateBattle3D(dt, nowSec) {
 
     // Verrouiller l'ordre gauche/droite initial avant les déplacements d'inputs et d'IA
     if (fighter1 && fighter2 && !xrayLockPositions && matchState !== 'fatality_anim') {
-        const isHighAir = Math.max(fighter1.y, fighter2.y) >= 2.85 && Math.abs(fighter1.y - fighter2.y) >= 2.20;
+        const isHighAir = Math.abs(fighter1.y - fighter2.y) >= 1.48;
         if (!isHighAir && fighter1._lockedSide === undefined) {
             fighter1._lockedSide = fighter1.x <= fighter2.x ? -1 : 1;
         }
@@ -703,7 +712,7 @@ function updateBattle3D(dt, nowSec) {
                 f.bleedTickTimer = 0;
                 const bleedDmg = Math.max(1, Math.round(f.bleedStacks * (f.maxHp * 0.012)));
                 f.hp = Math.max(1, f.hp - bleedDmg);
-                spawn3DBloodAndBones(f.x, 1.8, 6, false);
+                spawn3DBloodAndBones(f.x, f.y + 1.8, 6, false);
                 spawnFloatingPopup(f.x, `🩸 -${bleedDmg}`, '#dc2626');
                 updateBattleHUD();
             }
@@ -745,6 +754,7 @@ function updateBattle3D(dt, nowSec) {
         // Si les positions sont verrouillées par le X-Ray, on ne déplace pas les combattants
         if (xrayLockPositions) {
             f.rig.root.position.set(f.x, f.y, 0);
+            f.rig.root.rotation.z = 0;
             const targetRotY = f.facing === 1 ? 0 : Math.PI;
             f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * 0.35;
             animateDino3DRig(f, nowSec, dt);
@@ -765,23 +775,11 @@ function updateBattle3D(dt, nowSec) {
             }
         }
 
+        const wasGroundedOnFloor = !f.isFlying && f.vy <= 0.05 && (f.y - (f.groundY || 0)) <= 0.09;
+
         f.x += f.vx * dt;
         f.y += f.vy * dt;
         f.vx *= f.dashTimer > 0 ? 0.94 : 0.82;
-
-        // Gravité personnalisée par classe de poids (Heavy, Brawler, Speed) ou Vol Actif
-        if (f.isFlying) {
-            if (f.y > 6.2) {
-                f.y = 6.2;
-                if (f.vy > 0) f.vy = 0;
-            }
-        } else if (f.y > 0) {
-            f.vy -= 26 * (f.gravityScale || 1.0) * dt;
-        } else {
-            f.y = 0;
-            f.vy = 0;
-            if (f.isFlying) f.isFlying = false;
-        }
 
         // Rebond mural dynamique (Wall Splat) en bordure d'arène
         const wallBound = STAGE_RIGHT_3D - 0.25;
@@ -791,11 +789,41 @@ function updateBattle3D(dt, nowSec) {
             screenShake = 0.48;
             sfx.playBoneCrack();
             spawnFloatingPopup(f.x, '💥 REBOND MURAL !', '#ef4444');
-            spawn3DBloodAndBones(f.x, 2.0, 16, true);
+            spawn3DBloodAndBones(f.x, f.y + 2.0, 16, true);
         }
 
         f.x = Math.max(STAGE_LEFT_3D, Math.min(STAGE_RIGHT_3D, f.x));
         resolveFighterBodyBlocker(fighter1, fighter2);
+
+        const floorY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, f.x, 0) : 0;
+
+        // Gravité et suivi du relief topographique 3D au sol
+        f.groundY = floorY;
+        if (f.isFlying) {
+            const maxFlightY = floorY + 6.4;
+            if (f.y > maxFlightY) {
+                f.y = maxFlightY;
+                if (f.vy > 0) f.vy = 0;
+            }
+            if (f.y <= floorY) {
+                f.y = floorY;
+                f.vy = 0;
+                f.isFlying = false;
+            }
+        } else if (wasGroundedOnFloor && f.vy <= 0) {
+            // Adhérence fluide aux pentes montantes et descendantes du terrain
+            f.y = floorY;
+            f.vy = 0;
+        } else if (f.y > floorY) {
+            f.vy -= 26 * (f.gravityScale || 1.0) * dt;
+            if (f.y <= floorY) {
+                f.y = floorY;
+                f.vy = 0;
+            }
+        } else {
+            f.y = floorY;
+            f.vy = 0;
+        }
 
         if (!f.isDead && f.action !== 'special' && f.action !== 'fatality' && f.dashTimer <= 0) {
             f.facing = f.x <= other.x ? 1 : -1;
@@ -863,16 +891,31 @@ function updateBattle3D(dt, nowSec) {
     // Résolution stricte du bloqueur physique (Body Blocker) AVANT la mise à jour des matrices 3D et animations
     resolveFighterBodyBlocker(fighter1, fighter2);
 
-    // Synchroniser l'orientation, la position 3D et l'animation sur les positions finales garanties sans chevauchement
+    // Synchroniser l'orientation, l'inclinaison sur pente, la position 3D et l'animation
     if (!xrayLockPositions) {
         [fighter1, fighter2].forEach(f => {
             const other = f === fighter1 ? fighter2 : fighter1;
             if (!f.isDead && f.action !== 'special' && f.action !== 'fatality' && f.dashTimer <= 0) {
                 f.facing = f.x <= other.x ? 1 : -1;
             }
+            // Recaler groundY et y si le bloqueur physique a déplacé le personnage au sol / sur plateforme
+            const isGroundedNow = !f.isFlying && f.vy <= 0.05 && (f.y - (f.groundY || 0)) <= 0.09;
+            if (isGroundedNow) {
+                const supportY = typeof getFighterSupportHeight === 'function' ? getFighterSupportHeight(f, currentArena) : 0;
+                f.groundY = supportY;
+                f.y = supportY;
+            }
             f.rig.root.position.set(f.x, f.y, 0);
             const targetRotY = f.facing === 1 ? 0 : Math.PI;
             f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * 0.25;
+
+            // Inclinaison naturelle suivant la pente du sol ou de la branche
+            const slope = (isGroundedNow && typeof getFighterSurfaceSlope === 'function')
+                ? getFighterSurfaceSlope(f, currentArena)
+                : 0;
+            const targetPitchZ = isGroundedNow ? Math.max(-0.26, Math.min(0.26, slope * f.facing * 0.72)) : 0;
+            f.rig.root.rotation.z += (targetPitchZ - f.rig.root.rotation.z) * 0.22;
+
             animateDino3DRig(f, nowSec, dt);
         });
     }
@@ -886,7 +929,7 @@ function updateBattle3D(dt, nowSec) {
         const target = p.owner === fighter1 ? fighter2 : fighter1;
 
         // Renvoi de projectile si l'Ankylosaure tournoie ou possède l'hyper-armure
-        if (target.dino.id === 'ankylosaurus' && (target.action === 'special' || target.hasHyperArmor) && Math.abs(p.mesh.position.x - target.x) < 2.6) {
+        if (target.dino.id === 'ankylosaurus' && (target.action === 'special' || target.hasHyperArmor) && Math.abs(p.mesh.position.x - target.x) < 2.6 && Math.abs(p.mesh.position.y - (target.y + 1.8)) < 2.2) {
             p.owner = target;
             p.vx = -p.vx * 1.35;
             sfx.playBoneCrack();
@@ -895,7 +938,7 @@ function updateBattle3D(dt, nowSec) {
             continue;
         }
 
-        if (Math.abs(p.mesh.position.x - target.x) < 1.55 && Math.abs(target.y) < 2.2 && matchState === 'fight') {
+        if (Math.abs(p.mesh.position.x - target.x) < 1.55 && Math.abs(p.mesh.position.y - (target.y + 1.8)) < 2.1 && matchState === 'fight') {
             applyDamage(p.owner, target, p.damage, true, '🔥 IMPACT SPÉCIAL !');
             fxGroup.remove(p.mesh);
             projectiles3D.splice(i, 1);
@@ -921,8 +964,9 @@ function updateBattle3D(dt, nowSec) {
         }
         if (!pt.noGravity) {
             pt.vy -= 22 * dt;
-            if (pt.mesh.position.y < 0.15) {
-                pt.mesh.position.y = 0.15;
+            const ptFloorY = (typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, pt.mesh.position.x, pt.mesh.position.z) : 0) + 0.15;
+            if (pt.mesh.position.y < ptFloorY) {
+                pt.mesh.position.y = ptFloorY;
                 pt.vx *= 0.6;
                 pt.vy = 0;
             }

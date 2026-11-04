@@ -22,18 +22,20 @@ function resolveAttackVariant(attacker, type) {
         return 'up_light';
     }
 
+    const airHeight = attacker.y - (attacker.groundY || 0);
+
     // 2. DIRECTION BAS (STICK / CROIX VERS LE BAS) ⬇️ : Frappes dirigées vers le BAS (Zone LOW)
     if (isDown) {
-        if (attacker.y > 0.15) return 'air_light';
+        if (airHeight > 0.15) return 'air_light';
         return 'low_light';
     }
 
     // 3. EN VOL AÉRIEN SANS HAUT/BAS (Attaque sautée)
-    if (attacker.y > 0.15) {
+    if (airHeight > 0.15) {
         return 'air_light';
     }
 
-    // 4. NEUTRE OU AVANT AU SOL ⏺️ : Frappe directe au MILIEU (Zone MID)
+    // 4. NEUTRE OU AVANT AU SOL / SUR PLATEFORME ⏺️ : Frappe directe au MILIEU (Zone MID)
     return 'light';
 }
 
@@ -49,9 +51,10 @@ function triggerPlayerAction(attacker, defender, type) {
     }
     if (matchState !== 'fight') return;
 
-    // SAUTER : Action de saut dédiée découplée de la direction Haut
+    // SAUTER
     if (type === 'jump') {
-        if (attacker.y <= 0.01) {
+        const airHeight = attacker.y - (attacker.groundY || 0);
+        if (airHeight <= 0.10) {
             attacker.vy = attacker.jumpVy || 11.8;
             const moveLeft = attacker.isP1
                 ? (keys['KeyA'] || keys['KeyQ'] || (gameMode !== 'pvp' && keys['ArrowLeft']) || touchState.left)
@@ -135,9 +138,13 @@ function executeXRayMove(attacker, defender) {
         // Verrouillage complet des 2 dinosaures face à face pour toute la durée du X-Ray
         const lockDefX = Math.max(STAGE_LEFT_3D + 3.0, Math.min(STAGE_RIGHT_3D - 3.0, defender.x));
         const lockAttX = lockDefX - attacker.facing * 2.25;
+        const attGroundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, lockAttX, 0) : 0;
+        const defGroundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, lockDefX, 0) : 0;
 
         attacker.x = lockAttX;
-        attacker.y = 0;
+        attacker.y = attGroundY;
+        attacker.groundY = attGroundY;
+        attacker.onPlatform = null;
         attacker.vx = 0;
         attacker.vy = 0;
         attacker.isBlocking = false;
@@ -148,7 +155,9 @@ function executeXRayMove(attacker, defender) {
         attacker.isXrayAttacker = true;
 
         defender.x = lockDefX;
-        defender.y = 0;
+        defender.y = defGroundY;
+        defender.groundY = defGroundY;
+        defender.onPlatform = null;
         defender.vx = 0;
         defender.vy = 0;
         defender.isBlocking = false;
@@ -164,6 +173,8 @@ function executeXRayMove(attacker, defender) {
             defender,
             attX: lockAttX,
             defX: lockDefX,
+            attY: attGroundY,
+            defY: defGroundY,
             attFacing: attacker.facing,
             defFacing: -attacker.facing
         };
@@ -309,21 +320,24 @@ function checkAttackCollision3D(attacker, defender) {
     }
 
     const yDiff = Math.abs(attacker.y - defender.y);
+    const defAirH = defender.y - (defender.groundY || 0);
     const inRange = (dist <= reach) || box3Hit;
 
     if (act === 'up_light') {
         // Direction HAUT ⬆️ : Uppercut / Morsure haute ascendante (Zone HIGH)
-        if (inRange && (defender.y > 0.25 || yDiff < 2.9)) {
+        if (inRange && (defAirH > 0.25 || defender.y > attacker.y + 0.35 || yDiff < 2.9)) {
             applyDamage(attacker, defender, Math.round(basePow * 0.52), false, '👆 UPPERCUT HAUT !', false, 'high');
             defender.vy = Math.max(defender.vy, 4.6);
+            defender.onPlatform = null;
         }
         return;
     }
 
     if (act === 'anti_air') {
         // Direction HAUT/ARRIÈRE ⬆️ : Launcher céleste (Zone HIGH)
-        if (inRange && (defender.y > 0.35 || dist < 2.6 || box3Hit)) {
+        if (inRange && (defAirH > 0.35 || defender.y > attacker.y + 0.35 || dist < 2.6 || box3Hit)) {
             applyDamage(attacker, defender, Math.round(basePow * 0.84), true, '🚀 LAUNCHER CÉLESTE !', false, 'antiair');
+            defender.onPlatform = null;
         }
         return;
     }
@@ -384,11 +398,12 @@ function special2SeismicQuake(attacker, defender, dist, basePow) {
         spawn3DGroundShockwave(attacker.x + attacker.facing * 2.0, 0xf59e0b, 4.2, true);
         spawn3DGroundShockwave(defender.x, 0xef4444, 3.0, true);
     }
-    spawn3DBloodAndBones(defender.x, 0.3, 18, true);
+    spawn3DBloodAndBones(defender.x, defender.y + 0.3, 18, true);
     if (dist < 8.5) {
-        // Si l'adversaire saute, il évite l'onde de choc sismique qui se propage au sol
-        if (defender.y > 0.25) {
-            spawnFloatingPopup(defender.x, '🕊️ SÉISME ÉVITÉ EN VOL !', '#38bdf8');
+        const defAirH = defender.y - (defender.groundY || 0);
+        // Si l'adversaire saute ou est en vol, il évite l'onde sismique !
+        if (defAirH > 0.25) {
+            spawnFloatingPopup(defender.x, '🕊️ SÉISME ÉVITÉ EN VOL / SAUT !', '#38bdf8');
         } else {
             // Onde sismique inbloquable au sol : force le saut !
             defender.isBlocking = false;

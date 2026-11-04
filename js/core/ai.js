@@ -8,6 +8,7 @@ function updateAI(ai, target, dt) {
 
     aiDecisionCooldown -= dt;
     const dist = Math.abs(ai.x - target.x);
+    const targetAirHeight = (target.y || 0) - (target.groundY || 0);
     const isBoss = ai.dino && ai.dino.isBoss;
     const aggr = isBoss ? 0.02 : (aiDifficulty === 'brutal' ? 0.08 : (aiDifficulty === 'normal' ? 0.045 : 0.02));
 
@@ -64,7 +65,7 @@ function updateAI(ai, target, dt) {
                 } else {
                     ai.startAttack(Math.random() < 0.5 ? 'up_light' : 'low_light');
                 }
-            } else if (target.y > 0.6 && Math.random() < 0.65) {
+            } else if (targetAirHeight > 0.6 && Math.random() < 0.68) {
                 // Interception céleste d'un adversaire en l'air par une Frappe Haute
                 ai.startAttack('up_light');
             } else {

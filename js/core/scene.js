@@ -195,24 +195,28 @@ function renderBattle3D(now) {
         }
     }
 
-    // Calcul de la caméra dynamique (Zoom X-Ray, Zoom Fatalité ou Orbit utilisateur)
+    // Calcul de la caméra dynamique (Zoom X-Ray, Zoom Fatalité, Relief & Plateformes ou Orbit utilisateur)
     const midX = (fighter1.x + fighter2.x) * 0.5;
+    const midY = ((fighter1.y || 0) + (fighter2.y || 0)) * 0.5;
     const dist = Math.abs(fighter1.x - fighter2.x);
-    let targetDist = Math.max(10.5, Math.min(17.5, dist * 1.15 + 6.5));
-    let targetY = 3.6 + camOrbit.pitch * 8;
+    const vertSpan = Math.abs((fighter1.y || 0) - (fighter2.y || 0));
+    let targetDist = Math.max(10.5, Math.min(18.5, dist * 1.15 + vertSpan * 0.65 + 6.5));
+    let targetY = 3.6 + midY * 0.65 + camOrbit.pitch * 8;
     let focusX = midX;
-    let focusY = 2.1;
+    let focusY = 2.1 + midY * 0.75;
 
     if (xrayCinematicTimer > 0) {
         targetDist = 5.4;
-        targetY = xrayStage === 1 ? 2.9 : (xrayStage === 2 ? 2.2 : 2.5);
         const xTarget = fighter1.isXrayTarget ? fighter1 : fighter2;
+        const baseY = xTarget.y || 0;
+        targetY = baseY + (xrayStage === 1 ? 2.9 : (xrayStage === 2 ? 2.2 : 2.5));
         focusX = xTarget.x;
         focusY = targetY - 0.3;
     } else if (matchState === 'fatality_anim' && fatalityFocusFighter) {
         targetDist = 7.4;
-        targetY = 2.8;
+        targetY = 2.8 + midY * 0.7;
         focusX = (fighter1.x + fighter2.x) * 0.5;
+        focusY = 2.1 + midY * 0.75;
     }
 
     const shakeX = (Math.random() - 0.5) * screenShake;

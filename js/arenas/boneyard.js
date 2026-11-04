@@ -9,6 +9,13 @@ registerArena({
     floorColor: 0x1e1b4b,
     accentColor: 0x818cf8,
 
+    // Relief d'ossements : tumulus central sacré et dunes de cendres fossiles
+    getGroundHeight(x, z = 0) {
+        const centralMound = Math.cos(x * 0.28) * 0.48;
+        const ribRidges = Math.sin(x * 1.1) * 0.10;
+        return centralMound + ribRidges + 0.12;
+    },
+
     // Éléments de décor 3D dynamiques (ajoutés à arenaGroup)
     buildDecor(group, scene) {
         const targetGroup = group || arenaGroup;

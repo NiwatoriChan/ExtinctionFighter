@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jungle du Jurassique 3D — Simulation Préhistorique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/libs/three.min.js"></script>
+    <script>if (typeof THREE === 'undefined') { document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>'); }</script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #08120e;
+            font-family: 'Inter', sans-serif;
+            color: #f0fdf4;
+        }
+        .font-jurassic {
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.08em;
+        }
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+        .glass-panel {
+            background: rgba(10, 24, 18, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(74, 222, 128, 0.22);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+        }
+        .btn-mode {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-mode:hover {
+            background: rgba(34, 197, 94, 0.22);
+            border-color: rgba(74, 222, 128, 0.5);
+            transform: translateY(-1px);
+        }
+        .btn-mode.active {
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.85), rgba(13, 148, 136, 0.85));
+            border-color: #4ade80;
+            box-shadow: 0 0 16px rgba(74, 222, 128, 0.35);
+            color: #ffffff;
+        }
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.15);
+            height: 6px;
+            border-radius: 999px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #4ade80;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .pulse-dot {
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="relative">
+
+    <!-- 3D WebGL Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Top Header & Status Bar -->
+    <header class="pointer-events-none fixed top-0 left-0 right-0 z-20 p-3 sm:p-5 flex flex-wrap items-start justify-between gap-3">
+        <!-- Title Card -->
+        <div class="pointer-events-auto glass-panel rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 max-w-md">
+            <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot"></span>
+                <span class="text-[11px] font-semibold uppercase tracking-widest text-emerald-300/90">Jurassique Supérieur • -152 Ma</span>
+            </div>
+            <h1 class="font-jurassic text-lg sm:text-2xl font-bold text-white mt-0.5 drop-shadow">
+                Vallée d'Émeraude
+            </h1>
+            <p class="text-xs text-emerald-100/75 mt-0.5 hidden sm:block">
+                Écosystème préhistorique en 3D temps réel. Cliquez sur une espèce pour l'examiner ou déplacez la caméra.
+            </p>
+        </div>
+
+        <!-- Quick Actions & Audio Controls -->
+        <div class="pointer-events-auto flex items-center gap-2">
+            <!-- Audio Synth Button -->
+            <button id="btn-audio" class="glass-panel btn-mode rounded-xl px-3.5 py-2.5 flex items-center gap-2 text-xs sm:text-sm font-medium text-emerald-100">
+                <svg id="icon-audio-off" class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+                </svg>
+                <svg id="icon-audio-on" class="w-4 h-4 text-emerald-300 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                </svg>
+                <span id="audio-label">Son : Désactivé</span>
+            </button>
+
+            <!-- Call Dinosaur Button -->
+            <button id="btn-roar" class="glass-panel btn-mode rounded-xl px-3.5 py-2.5 flex items-center gap-2 text-xs sm:text-sm font-medium text-amber-200 border-amber-400/30">
+                <span>🦕</span>
+                <span class="hidden sm:inline">Appel du</span>
+                <span>Brachiosaure</span>
+            </button>
+
+            <!-- Toggle UI Panel Button -->
+            <button id="btn-toggle-ui" class="glass-panel btn-mode rounded-xl p-2.5 text-emerald-200" title="Afficher/Masquer les réglages">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Species Inspector Card (Shows when clicking a 3D creature/plant) -->
+    <aside id="inspector-card" class="pointer-events-auto fixed top-24 left-3 sm:left-5 z-20 glass-panel rounded-2xl p-4 w-72 sm:w-80 transition-all duration-300 opacity-0 -translate-x-6 pointer-events-none">
+        <div class="flex items-start justify-between gap-2">
+            <div>
+                <span id="insp-badge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                    Faune Herbivore
+                </span>
+                <h2 id="insp-title" class="font-jurassic text-lg font-bold text-white mt-1.5">Brachiosaurus altithorax</h2>
+            </div>
+            <button id="btn-close-inspector" class="text-emerald-300/70 hover:text-white p-1 rounded-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <p id="insp-desc" class="text-xs text-emerald-100/80 mt-2 leading-relaxed">
+            Ce sauropode géant atteint 25 mètres de long et se nourrit de la cime des conifères et des araucarias grâce à son long cou dressé.
+        </p>
+        <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-emerald-500/20 text-[11px]">
+            <div>
+                <span class="text-emerald-400/70 block">Taille estimée</span>
+                <span id="insp-size" class="font-semibold text-white">13m de haut • 45 tonnes</span>
+            </div>
+            <div>
+                <span class="text-emerald-400/70 block">Habitat</span>
+                <span id="insp-habitat" class="font-semibold text-white">Plaines & Rivières</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Right Settings Drawer (Atmosphere, Fog, Time of Day) -->
+    <aside id="settings-panel" class="pointer-events-auto fixed top-20 right-3 sm:right-5 z-20 glass-panel rounded-2xl p-4 w-64 sm:w-72 transition-all duration-300">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Atmosphère & Climat</h3>
+            <span id="fps-counter" class="text-[11px] font-mono text-emerald-400/80">60 FPS</span>
+        </div>
+
+        <!-- Time of Day / Lighting Presets -->
+        <div class="grid grid-cols-2 gap-1.5 mb-4">
+            <button data-time="dawn" class="btn-time btn-mode active rounded-xl px-2.5 py-2 text-xs font-medium text-left flex items-center gap-2 border border-emerald-500/25">
+                <span>🌅</span> <span>Aube Brumeuse</span>
+            </button>
+            <button data-time="noon" class="btn-time btn-mode rounded-xl px-2.5 py-2 text-xs font-medium text-left flex items-center gap-2 border border-emerald-500/25">
+                <span>☀️</span> <span>Zénith Tropical</span>
+            </button>
+            <button data-time="dusk" class="btn-time btn-mode rounded-xl px-2.5 py-2 text-xs font-medium text-left flex items-center gap-2 border border-emerald-500/25">
+                <span>🌋</span> <span>Soir Volcanique</span>
+            </button>
+            <button data-time="night" class="btn-time btn-mode rounded-xl px-2.5 py-2 text-xs font-medium text-left flex items-center gap-2 border border-emerald-500/25">
+                <span>✨</span> <span>Nuit Biolum.</span>
+            </button>
+        </div>
+
+        <!-- Sliders -->
+        <div class="space-y-3 text-xs">
+            <div>
+                <div class="flex justify-between text-emerald-100/80 mb-1">
+                    <span>Densité de la brume</span>
+                    <span id="val-fog">Moyenne</span>
+                </div>
+                <input id="slider-fog" type="range" min="1" max="100" value="48" class="w-full">
+            </div>
+
+            <div>
+                <div class="flex justify-between text-emerald-100/80 mb-1">
+                    <span>Vent dans le feuillage</span>
+                    <span id="val-wind">Doux</span>
+                </div>
+                <input id="slider-wind" type="range" min="0" max="100" value="40" class="w-full">
+            </div>
+
+            <div>
+                <div class="flex justify-between text-emerald-100/80 mb-1">
+                    <span>Spores & Lucioles</span>
+                    <span id="val-spores">Actifs</span>
+                </div>
+                <input id="slider-spores" type="range" min="10" max="100" value="75" class="w-full">
+            </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-emerald-500/20 text-[11px] text-emerald-200/70 space-y-1">
+            <div class="flex items-center justify-between">
+                <span>🖱️ Clic gauche + glisser :</span>
+                <span class="text-white">Orienter</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span>🔍 Molette / Pincer :</span>
+                <span class="text-white">Zoomer</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span>⌨️ ZQSD / Flèches :</span>
+                <span class="text-white">Se déplacer</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Bottom Camera Mode & Navigation Bar -->
+    <footer class="pointer-events-none fixed bottom-0 left-0 right-0 z-20 p-3 sm:p-5 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+        <!-- Camera Modes -->
+        <div class="pointer-events-auto glass-panel rounded-2xl p-1.5 flex items-center gap-1.5">
+            <button data-cam="orbit" class="btn-cam btn-mode active rounded-xl px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center gap-1.5 border border-transparent">
+                <span>🧭</span> <span>Exploration Libre</span>
+            </button>
+            <button data-cam="cinematic" class="btn-cam btn-mode rounded-xl px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center gap-1.5 border border-transparent">
+                <span>🎬</span> <span>Survol Cinématique</span>
+            </button>
+            <button data-cam="dino" class="btn-cam btn-mode rounded-xl px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center gap-1.5 border border-transparent">
+                <span>🦕</span> <span>Suivre le Troupeau</span>
+            </button>
+            <button data-cam="river" class="btn-cam btn-mode rounded-xl px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center gap-1.5 border border-transparent">
+                <span>🌿</span> <span>Rivière Brumeuse</span>
+            </button>
+        </div>
+
+        <!-- Touch / Mobile D-Pad for easy walking on mobile or desktop -->
+        <div class="pointer-events-auto glass-panel rounded-2xl p-1.5 flex items-center gap-1">
+            <button id="move-left" class="btn-mode rounded-xl p-2 text-emerald-200 active:scale-95" title="Gauche">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <button id="move-fwd" class="btn-mode rounded-xl px-3 py-2 text-xs font-semibold text-emerald-200 active:scale-95" title="Avancer">
+                Avancer ▲
+            </button>
+            <button id="move-back" class="btn-mode rounded-xl px-3 py-2 text-xs font-semibold text-emerald-200 active:scale-95" title="Reculer">
+                ▼
+            </button>
+            <button id="move-right" class="btn-mode rounded-xl p-2 text-emerald-200 active:scale-95" title="Droite">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        // ============================================================================
+        // 1. PROCEDURAL TEXTURE GENERATOR (No external URLs needed)
+        // ============================================================================
+        function createBarkTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#3b281e';
+            ctx.fillRect(0, 0, 256, 512);
+
+            // Fibrous prehistoric bark ridges & moss patches
+            for (let i = 0; i < 450; i++) {
+                const x = Math.random() * 256;
+                const y = Math.random() * 512;
+                const w = 2 + Math.random() * 6;
+                const h = 18 + Math.random() * 60;
+                const shade = Math.random();
+                if (shade < 0.25) {
+                    ctx.fillStyle = '#241710';
+                } else if (shade < 0.75) {
+                    ctx.fillStyle = '#4e3629';
+                } else {
+                    // Mossy tint on humid bark
+                    ctx.fillStyle = '#2d4c2b';
+                }
+                ctx.fillRect(x, y, w, h);
+            }
+
+            // Horizontal rings characteristic of Araucaria & Tree Ferns
+            ctx.strokeStyle = 'rgba(20, 12, 8, 0.45)';
+            ctx.lineWidth = 3;
+            for (let y = 0; y < 512; y += 16) {
+                ctx.beginPath();
+                ctx.moveTo(0, y + Math.sin(y) * 4);
+                ctx.lineTo(256, y + Math.cos(y) * 4);
+                ctx.stroke();
+            }
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(2, 4);
+            return tex;
+        }
+
+        function createDinoSkinTexture(baseColor, spotColor) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(0, 0, 512, 512);
+
+            // Subtle reptilian scales & mottled camouflage
+            for (let i = 0; i < 1200; i++) {
+                const x = Math.random() * 512;
+                const y = Math.random() * 512;
+                const r = 2 + Math.random() * 8;
+                ctx.fillStyle = i % 3 === 0 ? spotColor : 'rgba(15, 28, 20, 0.14)';
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+
+        function createGlowSpriteTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
+            grad.addColorStop(0, 'rgba(255, 255, 230, 1)');
+            grad.addColorStop(0.35, 'rgba(134, 239, 172, 0.75)');
+            grad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 64, 64);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // ============================================================================
+        // 2. PROCEDURAL TERRAIN HEIGHT FUNCTION
+        // ============================================================================
+        function getRiverCenterX(z) {
+            return Math.sin(z * 0.018) * 28 + Math.cos(z * 0.008) * 14;
+        }
+
+        function getTerrainHeight(x, z) {
+            const riverX = getRiverCenterX(z);
+            const distToRiver = Math.abs(x - riverX);
+
+            let riverFactor = 1.0;
+            if (distToRiver < 16) {
+                riverFactor = Math.pow(distToRiver / 16, 2.2);
+            }
+
+            const n1 = Math.sin(x * 0.025) * Math.cos(z * 0.025) * 6.5;
+            const n2 = Math.sin(x * 0.06 + z * 0.04) * 2.5;
+            const n3 = Math.cos(x * 0.14 - z * 0.11) * 0.85;
+
+            const valleyWalls = Math.pow(Math.max(0, (Math.abs(x) - 35) * 0.028), 2.1) * 14;
+            const distantMountains = Math.pow(Math.max(0, (Math.sqrt(x * x + z * z) - 115) * 0.025), 2.0) * 20;
+
+            const baseElevation = (n1 + n2 + n3 + 3.8) * riverFactor + valleyWalls + distantMountains;
+            if (distToRiver < 11) {
+                return -2.2 + (distToRiver / 11) * 1.8;
+            }
+            return baseElevation;
+        }
+
+        // ============================================================================
+        // 3. PROCEDURAL WEB AUDIO SYNTHESIZER
+        // ============================================================================
+        class JurassicAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.isPlaying = false;
+                this.masterGain = null;
+                this.callInterval = null;
+            }
+
+            init() {
+                if (this.ctx) return;
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioCtx();
+                this.masterGain = this.ctx.createGain();
+                this.masterGain.gain.value = 0.35;
+                this.masterGain.connect(this.ctx.destination);
+
+                const bufferSize = 2 * this.ctx.sampleRate;
+                const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                let lastOut = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    output[i] = (lastOut + (0.02 * white)) / 1.02;
+                    lastOut = output[i];
+                    output[i] *= 1.8;
+                }
+
+                const whiteNoise = this.ctx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 420;
+
+                const riverGain = this.ctx.createGain();
+                riverGain.gain.value = 0.28;
+
+                whiteNoise.connect(filter);
+                filter.connect(riverGain);
+                riverGain.connect(this.masterGain);
+                whiteNoise.start(0);
+
+                this.callInterval = setInterval(() => {
+                    if (!this.isPlaying) return;
+                    if (Math.random() < 0.55) {
+                        this.playJungleChirp();
+                    }
+                }, 3800);
+            }
+
+            toggle() {
+                if (!this.ctx) {
+                    this.init();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+                this.isPlaying = !this.isPlaying;
+                this.masterGain.gain.setTargetAtTime(
+                    this.isPlaying ? 0.35 : 0.0001,
+                    this.ctx.currentTime,
+                    0.3
+                );
+                return this.isPlaying;
+            }
+
+            playJungleChirp() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                const baseFreq = 1400 + Math.random() * 900;
+                osc.frequency.setValueAtTime(baseFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, now + 0.09);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.85, now + 0.24);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.04, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+
+            playSauropodCall() {
+                if (!this.ctx) {
+                    this.init();
+                    this.isPlaying = true;
+                    document.getElementById('audio-label').textContent = 'Son : Activé';
+                    document.getElementById('icon-audio-off').classList.add('hidden');
+                    document.getElementById('icon-audio-on').classList.remove('hidden');
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+
+                const now = this.ctx.currentTime;
+                const freqs = [95, 190, 285];
+                freqs.forEach((f, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const filter = this.ctx.createBiquadFilter();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = idx === 0 ? 'sawtooth' : 'triangle';
+                    osc.frequency.setValueAtTime(f * 0.88, now);
+                    osc.frequency.exponentialRampToValueAtTime(f * 1.28, now + 1.2);
+                    osc.frequency.exponentialRampToValueAtTime(f * 0.78, now + 3.4);
+
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(340, now);
+                    filter.frequency.linearRampToValueAtTime(680, now + 1.3);
+                    filter.frequency.linearRampToValueAtTime(220, now + 3.4);
+
+                    const amp = idx === 0 ? 0.22 : 0.12 / idx;
+                    gain.gain.setValueAtTime(0.001, now);
+                    gain.gain.linearRampToValueAtTime(amp, now + 0.8);
+                    gain.setValue ? gain.setValue(amp) : gain.gain.setValueAtTime(amp, now + 1.8);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.6);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.masterGain);
+
+                    osc.start(now);
+                    osc.stop(now + 3.7);
+                });
+            }
+        }
+
+        // ============================================================================
+        // 4. MAIN 3D JURASSIC JUNGLE SCENE
+        // ============================================================================
+        let scene, camera, renderer;
+        let sunLight, ambientLight, hemiLight, volcanoLight;
+        let waterMesh, sporeSystem, sunbeamGroup;
+        let barkTexture;
+        const animatedFoliage = [];
+        const brachiosaurs = [];
+        const pterosaurs = [];
+        const dragonflies = [];
+        const interactiveObjects = [];
+
+        const state = {
+            camMode: 'orbit',
+            timePreset: 'dawn',
+            fogDensity: 0.0068,
+            windStrength: 0.4,
+            sporeBrightness: 0.75,
+            spherical: {
+                radius: 42,
+                theta: 0.45,
+                phi: 1.22
+            },
+            target: new THREE.Vector3(0, 6.5, 5),
+            isDragging: false,
+            prevMouse: { x: 0, y: 0 },
+            keys: { fwd: false, back: false, left: false, right: false }
+        };
+
+        const audioEngine = new JurassicAudioEngine();
+
+        function initJungle() {
+            const container = document.getElementById('canvas-container');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x162b26);
+            scene.fog = new THREE.FogExp2(0x1e3830, state.fogDensity);
+
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.5, 420);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.1;
+            container.appendChild(renderer.domElement);
+
+            barkTexture = createBarkTexture();
+
+            setupLighting();
+            buildTerrainAndRiver();
+            populateJurassicFlora();
+            populateJurassicFauna();
+            buildAtmosphereEffects();
+            setupInteractions();
+        }
+
+        function setupLighting() {
+            hemiLight = new THREE.HemisphereLight(0x99f6e4, 0x143321, 0.65);
+            hemiLight.position.set(0, 100, 0);
+            scene.add(hemiLight);
+
+            ambientLight = new THREE.AmbientLight(0x2a4c3e, 0.45);
+            scene.add(ambientLight);
+
+            sunLight = new THREE.DirectionalLight(0xffdba8, 1.45);
+            sunLight.position.set(65, 78, -85);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 10;
+            sunLight.shadow.camera.far = 260;
+            const d = 95;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            sunLight.shadow.bias = -0.0005;
+            scene.add(sunLight);
+
+            volcanoLight = new THREE.PointLight(0xf97316, 0.8, 220);
+            volcanoLight.position.set(-50, 28, -120);
+            scene.add(volcanoLight);
+        }
+
+        function buildTerrainAndRiver() {
+            const size = 340;
+            const segments = 140;
+            const geo = new THREE.PlaneGeometry(size, size, segments, segments);
+            geo.rotateX(-Math.PI / 2);
+
+            const posAttr = geo.attributes.position;
+            const colors = [];
+            const color = new THREE.Color();
+
+            for (let i = 0; i < posAttr.count; i++) {
+                const x = posAttr.getX(i);
+                const z = posAttr.getZ(i);
+                const y = getTerrainHeight(x, z);
+                posAttr.setY(i, y);
+
+                if (y < -0.3) {
+                    color.setHex(0x1c241e);
+                } else if (y < 1.2) {
+                    color.setHex(0x2d3a27);
+                } else if (y < 9.5) {
+                    const variation = (Math.sin(x * 0.15) * Math.cos(z * 0.15)) * 0.04;
+                    color.setHSL(0.33 + variation, 0.48, 0.18 + (y * 0.008));
+                } else {
+                    color.setHex(0x2b332e);
+                }
+                colors.push(color.r, color.g, color.b);
+            }
+
+            geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geo.computeVertexNormals();
+
+            const terrainMat = new THREE.MeshStandardMaterial({
+                vertexColors: true,
+                roughness: 0.88,
+                metalness: 0.05
+            });
+
+            const terrainMesh = new THREE.Mesh(geo, terrainMat);
+            terrainMesh.receiveShadow = true;
+            scene.add(terrainMesh);
+
+            const waterGeo = new THREE.PlaneGeometry(340, 340, 75, 75);
+            waterGeo.rotateX(-Math.PI / 2);
+            const waterMat = new THREE.MeshStandardMaterial({
+                color: 0x0f4c45,
+                roughness: 0.16,
+                metalness: 0.65,
+                transparent: true,
+                opacity: 0.84
+            });
+
+            waterMesh = new THREE.Mesh(waterGeo, waterMat);
+            waterMesh.position.y = -0.15;
+            waterMesh.receiveShadow = true;
+            scene.add(waterMesh);
+
+            const volcanoGeo = new THREE.ConeGeometry(55, 75, 16, 4, true);
+            const vPos = volcanoGeo.attributes.position;
+            for (let i = 0; i < vPos.count; i++) {
+                const vx = vPos.getX(i);
+                const vy = vPos.getY(i);
+                const vz = vPos.getZ(i);
+                const noise = Math.sin(vx * 0.15) * Math.cos(vz * 0.15) * 4;
+                vPos.setX(i, vx + noise);
+                vPos.setZ(i, vz + noise);
+            }
+            volcanoGeo.computeVertexNormals();
+            const volcanoMat = new THREE.MeshStandardMaterial({
+                color: 0x1e2926,
+                roughness: 0.95
+            });
+            const volcano = new THREE.Mesh(volcanoGeo, volcanoMat);
+            volcano.position.set(-55, 32, -165);
+            scene.add(volcano);
+        }
+
+        function createAraucariaTree(x, z, scale = 1) {
+            const y = getTerrainHeight(x, z);
+            const group = new THREE.Group();
+            group.position.set(x, y - 0.3, z);
+
+            const trunkHeight = (20 + Math.random() * 10) * scale;
+            const trunkGeo = new THREE.CylinderGeometry(0.45 * scale, 1.35 * scale, trunkHeight, 9);
+            const pos = trunkGeo.attributes.position;
+            const bendX = (Math.random() - 0.5) * 2.2;
+            for (let i = 0; i < pos.count; i++) {
+                const py = pos.getY(i) + trunkHeight / 2;
+                const factor = Math.pow(py / trunkHeight, 2);
+                pos.setX(i, pos.getX(i) + bendX * factor);
+            }
+            trunkGeo.computeVertexNormals();
+
+            const trunkMat = new THREE.MeshStandardMaterial({
+                map: barkTexture,
+                roughness: 0.9
+            });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = trunkHeight / 2;
+            trunk.castShadow = true;
+            trunk.receiveShadow = true;
+            group.add(trunk);
+
+            const leafMat = new THREE.MeshStandardMaterial({
+                color: new THREE.Color().setHSL(0.34 + (Math.random() - 0.5) * 0.04, 0.58, 0.20),
+                roughness: 0.75
+            });
+
+            const tiers = 4 + Math.floor(Math.random() * 3);
+            for (let t = 0; t < tiers; t++) {
+                const tierHeight = trunkHeight * (0.62 + (t / tiers) * 0.38);
+                const branchCount = t === tiers - 1 ? 1 : 5 + t;
+                const spreadRadius = (tiers - t) * 2.2 * scale + 1.8 * scale;
+
+                for (let b = 0; b < branchCount; b++) {
+                    const angle = (b / branchCount) * Math.PI * 2 + t * 0.7;
+                    const dist = t === tiers - 1 ? 0 : spreadRadius * (0.7 + Math.random() * 0.3);
+                    const bx = bendX * Math.pow(tierHeight / trunkHeight, 2) + Math.cos(angle) * dist;
+                    const bz = Math.sin(angle) * dist;
+
+                    if (dist > 0.2) {
+                        const brGeo = new THREE.CylinderGeometry(0.12 * scale, 0.22 * scale, dist, 5);
+                        brGeo.rotateZ(Math.PI / 2 - 0.18);
+                        brGeo.rotateY(-angle);
+                        const brMesh = new THREE.Mesh(brGeo, trunkMat);
+                        brMesh.position.set(
+                            bendX * Math.pow(tierHeight / trunkHeight, 2) + Math.cos(angle) * (dist * 0.5),
+                            tierHeight - 0.4,
+                            Math.sin(angle) * (dist * 0.5)
+                        );
+                        group.add(brMesh);
+                    }
+
+                    const padGeo = new THREE.DodecahedronGeometry((2.4 - t * 0.22) * scale, 1);
+                    padGeo.scale(1.6, 0.42, 1.6);
+                    const pad = new THREE.Mesh(padGeo, leafMat);
+                    pad.position.set(bx, tierHeight, bz);
+                    pad.castShadow = true;
+                    pad.receiveShadow = true;
+                    group.add(pad);
+                }
+            }
+
+            trunk.userData = {
+                species: 'Araucaria mirabilis',
+                badge: 'Flore Géante • Conifère',
+                desc: 'Ancêtre préhistorique du désespoir des singes. Ses hautes couronnes étalées constituent la nourriture privilégiée des grands sauropodes comme le Brachiosaure.',
+                size: 'Jusqu\'à 35 mètres',
+                habitat: 'Forêts humides jurassiques'
+            };
+            interactiveObjects.push(trunk);
+
+            scene.add(group);
+            animatedFoliage.push({
+                mesh: group,
+                baseRotZ: 0,
+                phase: Math.random() * Math.PI * 2,
+                speed: 0.7 + Math.random() * 0.4,
+                amp: 0.012
+            });
+        }
+
+        function createTreeFern(x, z, scale = 1) {
+            const y = getTerrainHeight(x, z);
+            const group = new THREE.Group();
+            group.position.set(x, y - 0.2, z);
+
+            const height = (4.5 + Math.random() * 3.5) * scale;
+            const trunkGeo = new THREE.CylinderGeometry(0.22 * scale, 0.38 * scale, height, 7);
+            const trunkMat = new THREE.MeshStandardMaterial({
+                map: barkTexture,
+                roughness: 0.95
+            });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = height / 2;
+            trunk.castShadow = true;
+            group.add(trunk);
+
+            const crownGroup = new THREE.Group();
+            crownGroup.position.y = height;
+            group.add(crownGroup);
+
+            const frondCount = 11 + Math.floor(Math.random() * 5);
+            const frondMat = new THREE.MeshStandardMaterial({
+                color: new THREE.Color().setHSL(0.31 + (Math.random() - 0.5) * 0.05, 0.72, 0.26),
+                roughness: 0.6,
+                side: THREE.DoubleSide
+            });
+
+            for (let i = 0; i < frondCount; i++) {
+                const angle = (i / frondCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
+                const frondLen = (3.2 + Math.random() * 1.4) * scale;
+
+                const frondGeo = new THREE.PlaneGeometry(0.85 * scale, frondLen, 2, 8);
+                const pos = frondGeo.attributes.position;
+                for (let v = 0; v < pos.count; v++) {
+                    const vy = pos.getY(v) + frondLen / 2;
+                    const t = vy / frondLen;
+                    const widthProfile = Math.sin(t * Math.PI) * (1 - t * 0.35);
+                    pos.setX(v, pos.getX(v) * widthProfile * 1.35);
+                    const archY = Math.sin(t * Math.PI * 0.75) * (frondLen * 0.38) - t * t * (frondLen * 0.28);
+                    const archZ = t * frondLen * 0.88;
+                    pos.setY(v, archY);
+                    pos.setZ(v, archZ);
+                }
+                frondGeo.computeVertexNormals();
+
+                const frond = new THREE.Mesh(frondGeo, frondMat);
+                frond.rotation.y = angle;
+                frond.castShadow = true;
+                crownGroup.add(frond);
+            }
+
+            trunk.userData = {
+                species: 'Dicksonia jurassica (Fougère arborescente)',
+                badge: 'Flore Préhistorique • Ptéridophyte',
+                desc: 'Ces fougères géantes prospèrent dans le sous-bois humide et brumeux du Jurassique, se reproduisant par des millions de spores microscopiques.',
+                size: '5 à 10 mètres de haut',
+                habitat: 'Berges et sous-bois humides'
+            };
+            interactiveObjects.push(trunk);
+
+            scene.add(group);
+            animatedFoliage.push({
+                mesh: crownGroup,
+                baseRotZ: 0,
+                phase: Math.random() * Math.PI * 2,
+                speed: 1.4 + Math.random() * 0.6,
+                amp: 0.045
+            });
+        }
+
+        function createGroundFernOrCycad(x, z, scale = 1) {
+            const y = getTerrainHeight(x, z);
+            const group = new THREE.Group();
+            group.position.set(x, y, z);
+
+            const frondCount = 8;
+            const frondMat = new THREE.MeshStandardMaterial({
+                color: new THREE.Color().setHSL(0.32 + (Math.random() - 0.5) * 0.06, 0.68, 0.24),
+                roughness: 0.65,
+                side: THREE.DoubleSide
+            });
+
+            for (let i = 0; i < frondCount; i++) {
+                const angle = (i / frondCount) * Math.PI * 2;
+                const len = (1.6 + Math.random() * 0.9) * scale;
+                const geo = new THREE.PlaneGeometry(0.55 * scale, len, 1, 5);
+                const pos = geo.attributes.position;
+                for (let v = 0; v < pos.count; v++) {
+                    const vy = pos.getY(v) + len / 2;
+                    const t = vy / len;
+                    pos.setX(v, pos.getX(v) * Math.sin(t * Math.PI));
+                    pos.setY(v, Math.sin(t * Math.PI * 0.7) * len * 0.42);
+                    pos.setZ(v, t * len * 0.85);
+                }
+                geo.computeVertexNormals();
+                const mesh = new THREE.Mesh(geo, frondMat);
+                mesh.rotation.y = angle;
+                group.add(mesh);
+            }
+
+            scene.add(group);
+            animatedFoliage.push({
+                mesh: group,
+                baseRotZ: 0,
+                phase: Math.random() * Math.PI * 2,
+                speed: 1.8 + Math.random() * 0.8,
+                amp: 0.055
+            });
+        }
+
+        function createMossyBoulder(x, z, scale = 1) {
+            const y = getTerrainHeight(x, z);
+            const geo = new THREE.DodecahedronGeometry(1.5 * scale, 1);
+            geo.scale(1.3, 0.75, 1.1);
+            const mat = new THREE.MeshStandardMaterial({
+                color: 0x2c3b30,
+                roughness: 0.92
+            });
+            const rock = new THREE.Mesh(geo, mat);
+            rock.position.set(x, y + 0.2 * scale, z);
+            rock.rotation.set(Math.random(), Math.random(), Math.random());
+            rock.castShadow = true;
+            rock.receiveShadow = true;
+            scene.add(rock);
+        }
+
+        function populateJurassicFlora() {
+            for (let i = 0; i < 65; i++) {
+                const x = (Math.random() - 0.5) * 210;
+                const z = (Math.random() - 0.5) * 210;
+                const riverDist = Math.abs(x - getRiverCenterX(z));
+                if (riverDist > 16) {
+                    const s = 0.85 + Math.random() * 0.65;
+                    createAraucariaTree(x, z, s);
+                }
+            }
+
+            for (let i = 0; i < 85; i++) {
+                const x = (Math.random() - 0.5) * 165;
+                const z = (Math.random() - 0.5) * 165;
+                const riverDist = Math.abs(x - getRiverCenterX(z));
+                if (riverDist > 11 && riverDist < 65) {
+                    const s = 0.75 + Math.random() * 0.65;
+                    createTreeFern(x, z, s);
+                }
+            }
+
+            for (let i = 0; i < 110; i++) {
+                const x = (Math.random() - 0.5) * 130;
+                const z = (Math.random() - 0.5) * 130;
+                const riverDist = Math.abs(x - getRiverCenterX(z));
+                if (riverDist > 9.5) {
+                    createGroundFernOrCycad(x, z, 0.8 + Math.random() * 0.8);
+                }
+            }
+
+            for (let i = 0; i < 45; i++) {
+                const z = (Math.random() - 0.5) * 170;
+                const side = Math.random() > 0.5 ? 1 : -1;
+                const x = getRiverCenterX(z) + side * (8.5 + Math.random() * 8);
+                createMossyBoulder(x, z, 0.6 + Math.random() * 1.4);
+            }
+        }
+
+        function createBrachiosaurus(startX, startZ, scale = 1, speedOffset = 0) {
+            const dinoGroup = new THREE.Group();
+
+            const skinTex = createDinoSkinTexture('#4a5d4e', '#2f3e34');
+            const skinMat = new THREE.MeshStandardMaterial({
+                map: skinTex,
+                roughness: 0.78,
+                metalness: 0.05
+            });
+
+            const torsoGeo = new THREE.SphereGeometry(2.4 * scale, 14, 12);
+            torsoGeo.scale(1.0, 1.15, 1.65);
+            const torso = new THREE.Mesh(torsoGeo, skinMat);
+            torso.position.set(0, 5.2 * scale, 0);
+            torso.rotation.x = -0.18;
+            torso.castShadow = true;
+            torso.receiveShadow = true;
+            dinoGroup.add(torso);
+
+            torso.userData = {
+                species: 'Brachiosaurus altithorax',
+                badge: 'Dinosaure Sauropode • Herbivore',
+                desc: 'Géant emblématique du Jurassique supérieur. Ses pattes avant sont plus longues que ses pattes arrière, lui conférant une posture majestueuse adaptée pour brouter la haute canopée.',
+                size: '13m de haut • 45 tonnes',
+                habitat: 'Vallées fluviales & Forêts de conifères'
+            };
+            interactiveObjects.push(torso);
+
+            const neckPivot = new THREE.Group();
+            neckPivot.position.set(0, 6.4 * scale, 2.8 * scale);
+            dinoGroup.add(neckPivot);
+
+            const lowerNeckGeo = new THREE.CylinderGeometry(0.62 * scale, 1.15 * scale, 5.5 * scale, 10);
+            const lowerNeck = new THREE.Mesh(lowerNeckGeo, skinMat);
+            lowerNeck.position.set(0, 2.5 * scale, 0.8 * scale);
+            lowerNeck.rotation.x = 0.28;
+            lowerNeck.castShadow = true;
+            neckPivot.add(lowerNeck);
+
+            const upperNeckPivot = new THREE.Group();
+            upperNeckPivot.position.set(0, 4.9 * scale, 1.5 * scale);
+            neckPivot.add(upperNeckPivot);
+
+            const upperNeckGeo = new THREE.CylinderGeometry(0.42 * scale, 0.62 * scale, 4.4 * scale, 10);
+            const upperNeck = new THREE.Mesh(upperNeckGeo, skinMat);
+            upperNeck.position.set(0, 2.0 * scale, 0.4 * scale);
+            upperNeck.rotation.x = 0.18;
+            upperNeck.castShadow = true;
+            upperNeckPivot.add(upperNeck);
+
+            const headGroup = new THREE.Group();
+            headGroup.position.set(0, 4.1 * scale, 0.8 * scale);
+            upperNeckPivot.add(headGroup);
+
+            const skullGeo = new THREE.BoxGeometry(0.75 * scale, 0.65 * scale, 1.35 * scale);
+            const skull = new THREE.Mesh(skullGeo, skinMat);
+            skull.position.z = 0.35 * scale;
+            headGroup.add(skull);
+
+            const crestGeo = new THREE.SphereGeometry(0.38 * scale, 8, 8);
+            crestGeo.scale(0.8, 1.1, 1.2);
+            const crest = new THREE.Mesh(crestGeo, skinMat);
+            crest.position.set(0, 0.42 * scale, 0.15 * scale);
+            headGroup.add(crest);
+
+            const tailPivot = new THREE.Group();
+            tailPivot.position.set(0, 4.7 * scale, -3.2 * scale);
+            dinoGroup.add(tailPivot);
+
+            const tailGeo = new THREE.ConeGeometry(0.95 * scale, 7.5 * scale, 10);
+            tailGeo.rotateX(-Math.PI / 2 - 0.25);
+            const tailMesh = new THREE.Mesh(tailGeo, skinMat);
+            tailMesh.position.set(0, -0.8 * scale, -3.4 * scale);
+            tailMesh.castShadow = true;
+            tailPivot.add(tailMesh);
+
+            const legs = [];
+            const legPositions = [
+                { x: -1.25 * scale, y: 4.8 * scale, z: 2.1 * scale, h: 4.9 * scale, phase: 0 },
+                { x: 1.25 * scale, y: 4.8 * scale, z: 2.1 * scale, h: 4.9 * scale, phase: Math.PI },
+                { x: -1.15 * scale, y: 4.3 * scale, z: -2.1 * scale, h: 4.4 * scale, phase: Math.PI * 0.5 },
+                { x: 1.15 * scale, y: 4.3 * scale, z: -2.1 * scale, h: 4.4 * scale, phase: Math.PI * 1.5 }
+            ];
+
+            legPositions.forEach((lp) => {
+                const legPivot = new THREE.Group();
+                legPivot.position.set(lp.x, lp.y, lp.z);
+                const legGeo = new THREE.CylinderGeometry(0.55 * scale, 0.48 * scale, lp.h, 9);
+                const legMesh = new THREE.Mesh(legGeo, skinMat);
+                legMesh.position.y = -lp.h / 2;
+                legMesh.castShadow = true;
+                legPivot.add(legMesh);
+                dinoGroup.add(legPivot);
+                legs.push({ pivot: legPivot, phase: lp.phase });
+            });
+
+            const startY = getTerrainHeight(startX, startZ);
+            dinoGroup.position.set(startX, startY, startZ);
+            scene.add(dinoGroup);
+
+            brachiosaurs.push({
+                group: dinoGroup,
+                neckPivot,
+                upperNeckPivot,
+                headGroup,
+                tailPivot,
+                legs,
+                scale,
+                zPos: startZ,
+                xOffset: startX,
+                walkSpeed: (1.55 + speedOffset) * scale,
+                phase: Math.random() * 10,
+                callingTimer: 0
+            });
+        }
+
+        function createPteranodon(radius, height, speed, phaseOffset) {
+            const pteroGroup = new THREE.Group();
+
+            const bodyMat = new THREE.MeshStandardMaterial({
+                color: 0x5c3a2e,
+                roughness: 0.7,
+                side: THREE.DoubleSide
+            });
+
+            const bodyGeo = new THREE.ConeGeometry(0.28, 1.8, 7);
+            bodyGeo.rotateX(Math.PI / 2);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            pteroGroup.add(body);
+
+            const crestGeo = new THREE.ConeGeometry(0.14, 1.1, 5);
+            crestGeo.rotateX(-Math.PI / 2 + 0.25);
+            const crest = new THREE.Mesh(crestGeo, bodyMat);
+            crest.position.set(0, 0.25, -0.45);
+            pteroGroup.add(crest);
+
+            const wingGeo = new THREE.BufferGeometry();
+            const vertices = new Float32Array([
+                0, 0, 0.3,
+                2.8, 0.1, -0.1,
+                0, 0, -0.55
+            ]);
+            wingGeo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            wingGeo.computeVertexNormals();
+
+            const leftWing = new THREE.Mesh(wingGeo, bodyMat);
+            const rightWing = new THREE.Mesh(wingGeo, bodyMat);
+            rightWing.scale.x = -1;
+
+            pteroGroup.add(leftWing);
+            pteroGroup.add(rightWing);
+
+            body.userData = {
+                species: 'Rhamphorhynchus & Pterosauria',
+                badge: 'Reptile Volant • Piscivore',
+                desc: 'Maîtres des cieux jurassiques, ces reptiles volants planent grâce aux courants thermiques au-dessus de la canopée et plongent pour capturer des poissons dans la rivière.',
+                size: '2,5 à 5 mètres d\'envergure',
+                habitat: 'Canopée & Cours d\'eau'
+            };
+            interactiveObjects.push(body);
+
+            scene.add(pteroGroup);
+            pterosaurs.push({
+                group: pteroGroup,
+                leftWing,
+                rightWing,
+                radius,
+                height,
+                speed,
+                phase: phaseOffset
+            });
+        }
+
+        function createMeganeuraDragonfly(x, z) {
+            const group = new THREE.Group();
+            const bodyMat = new THREE.MeshStandardMaterial({
+                color: 0x10b981,
+                metalness: 0.7,
+                roughness: 0.2
+            });
+            const bodyGeo = new THREE.CylinderGeometry(0.04, 0.02, 0.85, 6);
+            bodyGeo.rotateX(Math.PI / 2);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            group.add(body);
+
+            const wingMat = new THREE.MeshBasicMaterial({
+                color: 0xa7f3d0,
+                transparent: true,
+                opacity: 0.45,
+                side: THREE.DoubleSide
+            });
+            const wingGeo = new THREE.PlaneGeometry(0.95, 0.18);
+            const w1 = new THREE.Mesh(wingGeo, wingMat);
+            const w2 = new THREE.Mesh(wingGeo, wingMat);
+            w1.position.z = 0.1;
+            w2.position.z = -0.1;
+            group.add(w1, w2);
+
+            group.position.set(x, 1.5 + Math.random() * 2.5, z);
+            scene.add(group);
+            dragonflies.push({
+                group,
+                w1,
+                w2,
+                baseX: x,
+                baseZ: z,
+                phase: Math.random() * 10
+            });
+        }
+
+        function populateJurassicFauna() {
+            createBrachiosaurus(-8, -18, 1.15, 0.0);
+            createBrachiosaurus(11, -36, 0.95, 0.15);
+            createBrachiosaurus(-14, -52, 0.68, 0.25);
+
+            for (let i = 0; i < 7; i++) {
+                createPteranodon(
+                    26 + i * 7,
+                    26 + (i % 3) * 6,
+                    0.28 + Math.random() * 0.14,
+                    i * 1.4
+                );
+            }
+
+            for (let i = 0; i < 14; i++) {
+                const z = (Math.random() - 0.5) * 60;
+                const x = getRiverCenterX(z) + (Math.random() - 0.5) * 14;
+                createMeganeuraDragonfly(x, z);
+            }
+        }
+
+        function buildAtmosphereEffects() {
+            const count = 550;
+            const geo = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            for (let i = 0; i < count; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 160;
+                positions[i * 3 + 1] = 0.5 + Math.random() * 28;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 160;
+            }
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const sporeMat = new THREE.PointsMaterial({
+                size: 0.85,
+                map: createGlowSpriteTexture(),
+                transparent: true,
+                opacity: state.sporeBrightness,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+
+            sporeSystem = new THREE.Points(geo, sporeMat);
+            scene.add(sporeSystem);
+
+            sunbeamGroup = new THREE.Group();
+            const beamMat = new THREE.MeshBasicMaterial({
+                color: 0xfef08a,
+                transparent: true,
+                opacity: 0.045,
+                side: THREE.DoubleSide,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+
+            for (let i = 0; i < 9; i++) {
+                const beamGeo = new THREE.ConeGeometry(8 + Math.random() * 6, 65, 12, 1, true);
+                const beam = new THREE.Mesh(beamGeo, beamMat);
+                beam.position.set(
+                    (Math.random() - 0.5) * 80,
+                    28,
+                    (Math.random() - 0.5) * 80
+                );
+                beam.rotation.z = -0.32;
+                beam.rotation.x = 0.22;
+                sunbeamGroup.add(beam);
+            }
+            scene.add(sunbeamGroup);
+        }
+
+        function applyTimePreset(preset) {
+            state.timePreset = preset;
+
+            if (preset === 'dawn') {
+                scene.background.setHex(0x162b26);
+                scene.fog.color.setHex(0x1e3830);
+                sunLight.color.setHex(0xffdba8);
+                sunLight.intensity = 1.45;
+                sunLight.position.set(65, 78, -85);
+                hemiLight.color.setHex(0x99f6e4);
+                hemiLight.intensity = 0.65;
+                volcanoLight.intensity = 0.8;
+                sunbeamGroup.visible = true;
+                sporeSystem.material.opacity = state.sporeBrightness * 0.7;
+            } else if (preset === 'noon') {
+                scene.background.setHex(0x38bdf8);
+                scene.fog.color.setHex(0x5ead9c);
+                sunLight.color.setHex(0xffffff);
+                sunLight.intensity = 1.85;
+                sunLight.position.set(20, 120, -25);
+                hemiLight.color.setHex(0xe0f2fe);
+                hemiLight.intensity = 0.85;
+                volcanoLight.intensity = 0.1;
+                sunbeamGroup.visible = true;
+                sporeSystem.material.opacity = state.sporeBrightness * 0.35;
+            } else if (preset === 'dusk') {
+                scene.background.setHex(0x2a1215);
+                scene.fog.color.setHex(0x3b191e);
+                sunLight.color.setHex(0xf97316);
+                sunLight.intensity = 1.3;
+                sunLight.position.set(-70, 42, -110);
+                hemiLight.color.setHex(0xfda4af);
+                hemiLight.intensity = 0.5;
+                volcanoLight.intensity = 2.2;
+                sunbeamGroup.visible = false;
+                sporeSystem.material.opacity = state.sporeBrightness * 0.85;
+            } else if (preset === 'night') {
+                scene.background.setHex(0x040b0c);
+                scene.fog.color.setHex(0x061517);
+                sunLight.color.setHex(0x38bdf8);
+                sunLight.intensity = 0.42;
+                sunLight.position.set(40, 90, -60);
+                hemiLight.color.setHex(0x1e293b);
+                hemiLight.intensity = 0.35;
+                volcanoLight.intensity = 1.2;
+                sunbeamGroup.visible = false;
+                sporeSystem.material.opacity = 1.0;
+            }
+        }
+
+        function setupInteractions() {
+            const canvas = renderer.domElement;
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            let pointerDownPos = { x: 0, y: 0 };
+
+            canvas.addEventListener('pointerdown', (e) => {
+                state.isDragging = true;
+                state.prevMouse.x = e.clientX;
+                state.prevMouse.y = e.clientY;
+                pointerDownPos = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('pointermove', (e) => {
+                if (!state.isDragging) return;
+                const dx = e.clientX - state.prevMouse.x;
+                const dy = e.clientY - state.prevMouse.y;
+                state.prevMouse.x = e.clientX;
+                state.prevMouse.y = e.clientY;
+
+                state.spherical.theta -= dx * 0.0055;
+                state.spherical.phi = Math.max(0.25, Math.min(Math.PI / 2 - 0.04, state.spherical.phi - dy * 0.0055));
+            });
+
+            window.addEventListener('pointerup', (e) => {
+                state.isDragging = false;
+                const moveDist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+                if (moveDist < 6) {
+                    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                    raycaster.setFromCamera(mouse, camera);
+                    const hits = raycaster.intersectObjects(interactiveObjects, false);
+                    if (hits.length > 0 && hits[0].object.userData.species) {
+                        showSpeciesInspector(hits[0].object.userData);
+                    }
+                }
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                state.spherical.radius = Math.max(12, Math.min(110, state.spherical.radius + e.deltaY * 0.04));
+            }, { passive: false });
+
+            window.addEventListener('keydown', (e) => {
+                const k = e.key.toLowerCase();
+                if (k === 'z' || k === 'w' || k === 'arrowup') state.keys.fwd = true;
+                if (k === 's' || k === 'arrowdown') state.keys.back = true;
+                if (k === 'q' || k === 'a' || k === 'arrowleft') state.keys.left = true;
+                if (k === 'd' || k === 'arrowright') state.keys.right = true;
+            });
+
+            window.addEventListener('keyup', (e) => {
+                const k = e.key.toLowerCase();
+                if (k === 'z' || k === 'w' || k === 'arrowup') state.keys.fwd = false;
+                if (k === 's' || k === 'arrowdown') state.keys.back = false;
+                if (k === 'q' || k === 'a' || k === 'arrowleft') state.keys.left = false;
+                if (k === 'd' || k === 'arrowright') state.keys.right = false;
+            });
+
+            const bindHoldButton = (id, keyName) => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+                const start = (e) => { e.preventDefault(); state.keys[keyName] = true; setCameraModeUI('orbit'); };
+                const end = (e) => { e.preventDefault(); state.keys[keyName] = false; };
+                btn.addEventListener('mousedown', start);
+                btn.addEventListener('touchstart', start, { passive: false });
+                window.addEventListener('mouseup', end);
+                window.addEventListener('touchend', end);
+            };
+            bindHoldButton('move-fwd', 'fwd');
+            bindHoldButton('move-back', 'back');
+            bindHoldButton('move-left', 'left');
+            bindHoldButton('move-right', 'right');
+
+            document.querySelectorAll('.btn-cam').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    setCameraModeUI(btn.dataset.cam);
+                });
+            });
+
+            document.querySelectorAll('.btn-time').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.btn-time').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    applyTimePreset(btn.dataset.time);
+                });
+            });
+
+            document.getElementById('slider-fog').addEventListener('input', (e) => {
+                const v = parseInt(e.target.value, 10);
+                state.fogDensity = 0.0015 + (v / 100) * 0.012;
+                scene.fog.density = state.fogDensity;
+                document.getElementById('val-fog').textContent = v < 30 ? 'Légère' : v < 70 ? 'Moyenne' : 'Épaisse';
+            });
+
+            document.getElementById('slider-wind').addEventListener('input', (e) => {
+                const v = parseInt(e.target.value, 10);
+                state.windStrength = v / 100;
+                document.getElementById('val-wind').textContent = v === 0 ? 'Calme' : v < 50 ? 'Doux' : 'Fort';
+            });
+
+            document.getElementById('slider-spores').addEventListener('input', (e) => {
+                const v = parseInt(e.target.value, 10);
+                state.sporeBrightness = v / 100;
+                sporeSystem.material.opacity = state.sporeBrightness;
+                document.getElementById('val-spores').textContent = `${v}%`;
+            });
+
+            document.getElementById('btn-audio').addEventListener('click', () => {
+                const active = audioEngine.toggle();
+                document.getElementById('audio-label').textContent = active ? 'Son : Activé' : 'Son : Désactivé';
+                document.getElementById('icon-audio-off').classList.toggle('hidden', active);
+                document.getElementById('icon-audio-on').classList.toggle('hidden', !active);
+            });
+
+            document.getElementById('btn-roar').addEventListener('click', () => {
+                audioEngine.playSauropodCall();
+                if (brachiosaurs.length > 0) {
+                    brachiosaurs[0].callingTimer = 3.5;
+                    const b = interactiveObjects.find(o => o.userData.species === 'Brachiosaurus altithorax');
+                    if (b) showSpeciesInspector(b.userData);
+                }
+            });
+
+            document.getElementById('btn-toggle-ui').addEventListener('click', () => {
+                const panel = document.getElementById('settings-panel');
+                panel.classList.toggle('opacity-0');
+                panel.classList.toggle('pointer-events-none');
+                panel.classList.toggle('translate-x-6');
+            });
+
+            document.getElementById('btn-close-inspector').addEventListener('click', () => {
+                const card = document.getElementById('inspector-card');
+                card.classList.add('opacity-0', '-translate-x-6', 'pointer-events-none');
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        function setCameraModeUI(mode) {
+            state.camMode = mode;
+            document.querySelectorAll('.btn-cam').forEach(b => {
+                b.classList.toggle('active', b.dataset.cam === mode);
+            });
+            if (mode === 'river') {
+                state.target.set(getRiverCenterX(18), 2.5, 18);
+                state.spherical.radius = 18;
+                state.spherical.phi = 1.38;
+            }
+        }
+
+        function showSpeciesInspector(data) {
+            document.getElementById('insp-badge').textContent = data.badge;
+            document.getElementById('insp-title').textContent = data.species;
+            document.getElementById('insp-desc').textContent = data.desc;
+            document.getElementById('insp-size').textContent = data.size;
+            document.getElementById('insp-habitat').textContent = data.habitat;
+
+            const card = document.getElementById('inspector-card');
+            card.classList.remove('opacity-0', '-translate-x-6', 'pointer-events-none');
+        }
+
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fpsLastUpdate = performance.now();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const now = performance.now();
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            const elapsed = now * 0.001;
+            lastTime = now;
+
+            frameCount++;
+            if (now - fpsLastUpdate >= 500) {
+                const fps = Math.round((frameCount * 1000) / (now - fpsLastUpdate));
+                document.getElementById('fps-counter').textContent = `${Math.min(60, fps)} FPS`;
+                frameCount = 0;
+                fpsLastUpdate = now;
+            }
+
+            if (waterMesh) {
+                const pos = waterMesh.geometry.attributes.position;
+                for (let i = 0; i < pos.count; i++) {
+                    const wx = pos.getX(i);
+                    const wz = pos.getZ(i);
+                    const wave = Math.sin(wx * 0.35 + elapsed * 2.2) * 0.09 + Math.cos(wz * 0.25 - elapsed * 1.8) * 0.09;
+                    pos.setY(i, wave);
+                }
+                pos.needsUpdate = true;
+            }
+
+            const windMult = state.windStrength * 2.2;
+            for (let i = 0; i < animatedFoliage.length; i++) {
+                const item = animatedFoliage[i];
+                item.mesh.rotation.z = Math.sin(elapsed * item.speed + item.phase) * item.amp * windMult;
+                item.mesh.rotation.x = Math.cos(elapsed * (item.speed * 0.8) + item.phase) * (item.amp * 0.6) * windMult;
+            }
+
+            for (let i = 0; i < brachiosaurs.length; i++) {
+                const dino = brachiosaurs[i];
+                dino.zPos += dino.walkSpeed * dt;
+                if (dino.zPos > 68) {
+                    dino.zPos = -68;
+                }
+
+                const curX = getRiverCenterX(dino.zPos) + dino.xOffset;
+                const nextX = getRiverCenterX(dino.zPos + 1.5) + dino.xOffset;
+                const groundY = Math.max(-0.8, getTerrainHeight(curX, dino.zPos));
+
+                dino.group.position.set(curX, groundY, dino.zPos);
+                const heading = Math.atan2(nextX - curX, 1.5);
+                dino.group.rotation.y = heading;
+
+                const walkCycle = elapsed * 2.4 + dino.phase;
+                dino.legs.forEach((leg) => {
+                    leg.pivot.rotation.x = Math.sin(walkCycle + leg.phase) * 0.28;
+                });
+
+                dino.group.position.y += Math.abs(Math.sin(walkCycle)) * 0.14 * dino.scale;
+                dino.tailPivot.rotation.y = Math.cos(walkCycle * 0.5) * 0.18;
+
+                if (dino.callingTimer > 0) {
+                    dino.callingTimer -= dt;
+                    dino.neckPivot.rotation.x = THREE.MathUtils.lerp(dino.neckPivot.rotation.x, -0.25, 0.08);
+                    dino.upperNeckPivot.rotation.x = THREE.MathUtils.lerp(dino.upperNeckPivot.rotation.x, -0.2, 0.08);
+                    dino.headGroup.rotation.y = Math.sin(elapsed * 4) * 0.18;
+                } else {
+                    dino.neckPivot.rotation.x = Math.sin(elapsed * 0.7 + dino.phase) * 0.08;
+                    dino.neckPivot.rotation.y = Math.cos(elapsed * 0.45 + dino.phase) * 0.14;
+                    dino.upperNeckPivot.rotation.x = Math.sin(elapsed * 0.9 + dino.phase) * 0.06;
+                }
+            }
+
+            for (let i = 0; i < pterosaurs.length; i++) {
+                const p = pterosaurs[i];
+                const angle = elapsed * p.speed + p.phase;
+                const px = Math.cos(angle) * p.radius;
+                const pz = Math.sin(angle) * (p.radius * 0.85);
+                const py = p.height + Math.sin(elapsed * 1.5 + p.phase) * 2.5;
+
+                p.group.position.set(px, py, pz);
+                p.group.rotation.y = -angle;
+                p.group.rotation.z = 0.22;
+
+                const flap = Math.sin(elapsed * 6.5 + p.phase) * 0.48;
+                p.leftWing.rotation.z = flap;
+                p.rightWing.rotation.z = -flap;
+            }
+
+            for (let i = 0; i < dragonflies.length; i++) {
+                const d = dragonflies[i];
+                const t = elapsed * 2.2 + d.phase;
+                d.group.position.x = d.baseX + Math.sin(t) * 3.5;
+                d.group.position.z = d.baseZ + Math.cos(t * 0.8) * 3.5;
+                d.group.position.y = 1.6 + Math.sin(t * 1.7) * 0.6;
+                d.group.rotation.y = Math.atan2(Math.cos(t) * 3.5, -Math.sin(t * 0.8) * 2.8);
+                const wingBuzz = Math.sin(elapsed * 38 + d.phase) * 0.35;
+                d.w1.rotation.z = wingBuzz;
+                d.w2.rotation.z = -wingBuzz;
+            }
+
+            if (sporeSystem) {
+                const pos = sporeSystem.geometry.attributes.position;
+                for (let i = 0; i < pos.count; i++) {
+                    let py = pos.getY(i) + Math.sin(elapsed + i) * 0.015;
+                    let px = pos.getX(i) + Math.cos(elapsed * 0.5 + i) * 0.018 * (1 + state.windStrength);
+                    if (py > 30) py = 1;
+                    pos.setY(i, py);
+                    pos.setX(i, px);
+                }
+                pos.needsUpdate = true;
+            }
+
+            updateCamera(dt, elapsed);
+
+            renderer.render(scene, camera);
+        }
+
+        function updateCamera(dt, elapsed) {
+            if (state.keys.fwd || state.keys.back || state.keys.left || state.keys.right) {
+                state.camMode = 'orbit';
+                const moveSpeed = 18 * dt;
+                const forward = new THREE.Vector3(
+                    -Math.sin(state.spherical.theta),
+                    0,
+                    -Math.cos(state.spherical.theta)
+                ).normalize();
+                const right = new THREE.Vector3(
+                    Math.cos(state.spherical.theta),
+                    0,
+                    -Math.sin(state.spherical.theta)
+                ).normalize();
+
+                if (state.keys.fwd) state.target.addScaledVector(forward, moveSpeed);
+                if (state.keys.back) state.target.addScaledVector(forward, -moveSpeed);
+                if (state.keys.right) state.target.addScaledVector(right, moveSpeed);
+                if (state.keys.left) state.target.addScaledVector(right, -moveSpeed);
+
+                const groundH = Math.max(0, getTerrainHeight(state.target.x, state.target.z));
+                state.target.y = THREE.MathUtils.lerp(state.target.y, groundH + 5.5, 0.1);
+            }
+
+            if (state.camMode === 'cinematic') {
+                state.spherical.theta = elapsed * 0.14;
+                state.spherical.phi = 1.18 + Math.sin(elapsed * 0.25) * 0.14;
+                state.spherical.radius = 38 + Math.cos(elapsed * 0.2) * 10;
+                const lookZ = Math.sin(elapsed * 0.15) * 22;
+                state.target.lerp(new THREE.Vector3(getRiverCenterX(lookZ), 7.5, lookZ), 0.04);
+            } else if (state.camMode === 'dino' && brachiosaurs.length > 0) {
+                const leadPos = brachiosaurs[0].group.position;
+                const desiredTarget = new THREE.Vector3(leadPos.x, leadPos.y + 8.5, leadPos.z + 2);
+                state.target.lerp(desiredTarget, 0.06);
+                if (!state.isDragging) {
+                    state.spherical.theta += dt * 0.12;
+                }
+            }
+
+            const camX = state.target.x + state.spherical.radius * Math.sin(state.spherical.phi) * Math.sin(state.spherical.theta);
+            const camZ = state.target.z + state.spherical.radius * Math.sin(state.spherical.phi) * Math.cos(state.spherical.theta);
+            let camY = state.target.y + state.spherical.radius * Math.cos(state.spherical.phi);
+
+            const minCamY = Math.max(1.2, getTerrainHeight(camX, camZ) + 1.8);
+            camY = Math.max(minCamY, camY);
+
+            camera.position.set(camX, camY, camZ);
+            camera.lookAt(state.target);
+        }
+
+        window.onload = function () {
+            initJungle();
+            animate();
+        };
+    </script>
+</body>
+</html>

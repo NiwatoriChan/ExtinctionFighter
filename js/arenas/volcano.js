@@ -9,6 +9,14 @@ registerArena({
     floorColor: 0x1c1917,
     accentColor: 0xf97316,
 
+    // Relief volcanique : dôme de magma central fracturé, failles latérales et rebords d'obsidienne
+    getGroundHeight(x, z = 0) {
+        const centralDome = Math.exp(-(x * x) / 9.5) * 0.65;
+        const lavaTroughs = -Math.exp(-Math.pow(Math.abs(x) - 5.2, 2) / 4.5) * 0.38;
+        const craterRim = Math.pow(Math.min(1, Math.abs(x) / 11.0), 3) * 0.72;
+        return centralDome + lavaTroughs + craterRim;
+    },
+
     // Éléments de décor 3D dynamiques (ajoutés à arenaGroup)
     buildDecor(group, scene) {
         const targetGroup = group || arenaGroup;

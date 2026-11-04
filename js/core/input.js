@@ -1277,11 +1277,13 @@ function handlePlayer1Inputs(dt) {
             touchState.jump                                  // Bouton Saut tactile
         );
 
-        const isInAir = fighter1.y > 0.05;
+        const airHeight1 = fighter1.y - (fighter1.groundY || 0);
+        const isInAir = airHeight1 > 0.06;
 
         if (isInAir && isHoldA && fighter1.flightEndurance > 0 && fighter1.hitStun <= 0 && !fighter1.isDead) {
             // En l'air + maintien de A : sustentation et vol actif
             fighter1.isFlying = true;
+            fighter1.onPlatform = null;
             fighter1.flightEndurance = Math.max(0, fighter1.flightEndurance - dt);
 
             // Contrôle vertical du vol : réascension immédiate si en descente
@@ -1312,18 +1314,20 @@ function handlePlayer1Inputs(dt) {
                 spawnFloatingPopup(fighter1.x, '⚡ ENDURANCE ÉPUISÉE !', '#f87171');
             }
         } else {
-            // Quand on lâche "A", ou au sol, ou endurance à 0 : le Quetzalcoatlus descend ou reste au sol
+            // Quand on lâche "A", ou au sol/plateforme, ou endurance à 0 : le Quetzalcoatlus descend ou reste posé
             fighter1.isFlying = false;
 
-            if (fighter1.y <= 0.05) {
-                // Au sol : l'action se cancele et l'endurance se recharge
+            if (airHeight1 <= 0.06) {
+                // Posé au sol ou sur une branche/plateforme : l'endurance se recharge
                 fighter1.flightEndurance = Math.min(2.0, fighter1.flightEndurance + dt * 1.25);
             }
         }
     }
 
+    const p1AirH = fighter1.y - (fighter1.groundY || 0);
+
     // Contrôle aérien pendant les sauts
-    if (fighter1.y > 0.05 && fighter1.dashTimer <= 0) {
+    if (p1AirH > 0.06 && fighter1.dashTimer <= 0) {
         if (moveLeft) fighter1.x -= curWalkSpd * 0.85 * dt;
         if (moveRight) fighter1.x += curWalkSpd * 0.85 * dt;
     }
@@ -1334,7 +1338,7 @@ function handlePlayer1Inputs(dt) {
     // --- MATRICE DE GARDE DIRECTIONNELLE 3-VOIES (HIGH / MID / LOW) ---
     // Représentée par une armure ostéodermique 3D à l'endroit défendu (Haute, Médiane ou Basse)
     const wantsGuard = isBack || guardKey || (isDown && !moveLeft && !moveRight);
-    if (wantsGuard && fighter1.y <= 0.01) {
+    if (wantsGuard && p1AirH <= 0.08) {
         fighter1.isBlocking = true;
         if (isUp) {
             fighter1.blockType = 'high'; // Protège le crâne / cornes
@@ -1358,7 +1362,7 @@ function handlePlayer1Inputs(dt) {
     fighter1.blockType = 'none';
 
     // SAUTER : Action de saut dédiée (Espace), complètement découplée de Haut pour frapper en haut sans sauter
-    if (jump && fighter1.y <= 0.01) {
+    if (jump && p1AirH <= 0.08) {
         fighter1.vy = fighter1.jumpVy || 11.8;
         if (moveLeft) fighter1.vx = -curWalkSpd * 0.65;
         if (moveRight) fighter1.vx = curWalkSpd * 0.65;
@@ -1407,11 +1411,6 @@ function handlePlayer2Inputs(dt) {
     if (fighter2.poisonStacks >= 2) curWalkSpd *= 0.65;
 
     // Quetzalcoatlus Vol J2 avec Endurance Circulaire de 2 secondes
-    // RÈGLES :
-    // 1. Appuyer sur "A" quand l'animal est dans les airs (y > 0.05) et maintenir "A" -> il vole
-    // 2. Quand on lâche "A" -> le Quetzalcoatlus descend (isFlying = false, gravité normale)
-    // 3. Si on réappuie sur "A" et qu'il n'est pas encore au sol -> il repart à voler
-    // 4. S'il est au sol (y <= 0.05) -> l'action se cancele, l'endurance se recharge
     if (fighter2.dino.id === 'quetzal' || fighter2.dino.id === 'quetzalcoatlus') {
         if (fighter2.flightEndurance === undefined) fighter2.flightEndurance = 2.0;
 
@@ -1423,7 +1422,8 @@ function handlePlayer2Inputs(dt) {
             p2TouchState.jump
         );
 
-        const isInAir2 = fighter2.y > 0.05;
+        const airHeight2 = fighter2.y - (fighter2.groundY || 0);
+        const isInAir2 = airHeight2 > 0.06;
 
         if (isInAir2 && isHoldA2 && fighter2.flightEndurance > 0 && fighter2.hitStun <= 0 && !fighter2.isDead) {
             fighter2.isFlying = true;
@@ -1456,13 +1456,15 @@ function handlePlayer2Inputs(dt) {
             }
         } else {
             fighter2.isFlying = false;
-            if (fighter2.y <= 0.05) {
+            if (airHeight2 <= 0.06) {
                 fighter2.flightEndurance = Math.min(2.0, fighter2.flightEndurance + dt * 1.25);
             }
         }
     }
 
-    if (fighter2.y > 0.05 && fighter2.dashTimer <= 0) {
+    const p2AirH = fighter2.y - (fighter2.groundY || 0);
+
+    if (p2AirH > 0.06 && fighter2.dashTimer <= 0) {
         if (moveLeft) fighter2.x -= curWalkSpd * 0.85 * dt;
         if (moveRight) fighter2.x += curWalkSpd * 0.85 * dt;
     }
@@ -1471,7 +1473,7 @@ function handlePlayer2Inputs(dt) {
 
     // Garde directionnelle 3-voies J2
     const wantsGuard2 = isBack || guardKey || (isDown && !moveLeft && !moveRight);
-    if (wantsGuard2 && fighter2.y <= 0.01) {
+    if (wantsGuard2 && p2AirH <= 0.08) {
         fighter2.isBlocking = true;
         if (isUp) {
             fighter2.blockType = 'high';
@@ -1493,7 +1495,7 @@ function handlePlayer2Inputs(dt) {
     fighter2.isBlocking = false;
     fighter2.blockType = 'none';
 
-    if (jump && fighter2.y <= 0.01) {
+    if (jump && p2AirH <= 0.08) {
         fighter2.vy = fighter2.jumpVy || 11.8;
         if (moveLeft) fighter2.vx = -curWalkSpd * 0.65;
         if (moveRight) fighter2.vx = curWalkSpd * 0.65;

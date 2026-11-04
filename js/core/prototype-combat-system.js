@@ -1082,25 +1082,29 @@ function buildMandatoryDinoAnimationClips(dino, rig, baseHipsY = 2.1) {
     ]);
 
     // 5. Knockdown & Recovery Sequence : Knockdown_Fall -> Grounded_Idle -> Wake_Up_Stand
+    const groundClipHipsY = Math.max(0.62, baseHipsY * 0.38);
     addClip(`${prefix}_Knockdown_Fall`, 0.42, [
-        { path: 'Bone_Hips.position[y]', times: [0, 0.22, 0.42], values: [baseHipsY, baseHipsY * 0.55, 0.65] },
-        { path: 'Bone_Hips.rotation[z]', times: [0, 0.22, 0.42], values: [0.25, 0.85, 1.48] },
-        { path: 'Bone_Torso.rotation[z]', times: [0, 0.22, 0.42], values: [0.35, 0.20, 0.05] },
-        { path: 'Bone_Jaw.rotation[z]', times: [0, 0.42], values: [-0.65, -0.35] }
+        { path: 'Bone_Hips.position[y]', times: [0, 0.22, 0.42], values: [baseHipsY, (baseHipsY + groundClipHipsY) * 0.5, groundClipHipsY] },
+        { path: 'Bone_Hips.rotation[x]', times: [0, 0.22, 0.42], values: [0, 0.72, 1.45] },
+        { path: 'Bone_Hips.rotation[z]', times: [0, 0.22, 0.42], values: [0, 0.05, 0] },
+        { path: 'Bone_Torso.rotation[z]', times: [0, 0.22, 0.42], values: [0.15, 0.08, 0] },
+        { path: 'Bone_Jaw.rotation[z]', times: [0, 0.42], values: [-0.15, -0.35] }
     ]);
 
     addClip(`${prefix}_Grounded_Idle`, 0.80, [
-        { path: 'Bone_Hips.position[y]', times: [0, 0.40, 0.80], values: [0.65, 0.72, 0.65] },
-        { path: 'Bone_Hips.rotation[z]', times: [0, 0.40, 0.80], values: [1.48, 1.42, 1.48] },
-        { path: 'Bone_Head.rotation[z]', times: [0, 0.40, 0.80], values: [-0.15, 0.05, -0.15] },
-        { path: 'Bone_Jaw.rotation[z]', times: [0, 0.40, 0.80], values: [-0.35, -0.50, -0.35] }
+        { path: 'Bone_Hips.position[y]', times: [0, 0.40, 0.80], values: [groundClipHipsY, groundClipHipsY + 0.04, groundClipHipsY] },
+        { path: 'Bone_Hips.rotation[x]', times: [0, 0.40, 0.80], values: [1.45, 1.48, 1.45] },
+        { path: 'Bone_Hips.rotation[z]', times: [0, 0.40, 0.80], values: [0, 0, 0] },
+        { path: 'Bone_Head.rotation[z]', times: [0, 0.40, 0.80], values: [-0.12, -0.08, -0.12] },
+        { path: 'Bone_Jaw.rotation[z]', times: [0, 0.40, 0.80], values: [-0.35, -0.42, -0.35] }
     ]);
 
     addClip(`${prefix}_Wake_Up_Stand`, 0.46, [
-        { path: 'Bone_Hips.position[y]', times: [0, 0.24, 0.46], values: [0.65, baseHipsY * 0.78, baseHipsY] },
-        { path: 'Bone_Hips.rotation[z]', times: [0, 0.24, 0.46], values: [1.48, 0.35, 0] },
-        { path: 'Bone_Torso.rotation[z]', times: [0, 0.24, 0.46], values: [0.05, -0.28, 0] },
-        { path: 'Bone_Head.rotation[z]', times: [0, 0.24, 0.46], values: [-0.15, 0.32, 0] }
+        { path: 'Bone_Hips.position[y]', times: [0, 0.24, 0.46], values: [groundClipHipsY, baseHipsY * 0.78, baseHipsY] },
+        { path: 'Bone_Hips.rotation[x]', times: [0, 0.24, 0.46], values: [1.45, 0.35, 0] },
+        { path: 'Bone_Hips.rotation[z]', times: [0, 0.24, 0.46], values: [0, 0, 0] },
+        { path: 'Bone_Torso.rotation[z]', times: [0, 0.24, 0.46], values: [0, -0.22, 0] },
+        { path: 'Bone_Head.rotation[z]', times: [0, 0.24, 0.46], values: [-0.12, 0.28, 0] }
     ]);
 
     return clips;

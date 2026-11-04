@@ -39,11 +39,106 @@
     <script src="js/arenas/storm.js"></script>
     <script src="js/arenas/ice-age.js"></script>
     <script src="js/arenas/dragon-lair.js"></script>
+    <script src="js/arenas/jungle.js"></script>
     <!-- Moteur du jeu -->
     <script src="js/core/sound.js"></script>
     <script src="js/core/state.js"></script>
     <script src="js/core/rig.js"></script>
     <script src="js/core/prototype-combat-system.js"></script>
+    <!-- Système d'animations modulaires (communes + par espèce) -->
+    <script src="js/animations/common/rig_reset.js"></script>
+    <script src="js/animations/common/combat_reactions.js"></script>
+    <script src="js/animations/common/attack_biomechanics.js"></script>
+    <!-- T-Rex -->
+    <script src="js/animations/trex/trex_idle.js"></script>
+    <script src="js/animations/trex/trex_walking.js"></script>
+    <script src="js/animations/trex/trex_jumping.js"></script>
+    <script src="js/animations/trex/trex_attacking.js"></script>
+    <script src="js/animations/trex/trex_fatality.js"></script>
+    <!-- Pachyrhinosaurus -->
+    <script src="js/animations/pachyrhinosaurus/pachyrhinosaurus_idle.js"></script>
+    <script src="js/animations/pachyrhinosaurus/pachyrhinosaurus_walking.js"></script>
+    <script src="js/animations/pachyrhinosaurus/pachyrhinosaurus_jumping.js"></script>
+    <script src="js/animations/pachyrhinosaurus/pachyrhinosaurus_attacking.js"></script>
+    <script src="js/animations/pachyrhinosaurus/pachyrhinosaurus_fatality.js"></script>
+    <!-- Ankylosaurus -->
+    <script src="js/animations/ankylosaurus/ankylosaurus_idle.js"></script>
+    <script src="js/animations/ankylosaurus/ankylosaurus_walking.js"></script>
+    <script src="js/animations/ankylosaurus/ankylosaurus_jumping.js"></script>
+    <script src="js/animations/ankylosaurus/ankylosaurus_attacking.js"></script>
+    <script src="js/animations/ankylosaurus/ankylosaurus_fatality.js"></script>
+    <!-- Apatosaurus -->
+    <script src="js/animations/apatosaurus/apatosaurus_idle.js"></script>
+    <script src="js/animations/apatosaurus/apatosaurus_walking.js"></script>
+    <script src="js/animations/apatosaurus/apatosaurus_jumping.js"></script>
+    <script src="js/animations/apatosaurus/apatosaurus_attacking.js"></script>
+    <script src="js/animations/apatosaurus/apatosaurus_fatality.js"></script>
+    <!-- Maiasaura -->
+    <script src="js/animations/maiasaura/maiasaura_idle.js"></script>
+    <script src="js/animations/maiasaura/maiasaura_walking.js"></script>
+    <script src="js/animations/maiasaura/maiasaura_jumping.js"></script>
+    <script src="js/animations/maiasaura/maiasaura_attacking.js"></script>
+    <script src="js/animations/maiasaura/maiasaura_fatality.js"></script>
+    <!-- Terror Bird -->
+    <script src="js/animations/terror-bird/terror_bird_idle.js"></script>
+    <script src="js/animations/terror-bird/terror_bird_walking.js"></script>
+    <script src="js/animations/terror-bird/terror_bird_jumping.js"></script>
+    <script src="js/animations/terror-bird/terror_bird_attacking.js"></script>
+    <script src="js/animations/terror-bird/terror_bird_fatality.js"></script>
+    <!-- Postosuchus -->
+    <script src="js/animations/postosuchus/postosuchus_idle.js"></script>
+    <script src="js/animations/postosuchus/postosuchus_walking.js"></script>
+    <script src="js/animations/postosuchus/postosuchus_jumping.js"></script>
+    <script src="js/animations/postosuchus/postosuchus_attacking.js"></script>
+    <script src="js/animations/postosuchus/postosuchus_fatality.js"></script>
+    <!-- Spinosaurus -->
+    <script src="js/animations/spinosaurus/spinosaurus_idle.js"></script>
+    <script src="js/animations/spinosaurus/spinosaurus_walking.js"></script>
+    <script src="js/animations/spinosaurus/spinosaurus_jumping.js"></script>
+    <script src="js/animations/spinosaurus/spinosaurus_attacking.js"></script>
+    <script src="js/animations/spinosaurus/spinosaurus_fatality.js"></script>
+    <!-- Therizinosaurus -->
+    <script src="js/animations/therizinosaurus/therizinosaurus_idle.js"></script>
+    <script src="js/animations/therizinosaurus/therizinosaurus_walking.js"></script>
+    <script src="js/animations/therizinosaurus/therizinosaurus_jumping.js"></script>
+    <script src="js/animations/therizinosaurus/therizinosaurus_attacking.js"></script>
+    <script src="js/animations/therizinosaurus/therizinosaurus_fatality.js"></script>
+    <!-- Pulmonoscorpius -->
+    <script src="js/animations/pulmonoscorpius/pulmonoscorpius_idle.js"></script>
+    <script src="js/animations/pulmonoscorpius/pulmonoscorpius_walking.js"></script>
+    <script src="js/animations/pulmonoscorpius/pulmonoscorpius_jumping.js"></script>
+    <script src="js/animations/pulmonoscorpius/pulmonoscorpius_attacking.js"></script>
+    <script src="js/animations/pulmonoscorpius/pulmonoscorpius_fatality.js"></script>
+    <!-- Stegosaurus -->
+    <script src="js/animations/stegosaurus/stegosaurus_idle.js"></script>
+    <script src="js/animations/stegosaurus/stegosaurus_walking.js"></script>
+    <script src="js/animations/stegosaurus/stegosaurus_jumping.js"></script>
+    <script src="js/animations/stegosaurus/stegosaurus_attacking.js"></script>
+    <script src="js/animations/stegosaurus/stegosaurus_fatality.js"></script>
+    <!-- Quetzalcoatlus -->
+    <script src="js/animations/quetzalcoatlus/quetzalcoatlus_idle.js"></script>
+    <script src="js/animations/quetzalcoatlus/quetzalcoatlus_walking.js"></script>
+    <script src="js/animations/quetzalcoatlus/quetzalcoatlus_jumping.js"></script>
+    <script src="js/animations/quetzalcoatlus/quetzalcoatlus_attacking.js"></script>
+    <script src="js/animations/quetzalcoatlus/quetzalcoatlus_fatality.js"></script>
+    <!-- Megatherium -->
+    <script src="js/animations/megatherium/megatherium_idle.js"></script>
+    <script src="js/animations/megatherium/megatherium_walking.js"></script>
+    <script src="js/animations/megatherium/megatherium_jumping.js"></script>
+    <script src="js/animations/megatherium/megatherium_attacking.js"></script>
+    <script src="js/animations/megatherium/megatherium_fatality.js"></script>
+    <!-- Smilodon -->
+    <script src="js/animations/smilodon/smilodon_idle.js"></script>
+    <script src="js/animations/smilodon/smilodon_walking.js"></script>
+    <script src="js/animations/smilodon/smilodon_jumping.js"></script>
+    <script src="js/animations/smilodon/smilodon_attacking.js"></script>
+    <script src="js/animations/smilodon/smilodon_fatality.js"></script>
+    <!-- Dragon -->
+    <script src="js/animations/dragon/dragon_idle.js"></script>
+    <script src="js/animations/dragon/dragon_walking.js"></script>
+    <script src="js/animations/dragon/dragon_jumping.js"></script>
+    <script src="js/animations/dragon/dragon_attacking.js"></script>
+    <script src="js/animations/dragon/dragon_fatality.js"></script>
     <script src="js/core/animation.js"></script>
     <script src="js/core/scene.js"></script>
     <script src="js/core/arena.js"></script>

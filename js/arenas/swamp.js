@@ -9,6 +9,13 @@ registerArena({
     floorColor: 0x052e16,
     accentColor: 0x22c55e,
 
+    // Relief marécageux : îlots de racines surélevés et cuvettes de tourbe acide
+    getGroundHeight(x, z = 0) {
+        const mireBasin = -Math.cos(x * 0.42) * 0.34;
+        const rootHummock = Math.sin(x * 0.75) * 0.18;
+        return mireBasin + rootHummock + 0.10;
+    },
+
     // Éléments de décor 3D dynamiques (ajoutés à arenaGroup)
     buildDecor(group, scene) {
         const targetGroup = group || arenaGroup;

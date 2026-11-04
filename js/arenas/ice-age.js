@@ -11,6 +11,13 @@ registerArena({
     floorColor: 0x94a3b8,
     accentColor: 0x38bdf8,
 
+    // Relief glaciaire : congères de neige sculptées par le blizzard et crevasse centrale gelée
+    getGroundHeight(x, z = 0) {
+        const crevasseDip = -Math.exp(-(x * x) / 8.0) * 0.45;
+        const snowDrifts = Math.sin(x * 0.48) * 0.25 + Math.pow(Math.min(1, Math.abs(x) / 10.5), 2) * 0.68;
+        return crevasseDip + snowDrifts;
+    },
+
     // Éléments de décor 3D dynamiques
     buildDecor(group, scene) {
         const targetGroup = group || arenaGroup;

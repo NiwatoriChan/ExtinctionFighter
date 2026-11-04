@@ -5,6 +5,7 @@
 // 1. BASE DE DONNÉES DES COMBATTANTS AVEC ANIMATIONS, SKINS & FATALITÉS 3D DISTINCTES
 const DINO_ROSTER = [];
 const FIGHTER_IMPLS = {};
+const FIGHTER_ANIMATIONS = {};
 let DRAGON_BOSS = null;
 
 function registerFighter(data, impl) {
@@ -13,13 +14,26 @@ function registerFighter(data, impl) {
     } else {
         DINO_ROSTER.push(data);
     }
-    FIGHTER_IMPLS[data.id] = impl || {};
+    const existingAnims = FIGHTER_ANIMATIONS[data.id] || {};
+    FIGHTER_IMPLS[data.id] = Object.assign({}, existingAnims, impl || {});
 }
 
 function registerBoss(data, impl) {
     data.isBoss = true;
     DRAGON_BOSS = data;
-    FIGHTER_IMPLS[data.id] = impl || {};
+    const existingAnims = FIGHTER_ANIMATIONS[data.id] || {};
+    FIGHTER_IMPLS[data.id] = Object.assign({}, existingAnims, impl || {});
+}
+
+function registerFighterAnimation(fighterId, animDef) {
+    if (!FIGHTER_ANIMATIONS[fighterId]) {
+        FIGHTER_ANIMATIONS[fighterId] = {};
+    }
+    Object.assign(FIGHTER_ANIMATIONS[fighterId], animDef);
+    if (!FIGHTER_IMPLS[fighterId]) {
+        FIGHTER_IMPLS[fighterId] = {};
+    }
+    Object.assign(FIGHTER_IMPLS[fighterId], animDef);
 }
 
 // Système de déblocage de combattants (persistance localStorage)
@@ -60,11 +74,11 @@ const FIGHTER_THEMED_ARENAS = {
     spinosaurus: 'swamp',
     postosuchus: 'swamp',
     pulmonoscorpius: 'swamp',
-    maiasaura: 'swamp',
+    maiasaura: 'jungle',
     terabird: 'storm',
     quetzal: 'storm',
     ankylo: 'boneyard',
-    apato: 'boneyard',
+    apato: 'jungle',
     therizino: 'boneyard'
 };
 

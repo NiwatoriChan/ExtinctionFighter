@@ -1,10 +1,340 @@
 /* ============================================================================
  * COMBATTANT : QUETZALCOATLUS (Quetzalcoatlus Northropi)
- * Données (stats, skins, textes), modèle 3D, animations, coups spéciaux & fatalité.
- * Silhouette d'azhdarchidé : posture quadrupède (mains au sol), doigt alaire replié
- * pointant vers le ciel avec membrane triangulaire, très long cou dressé à crinière
- * sombre, petite tête à crête bleue et immense bec en dague jaune.
+ * Données (stats, skins, textes), modèle 3D paléontologique procédural haute
+ * fidélité (textures PBR pycnofibres, kératine du bec, crête sagittale, patagium
+ * vascularisé à actinofibrilles, maillage corporel continu par spline Catmull-Rom
+ * et membranes alaires déformables en temps réel), animations biomécaniques,
+ * coups spéciaux & fatalité.
  * ============================================================================ */
+
+// Cache global des textures procédurales PBR 1024x1024 pour éviter toute régénération coûteuse
+let _cachedQuetzalPBRMaps = null;
+
+function getQuetzalPBRMaps() {
+    if (_cachedQuetzalPBRMaps) return _cachedQuetzalPBRMaps;
+
+    function applySRGB(tex) {
+        if (THREE.SRGBColorSpace) {
+            tex.colorSpace = THREE.SRGBColorSpace;
+        } else if (THREE.sRGBEncoding) {
+            tex.encoding = THREE.sRGBEncoding;
+        }
+    }
+
+    function createPycnofiberMaps() {
+        const size = 1024;
+        const colorCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        colorCanvas.width = bumpCanvas.width = size;
+        colorCanvas.height = bumpCanvas.height = size;
+        const cCtx = colorCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+
+        // Countershaded organic base coat (U = around circumference, V = tail to head)
+        const grad = cCtx.createLinearGradient(0, 0, size, 0);
+        grad.addColorStop(0.0, '#2e241d');   // Dorsal spine (dark sepia-slate)
+        grad.addColorStop(0.22, '#5c4635');  // Upper flank (warm umber)
+        grad.addColorStop(0.42, '#9e7f60');  // Lower flank (ochre-tan)
+        grad.addColorStop(0.5, '#cbb597');   // Ventral belly/throat (pale cream)
+        grad.addColorStop(0.58, '#9e7f60');
+        grad.addColorStop(0.78, '#5c4635');
+        grad.addColorStop(1.0, '#2e241d');
+        cCtx.fillStyle = grad;
+        cCtx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Organic mottled markings along dorsal/flank regions
+        for (let i = 0; i < 450; i++) {
+            const u = Math.random();
+            if (u > 0.35 && u < 0.65) continue; // Keep belly clean
+            const x = u * size;
+            const y = Math.random() * size;
+            const r = 8 + Math.random() * 26;
+            const g = cCtx.createRadialGradient(x, y, 1, x, y, r);
+            const dark = Math.random() > 0.45;
+            g.addColorStop(0, dark ? 'rgba(32, 24, 18, 0.22)' : 'rgba(180, 145, 105, 0.16)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            cCtx.fillStyle = g;
+            cCtx.beginPath();
+            cCtx.arc(x, y, r, 0, Math.PI * 2);
+            cCtx.fill();
+        }
+
+        // 65,000 fine directional pycnofiber filaments
+        for (let i = 0; i < 65000; i++) {
+            const x = Math.random() * size;
+            const y = Math.random() * size;
+            const len = 5 + Math.random() * 14;
+            const angle = Math.PI / 2 + (Math.random() - 0.5) * 0.28;
+            const lum = Math.floor(105 + Math.random() * 50);
+
+            cCtx.strokeStyle = Math.random() > 0.5
+                ? 'rgba(225, 200, 170, 0.12)'
+                : 'rgba(25, 18, 12, 0.15)';
+            cCtx.lineWidth = 1.0;
+            cCtx.beginPath();
+            cCtx.moveTo(x, y);
+            cCtx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+            cCtx.stroke();
+
+            bCtx.strokeStyle = `rgb(${lum},${lum},${lum})`;
+            bCtx.lineWidth = 1.1;
+            bCtx.beginPath();
+            bCtx.moveTo(x, y);
+            bCtx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+            bCtx.stroke();
+        }
+
+        const colorMap = new THREE.CanvasTexture(colorCanvas);
+        const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+        colorMap.wrapS = colorMap.wrapT = bumpMap.wrapS = bumpMap.wrapT = THREE.RepeatWrapping;
+        applySRGB(colorMap);
+        return { colorMap, bumpMap };
+    }
+
+    function createKeratinBeakMaps() {
+        const size = 1024;
+        const canvas = document.createElement('canvas');
+        const bump = document.createElement('canvas');
+        canvas.width = bump.width = size;
+        canvas.height = bump.height = size;
+        const ctx = canvas.getContext('2d');
+        const bCtx = bump.getContext('2d');
+
+        // Longitudinal gradient from cranial base (left) to spear tip (right)
+        const grad = ctx.createLinearGradient(0, 0, size, 0);
+        grad.addColorStop(0.0, '#29221e');   // Dark cranial base
+        grad.addColorStop(0.25, '#47382c');  // Nasoantorbital region
+        grad.addColorStop(0.58, '#8a5a32');  // Horn-colored mid rostrum
+        grad.addColorStop(0.84, '#c47f35');  // Golden-amber spear blade
+        grad.addColorStop(0.96, '#3b281c');  // Darkened wear tip
+        grad.addColorStop(1.0, '#1c140e');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Longitudinal vascular sulci & keratin growth layers
+        for (let i = 0; i < 4000; i++) {
+            const x = Math.random() * size;
+            const y = Math.random() * size;
+            const len = 20 + Math.random() * 90;
+            ctx.strokeStyle = Math.random() > 0.5
+                ? 'rgba(20, 14, 10, 0.16)'
+                : 'rgba(245, 200, 140, 0.09)';
+            ctx.lineWidth = 0.8 + Math.random() * 1.8;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + len, y + (Math.random() - 0.5) * 4);
+            ctx.stroke();
+
+            const bVal = Math.random() > 0.5 ? 155 : 95;
+            bCtx.strokeStyle = `rgb(${bVal},${bVal},${bVal})`;
+            bCtx.lineWidth = 1.2;
+            bCtx.beginPath();
+            bCtx.moveTo(x, y);
+            bCtx.lineTo(x + len, y + (Math.random() - 0.5) * 4);
+            bCtx.stroke();
+        }
+
+        // Transverse keratin growth annuli
+        for (let x = 80; x < size; x += 18 + Math.random() * 16) {
+            ctx.strokeStyle = 'rgba(15, 10, 8, 0.18)';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.quadraticCurveTo(x - 25, size * 0.5, x, size);
+            ctx.stroke();
+        }
+
+        const colorMap = new THREE.CanvasTexture(canvas);
+        const bumpMap = new THREE.CanvasTexture(bump);
+        applySRGB(colorMap);
+        return { colorMap, bumpMap };
+    }
+
+    function createCrestMaps() {
+        const size = 512;
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        const grad = ctx.createLinearGradient(0, size, size * 0.8, 0);
+        grad.addColorStop(0.0, '#2b1e19');
+        grad.addColorStop(0.22, '#7c2519');
+        grad.addColorStop(0.55, '#b9381e');
+        grad.addColorStop(0.82, '#d9771c');
+        grad.addColorStop(1.0, '#eab354');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+
+        // Organic vascularized horn ridges & dark display mottling
+        for (let i = 0; i < 90; i++) {
+            const x = (i / 90) * size;
+            ctx.strokeStyle = i % 5 === 0 ? 'rgba(28, 14, 12, 0.35)' : 'rgba(255, 220, 160, 0.12)';
+            ctx.lineWidth = i % 5 === 0 ? 5 : 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x, size);
+            ctx.quadraticCurveTo(x - 30, size * 0.45, x + 35, 0);
+            ctx.stroke();
+        }
+
+        const tex = new THREE.CanvasTexture(canvas);
+        applySRGB(tex);
+        return tex;
+    }
+
+    function createPatagiumMaps() {
+        const size = 1024;
+        const colorCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        const thickCanvas = document.createElement('canvas');
+        colorCanvas.width = bumpCanvas.width = thickCanvas.width = size;
+        colorCanvas.height = bumpCanvas.height = thickCanvas.height = size;
+
+        const cCtx = colorCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+        const tCtx = thickCanvas.getContext('2d');
+
+        // V (0 = thick muscular leading edge, 1 = thin translucent trailing edge)
+        const grad = cCtx.createLinearGradient(0, 0, 0, size);
+        grad.addColorStop(0.0, '#2b2019');   // Dark leathery leading spar
+        grad.addColorStop(0.18, '#4a3327');  // Muscular anterior membrane
+        grad.addColorStop(0.55, '#6b4332');  // Vascularized mid-chord
+        grad.addColorStop(0.85, '#7c4935');  // Translucent warm trailing zone
+        grad.addColorStop(1.0, '#3a2219');   // Toughened trailing edge rim
+        cCtx.fillStyle = grad;
+        cCtx.fillRect(0, 0, size, size);
+
+        // Subsurface thickness map
+        const tGrad = tCtx.createLinearGradient(0, 0, 0, size);
+        tGrad.addColorStop(0.0, '#101010');
+        tGrad.addColorStop(0.22, '#606060');
+        tGrad.addColorStop(0.75, '#e5e5e5');
+        tGrad.addColorStop(1.0, '#909090');
+        tCtx.fillStyle = tGrad;
+        tCtx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Structural Actinofibrils (fine parallel collagenous fibers spanning the wing)
+        for (let x = 0; x < size; x += 3.5) {
+            const wave = Math.sin(x * 0.04) * 14;
+            cCtx.strokeStyle = 'rgba(24, 14, 10, 0.22)';
+            cCtx.lineWidth = 1.1;
+            cCtx.beginPath();
+            cCtx.moveTo(x, 0);
+            cCtx.quadraticCurveTo(x + wave, size * 0.5, x - wave * 0.5, size);
+            cCtx.stroke();
+
+            bCtx.strokeStyle = x % 7 < 3.5 ? '#9c9c9c' : '#666666';
+            bCtx.lineWidth = 1.4;
+            cCtx.beginPath();
+            cCtx.moveTo(x, 0);
+            cCtx.quadraticCurveTo(x + wave, size * 0.5, x - wave * 0.5, size);
+            bCtx.stroke();
+        }
+
+        // Branching arterial/venous network inside the patagium
+        function drawVessel(x, y, angle, width, depth) {
+            if (depth <= 0 || width < 0.4 || y > size || x < 0 || x > size) return;
+            const len = 35 + Math.random() * 55;
+            const nx = x + Math.cos(angle) * len;
+            const ny = y + Math.sin(angle) * len;
+
+            cCtx.strokeStyle = `rgba(115, 28, 22, ${0.12 + width * 0.05})`;
+            cCtx.lineWidth = width;
+            cCtx.beginPath();
+            cCtx.moveTo(x, y);
+            cCtx.lineTo(nx, ny);
+            cCtx.stroke();
+
+            bCtx.strokeStyle = '#a8a8a8';
+            bCtx.lineWidth = width * 0.9;
+            cCtx.beginPath();
+            bCtx.beginPath();
+            bCtx.moveTo(x, y);
+            bCtx.lineTo(nx, ny);
+            bCtx.stroke();
+
+            drawVessel(nx, ny, angle + (Math.random() - 0.5) * 0.45, width * 0.78, depth - 1);
+            if (Math.random() > 0.35) {
+                drawVessel(nx, ny, angle + (Math.random() > 0.5 ? 0.5 : -0.5), width * 0.6, depth - 1);
+            }
+        }
+
+        for (let i = 0; i < 24; i++) {
+            drawVessel(Math.random() * size, 20, Math.PI * 0.5 + (Math.random() - 0.5) * 0.4, 3.2, 6);
+        }
+
+        const colorMap = new THREE.CanvasTexture(colorCanvas);
+        const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+        const thicknessMap = new THREE.CanvasTexture(thickCanvas);
+        applySRGB(colorMap);
+        return { colorMap, bumpMap, thicknessMap };
+    }
+
+    _cachedQuetzalPBRMaps = {
+        pycnoMaps: createPycnofiberMaps(),
+        beakMaps: createKeratinBeakMaps(),
+        crestTex: createCrestMaps(),
+        patagiumMaps: createPatagiumMaps()
+    };
+    return _cachedQuetzalPBRMaps;
+}
+
+// Helper compatible Three.js r128+ pour CapsuleGeometry
+function createQuetzalCapsuleGeometry(radius, length, capSegments = 6, radialSegments = 10) {
+    if (THREE.CapsuleGeometry) {
+        return new THREE.CapsuleGeometry(radius, length, capSegments, radialSegments);
+    }
+    const totalRings = capSegments * 2 + 1;
+    const geo = new THREE.CylinderGeometry(radius, radius, length + radius * 2, radialSegments, totalRings, false);
+    const pos = geo.attributes.position;
+    const halfLen = length / 2;
+
+    for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        const rLen = Math.sqrt(x * x + z * z);
+        const angle = Math.atan2(z, x);
+
+        // Normaliser la position verticale [-1, 1]
+        const normY = y / (halfLen + radius);
+        if (normY > 0.999) {
+            pos.setXYZ(i, 0, halfLen + radius, 0);
+        } else if (normY < -0.999) {
+            pos.setXYZ(i, 0, -halfLen - radius, 0);
+        } else {
+            // Transformer les anneaux supérieurs et inférieurs en calottes hémisphériques
+            const u = (1 - normY) * 0.5; // 0 (top) to 1 (bottom)
+            const ringIdx = Math.round(u * totalRings);
+            let phi = Math.PI * 0.5;
+            let centerOffset = 0;
+            if (ringIdx <= capSegments) {
+                phi = (ringIdx / capSegments) * (Math.PI * 0.5);
+                centerOffset = halfLen;
+            } else {
+                phi = Math.PI * 0.5 + ((ringIdx - capSegments - 1) / capSegments) * (Math.PI * 0.5);
+                centerOffset = -halfLen;
+            }
+            const sinPhi = Math.sin(phi);
+            const cosPhi = Math.cos(phi);
+            if (rLen > 0.00001) {
+                pos.setXYZ(i, Math.cos(angle) * radius * sinPhi, centerOffset + radius * cosPhi, Math.sin(angle) * radius * sinPhi);
+            } else {
+                pos.setXYZ(i, 0, centerOffset + radius * cosPhi, 0);
+            }
+        }
+    }
+    geo.computeVertexNormals();
+    return geo;
+}
 
 registerFighter({
     id: 'quetzal',
@@ -12,12 +342,12 @@ registerFighter({
     fullName: 'Quetzalcoatlus Northropi',
     role: 'Monarque Céleste',
     title: '« L’Envergure Démesurée des Cieux »',
-    primaryColor: 0x8b9099,
-    secondaryColor: 0x3a3532,
-    accentColor: 0x60a5fa,
-    cssPrimary: '#38bdf8',
-    scale: 1.06,
-    previewScale: 0.8,
+    primaryColor: 0x9e7f60,
+    secondaryColor: 0x2e241d,
+    accentColor: 0xd9771c,
+    cssPrimary: '#f59e0b',
+    scale: 0.96,
+    previewScale: 0.72,
     stats: { pow: 94, spd: 96, def: 74 },
     maxHp: 940,
     walkSpeed: 9.6,
@@ -27,230 +357,1182 @@ registerFighter({
     moveStyle: 'Démarche quadrupède ailée sur de longues échasses, vol libre stratosphérique de 2 secondes avec jauge circulaire d’endurance, estocs foudroyants et piqués dévastateurs.',
     fatalityDesc: 'Saisit l’ennemi de son long bec en dague, s’élève dans la haute atmosphère et le laisse s’écraser à vitesse terminale.',
     skins: [
-        { name: 'Paleo Sovereign', primary: 0x8b9099, secondary: 0x3a3532, accent: 0x60a5fa, membrane: 0x9a7556, beak: 0xe0a526 },
-        { name: 'Sky Sovereign', primary: 0x0284c7, secondary: 0x0c4a6e, accent: 0x38bdf8, membrane: 0x0369a1, beak: 0xfacc15 },
-        { name: 'Blood Harpy', primary: 0x991b1b, secondary: 0x450a0a, accent: 0xef4444, membrane: 0x7f1d1d, beak: 0xd6d3d1 },
-        { name: 'Aurora Spirit', primary: 0x6366f1, secondary: 0x312e81, accent: 0x818cf8, membrane: 0x4c1d95, beak: 0xf0abfc },
-        { name: 'Nocturnal Glider', primary: 0x27272a, secondary: 0x09090b, accent: 0x0ea5e9, membrane: 0x18181b, beak: 0x94a3b8 }
+        { name: 'Javelina Sovereign', primary: 0x9e7f60, secondary: 0x2e241d, accent: 0xd9771c, membrane: 0x6b4332, beak: 0xc47f35, isDefaultPBR: true },
+        { name: 'Sky Sovereign', primary: 0x38bdf8, secondary: 0x0c4a6e, accent: 0x7dd3fc, membrane: 0x0284c7, beak: 0xfacc15 },
+        { name: 'Blood Harpy', primary: 0xef4444, secondary: 0x450a0a, accent: 0xf87171, membrane: 0x991b1b, beak: 0xe7e5e4 },
+        { name: 'Aurora Spirit', primary: 0x818cf8, secondary: 0x312e81, accent: 0xc084fc, membrane: 0x6366f1, beak: 0xf0abfc },
+        { name: 'Nocturnal Glider', primary: 0x71717a, secondary: 0x18181b, accent: 0x38bdf8, membrane: 0x3f3f46, beak: 0x94a3b8 }
     ]
 }, {
-    // Hauteur de base du bassin utilisée par le système d'animation
-    animBaseHipsY: 1.95,
+    // Hauteur de base du bassin utilisée par le système d'animation (5.2m de haut, hanches à 1.98m)
+    animBaseHipsY: 1.98,
+    attackReach: 4.15,
 
     // Spécial 2 (T)
     onSpecial2(attacker, defender, dist, basePow) {
         spawn3DProjectile(attacker, 'feather');
     },
 
-    // Construction du modèle 3D articulé
-    // Repère : +X = avant (direction du regard), +Y = haut, Z = côtés. Sol à y = -1.95 dans le repère du bassin.
+    // Construction du modèle 3D paléontologique articulé (Quetzalcoatlus northropi)
     buildRig(ctx) {
-        const { hips, rig, addMesh, bodyMat, darkMat, accentMat, boneMat, eyeMat, skin } = ctx;
+        const { hips, rig, skin, skinMeshes } = ctx;
+        const { pycnoMaps, beakMaps, crestTex, patagiumMaps } = getQuetzalPBRMaps();
 
-        // --- Matériaux spécifiques ---
-        const beakMat = new THREE.MeshStandardMaterial({ color: skin.beak || 0xe0a526, roughness: 0.4, metalness: 0.05 });
-        const beakTipMat = new THREE.MeshStandardMaterial({ color: 0x57381c, roughness: 0.5 });
-        const membraneMat = new THREE.MeshStandardMaterial({
-            color: skin.membrane || skin.secondary,
-            roughness: 0.85,
-            metalness: 0.0,
-            side: THREE.DoubleSide
-        });
-        const clawMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.5 });
-        const pupilMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0a });
-        const irisMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+        const isDefaultSkin = Boolean(skin && skin.isDefaultPBR);
+        const furTint = isDefaultSkin ? 0xffffff : (skin.primary || 0xffffff);
+        const beakTint = isDefaultSkin ? 0xffffff : (skin.beak || 0xffffff);
+        const crestTint = isDefaultSkin ? 0xffffff : (skin.accent || 0xffffff);
+        const membraneTint = isDefaultSkin ? 0xffffff : (skin.membrane || 0xffffff);
 
-        // --- Helpers géométriques ---
-        const UP = new THREE.Vector3(0, 1, 0);
-        // Os cylindrique reliant précisément le point a au point b (rayon r1 en a, r2 en b)
-        const bone = (parent, a, b, r1, r2, mat, seg = 7) => {
-            const A = new THREE.Vector3(a[0], a[1], a[2]);
-            const B = new THREE.Vector3(b[0], b[1], b[2]);
-            const dir = B.clone().sub(A);
-            const len = dir.length();
-            const m = addMesh(new THREE.CylinderGeometry(r2, r1, len, seg), mat, parent,
-                (A.x + B.x) / 2, (A.y + B.y) / 2, (A.z + B.z) / 2);
-            m.quaternion.setFromUnitVectors(UP, dir.normalize());
-            return m;
+        // =====================================================================
+        // 1. PALETTE DE MATÉRIAUX PHYSIQUEMENT BASÉS (PBR)
+        // =====================================================================
+        const materials = {
+            bodyFur: new THREE.MeshStandardMaterial({
+                color: furTint,
+                map: pycnoMaps.colorMap,
+                bumpMap: pycnoMaps.bumpMap,
+                bumpScale: 0.018,
+                roughness: 0.84,
+                metalness: 0.02
+            }),
+            beakKeratin: new THREE.MeshPhysicalMaterial({
+                color: beakTint,
+                map: beakMaps.colorMap,
+                bumpMap: beakMaps.bumpMap,
+                bumpScale: 0.012,
+                roughness: 0.36,
+                metalness: 0.05,
+                clearcoat: 0.28,
+                clearcoatRoughness: 0.35,
+                side: THREE.DoubleSide
+            }),
+            crest: new THREE.MeshPhysicalMaterial({
+                color: crestTint,
+                map: crestTex,
+                bumpMap: beakMaps.bumpMap,
+                bumpScale: 0.014,
+                roughness: 0.32,
+                clearcoat: 0.35,
+                clearcoatRoughness: 0.28,
+                side: THREE.DoubleSide
+            }),
+            oralMucosa: new THREE.MeshPhysicalMaterial({
+                color: 0x7c3a32,
+                roughness: 0.25,
+                clearcoat: 0.7,
+                clearcoatRoughness: 0.15,
+                side: THREE.DoubleSide
+            }),
+            wingMembrane: new THREE.MeshPhysicalMaterial({
+                color: membraneTint,
+                map: patagiumMaps.colorMap,
+                bumpMap: patagiumMaps.bumpMap,
+                bumpScale: 0.012,
+                roughness: 0.56,
+                metalness: 0.02,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.98
+            }),
+            limbSkin: new THREE.MeshStandardMaterial({
+                map: pycnoMaps.colorMap,
+                bumpMap: pycnoMaps.bumpMap,
+                bumpScale: 0.014,
+                color: isDefaultSkin ? 0x9c8876 : furTint,
+                roughness: 0.72
+            }),
+            scalyPad: new THREE.MeshStandardMaterial({
+                color: 0x2b2420,
+                bumpMap: beakMaps.bumpMap,
+                bumpScale: 0.02,
+                roughness: 0.65
+            }),
+            boneXray: new THREE.MeshStandardMaterial({
+                color: 0xf8fafc,
+                emissive: 0x38bdf8,
+                emissiveIntensity: 0.4,
+                roughness: 0.22
+            }),
+            eyeIris: new THREE.MeshStandardMaterial({
+                color: 0xf59e0b,
+                emissive: 0x78350f,
+                emissiveIntensity: 0.25,
+                roughness: 0.18
+            }),
+            eyeCornea: new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.28,
+                roughness: 0.02,
+                metalness: 0.0,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.02
+            }),
+            eyePupil: new THREE.MeshBasicMaterial({ color: 0x040404 }),
+            claw: new THREE.MeshPhysicalMaterial({
+                color: 0x171412,
+                roughness: 0.24,
+                clearcoat: 0.5
+            })
         };
-        // Articulation sphérique
-        const joint = (parent, p, r, mat) => addMesh(new THREE.SphereGeometry(r, 8, 6), mat, parent, p[0], p[1], p[2]);
-        // Ellipsoïde (sphère étirée)
-        const blob = (parent, p, s, mat, rz = 0) => {
-            const m = addMesh(new THREE.SphereGeometry(1, 12, 10), mat, parent, p[0], p[1], p[2], 0, 0, rz);
-            m.scale.set(s[0], s[1], s[2]);
-            return m;
-        };
-        // Membrane polygonale (éventail de triangles) à partir d'une liste de points
-        const membrane = (parent, pts, mat) => {
-            const g = new THREE.BufferGeometry();
-            g.setAttribute('position', new THREE.Float32BufferAttribute(pts.flat(), 3));
-            const idx = [];
-            for (let i = 1; i < pts.length - 1; i++) idx.push(0, i, i + 1);
-            g.setIndex(idx);
-            g.computeVertexNormals();
-            return addMesh(g, mat, parent);
-        };
-        // Griffe conique pointant vers l'avant (+X) et légèrement vers le bas
-        const claw = (parent, p, len, r) => addMesh(new THREE.ConeGeometry(r, len, 5), clawMat, parent, p[0], p[1], p[2], 0, 0, -Math.PI / 2 - 0.35);
 
-        hips.position.y = 1.95;
+        // Synchroniser rig.bodyMat pour le flash d'impact en combat
+        rig.bodyMat = materials.bodyFur;
 
-        // =====================================================================
-        // 1. CORPS : petit tronc compact, incliné (épaules plus hautes que le bassin)
-        // =====================================================================
-        blob(rig.torso, [-0.05, 0.05, 0], [0.9, 0.5, 0.42], bodyMat, 0.4);       // tronc (couvre aussi le bassin)
-        blob(rig.torso, [0.35, 0.32, 0], [0.45, 0.44, 0.46], bodyMat, 0.3);      // poitrine / épaules
-        blob(rig.torso, [0.22, -0.08, 0], [0.42, 0.3, 0.34], darkMat, 0.45);     // ventre (fourrure pycnofibres plus sombre)
+        const skeletonMeshes = [];
 
-        // Queue minuscule
-        const qTail = new THREE.Group();
-        qTail.position.set(-0.82, -0.3, 0);
-        bone(qTail, [0, 0, 0], [-0.32, -0.06, 0], 0.08, 0.02, darkMat, 5);
-        rig.torso.add(qTail);
-        rig.tailSegments.push(qTail);
+        function registerSkin(mesh) {
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            skinMeshes.push(mesh);
+            return mesh;
+        }
 
-        // =====================================================================
-        // 2. COU : très long, presque vertical, légère courbe en S, crinière sombre
-        // =====================================================================
+        function createBoneVisual(p1, p2, radius = 0.032) {
+            const dist = p1.distanceTo(p2);
+            const geo = new THREE.CylinderGeometry(radius * 0.72, radius, dist, 10);
+            geo.translate(0, dist / 2, 0);
+            geo.rotateX(Math.PI / 2);
+            const mesh = new THREE.Mesh(geo, materials.boneXray);
+            mesh.position.copy(p1);
+            mesh.lookAt(p2);
+            mesh.visible = false;
+            skeletonMeshes.push(mesh);
+            return mesh;
+        }
+
+        // Helper pour sculpter organiquement les segments musculaires des membres
+        function createMuscularSegment(length, axis, profileFn, material) {
+            const radialSegs = 20;
+            const heightSegs = 16;
+            const geo = new THREE.CylinderGeometry(1, 1, length, radialSegs, heightSegs, false);
+            const pos = geo.attributes.position;
+
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i);
+                const y = pos.getY(i); // -length/2 to +length/2
+                const z = pos.getZ(i);
+                const t = (y + length / 2) / length; // 0 (proximal) to 1 (distal)
+                const angle = Math.atan2(z, x);
+
+                const { rx, rz, offsetY = 0, offsetZ = 0 } = profileFn(t, angle);
+                const rLen = Math.sqrt(x * x + z * z);
+                if (rLen > 0.0001) {
+                    pos.setX(i, Math.cos(angle) * rx);
+                    pos.setZ(i, Math.sin(angle) * rz + offsetZ);
+                    pos.setY(i, y + offsetY);
+                }
+            }
+
+            if (axis === 'z') {
+                geo.rotateX(Math.PI / 2);
+                geo.translate(0, 0, length / 2);
+            } else if (axis === 'x') {
+                geo.rotateZ(-Math.PI / 2);
+                geo.translate(length / 2, 0, 0);
+            } else if (axis === '-x') {
+                geo.rotateZ(Math.PI / 2);
+                geo.translate(-length / 2, 0, 0);
+            } else if (axis === '-y') {
+                geo.rotateX(Math.PI);
+                geo.translate(0, -length / 2, 0);
+            }
+            geo.computeVertexNormals();
+            return registerSkin(new THREE.Mesh(geo, material));
+        }
+
+        hips.position.y = 1.98;
+
+        // Groupe racine du modèle paléontologique (orienté vers +X dans le repère du jeu)
+        const quetzal = new THREE.Group();
+        quetzal.position.set(0, -1.98, 0);
+        quetzal.rotation.y = Math.PI / 2;
+        rig.torso.add(quetzal);
+
+        const rootJoint = new THREE.Group();
+        rootJoint.position.set(0, 1.98, 0);
+        quetzal.add(rootJoint);
+
+        const torsoGroup = new THREE.Group();
+        rootJoint.add(torsoGroup);
+
+        // Nœud d'attache de cou et membres factices pour la compatibilité standard du rig
         rig.neck.position.set(0.55, 0.5, 0);
         rig.torso.add(rig.neck);
-        const N0 = [0, 0, 0], N1 = [0.08, 0.7, 0], N2 = [0.12, 1.4, 0], N3 = [0.28, 2.0, 0];
-        bone(rig.neck, N0, N1, 0.27, 0.2, bodyMat);
-        joint(rig.neck, N1, 0.2, bodyMat);
-        bone(rig.neck, N1, N2, 0.2, 0.16, bodyMat);
-        joint(rig.neck, N2, 0.16, bodyMat);
-        bone(rig.neck, N2, N3, 0.16, 0.14, bodyMat);
-        // Crinière dorsale sombre continue le long de l'arrière du cou (plus épaisse près de la tête)
-        const M0 = [-0.04, 0.85, 0], M1 = [-0.03, 1.42, 0], M2 = [0.1, 2.05, 0];
-        bone(rig.neck, M0, M1, 0.1, 0.13, darkMat, 8).position.x -= 0.04;
-        joint(rig.neck, [M1[0] - 0.04, M1[1], 0], 0.13, darkMat);
-        bone(rig.neck, M1, M2, 0.13, 0.15, darkMat, 8).position.x -= 0.04;
+
+        const qTailProxy = new THREE.Group();
+        qTailProxy.position.set(-0.82, -0.3, 0);
+        rig.torso.add(qTailProxy);
+        rig.tailSegments.push(qTailProxy);
+
+        const armProxyL = new THREE.Group();
+        const armProxyR = new THREE.Group();
+        rig.torso.add(armProxyL, armProxyR);
+        rig.arms.push(armProxyL, armProxyR);
+
+        const legProxyL = new THREE.Group();
+        const legProxyR = new THREE.Group();
+        hips.add(legProxyL, legProxyR);
+        rig.legs.push(legProxyL, legProxyR);
 
         // =====================================================================
-        // 3. TÊTE : crâne compact, crête bleue, bec en dague jaune légèrement incliné vers le bas
+        // 2A. RIG SQUELETTIQUE DU TORSE & DES 7 VERTÈBRES CERVICALES
         // =====================================================================
-        rig.headGroup.position.set(0.32, 2.12, 0);
-        rig.neck.add(rig.headGroup);
+        const tailTipNode = new THREE.Group();
+        tailTipNode.position.set(0, 0.02, -1.35);
+        torsoGroup.add(tailTipNode);
 
-        // Le contenu de la tête est légèrement incliné vers le bas (pose naturelle)
-        const skull = new THREE.Group();
-        skull.rotation.z = -0.22;
-        rig.headGroup.add(skull);
+        const pelvisNode = new THREE.Group();
+        pelvisNode.position.set(0, 0.05, -0.88);
+        torsoGroup.add(pelvisNode);
 
-        blob(skull, [0.04, 0.03, 0], [0.38, 0.24, 0.2], bodyMat);           // boîte crânienne
-        blob(skull, [-0.14, 0.14, 0], [0.22, 0.16, 0.17], darkMat);           // touffe sombre à l'arrière du crâne
-        // Crête céphalique bleue (pointe vers le haut et l'arrière)
-        membrane(skull, [[0.25, 0.14, 0.03], [-0.15, 0.62, 0], [-0.22, 0.14, 0.03]], accentMat);
-        membrane(skull, [[0.25, 0.14, -0.03], [-0.22, 0.14, -0.03], [-0.15, 0.62, 0]], accentMat);
-        addMesh(new THREE.BoxGeometry(0.42, 0.06, 0.05), accentMat, skull, 0.02, 0.17, 0);
+        const lumbarNode = new THREE.Group();
+        lumbarNode.position.set(0, 0.06, -0.35);
+        torsoGroup.add(lumbarNode);
 
-        // Yeux (iris orangé, pupille noire, bourrelet sombre)
-        [-1, 1].forEach(side => {
-            addMesh(new THREE.SphereGeometry(0.06, 10, 8), irisMat, skull, 0.14, 0.07, side * 0.165);
-            addMesh(new THREE.SphereGeometry(0.03, 8, 6), pupilMat, skull, 0.16, 0.07, side * 0.21);
-            addMesh(new THREE.BoxGeometry(0.16, 0.035, 0.05), darkMat, skull, 0.13, 0.14, side * 0.165);
-        });
+        const chestCenterNode = new THREE.Group();
+        chestCenterNode.position.set(0, 0.04, 0.25);
+        torsoGroup.add(chestCenterNode);
 
-        // Bec supérieur : base épaisse -> longue dague effilée
-        bone(skull, [0.2, 0.02, 0], [1.0, -0.04, 0], 0.13, 0.08, beakMat, 6);
-        bone(skull, [1.0, -0.04, 0], [1.75, -0.1, 0], 0.08, 0.025, beakMat, 6);
-        bone(skull, [1.75, -0.1, 0], [1.92, -0.12, 0], 0.025, 0.004, beakTipMat, 5);
-        // Liseré de la commissure du bec
-        bone(skull, [0.2, -0.07, 0.1], [0.75, -0.1, 0.05], 0.015, 0.012, beakTipMat, 4);
-        bone(skull, [0.2, -0.07, -0.1], [0.75, -0.1, -0.05], 0.015, 0.012, beakTipMat, 4);
+        const chestFrontNode = new THREE.Group();
+        chestFrontNode.position.set(0, 0.10, 0.68);
+        torsoGroup.add(chestFrontNode);
 
-        // Mâchoire inférieure articulée (pivot sous le crâne)
-        rig.jaw.position.set(0.15, -0.12, 0);
-        rig.jaw.rotation.z = 0;
-        skull.add(rig.jaw);
-        bone(rig.jaw, [0.0, 0, 0], [0.9, -0.02, 0], 0.08, 0.055, beakMat, 6);
-        bone(rig.jaw, [0.9, -0.02, 0], [1.6, 0.0, 0], 0.055, 0.015, beakMat, 6);
+        // Colonne vertébrale interne & côtes thoraciques pour le mode X-Ray
+        torsoGroup.add(createBoneVisual(new THREE.Vector3(0, 0.04, -1.3), new THREE.Vector3(0, 0.14, 0.85), 0.055));
+        for (let r = 0; r < 7; r++) {
+            const ribGeo = new THREE.TorusGeometry(0.34 - r * 0.025, 0.016, 8, 22, Math.PI * 1.45);
+            ribGeo.rotateY(Math.PI);
+            ribGeo.rotateZ(Math.PI * 0.28);
+            const rib = new THREE.Mesh(ribGeo, materials.boneXray);
+            rib.position.set(0, 0.04, 0.58 - r * 0.19);
+            rib.visible = false;
+            skeletonMeshes.push(rib);
+            torsoGroup.add(rib);
+        }
 
-        // Petit globe de vision (non rendu) pour garder eyeMat cohérent avec les autres modèles
-        void eyeMat;
+        // 7 segments de vertèbres cervicales articulées (longueur totale du cou ~ 2.4m)
+        const neckSegments = [];
+        const numNeckVerts = 7;
+        const segLen = 0.34;
+        let parentNeck = torsoGroup;
+
+        for (let i = 0; i < numNeckVerts; i++) {
+            const segGroup = new THREE.Group();
+            if (i === 0) {
+                segGroup.position.set(0, 0.14, 0.82);
+            } else {
+                segGroup.position.set(0, 0, segLen);
+            }
+            parentNeck.add(segGroup);
+            neckSegments.push(segGroup);
+
+            const cBone = createBoneVisual(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, segLen), 0.046 - i * 0.002);
+            segGroup.add(cBone);
+
+            parentNeck = segGroup;
+        }
 
         // =====================================================================
-        // 4. AILES / MEMBRES ANTÉRIEURS (posture quadrupède)
-        //    épaule -> humérus vers l'arrière/bas -> avant-bras vers l'avant/bas
-        //    -> long métacarpe vertical jusqu'au sol -> doigts griffus au sol
-        //    -> 4e doigt alaire replié qui remonte vers le ciel derrière le corps
+        // 2B. MAILLAGE CORPOREL & CERVICAL CONTINU (SPLINE CATMULL-ROM EN TEMPS RÉEL)
         // =====================================================================
-        [-1, 1].forEach(side => {
-            const wing = new THREE.Group();
-            wing.position.set(0.42, 0.38, side * 0.36); // épaule
-            rig.torso.add(wing);
-            rig.arms.push(wing);
+        const bodySpineNodes = [
+            { node: tailTipNode, rx: 0.015, ry: 0.015, yOff: 0 },
+            { node: pelvisNode, rx: 0.18, ry: 0.19, yOff: 0.01 },
+            { node: lumbarNode, rx: 0.31, ry: 0.33, yOff: 0.0 },
+            { node: chestCenterNode, rx: 0.42, ry: 0.45, yOff: -0.04 }, // Carène pectorale profonde
+            { node: chestFrontNode, rx: 0.34, ry: 0.35, yOff: 0.02 },
+            ...neckSegments.map((seg, i) => ({
+                node: seg,
+                rx: 0.185 - i * 0.011,
+                ry: 0.225 - i * 0.012,
+                yOff: 0
+            }))
+        ];
 
-            // Points relatifs à l'épaule (sol à y ≈ -2.33)
-            const S = [0, 0, 0];
-            const E = [-0.3, -0.75, side * 0.14];        // coude
-            const W = [0.22, -1.32, side * 0.2];         // poignet
-            const K = [0.3, -2.2, side * 0.22];          // articulation métacarpo-phalangienne (au sol)
-            const F1 = [-0.12, -0.55, side * 0.3];       // doigt alaire : phalanges
-            const F2 = [-0.58, 0.95, side * 0.26];
-            const T = [-0.95, 2.05, side * 0.2];         // pointe de l'aile, haut au-dessus du dos
+        // Adaptateur d'axe pour que rig.headGroup (Bone_Head) ait +X vers l'avant et rotation.z en tangage
+        const headAdapter = new THREE.Group();
+        headAdapter.position.set(0, 0, segLen);
+        headAdapter.rotation.y = -Math.PI / 2;
+        parentNeck.add(headAdapter);
 
-            // Bras musclé
-            joint(wing, S, 0.2, bodyMat);
-            bone(wing, S, E, 0.18, 0.12, bodyMat);
-            joint(wing, E, 0.12, darkMat);
-            bone(wing, E, W, 0.11, 0.08, darkMat);
-            joint(wing, W, 0.1, darkMat);
-            bone(wing, W, K, 0.08, 0.065, darkMat);
-            joint(wing, K, 0.08, darkMat);
+        rig.headGroup.position.set(0, 0, 0);
+        rig.headGroup.rotation.set(0, 0, 0);
+        headAdapter.add(rig.headGroup);
 
-            // Main au sol : 3 doigts griffus vers l'avant
-            [-0.06, 0, 0.06].forEach((dz, i) => {
-                const tip = [K[0] + 0.22, -2.3, K[2] + dz * side + side * 0.02];
-                bone(wing, [K[0] + 0.02, -2.24, K[2] + dz * side], tip, 0.025, 0.018, darkMat, 4);
-                claw(wing, [tip[0] + 0.04, tip[1] - 0.01, tip[2]], 0.09, 0.018);
-                void i;
+        const headGroup = new THREE.Group();
+        headGroup.rotation.y = Math.PI / 2;
+        rig.headGroup.add(headGroup);
+
+        const skullBaseNode = new THREE.Group();
+        skullBaseNode.position.set(0, 0.03, 0.08);
+        headGroup.add(skullBaseNode);
+        bodySpineNodes.push({ node: skullBaseNode, rx: 0.115, ry: 0.145, yOff: 0 });
+
+        const tubeRings = 44;
+        const tubeSides = 28;
+        const seamlessBodyGeo = new THREE.PlaneGeometry(1, 1, tubeSides, tubeRings - 1);
+        const seamlessBodyMesh = registerSkin(new THREE.Mesh(seamlessBodyGeo, materials.bodyFur));
+        quetzal.add(seamlessBodyMesh);
+
+        const _wp = new THREE.Vector3();
+        const _up = new THREE.Vector3();
+        const _right = new THREE.Vector3();
+        const _tangent = new THREE.Vector3();
+        const _quat = new THREE.Quaternion();
+        const _qQuetzalInv = new THREE.Quaternion();
+
+        function updateContinuousBodySkin(breathPhase) {
+            const centers = [];
+            const upVectors = [];
+            const radiiX = [];
+            const radiiY = [];
+
+            quetzal.getWorldQuaternion(_qQuetzalInv).invert();
+
+            for (let i = 0; i < bodySpineNodes.length; i++) {
+                const item = bodySpineNodes[i];
+                item.node.getWorldPosition(_wp);
+                const localPos = quetzal.worldToLocal(_wp.clone());
+
+                item.node.getWorldQuaternion(_quat);
+                _quat.premultiply(_qQuetzalInv);
+                _up.set(0, 1, 0).applyQuaternion(_quat).normalize();
+
+                let breathBoost = 0;
+                if (i === 3 || i === 4) breathBoost = Math.sin(breathPhase) * 0.016;
+
+                localPos.addScaledVector(_up, item.yOff);
+                centers.push(localPos);
+                upVectors.push(_up.clone());
+                radiiX.push(item.rx + breathBoost);
+                radiiY.push(item.ry + breathBoost * 1.2);
+            }
+
+            const centerCurve = new THREE.CatmullRomCurve3(centers);
+            const posAttr = seamlessBodyGeo.attributes.position;
+
+            let vIdx = 0;
+            for (let r = 0; r < tubeRings; r++) {
+                const t = r / (tubeRings - 1);
+                const pt = centerCurve.getPoint(t);
+                centerCurve.getTangent(t, _tangent).normalize();
+
+                const fIdx = t * (bodySpineNodes.length - 1);
+                const i0 = Math.floor(fIdx);
+                const i1 = Math.min(bodySpineNodes.length - 1, i0 + 1);
+                const frac = fIdx - i0;
+
+                const rx = THREE.MathUtils.lerp(radiiX[i0], radiiX[i1], frac);
+                const ry = THREE.MathUtils.lerp(radiiY[i0], radiiY[i1], frac);
+                _up.copy(upVectors[i0]).lerp(upVectors[i1], frac).normalize();
+
+                _right.crossVectors(_up, _tangent).normalize();
+                _up.crossVectors(_tangent, _right).normalize();
+
+                for (let s = 0; s <= tubeSides; s++) {
+                    const u = s / tubeSides;
+                    const theta = u * Math.PI * 2;
+
+                    let xFactor = Math.sin(theta) * rx;
+                    let yFactor = Math.cos(theta) * ry;
+
+                    if (Math.cos(theta) > 0.6) {
+                        yFactor += Math.pow(Math.cos(theta), 4) * ry * 0.14;
+                    }
+                    if (t > 0.18 && t < 0.42 && Math.cos(theta) < -0.2) {
+                        xFactor *= 1.12;
+                        yFactor *= 1.08;
+                    }
+
+                    const vx = pt.x + _right.x * xFactor + _up.x * yFactor;
+                    const vy = pt.y + _right.y * xFactor + _up.y * yFactor;
+                    const vz = pt.z + _right.z * xFactor + _up.z * yFactor;
+
+                    posAttr.setXYZ(vIdx, vx, vy, vz);
+                    vIdx++;
+                }
+            }
+
+            posAttr.needsUpdate = true;
+            seamlessBodyGeo.computeVertexNormals();
+        }
+
+        // =====================================================================
+        // 2C. CRÂNE SCULPTÉ, ROSTRE EN LANCE, FENÊTRE NASOANTORBITAIRE & CRÊTE SAGITTALE
+        // =====================================================================
+        function buildSculptedSkull() {
+            const slices = [
+                { z: -0.06, topY: 0.11, botY: -0.03, halfW: 0.085, fenestra: 0.0 },
+                { z: 0.05,  topY: 0.16, botY: -0.04, halfW: 0.125, fenestra: 0.0 },
+                { z: 0.22,  topY: 0.17, botY: -0.03, halfW: 0.115, fenestra: 0.25 },
+                { z: 0.48,  topY: 0.15, botY: -0.02, halfW: 0.088, fenestra: 0.52 },
+                { z: 0.85,  topY: 0.12, botY: -0.015, halfW: 0.068, fenestra: 0.35 },
+                { z: 1.25,  topY: 0.09, botY: -0.01, halfW: 0.046, fenestra: 0.10 },
+                { z: 1.68,  topY: 0.058, botY: -0.005, halfW: 0.026, fenestra: 0.0 },
+                { z: 2.05,  topY: 0.028, botY: -0.002, halfW: 0.011, fenestra: 0.0 },
+                { z: 2.26,  topY: 0.004, botY: 0.0,   halfW: 0.002, fenestra: 0.0 }
+            ];
+
+            const radialSteps = 28;
+            const lengthSteps = 42;
+            const geo = new THREE.PlaneGeometry(1, 1, radialSteps, lengthSteps);
+            const pos = geo.attributes.position;
+            const uvs = geo.attributes.uv;
+
+            const zCurve = new THREE.CatmullRomCurve3(slices.map(s => new THREE.Vector3(s.halfW, s.topY, s.z)));
+            const botCurve = new THREE.CatmullRomCurve3(slices.map(s => new THREE.Vector3(s.fenestra, s.botY, s.z)));
+
+            let idx = 0;
+            for (let iy = 0; iy <= lengthSteps; iy++) {
+                const v = iy / lengthSteps;
+                const pTop = zCurve.getPoint(v);
+                const pBot = botCurve.getPoint(v);
+                const halfW = pTop.x;
+                const topY = pTop.y;
+                const z = pTop.z;
+                const fenestraDepth = pBot.x;
+                const botY = pBot.y;
+
+                for (let ix = 0; ix <= radialSteps; ix++) {
+                    const u = ix / radialSteps;
+                    const angle = u * Math.PI * 2;
+
+                    const s = Math.sin(angle);
+                    const c = Math.cos(angle);
+
+                    let x = Math.sign(s) * Math.pow(Math.abs(s), 0.85) * halfW;
+                    let y = c >= 0
+                        ? botY + (topY - botY) * Math.pow(c, 0.75)
+                        : botY + (c * 0.015 * (1 - v));
+
+                    const sideFactor = Math.exp(-Math.pow(Math.abs(c) - 0.35, 2) * 12.0);
+                    x *= (1.0 - fenestraDepth * sideFactor);
+
+                    pos.setXYZ(idx, x, y, z);
+                    uvs.setXY(idx, v, u);
+                    idx++;
+                }
+            }
+            geo.computeVertexNormals();
+            const skullMesh = registerSkin(new THREE.Mesh(geo, materials.beakKeratin));
+            headGroup.add(skullMesh);
+
+            // Crête sagittale osseuse à double courbure
+            const crestShape = new THREE.Shape();
+            crestShape.moveTo(-0.06, 0.10);
+            crestShape.bezierCurveTo(-0.18, 0.50, 0.22, 0.62, 0.52, 0.42);
+            crestShape.bezierCurveTo(0.76, 0.26, 0.98, 0.15, 1.18, 0.09);
+            crestShape.lineTo(0.05, 0.11);
+            crestShape.closePath();
+
+            const crestGeo = new THREE.ExtrudeGeometry(crestShape, {
+                steps: 2,
+                depth: 0.018,
+                bevelEnabled: true,
+                bevelThickness: 0.014,
+                bevelSize: 0.014,
+                bevelSegments: 5
             });
+            crestGeo.rotateY(-Math.PI / 2);
+            crestGeo.translate(0.009, 0.0, 0.06);
+            const crestMesh = registerSkin(new THREE.Mesh(crestGeo, materials.crest));
+            headGroup.add(crestMesh);
 
-            // Doigt alaire replié (remonte depuis la main jusqu'au-dessus du dos)
-            bone(wing, K, F1, 0.065, 0.055, darkMat);
-            joint(wing, F1, 0.055, darkMat);
-            bone(wing, F1, F2, 0.055, 0.04, darkMat);
-            joint(wing, F2, 0.04, darkMat);
-            bone(wing, F2, T, 0.04, 0.012, darkMat);
+            headGroup.add(createBoneVisual(new THREE.Vector3(0, 0.05, 0), new THREE.Vector3(0, 0.01, 2.2), 0.038));
+        }
+        buildSculptedSkull();
 
-            // Membrane principale (brachiopatagium) repliée : grand triangle brun clair
-            // entre le doigt alaire, le bras et le flanc du corps
-            const bodyAnchor = [-1.05, -0.65, -side * 0.12];  // flanc / haut de la cuisse
-            membrane(wing, [K, F1, F2, T, bodyAnchor, E], membraneMat);
-            // Bordure de fuite plus sombre le long de la membrane
-            bone(wing, T, bodyAnchor, 0.02, 0.02, darkMat, 4);
-            // Propatagium (petite membrane avant entre épaule et poignet)
-            membrane(wing, [S, W, E], membraneMat);
-        });
-
-        // =====================================================================
-        // 5. PATTES ARRIÈRE : longues et fines, pieds plantigrades
-        // =====================================================================
+        // Yeux réalistes avec cornée réfractive, anneau scléral et paupières clignantes
+        const eyelids = [];
         [-1, 1].forEach(side => {
-            const leg = new THREE.Group();
-            leg.position.set(-0.5, -0.2, side * 0.28); // hanche (sol à y ≈ -1.75)
-            hips.add(leg);
-            rig.legs.push(leg);
+            const eyeSocket = new THREE.Group();
+            eyeSocket.position.set(side * 0.102, 0.078, 0.14);
+            eyeSocket.rotation.y = side * 0.28;
+            headGroup.add(eyeSocket);
 
-            const H = [0, 0, 0], Kn = [0.28, -0.72, side * 0.05], A = [-0.05, -1.55, side * 0.06];
-            blob(leg, [0.1, -0.28, 0], [0.16, 0.32, 0.15], bodyMat, -0.35);    // cuisse fourrée
-            bone(leg, H, Kn, 0.14, 0.09, bodyMat);
-            joint(leg, Kn, 0.09, darkMat);
-            bone(leg, Kn, A, 0.08, 0.055, darkMat);
-            joint(leg, A, 0.06, darkMat);
-            // Pied plantigrade et 4 orteils griffus
-            bone(leg, A, [0.18, -1.72, side * 0.06], 0.06, 0.05, darkMat, 5);
-            [-0.07, -0.025, 0.025, 0.07].forEach(dz => {
-                const tip = [0.38, -1.74, side * 0.06 + dz];
-                bone(leg, [0.16, -1.72, side * 0.06 + dz * 0.5], tip, 0.022, 0.016, darkMat, 4);
-                claw(leg, [tip[0] + 0.035, tip[1], tip[2]], 0.07, 0.016);
-            });
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.026, 16, 16), materials.eyeIris);
+            eyeSocket.add(iris);
+
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.015, 12, 12), materials.eyePupil);
+            pupil.scale.set(0.75, 1.1, 0.6);
+            pupil.position.set(0, 0, 0.018);
+            eyeSocket.add(pupil);
+
+            const cornea = new THREE.Mesh(new THREE.SphereGeometry(0.0285, 18, 18), materials.eyeCornea);
+            eyeSocket.add(cornea);
+
+            const lidGeo = new THREE.SphereGeometry(0.030, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.52);
+            const lid = registerSkin(new THREE.Mesh(lidGeo, materials.scalyPad));
+            lid.rotation.x = -Math.PI * 0.45;
+            eyeSocket.add(lid);
+            eyelids.push(lid);
+
+            const browGeo = createQuetzalCapsuleGeometry(0.014, 0.075, 6, 10);
+            browGeo.rotateX(Math.PI / 2);
+            const brow = registerSkin(new THREE.Mesh(browGeo, materials.beakKeratin));
+            brow.position.set(0, 0.026, 0.005);
+            brow.rotation.z = side * -0.2;
+            eyeSocket.add(brow);
         });
 
+        // Mâchoire inférieure articulée (Mandibule), cavité buccale, langue & poche gulaire
+        const jawAdapter = new THREE.Group();
+        jawAdapter.position.set(0, -0.028, 0.10);
+        jawAdapter.rotation.y = -Math.PI / 2;
+        headGroup.add(jawAdapter);
+
+        rig.jaw.position.set(0, 0, 0);
+        rig.jaw.rotation.set(0, 0, 0);
+        jawAdapter.add(rig.jaw);
+
+        const jawGroup = new THREE.Group();
+        jawGroup.rotation.y = Math.PI / 2;
+        rig.jaw.add(jawGroup);
+
+        function buildSculptedMandible() {
+            const mSlices = [
+                { z: -0.04, topY: 0.01, botY: -0.045, halfW: 0.078 },
+                { z: 0.15,  topY: 0.01, botY: -0.065, halfW: 0.068 },
+                { z: 0.55,  topY: 0.005, botY: -0.058, halfW: 0.045 },
+                { z: 1.10,  topY: 0.002, botY: -0.038, halfW: 0.026 },
+                { z: 1.65,  topY: 0.0,   botY: -0.018, halfW: 0.011 },
+                { z: 2.02,  topY: 0.0,   botY: -0.003, halfW: 0.002 }
+            ];
+
+            const rSteps = 20;
+            const lSteps = 32;
+            const geo = new THREE.PlaneGeometry(1, 1, rSteps, lSteps);
+            const pos = geo.attributes.position;
+            const uvs = geo.attributes.uv;
+            const curve = new THREE.CatmullRomCurve3(mSlices.map(s => new THREE.Vector3(s.halfW, s.botY, s.z)));
+
+            let idx = 0;
+            for (let iy = 0; iy <= lSteps; iy++) {
+                const v = iy / lSteps;
+                const pt = curve.getPoint(v);
+                const halfW = pt.x;
+                const botY = pt.y;
+                const z = pt.z;
+
+                for (let ix = 0; ix <= rSteps; ix++) {
+                    const u = ix / rSteps;
+                    const angle = u * Math.PI * 2;
+                    const s = Math.sin(angle);
+                    const c = Math.cos(angle);
+
+                    const x = Math.sign(s) * Math.pow(Math.abs(s), 0.85) * halfW;
+                    const y = c <= 0
+                        ? Math.pow(Math.abs(c), 0.72) * botY
+                        : -c * 0.008 * (1 - v);
+
+                    pos.setXYZ(idx, x, y, z);
+                    uvs.setXY(idx, v, u);
+                    idx++;
+                }
+            }
+            geo.computeVertexNormals();
+            jawGroup.add(registerSkin(new THREE.Mesh(geo, materials.beakKeratin)));
+
+            const tongueGeo = new THREE.ConeGeometry(0.035, 0.95, 10);
+            tongueGeo.scale(0.85, 0.35, 1);
+            tongueGeo.rotateX(Math.PI / 2);
+            tongueGeo.translate(0, 0.004, 0.52);
+            jawGroup.add(registerSkin(new THREE.Mesh(tongueGeo, materials.oralMucosa)));
+
+            const gularGeo = new THREE.ConeGeometry(0.095, 0.82, 14);
+            gularGeo.scale(0.48, 0.85, 1);
+            gularGeo.rotateX(Math.PI / 2 + 0.14);
+            gularGeo.translate(0, -0.045, 0.38);
+            const gularMesh = registerSkin(new THREE.Mesh(gularGeo, materials.crest));
+            jawGroup.add(gularMesh);
+            jawGroup.userData.gularMesh = gularMesh;
+        }
+        buildSculptedMandible();
+
         // =====================================================================
-        // 6. INDICATEUR D'ENDURANCE DE VOL CIRCULAIRE (Roue d'endurance de 2 secondes)
+        // 2D. MEMBRES ANTÉRIEURS SCULPTÉS, OS PTÉROÏDE & PHALANGES ALAIRES
+        // =====================================================================
+        function buildWing(side) {
+            const axis = side === 1 ? 'x' : '-x';
+            const shoulder = new THREE.Group();
+            shoulder.position.set(side * 0.35, 0.12, 0.56);
+            torsoGroup.add(shoulder);
+
+            // 1. Humérus (0.56m avec crête deltopectorale)
+            const humLen = 0.56;
+            const humMesh = createMuscularSegment(humLen, axis, (t, angle) => {
+                const base = THREE.MathUtils.lerp(0.125, 0.082, t);
+                const deltoCrest = Math.sin(t * Math.PI) * 0.038 * Math.max(0, Math.cos(angle));
+                return { rx: base + deltoCrest, rz: base * 0.88 };
+            }, materials.bodyFur);
+            shoulder.add(humMesh);
+            shoulder.add(createBoneVisual(new THREE.Vector3(0, 0, 0), new THREE.Vector3(side * humLen, 0, 0), 0.045));
+
+            // 2. Coude -> Avant-bras (Radius & Ulna : 0.86m)
+            const elbow = new THREE.Group();
+            elbow.position.set(side * humLen, 0, 0);
+            shoulder.add(elbow);
+
+            const forearmLen = 0.86;
+            const faMesh = createMuscularSegment(forearmLen, axis, (t) => {
+                const belly = Math.sin(t * Math.PI * 0.85) * 0.022;
+                const r = THREE.MathUtils.lerp(0.084, 0.062, t) + belly;
+                return { rx: r * 0.85, rz: r * 1.1 };
+            }, materials.limbSkin);
+            elbow.add(faMesh);
+            elbow.add(createBoneVisual(new THREE.Vector3(0, 0, 0), new THREE.Vector3(side * forearmLen, 0, 0), 0.038));
+
+            // 3. Poignet + Os Ptéroïde (soutient le Propatagium) + Métacarpe IV allongé (1.16m)
+            const wrist = new THREE.Group();
+            wrist.position.set(side * forearmLen, 0, 0);
+            elbow.add(wrist);
+
+            const pteroidTip = new THREE.Group();
+            pteroidTip.position.set(-side * 0.14, 0.01, 0.24);
+            wrist.add(pteroidTip);
+            wrist.add(createBoneVisual(new THREE.Vector3(0, 0, 0), pteroidTip.position.clone(), 0.015));
+
+            const mcLen = 1.16;
+            const mcMesh = createMuscularSegment(mcLen, axis, (t) => {
+                const r = THREE.MathUtils.lerp(0.064, 0.048, t) + (t > 0.85 ? (t - 0.85) * 0.08 : 0);
+                return { rx: r * 0.88, rz: r };
+            }, materials.limbSkin);
+            wrist.add(mcMesh);
+            wrist.add(createBoneVisual(new THREE.Vector3(0, 0, 0), new THREE.Vector3(side * mcLen, 0, 0), 0.032));
+
+            // 4. Articulation métacarpo-phalangienne (Knuckle + 3 doigts griffus I–III)
+            const knuckle = new THREE.Group();
+            knuckle.position.set(side * mcLen, 0, 0);
+            wrist.add(knuckle);
+
+            const digitsGroup = new THREE.Group();
+            knuckle.add(digitsGroup);
+            for (let d = 0; d < 3; d++) {
+                const finger = new THREE.Group();
+                finger.rotation.y = (d - 1) * 0.36;
+                finger.rotation.x = 0.12;
+                const fLen = 0.11 + d * 0.025;
+                const fGeo = createQuetzalCapsuleGeometry(0.016, fLen, 6, 10);
+                fGeo.rotateX(Math.PI / 2);
+                fGeo.translate(0, 0, fLen / 2);
+                finger.add(registerSkin(new THREE.Mesh(fGeo, materials.scalyPad)));
+
+                const cGeo = new THREE.ConeGeometry(0.016, 0.085, 10);
+                cGeo.rotateX(Math.PI / 2 + 0.28);
+                cGeo.translate(0, -0.01, fLen + 0.035);
+                finger.add(registerSkin(new THREE.Mesh(cGeo, materials.claw)));
+                digitsGroup.add(finger);
+            }
+
+            // 5. 4e Doigt Alaire Géant (Phalanges 1 à 4)
+            const phalanx1 = new THREE.Group();
+            knuckle.add(phalanx1);
+            const p1Len = 1.36;
+            const p1Mesh = createMuscularSegment(p1Len, axis, (t) => {
+                const r = THREE.MathUtils.lerp(0.052, 0.036, t);
+                return { rx: r * 0.78, rz: r * 1.15 };
+            }, materials.beakKeratin);
+            phalanx1.add(p1Mesh);
+            phalanx1.add(createBoneVisual(new THREE.Vector3(0, 0, 0), new THREE.Vector3(side * p1Len, 0, 0), 0.026));
+
+            const phalanx2 = new THREE.Group();
+            phalanx2.position.set(side * p1Len, 0, 0);
+            phalanx1.add(phalanx2);
+            const p2Len = 0.96;
+            const p2Mesh = createMuscularSegment(p2Len, axis, (t) => {
+                const r = THREE.MathUtils.lerp(0.036, 0.022, t);
+                return { rx: r * 0.78, rz: r * 1.12 };
+            }, materials.beakKeratin);
+            phalanx2.add(p2Mesh);
+            phalanx2.add(createBoneVisual(new THREE.Vector3(0, 0, 0), new THREE.Vector3(side * p2Len, 0, 0), 0.018));
+
+            const phalanx3 = new THREE.Group();
+            phalanx3.position.set(side * p2Len, 0, 0);
+            phalanx2.add(phalanx3);
+            const p3Len = 0.74;
+            const p3Mesh = createMuscularSegment(p3Len, axis, (t) => {
+                const r = THREE.MathUtils.lerp(0.022, 0.004, t);
+                return { rx: r * 0.8, rz: r, offsetZ: -Math.pow(t, 2) * 0.09 };
+            }, materials.beakKeratin);
+            phalanx3.add(p3Mesh);
+            phalanx3.add(createBoneVisual(new THREE.Vector3(0, 0, 0), new THREE.Vector3(side * p3Len, 0, -0.08), 0.012));
+
+            const wingTip = new THREE.Group();
+            wingTip.position.set(side * p3Len, 0, -0.09);
+            phalanx3.add(wingTip);
+
+            return {
+                side,
+                shoulder,
+                elbow,
+                wrist,
+                pteroidTip,
+                knuckle,
+                digitsGroup,
+                phalanx1,
+                phalanx2,
+                phalanx3,
+                wingTip
+            };
+        }
+
+        const leftWing = buildWing(1);
+        const rightWing = buildWing(-1);
+
+        // =====================================================================
+        // 2E. MEMBRES POSTÉRIEURS SCULPTÉS & PIEDS PLANTIGRADES À 4 ORTEILS
+        // =====================================================================
+        function buildLeg(side) {
+            const hip = new THREE.Group();
+            hip.position.set(side * 0.23, -0.06, -0.72);
+            torsoGroup.add(hip);
+
+            // Fémur (0.68m)
+            const femLen = 0.68;
+            const femMesh = createMuscularSegment(femLen, '-y', (t) => {
+                const thighBulge = Math.sin(t * Math.PI * 0.8) * 0.024;
+                const r = THREE.MathUtils.lerp(0.092, 0.054, t) + thighBulge;
+                return { rx: r * 0.86, rz: r * 1.15 };
+            }, materials.bodyFur);
+            hip.add(femMesh);
+            hip.add(createBoneVisual(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -femLen, 0), 0.032));
+
+            // Genou -> Tibiotarse (1.06m avec galbe du gastrocnémien)
+            const knee = new THREE.Group();
+            knee.position.set(0, -femLen, 0);
+            hip.add(knee);
+
+            const tibLen = 1.06;
+            const tibMesh = createMuscularSegment(tibLen, '-y', (t) => {
+                const calf = Math.exp(-Math.pow(t - 0.25, 2) * 18) * 0.02;
+                const r = THREE.MathUtils.lerp(0.054, 0.032, t) + calf;
+                return { rx: r * 0.88, rz: r * 1.08 };
+            }, materials.limbSkin);
+            knee.add(tibMesh);
+            knee.add(createBoneVisual(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -tibLen, 0), 0.024));
+
+            // Cheville -> Pied plantigrade à 4 orteils griffus
+            const ankle = new THREE.Group();
+            ankle.position.set(0, -tibLen, 0);
+            knee.add(ankle);
+
+            const heelGeo = createQuetzalCapsuleGeometry(0.034, 0.14, 6, 10);
+            heelGeo.rotateX(Math.PI / 2);
+            heelGeo.translate(0, -0.02, 0.06);
+            ankle.add(registerSkin(new THREE.Mesh(heelGeo, materials.scalyPad)));
+
+            for (let t = 0; t < 4; t++) {
+                const spread = (t - 1.5) * 0.18;
+                const toeGroup = new THREE.Group();
+                toeGroup.rotation.y = spread;
+                ankle.add(toeGroup);
+
+                const toeLen = 0.21 + (t === 1 || t === 2 ? 0.04 : 0);
+                const tGeo = createQuetzalCapsuleGeometry(0.013, toeLen, 5, 8);
+                tGeo.rotateX(Math.PI / 2);
+                tGeo.translate(0, -0.022, 0.08 + toeLen / 2);
+                toeGroup.add(registerSkin(new THREE.Mesh(tGeo, materials.scalyPad)));
+
+                const cGeo = new THREE.ConeGeometry(0.013, 0.065, 8);
+                cGeo.rotateX(Math.PI / 2 + 0.22);
+                cGeo.translate(0, -0.026, 0.09 + toeLen + 0.025);
+                toeGroup.add(registerSkin(new THREE.Mesh(cGeo, materials.claw)));
+            }
+
+            return { side, hip, knee, ankle };
+        }
+
+        const leftLeg = buildLeg(1);
+        const rightLeg = buildLeg(-1);
+
+        // =====================================================================
+        // 3. MEMBRANES ALAIRES DYNAMIQUES EN 3 PARTIES (BRACHIO- & PROPATAGIUM)
+        // =====================================================================
+        function createDynamicMembrane(cols = 24, rows = 10) {
+            const geo = new THREE.PlaneGeometry(1, 1, cols - 1, rows - 1);
+            const mesh = new THREE.Mesh(geo, materials.wingMembrane);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            skinMeshes.push(mesh);
+            quetzal.add(mesh);
+            return { geo, cols, rows };
+        }
+
+        const leftBrachio = createDynamicMembrane(26, 10);
+        const rightBrachio = createDynamicMembrane(26, 10);
+        const leftPropatagium = createDynamicMembrane(10, 6);
+        const rightPropatagium = createDynamicMembrane(10, 6);
+
+        const tempVec = new THREE.Vector3();
+        function getLocalJointPos(obj) {
+            obj.getWorldPosition(tempVec);
+            return quetzal.worldToLocal(tempVec.clone());
+        }
+
+        function updateWingMembranes(brachio, propat, wing, leg, time, isSoaring) {
+            const pShoulder = getLocalJointPos(wing.shoulder);
+            const pElbow = getLocalJointPos(wing.elbow);
+            const pWrist = getLocalJointPos(wing.wrist);
+            const pPteroid = getLocalJointPos(wing.pteroidTip);
+            const pKnuckle = getLocalJointPos(wing.knuckle);
+            const pP2 = getLocalJointPos(wing.phalanx2);
+            const pP3 = getLocalJointPos(wing.phalanx3);
+            const pTip = getLocalJointPos(wing.wingTip);
+
+            const pHipAnchor = getLocalJointPos(leg.hip).add(new THREE.Vector3(wing.side * 0.08, 0.04, 0.12));
+            const pAnkleAnchor = getLocalJointPos(leg.knee).lerp(getLocalJointPos(leg.ankle), 0.72);
+
+            const leadingPoints = [pShoulder, pElbow, pWrist, pKnuckle, pP2, pP3, pTip];
+            const trailingPoints = [
+                pHipAnchor,
+                pAnkleAnchor,
+                pAnkleAnchor.clone().lerp(pKnuckle, 0.44).add(new THREE.Vector3(0, -0.03, -0.28)),
+                pKnuckle.clone().add(new THREE.Vector3(0, -0.04, -0.52)),
+                pP2.clone().add(new THREE.Vector3(0, -0.02, -0.32)),
+                pP3.clone().add(new THREE.Vector3(0, -0.01, -0.15)),
+                pTip
+            ];
+
+            const leadCurve = new THREE.CatmullRomCurve3(leadingPoints);
+            const trailCurve = new THREE.CatmullRomCurve3(trailingPoints);
+
+            const posAttr = brachio.geo.attributes.position;
+            let idx = 0;
+            for (let r = 0; r < brachio.rows; r++) {
+                const v = r / (brachio.rows - 1);
+                for (let c = 0; c < brachio.cols; c++) {
+                    const u = c / (brachio.cols - 1);
+                    const pLead = leadCurve.getPoint(u);
+                    const pTrail = trailCurve.getPoint(u);
+
+                    const pt = pLead.clone().lerp(pTrail, v);
+                    const camber = Math.sin(v * Math.PI) * Math.sin(u * Math.PI) * 0.11;
+                    const flutter = isSoaring
+                        ? Math.sin(time * 14 - u * 9) * Math.pow(v, 2) * 0.016
+                        : 0;
+                    pt.y += camber + flutter;
+
+                    posAttr.setXYZ(idx, pt.x, pt.y, pt.z);
+                    idx++;
+                }
+            }
+            posAttr.needsUpdate = true;
+            brachio.geo.computeVertexNormals();
+
+            const proLead = new THREE.CatmullRomCurve3([
+                pShoulder.clone().add(new THREE.Vector3(0, 0, 0.12)),
+                pPteroid,
+                pWrist
+            ]);
+            const proTrail = new THREE.CatmullRomCurve3([pShoulder, pElbow, pWrist]);
+            const proPos = propat.geo.attributes.position;
+            let pIdx = 0;
+            for (let r = 0; r < propat.rows; r++) {
+                const v = r / (propat.rows - 1);
+                for (let c = 0; c < propat.cols; c++) {
+                    const u = c / (propat.cols - 1);
+                    const pt = proLead.getPoint(u).lerp(proTrail.getPoint(u), v);
+                    pt.y += Math.sin(v * Math.PI) * 0.025;
+                    proPos.setXYZ(pIdx, pt.x, pt.y, pt.z);
+                    pIdx++;
+                }
+            }
+            proPos.needsUpdate = true;
+            propat.geo.computeVertexNormals();
+        }
+
+        // =====================================================================
+        // 4. MOTEUR DE POSES BIOMÉCANIQUES (SOAR, WALK, DISPLAY, ANATOMY, IDLE)
+        // =====================================================================
+        const qRig = {
+            quetzal,
+            rootJoint,
+            torsoGroup,
+            neckSegments,
+            headGroup,
+            jawGroup,
+            leftWing,
+            rightWing,
+            leftLeg,
+            rightLeg,
+            eyelids,
+            gularMesh: jawGroup.userData.gularMesh,
+            skeletonMeshes,
+            materials,
+            currentMode: 'walk',
+            poseUpdatedThisFrame: false
+        };
+
+        // Helper pour orienter la tête et la mâchoire selon la convention du modèle HTML (+Z avant)
+        function setQuetzalHeadRot(rx, ry, rz) {
+            rig.headGroup.rotation.set(rz || 0, ry || 0, -(rx || 0));
+        }
+
+        function setQuetzalJawRot(rx) {
+            rig.jaw.rotation.set(0, 0, -(rx || 0));
+        }
+
+        qRig.setHeadRot = setQuetzalHeadRot;
+        qRig.setJawRot = setQuetzalJawRot;
+
+        function applyPoseMode(mode, t, opts = {}) {
+            qRig.currentMode = mode;
+            qRig.poseUpdatedThisFrame = true;
+
+            if (mode === 'soar') {
+                // --- MODE 1 : VOL THERMIQUE PLANÉ & BATTU (SOAR) ---
+                const flapFreq = opts.flapFreq || 2.0;
+                const flapAmp = opts.flapAmp !== undefined ? opts.flapAmp : 1.0;
+                const flap = Math.sin(t * flapFreq) * flapAmp;
+                const flapDelayed = Math.sin(t * flapFreq - 0.55) * flapAmp;
+                const flapTip = Math.sin(t * flapFreq - 1.1) * flapAmp;
+
+                const baseY = opts.rootY !== undefined ? opts.rootY : 1.98;
+                rootJoint.position.set(0, baseY - flap * 0.22, 0);
+                rootJoint.rotation.set(0.05 + Math.cos(t * flapFreq) * 0.03, 0, Math.sin(t * 0.65) * 0.075);
+
+                neckSegments.forEach((seg, i) => {
+                    seg.rotation.set(
+                        i === 0 ? 0.14 : -0.02 + Math.sin(t * flapFreq + i * 0.2) * 0.012,
+                        Math.sin(t * 0.75) * 0.035,
+                        0
+                    );
+                });
+                setQuetzalHeadRot(-0.08, Math.sin(t * 0.75) * 0.08, 0);
+                setQuetzalJawRot(0.02);
+
+                [leftWing, rightWing].forEach(w => {
+                    const s = w.side;
+                    w.shoulder.rotation.set(0, -s * 0.08, s * flap * 0.34);
+                    w.elbow.rotation.set(0, s * 0.16, s * flapDelayed * 0.22);
+                    w.wrist.rotation.set(0, -s * 0.12, s * flapDelayed * 0.15);
+                    w.knuckle.rotation.set(0, -s * 0.15, s * flapTip * 0.18);
+                    w.phalanx1.rotation.set(0, 0, 0);
+                    w.phalanx2.rotation.set(0, -s * 0.06, s * flapTip * 0.12);
+                    w.phalanx3.rotation.set(0, -s * 0.08, s * flapTip * 0.1);
+                });
+
+                [leftLeg, rightLeg].forEach(l => {
+                    l.hip.rotation.set(Math.PI * 0.46, 0, -l.side * 0.32);
+                    l.knee.rotation.set(0.08, 0, 0);
+                    l.ankle.rotation.set(0.85, 0, 0);
+                });
+
+            } else if (mode === 'walk' || mode === 'idle') {
+                // --- MODE 2 : TRAQUE QUADRUPÈDE TERRESTRE (WALK / IDLE) ---
+                const isIdle = mode === 'idle';
+                const strideSpeed = opts.strideSpeed || 2.5;
+                const lPhase = t * strideSpeed;
+                const rPhase = lPhase + Math.PI;
+                const strideAmp = isIdle ? 0.0 : (opts.strideAmp !== undefined ? opts.strideAmp : 1.0);
+
+                const breathBob = isIdle ? Math.sin(t * 2.2) * 0.03 : Math.abs(Math.sin(lPhase)) * 0.055 * strideAmp;
+                rootJoint.position.set(0, 1.98 + breathBob, 0);
+                rootJoint.rotation.set(
+                    -0.68 + (isIdle ? Math.sin(t * 2.2) * 0.015 : 0),
+                    isIdle ? Math.sin(t * 1.1) * 0.015 : Math.sin(lPhase) * 0.03 * strideAmp,
+                    isIdle ? 0 : Math.cos(lPhase) * 0.028 * strideAmp
+                );
+
+                neckSegments.forEach((seg, i) => {
+                    let rx = 0.14;
+                    if (i === 0) rx = -0.58;
+                    else if (i < 4) rx = -0.08;
+                    rx += Math.sin(t * 1.8 + i * 0.35) * 0.012;
+                    seg.rotation.set(rx, Math.sin(t * 1.1) * 0.04, 0);
+                });
+
+                setQuetzalHeadRot(
+                    0.92 + Math.sin(t * (isIdle ? 1.8 : 2.5)) * 0.04,
+                    Math.sin(t * 1.1) * 0.12,
+                    0
+                );
+                setQuetzalJawRot(0.04 + Math.max(0, Math.sin(t * (isIdle ? 1.6 : 3.2))) * (isIdle ? 0.05 : 0.10));
+
+                [leftWing, rightWing].forEach(w => {
+                    const s = w.side;
+                    const phase = s === 1 ? lPhase : rPhase;
+                    const swing = Math.sin(phase) * 0.24 * strideAmp;
+                    const lift = Math.max(0, Math.cos(phase)) * 0.18 * strideAmp;
+                    const idleBreath = isIdle ? Math.sin(t * 2.2) * 0.02 : 0;
+
+                    w.shoulder.rotation.set(0.68 + swing, -s * 0.25, -s * 1.18 + s * (lift * 0.3 + idleBreath));
+                    w.elbow.rotation.set(0, 0, -s * 0.22 - s * lift * 0.4);
+                    w.wrist.rotation.set(0, 0, s * 0.08);
+
+                    w.knuckle.rotation.set(0, s * 1.38, s * 1.95);
+                    w.phalanx1.rotation.set(0, 0, 0);
+                    w.phalanx2.rotation.set(0, 0, s * 0.12);
+                    w.phalanx3.rotation.set(0, 0, s * 0.12);
+                });
+
+                [leftLeg, rightLeg].forEach(l => {
+                    const s = l.side;
+                    const phase = s === 1 ? rPhase : lPhase;
+                    const swing = Math.sin(phase) * 0.28 * strideAmp;
+                    const kneeBend = Math.max(0, Math.cos(phase)) * 0.35 * strideAmp;
+
+                    l.hip.rotation.set(0.55 + swing, 0, 0);
+                    l.knee.rotation.set(0.22 + kneeBend, 0, 0);
+                    l.ankle.rotation.set(-0.12 - swing * 0.5, 0, 0);
+                });
+
+            } else if (mode === 'display') {
+                // --- MODE 3 : APPEL TERRITORIAL / PARADE D'INTIMIDATION (DISPLAY) ---
+                const callWave = Math.sin(t * 2.8);
+
+                rootJoint.position.set(0, 2.12, 0);
+                rootJoint.rotation.set(-0.78, 0, 0);
+
+                neckSegments.forEach((seg, i) => {
+                    const rx = i === 0 ? -0.62 : (-0.06 + callWave * 0.025);
+                    seg.rotation.set(rx, Math.sin(t * 1.5) * 0.03, 0);
+                });
+
+                setQuetzalHeadRot(0.45 - Math.max(0, callWave) * 0.35, Math.sin(t * 1.5) * 0.08, 0);
+                setQuetzalJawRot(0.22 + Math.max(0, callWave) * 0.38);
+
+                [leftWing, rightWing].forEach(w => {
+                    const s = w.side;
+                    w.shoulder.rotation.set(0.45, -s * 0.25, -s * 0.28 + s * callWave * 0.12);
+                    w.elbow.rotation.set(0, s * 0.2, s * 0.35);
+                    w.wrist.rotation.set(0, -s * 0.1, -s * 0.35);
+                    w.knuckle.rotation.set(0, -s * 0.15, -s * 0.45 + s * callWave * 0.15);
+                    w.phalanx1.rotation.set(0, 0, 0);
+                    w.phalanx2.rotation.set(0, 0, -s * 0.15);
+                    w.phalanx3.rotation.set(0, 0, -s * 0.1);
+                });
+
+                [leftLeg, rightLeg].forEach(l => {
+                    l.hip.rotation.set(0.68, 0, -l.side * 0.06);
+                    l.knee.rotation.set(0.16, 0, 0);
+                    l.ankle.rotation.set(-0.08, 0, 0);
+                });
+
+            } else if (mode === 'anatomy') {
+                // --- MODE 4 : ENVERGURE DORSALE COMPLÈTE (ANATOMY) ---
+                rootJoint.position.set(0, 2.15, 0);
+                rootJoint.rotation.set(0, 0, 0);
+
+                neckSegments.forEach(seg => {
+                    seg.rotation.set(0, 0, 0);
+                });
+                setQuetzalHeadRot(0, 0, 0);
+                setQuetzalJawRot(0.08);
+
+                [leftWing, rightWing].forEach(w => {
+                    const s = w.side;
+                    w.shoulder.rotation.set(0, 0, 0);
+                    w.elbow.rotation.set(0, 0, 0);
+                    w.wrist.rotation.set(0, 0, 0);
+                    w.knuckle.rotation.set(0, -s * 0.08, 0);
+                    w.phalanx1.rotation.set(0, 0, 0);
+                    w.phalanx2.rotation.set(0, -s * 0.04, 0);
+                    w.phalanx3.rotation.set(0, -s * 0.04, 0);
+                });
+
+                [leftLeg, rightLeg].forEach(l => {
+                    l.hip.rotation.set(Math.PI * 0.42, 0, -l.side * 0.22);
+                    l.knee.rotation.set(0, 0, 0);
+                    l.ankle.rotation.set(0.8, 0, 0);
+                });
+            }
+        }
+
+        function resetQuetzalPose(time) {
+            rig.torso.rotation.set(0, 0, 0);
+            rig.neck.rotation.set(0, 0, 0);
+            if (rig.arms[0]) rig.arms[0].rotation.set(0, 0, 0);
+            if (rig.arms[1]) rig.arms[1].rotation.set(0, 0, 0);
+            if (rig.legs[0]) rig.legs[0].rotation.set(0, 0, 0);
+            if (rig.legs[1]) rig.legs[1].rotation.set(0, 0, 0);
+            applyPoseMode('idle', time || 0);
+            qRig.poseUpdatedThisFrame = false;
+        }
+
+        function updateAnatomicalSkin(time, fighter, modeOverride) {
+            const t = time || 0;
+            const breathPhase = t * 2.4;
+
+            // Clignement périodique des paupières & respiration de la poche gulaire
+            const blinkCycle = ((t % 4.8) + 4.8) % 4.8;
+            const blinkAmt = blinkCycle < 0.16 ? Math.sin((blinkCycle / 0.16) * Math.PI) : 0;
+            eyelids.forEach(lid => {
+                lid.rotation.x = -Math.PI * 0.45 + blinkAmt * 0.95;
+            });
+            if (jawGroup.userData.gularMesh) {
+                jawGroup.userData.gularMesh.scale.y = 0.85 + Math.sin(breathPhase) * 0.08;
+            }
+
+            // Si combat_reactions.js a pris la main (hitstun, garde, knockdown, X-ray), adapter la posture
+            if (!qRig.poseUpdatedThisFrame && fighter) {
+                if (fighter.isBlocking && fighter.blockType === 'high') {
+                    applyPoseMode('display', t);
+                    qRig.poseUpdatedThisFrame = false;
+                } else if (fighter.isFlying) {
+                    applyPoseMode('soar', t);
+                    qRig.poseUpdatedThisFrame = false;
+                }
+            }
+
+            // Propager les rotations génériques éventuelles (combat_reactions, sprint, etc.) sur les 7 vertèbres et membres
+            if (Math.abs(rig.neck.rotation.z) > 0.001 || Math.abs(rig.neck.rotation.y) > 0.001) {
+                const pitchPerSeg = -rig.neck.rotation.z / neckSegments.length;
+                const yawPerSeg = rig.neck.rotation.y / neckSegments.length;
+                neckSegments.forEach(seg => {
+                    seg.rotation.x += pitchPerSeg;
+                    seg.rotation.y += yawPerSeg;
+                });
+                rig.neck.rotation.set(0, 0, 0);
+            }
+            if (!qRig.poseUpdatedThisFrame) {
+                if (rig.legs[0] && Math.abs(rig.legs[0].rotation.z) > 0.001) {
+                    leftLeg.hip.rotation.x -= rig.legs[0].rotation.z * 0.45;
+                    leftLeg.knee.rotation.x += Math.max(0, rig.legs[0].rotation.z) * 0.35;
+                }
+                if (rig.legs[1] && Math.abs(rig.legs[1].rotation.z) > 0.001) {
+                    rightLeg.hip.rotation.x -= rig.legs[1].rotation.z * 0.45;
+                    rightLeg.knee.rotation.x += Math.max(0, rig.legs[1].rotation.z) * 0.35;
+                }
+                if (rig.arms[0] && Math.abs(rig.arms[0].rotation.z) > 0.001) {
+                    leftWing.shoulder.rotation.x -= rig.arms[0].rotation.z * 0.35;
+                }
+                if (rig.arms[1] && Math.abs(rig.arms[1].rotation.z) > 0.001) {
+                    rightWing.shoulder.rotation.x -= rig.arms[1].rotation.z * 0.35;
+                }
+            }
+
+            // Synchroniser l'affichage du squelette interne X-Ray du modèle
+            const isXray = Boolean(fighter && fighter.isXrayTarget);
+            skeletonMeshes.forEach(m => { m.visible = isXray; });
+            if (!isXray) {
+                materials.wingMembrane.transparent = true;
+                materials.wingMembrane.opacity = 0.98;
+            }
+
+            const effectiveMode = modeOverride || qRig.currentMode;
+            const isSoaring = effectiveMode === 'soar' || Boolean(fighter && fighter.isFlying);
+
+            // Mettre à jour les matrices mondiales avant de calculer le maillage continu et les patagia
+            quetzal.updateMatrixWorld(true);
+            updateContinuousBodySkin(breathPhase);
+            updateWingMembranes(leftBrachio, leftPropatagium, leftWing, leftLeg, t, isSoaring);
+            updateWingMembranes(rightBrachio, rightPropatagium, rightWing, rightLeg, t, isSoaring);
+        }
+
+        rig.specialParts.qRig = qRig;
+        rig.specialParts.applyPoseMode = applyPoseMode;
+        rig.specialParts.resetQuetzalPose = resetQuetzalPose;
+        rig.specialParts.updateAnatomicalSkin = updateAnatomicalSkin;
+
+        // Initialiser la pose par défaut et générer le maillage continu initial
+        applyPoseMode('idle', 0);
+        updateAnatomicalSkin(0, null, 'idle');
+
+        // =====================================================================
+        // 5. INDICATEUR D'ENDURANCE DE VOL CIRCULAIRE (Roue d'endurance de 2 secondes)
         // =====================================================================
         const gaugeCanvas = document.createElement('canvas');
         gaugeCanvas.width = 256;
@@ -268,7 +1550,7 @@ registerFighter({
         });
         const enduranceSprite = new THREE.Sprite(gaugeMat);
         enduranceSprite.scale.set(1.5, 1.5, 1.5);
-        enduranceSprite.position.set(0, 4.3, 0); // Flotte au-dessus du Quetzalcoatlus
+        enduranceSprite.position.set(0, 5.1, 0); // Flotte au-dessus de la crête du Quetzalcoatlus
         rig.root.add(enduranceSprite);
 
         let lastDrawnPct = -1;
@@ -279,7 +1561,6 @@ registerFighter({
             const maxEnd = 2.0;
             const pct = Math.max(0, Math.min(1.0, endurance / maxEnd));
 
-            // Visible en vol ou pendant la recharge au sol (< 100%)
             const targetOpacity = (isFlying || pct < 0.98) ? 1.0 : 0.0;
             currentOpacity += (targetOpacity - currentOpacity) * Math.min(1.0, delta * 8);
             gaugeMat.opacity = currentOpacity;
@@ -289,7 +1570,6 @@ registerFighter({
             }
             enduranceSprite.visible = true;
 
-            // Re-dessiner le cadran circulaire uniquement quand l'endurance change ou en vol
             if (Math.abs(pct - lastDrawnPct) > 0.005 || isFlying) {
                 lastDrawnPct = pct;
                 const size = 256;
@@ -300,13 +1580,11 @@ registerFighter({
 
                 gCtx.clearRect(0, 0, size, size);
 
-                // 1. Fond sombre translucide du médaillon
                 gCtx.beginPath();
                 gCtx.arc(cx, cy, radius + strokeW * 0.75, 0, Math.PI * 2);
                 gCtx.fillStyle = 'rgba(10, 15, 26, 0.82)';
                 gCtx.fill();
 
-                // 2. Anneau arrière-plan (rail guide 360°)
                 gCtx.beginPath();
                 gCtx.arc(cx, cy, radius, 0, Math.PI * 2);
                 gCtx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
@@ -314,7 +1592,6 @@ registerFighter({
                 gCtx.lineCap = 'round';
                 gCtx.stroke();
 
-                // 3. Arc d'endurance circulaire (de 12h dans le sens horaire)
                 if (pct > 0.001) {
                     const startAngle = -Math.PI / 2;
                     const endAngle = startAngle + (Math.PI * 2 * pct);
@@ -344,7 +1621,6 @@ registerFighter({
                     gCtx.shadowBlur = 0;
                 }
 
-                // 4. Cadran numérique : secondes d'endurance restantes
                 gCtx.fillStyle = pct <= 0.25 ? '#f87171' : '#ffffff';
                 gCtx.font = 'bold 38px sans-serif';
                 gCtx.textAlign = 'center';
@@ -352,12 +1628,10 @@ registerFighter({
                 const secText = `${(endurance).toFixed(1)}s`;
                 gCtx.fillText(secText, cx, cy - 6);
 
-                // Label "VOL"
                 gCtx.font = 'bold 20px sans-serif';
                 gCtx.fillStyle = '#38bdf8';
                 gCtx.fillText('VOL', cx, cy + 32);
 
-                // 4 Encoches repères
                 for (let i = 0; i < 4; i++) {
                     const angle = -Math.PI / 2 + (i * Math.PI / 2);
                     const tx1 = cx + Math.cos(angle) * (radius - strokeW * 0.7);
@@ -375,231 +1649,5 @@ registerFighter({
                 gaugeTexture.needsUpdate = true;
             }
         };
-    },
-
-    // Animation d'attente (idle) / marche quadrupède / vol stratosphérique
-    animateIdle(ctx) {
-        const { fighter, rig, baseHipsY, time, isWalk, dt } = ctx;
-
-        // Mise à jour de la jauge d'endurance circulaire 3D
-        if (rig.specialParts && rig.specialParts.updateEnduranceCircle) {
-            const endurance = fighter ? (fighter.flightEndurance !== undefined ? fighter.flightEndurance : 2.0) : 2.0;
-            const isFlying = fighter ? !!fighter.isFlying : false;
-            rig.specialParts.updateEnduranceCircle(endurance, isFlying, dt || 0.016);
-        }
-
-        // --- MODE VOL ACTIF (Ailes déployées, battements puissants, corps profilé) ---
-        if (fighter && fighter.isFlying) {
-            const flapFreq = 11.0;
-            const flap = Math.sin(time * flapFreq);
-
-            // Corps et cou profilés vers l'avant dans le flux d'air
-            rig.torso.rotation.z = -0.35 + Math.sin(time * 4) * 0.06;
-            rig.neck.rotation.z = -0.55 + flap * 0.08;
-            rig.headGroup.rotation.z = 0.25 - flap * 0.05;
-            if (rig.jaw) rig.jaw.rotation.z = -0.06 - Math.max(0, flap) * 0.08;
-
-            // Déploiement et battement des ailes immenses
-            if (rig.arms && rig.arms.length >= 2) {
-                const spreadBase = 1.35;
-                rig.arms[0].rotation.x = -(spreadBase + flap * 0.45);
-                rig.arms[1].rotation.x = (spreadBase + flap * 0.45);
-                rig.arms[0].rotation.z = -0.28 + flap * 0.15;
-                rig.arms[1].rotation.z = -0.28 + flap * 0.15;
-                rig.arms[0].rotation.y = flap * 0.10;
-                rig.arms[1].rotation.y = -flap * 0.10;
-            }
-
-            // Pattes repliées vers l'arrière en fuseau aérodynamique
-            if (rig.legs && rig.legs.length >= 2) {
-                rig.legs[0].rotation.z = -0.85;
-                rig.legs[1].rotation.z = -0.85;
-            }
-            return;
-        }
-
-        // --- MODE AU SOL (Posture d'échassier quadrupède) ---
-        const freq = isWalk ? 8.5 : 2.2;
-        const w = Math.sin(time * freq);
-
-        rig.hips.position.y = baseHipsY + (isWalk ? Math.abs(w) * 0.12 : Math.sin(time * freq) * 0.03);
-        rig.neck.rotation.z = isWalk ? -0.08 + Math.sin(time * freq * 2) * 0.05 : Math.sin(time * 1.6) * 0.04;
-        rig.headGroup.rotation.z = isWalk ? 0.06 - Math.sin(time * freq * 2) * 0.05 : Math.sin(time * 2.3 + 1) * 0.05;
-        rig.headGroup.rotation.y = isWalk ? 0 : Math.sin(time * 0.9) * 0.12;
-        if (rig.jaw) rig.jaw.rotation.z = 0.02 + Math.max(0, Math.sin(time * 1.3)) * 0.04;
-
-        // Marche quadrupède en diagonale : aile gauche avec patte droite
-        const a = isWalk ? w * 0.3 : 0;
-        if (rig.arms && rig.arms.length >= 2) {
-            rig.arms[0].rotation.z = a;
-            rig.arms[1].rotation.z = -a;
-            const breathe = isWalk ? 0 : Math.sin(time * freq) * 0.03;
-            rig.arms[0].rotation.x = -breathe;
-            rig.arms[1].rotation.x = breathe;
-        }
-        if (rig.legs && rig.legs.length >= 2) {
-            rig.legs[0].rotation.z = -a * 1.2;
-            rig.legs[1].rotation.z = a * 1.2;
-        }
-    },
-
-    // Ruée / Dash : Bras et ailes déployés en pleine envergure aérodynamique
-    animateDash(ctx) {
-        const { rig, lunge, dashProg, isBackDash, baseHipsY, time } = ctx;
-        // Bras / Ailes étendus en envergure maximale profilée
-        const spread = 1.48;
-        if (rig.arms && rig.arms.length >= 2) {
-            rig.arms[0].rotation.x = -spread;
-            rig.arms[1].rotation.x = spread;
-            rig.arms[0].rotation.z = isBackDash ? 0.22 : -0.36;
-            rig.arms[1].rotation.z = isBackDash ? 0.22 : -0.36;
-            rig.arms[0].rotation.y = 0;
-            rig.arms[1].rotation.y = 0;
-        }
-
-        if (isBackDash) {
-            // Esquive en retrait ailes déployées
-            rig.hips.position.y = baseHipsY * (0.86 + lunge * 0.22);
-            rig.hips.position.x = -lunge * 0.40;
-            rig.torso.rotation.z = 0.26;
-            rig.neck.rotation.z = 0.16;
-            rig.headGroup.rotation.z = -0.10;
-            if (rig.legs && rig.legs.length >= 2) {
-                rig.legs[0].rotation.z = -0.45 + lunge * 0.6;
-                rig.legs[1].rotation.z = 0.35 - lunge * 0.5;
-            }
-        } else {
-            // Ruée offensive vers l'avant bec affûté et ailes fendant l'air
-            rig.hips.position.y = baseHipsY * 0.72;
-            rig.hips.position.x = lunge * 0.52;
-            rig.torso.rotation.z = -0.52;
-            rig.neck.rotation.z = -0.28;
-            rig.headGroup.rotation.z = -0.15;
-            if (rig.legs && rig.legs.length >= 2) {
-                rig.legs[0].rotation.z = 0.95 * Math.sin(time * 26);
-                rig.legs[1].rotation.z = -0.95 * Math.sin(time * 26);
-            }
-        }
-        if (rig.jaw) rig.jaw.rotation.z = -0.15;
-    },
-
-    hasCustomDirectionals: true,
-
-    // Animations d'attaques claires et distinctes pour chaque coup
-    // Ailes : rotation.x * side (arms[0] côté -Z => side -1, arms[1] côté +Z => side +1) écarte l'aile vers l'extérieur
-    animateAttack(ctx) {
-        const { rig, act, prog, swing, strike, baseHipsY } = ctx;
-        const s = strike !== undefined ? strike : swing;
-        const spread = (amt) => {
-            rig.arms[0].rotation.x = -amt;
-            rig.arms[1].rotation.x = amt;
-        };
-
-        if (act === 'light') {
-            // Coup Léger 1 : Estoc rapide du long bec en dague
-            rig.neck.rotation.z = -s * 0.85;
-            rig.headGroup.rotation.z = -s * 0.35;
-            rig.jaw.rotation.z = -s * 0.25;
-        } else if (act === 'light2') {
-            // Coup Léger 2 (Combo 1-2) : Estoc croisé avec impulsion de l'aile
-            rig.neck.rotation.z = -s * 0.95;
-            rig.neck.rotation.y = -s * 0.3;
-            rig.headGroup.rotation.z = -s * 0.45;
-            spread(s * 0.6);
-        } else if (act === 'fwd_light') {
-            // Avant + Léger : Harponnage maximal à longue portée
-            rig.hips.position.x = s * 1.15;
-            rig.neck.rotation.z = -s * 1.1;
-            rig.headGroup.rotation.z = -s * 0.35;
-            rig.arms[0].rotation.z = -s * 0.3;
-            rig.arms[1].rotation.z = -s * 0.3;
-        } else if (act === 'low_light' || act === 'low_heavy') {
-            // Direction BAS ⬇️ : Bec au ras du sol et fauchage de l'aile
-            rig.hips.position.y = baseHipsY - s * 0.45;
-            rig.torso.rotation.z = -s * 0.25;
-            rig.neck.rotation.z = -s * 1.35;
-            rig.headGroup.rotation.z = s * 0.3;
-            rig.jaw.rotation.z = -s * 0.35;
-        } else if (act === 'anti_air' || act === 'up_light') {
-            // Direction HAUT ⬆️ : Bec pointé vers le zénith, ailes ouvertes
-            rig.hips.position.y = baseHipsY + s * 0.9;
-            rig.neck.rotation.z = s * 0.35;
-            rig.headGroup.rotation.z = s * 1.1;
-            rig.jaw.rotation.z = -s * 0.4;
-            spread(s * 1.1);
-        } else if (act === 'back_light') {
-            // Direction ARRIÈRE ⬅️ : Battement de recul et estoc défensif
-            rig.hips.position.x = -s * 0.8;
-            rig.neck.rotation.z = -s * 0.65;
-            spread(s * 0.8);
-        } else if (act === 'air_light' || act === 'air_heavy') {
-            // Piqué plongeant aérien, ailes déployées et bec en avant
-            rig.torso.rotation.z = -0.6;
-            rig.neck.rotation.z = -0.4 - s * 0.7;
-            spread(1.2);
-            rig.legs[0].rotation.z = -0.9;
-            rig.legs[1].rotation.z = -0.9;
-        } else if (act === 'throw') {
-            // Saisie au bec et projection
-            rig.hips.position.x = s * 0.95;
-            rig.neck.rotation.z = -s * 0.9;
-            rig.jaw.rotation.z = -(1 - s) * 0.5;
-            spread(s * 0.9);
-        } else if (act === 'heavy' || act === 'fwd_heavy') {
-            // Bourrasque d'ailes dévastatrice : ailes ouvertes puis rabattues vers l'avant
-            spread(0.6 + s * 0.9);
-            rig.arms[0].rotation.z = -s * 0.7;
-            rig.arms[1].rotation.z = -s * 0.7;
-            rig.neck.rotation.z = s * 0.25;
-            rig.headGroup.rotation.z = -s * 0.3;
-            if (act === 'fwd_heavy') rig.hips.position.x = s * 0.8;
-        } else if (act === 'special') {
-            // Piqué Sonique : envol puis plongée bec en avant
-            rig.hips.position.y = baseHipsY + s * 1.5;
-            rig.torso.rotation.z = -s * 0.5;
-            rig.neck.rotation.z = -s * 0.9;
-            spread(1.3);
-        } else if (act === 'special2') {
-            // Bourrasque tourbillonnaire : battements frénétiques
-            const flap = Math.sin(prog * Math.PI * 8);
-            spread(0.9 + flap * 0.6);
-            rig.arms[0].rotation.z = flap * 0.4;
-            rig.arms[1].rotation.z = flap * 0.4;
-            rig.hips.position.y = baseHipsY + Math.sin(prog * Math.PI) * 0.8;
-        }
-    },
-
-    // Chorégraphie 3D de la fatalité
-    animateFatality(ctx) {
-        const { rig, prog, baseHipsY } = ctx;
-        rig.hips.position.y = baseHipsY + Math.sin(prog * Math.PI) * 4.5;
-        const flap = Math.sin(prog * Math.PI * 10);
-        rig.arms[0].rotation.x = -(1.0 + flap * 0.5);
-        rig.arms[1].rotation.x = 1.0 + flap * 0.5;
-        rig.neck.rotation.z = -0.6;
-        rig.jaw.rotation.z = -0.15;
-    },
-
-    // Script de la fatalité (sons, sang, effets, annonce)
-    executeFatality(winner, loser) {
-        // 12) QUETZALCOATLUS : Enlèvement aérien et écrasement terminal
-        setTimeout(() => {
-            if (matchState !== 'fatality_anim') return;
-            sfx.playRoar(160, 0.5);
-            loser.y = 8;
-            spawnFloatingPopup(loser.x, 'CHUTE VERTIGINEUSE !', '#38bdf8');
-        }, 1000);
-        setTimeout(() => {
-            if (matchState !== 'fatality_anim') return;
-            loser.y = 0;
-            sfx.playBoneCrack();
-            sfx.playHit(true);
-            loser.flattened = true;
-            loser.isDead = true;
-            loser.hp = 0;
-            spawn3DBloodAndBones(loser.x, 0.5, 80, true);
-            screenShake = 1.0;
-            showAnnouncer('FATALITY !', 'CHUTE STRATOSPHÉRIQUE DU QUETZALCOATLUS');
-        }, 2250);
     },
 });
