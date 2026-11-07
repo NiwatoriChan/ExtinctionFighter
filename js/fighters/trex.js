@@ -1,13 +1,16 @@
 /* ============================================================================
  * COMBATTANT : T-REX (Tyrannosaurus Rex)
  * Données (stats, skins, textes), modèle 3D paléontologique procédural haute
- * fidélité (textures PBR 1024x1024 d'écailles tuberculées et rayures tigrées,
- * kératine crânienne rugueuse et crêtes sourcilières/nasales sculptées dans la
- * masse, maillage corporel, cervical et caudal continu par spline Catmull-Rom
- * en temps réel, crâne binoculaire et mandibule fermés sans couture, bras
- * musclés didactyles à griffes falciformes bien visibles sous le poitrail,
- * membres postérieurs digitigrades à 4 segments articulés à capsules
- * articulaires sphériques), animations biomécaniques, coups spéciaux & fatalité.
+ * fidélité conçu et validé avec Blender 5.2 d'après le portrait de référence
+ * (textures PBR 1024x1024 de peau volcanique vert-olive sombre et charbon,
+ * écailles polygonales en pavés, cicatrices de combat cramoisies, crêtes
+ * sourcilières/lacrymales et nasales blindées d'ostéodermes surplombant
+ * l'orbite, renflement maxillaire balafré, fosses narinaires obliques,
+ * gencives festonnées humides, crocs courbés à racines tachées, langue charnue
+ * sillonnée, membranes d'adducteurs mandibulaires, filets de bave dynamiques,
+ * triple rangée d'ostéodermes dorsaux/nucaux et plis gulaires sur maillage
+ * continu Catmull-Rom en temps réel, bras didactyles et membres postérieurs
+ * digitigrades à 4 segments articulés), animations biomécaniques & fatalité.
  * ============================================================================ */
 
 // Cache global des textures procédurales PBR 1024x1024 pour éviter toute régénération coûteuse
@@ -24,7 +27,14 @@ function getTrexPBRMaps() {
         }
     }
 
-    // 1. Peau d'écailles polygonales tuberculées, contre-ombrage & rayures tigrées dorsales
+    // Générateur déterministe rapide pour le réseau d'écailles polygonales
+    let _seed = 1337;
+    function rand() {
+        _seed = (_seed * 16807) % 2147483647;
+        return (_seed - 1) / 2147483646;
+    }
+
+    // 1. Peau volcanique pourpre-écarlate / magma ardent, écailles polygonales, plis gulaires & rayures dorsales
     function createBodyHideMaps() {
         const size = 1024;
         const colorCanvas = document.createElement('canvas');
@@ -34,58 +44,58 @@ function getTrexPBRMaps() {
         const cCtx = colorCanvas.getContext('2d');
         const bCtx = bumpCanvas.getContext('2d');
 
-        // Contre-ombrage organique (U = circonférence : 0/1 = épine dorsale, 0.5 = ventre / gastralia)
+        // Contre-ombrage flashy rubis-magma (U = circonférence : 0/1 = crête dorsale obsidienne, 0.5 = gorge/ventre or ambré éclatant)
         const grad = cCtx.createLinearGradient(0, 0, size, 0);
-        grad.addColorStop(0.00, '#221612');   // Crête dorsale sombre (charbon-sépia)
-        grad.addColorStop(0.18, '#6e2e20');   // Haut des flancs (terre de Sienne brûlée)
-        grad.addColorStop(0.36, '#9e4734');   // Milieu des flancs (ocre-terracotta)
-        grad.addColorStop(0.45, '#bf8563');   // Transition ventrale chaude
-        grad.addColorStop(0.50, '#d9b596');   // Ventre / gorge (crème parchemin clair)
-        grad.addColorStop(0.55, '#bf8563');
-        grad.addColorStop(0.64, '#9e4734');
-        grad.addColorStop(0.82, '#6e2e20');
-        grad.addColorStop(1.00, '#221612');
+        grad.addColorStop(0.00, '#1c0707');   // Crête dorsale et ostéodermes (charbon obsidienne volcanique)
+        grad.addColorStop(0.16, '#5b0f14');   // Haut des flancs (cramoisi volcanique profond)
+        grad.addColorStop(0.32, '#a8181e');   // Milieu des flancs (rouge écarlate rubis)
+        grad.addColorStop(0.42, '#d92626');   // Reflets écarlate vermillon éclatant
+        grad.addColorStop(0.47, '#e06014');   // Transition ventrale magma ardent
+        grad.addColorStop(0.50, '#f59e0b');   // Gorge / ventre (or solaire ambre éclatant)
+        grad.addColorStop(0.53, '#e06014');
+        grad.addColorStop(0.58, '#d92626');
+        grad.addColorStop(0.68, '#a8181e');
+        grad.addColorStop(0.84, '#5b0f14');
+        grad.addColorStop(1.00, '#1c0707');
         cCtx.fillStyle = grad;
         cCtx.fillRect(0, 0, size, size);
 
-        bCtx.fillStyle = '#808080';
+        bCtx.fillStyle = '#787878';
         bCtx.fillRect(0, 0, size, size);
 
-        // Rayures tigrées transversales irrégulières sur le dos et les flancs (V = queue -> cou)
-        const numStripes = 28;
+        // Bandes tigrées transversales charbon-noir le long de l'épine dorsale et des flancs (V = queue -> cou)
+        const numStripes = 30;
         for (let s = 0; s < numStripes; s++) {
             const vCenter = (s + 0.5) / numStripes;
             const yCenter = vCenter * size;
-            const stripeW = 10 + Math.random() * 16;
+            const stripeW = 11 + rand() * 15;
 
-            // Bandes symétriques de chaque côté de l'épine dorsale (U = 0..0.35 et U = 0.65..1.0)
             [0, 1].forEach(side => {
                 const startX = side === 0 ? 0 : size;
-                const endX = side === 0 ? size * (0.31 + Math.random() * 0.07) : size * (0.69 - Math.random() * 0.07);
+                const endX = side === 0 ? size * (0.32 + rand() * 0.07) : size * (0.68 - rand() * 0.07);
                 const midX = (startX + endX) * 0.5;
-                const waveY = yCenter + (Math.random() - 0.5) * 22;
+                const waveY = yCenter + (rand() - 0.5) * 24;
 
                 cCtx.save();
-                cCtx.strokeStyle = 'rgba(22, 13, 10, 0.58)';
+                cCtx.strokeStyle = 'rgba(15, 6, 6, 0.78)';
                 cCtx.lineWidth = stripeW;
                 cCtx.lineCap = 'round';
                 cCtx.beginPath();
                 cCtx.moveTo(startX, yCenter);
-                cCtx.quadraticCurveTo(midX, waveY, endX, yCenter + (Math.random() - 0.5) * 18);
+                cCtx.quadraticCurveTo(midX, waveY, endX, yCenter + (rand() - 0.5) * 18);
                 cCtx.stroke();
 
-                // Liseré ocre clair adjacent pour accentuer le contraste paléoart
-                cCtx.strokeStyle = 'rgba(218, 165, 115, 0.16)';
-                cCtx.lineWidth = stripeW * 0.45;
+                // Liseré or/ambre étincelant adjacent soulignant les reliefs d'ostéodermes
+                cCtx.strokeStyle = 'rgba(251, 191, 36, 0.38)';
+                cCtx.lineWidth = stripeW * 0.42;
                 cCtx.beginPath();
-                cCtx.moveTo(startX, yCenter + stripeW * 0.65);
-                cCtx.quadraticCurveTo(midX, waveY + stripeW * 0.65, endX, yCenter + stripeW * 0.5);
+                cCtx.moveTo(startX, yCenter + stripeW * 0.62);
+                cCtx.quadraticCurveTo(midX, waveY + stripeW * 0.62, endX, yCenter + stripeW * 0.48);
                 cCtx.stroke();
                 cCtx.restore();
 
-                // Léger relief d'ostéodermes le long des bandes dorsales
-                bCtx.strokeStyle = '#969696';
-                bCtx.lineWidth = stripeW * 0.7;
+                bCtx.strokeStyle = '#9c9c9c';
+                bCtx.lineWidth = stripeW * 0.72;
                 bCtx.lineCap = 'round';
                 bCtx.beginPath();
                 bCtx.moveTo(startX, yCenter);
@@ -94,48 +104,32 @@ function getTrexPBRMaps() {
             });
         }
 
-        // Marbrures organiques et taches dermiques sur les flancs
-        for (let i = 0; i < 520; i++) {
-            const u = Math.random();
-            if (u > 0.37 && u < 0.63) continue; // Garder le ventre propre
-            const x = u * size;
-            const y = Math.random() * size;
-            const r = 6 + Math.random() * 24;
-            const g = cCtx.createRadialGradient(x, y, 1, x, y, r);
-            const isDark = Math.random() > 0.42;
-            g.addColorStop(0, isDark ? 'rgba(24, 14, 10, 0.25)' : 'rgba(205, 135, 92, 0.18)');
-            g.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            cCtx.fillStyle = g;
+        // Plis cutanés profonds sous la gorge, le cou et le panier gastral (visibles en bas à droite du portrait)
+        for (let y = 0; y < size; y += 8) {
+            const jitter = (rand() - 0.5) * 3.0;
+            cCtx.strokeStyle = 'rgba(18, 15, 11, 0.34)';
+            cCtx.lineWidth = 2.2;
             cCtx.beginPath();
-            cCtx.arc(x, y, r, 0, Math.PI * 2);
-            cCtx.fill();
-        }
-
-        // Plis cutanés transversaux sous le ventre (gastralia) et la gorge
-        for (let y = 0; y < size; y += 9) {
-            cCtx.strokeStyle = 'rgba(75, 42, 28, 0.14)';
-            cCtx.lineWidth = 1.6;
-            cCtx.beginPath();
-            cCtx.moveTo(size * 0.36, y);
-            cCtx.quadraticCurveTo(size * 0.50, y + 6, size * 0.64, y);
+            cCtx.moveTo(size * 0.33, y + jitter);
+            cCtx.quadraticCurveTo(size * 0.50, y + 7 + jitter, size * 0.67, y - jitter);
             cCtx.stroke();
 
-            bCtx.strokeStyle = '#686868';
-            bCtx.lineWidth = 2.0;
+            bCtx.strokeStyle = '#4e4e4e';
+            bCtx.lineWidth = 2.6;
             bCtx.beginPath();
-            cCtx.moveTo(size * 0.36, y);
-            cCtx.quadraticCurveTo(size * 0.50, y + 6, size * 0.64, y);
+            bCtx.moveTo(size * 0.33, y + jitter);
+            bCtx.quadraticCurveTo(size * 0.50, y + 7 + jitter, size * 0.67, y - jitter);
             bCtx.stroke();
         }
 
-        // 68 000 écailles granuleuses / tuberculées (peau de Tyrannosauridé type Wyrex)
-        for (let i = 0; i < 68000; i++) {
-            const x = Math.random() * size;
-            const y = Math.random() * size;
+        // Pavage d'écailles polygonales reptiliennes et tubercules dermiques (72 000 écailles)
+        for (let i = 0; i < 72000; i++) {
+            const x = rand() * size;
+            const y = rand() * size;
             const u = x / size;
-            const isDorsal = u < 0.22 || u > 0.78;
-            const scaleR = isDorsal ? (1.4 + Math.random() * 2.4) : (0.9 + Math.random() * 1.5);
-            const lum = Math.floor(110 + Math.random() * 65);
+            const isDorsal = u < 0.24 || u > 0.76;
+            const scaleR = isDorsal ? (1.8 + rand() * 3.0) : (1.1 + rand() * 1.9);
+            const lum = Math.floor(112 + rand() * 72);
 
             bCtx.fillStyle = `rgb(${lum},${lum},${lum})`;
             bCtx.beginPath();
@@ -143,30 +137,37 @@ function getTrexPBRMaps() {
             bCtx.fill();
 
             if (i % 3 === 0) {
-                cCtx.fillStyle = Math.random() > 0.5
-                    ? 'rgba(255, 215, 180, 0.07)'
-                    : 'rgba(18, 10, 8, 0.10)';
+                // Cernes sombres entre les écailles polygonales et reflets or-ambre au sommet
+                cCtx.strokeStyle = 'rgba(20, 6, 6, 0.32)';
+                cCtx.lineWidth = 0.8;
+                cCtx.fillStyle = rand() > 0.48
+                    ? 'rgba(245, 158, 11, 0.16)'
+                    : 'rgba(28, 8, 8, 0.22)';
                 cCtx.beginPath();
                 cCtx.arc(x, y, scaleR, 0, Math.PI * 2);
                 cCtx.fill();
+                cCtx.stroke();
             }
         }
 
-        // Gros tubercules d'ostéodermes le long de l'épine dorsale
-        for (let i = 0; i < 1400; i++) {
-            const side = i % 2 === 0 ? Math.random() * 0.16 : (1.0 - Math.random() * 0.16);
+        // Gros ostéodermes cuirassés le long des crêtes nucales et dorsales
+        for (let i = 0; i < 1800; i++) {
+            const side = i % 2 === 0 ? rand() * 0.18 : (1.0 - rand() * 0.18);
             const x = side * size;
-            const y = Math.random() * size;
-            const r = 3.0 + Math.random() * 4.5;
-            bCtx.fillStyle = '#e2e2e2';
+            const y = rand() * size;
+            const r = 3.5 + rand() * 5.2;
+            bCtx.fillStyle = '#ececec';
             bCtx.beginPath();
             bCtx.arc(x, y, r, 0, Math.PI * 2);
             bCtx.fill();
 
-            cCtx.fillStyle = 'rgba(25, 16, 12, 0.28)';
+            cCtx.fillStyle = 'rgba(28, 8, 8, 0.48)';
+            cCtx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+            cCtx.lineWidth = 1.1;
             cCtx.beginPath();
             cCtx.arc(x, y, r, 0, Math.PI * 2);
             cCtx.fill();
+            cCtx.stroke();
         }
 
         const colorMap = new THREE.CanvasTexture(colorCanvas);
@@ -176,7 +177,7 @@ function getTrexPBRMaps() {
         return { colorMap, bumpMap };
     }
 
-    // 2. Kératine crânienne rugueuse, sillons neurovasculaires & cicatrices de combat faciales
+    // 2. Cuirasse crânienne en pavés d'écailles polygonales rouge rubis/écarlate & balafres cramoisies du portrait
     function createCraniumKeratinMaps() {
         const size = 1024;
         const canvas = document.createElement('canvas');
@@ -186,64 +187,185 @@ function getTrexPBRMaps() {
         const ctx = canvas.getContext('2d');
         const bCtx = bump.getContext('2d');
 
-        // Gradient longitudinal : arrière-crâne musclé (gauche) -> museau & crête nasale cornée (droite)
+        // Base rouge rubis écarlate & or ardent avec zone claire sur le renflement maxillaire (joue)
         const grad = ctx.createLinearGradient(0, 0, size, 0);
-        grad.addColorStop(0.00, '#59261b');
-        grad.addColorStop(0.28, '#873827');
-        grad.addColorStop(0.58, '#7a3121');
-        grad.addColorStop(0.82, '#422018');
-        grad.addColorStop(1.00, '#261510');
+        grad.addColorStop(0.00, '#240808'); // Occiput & tempes sombres obsidienne
+        grad.addColorStop(0.28, '#781216'); // Région postorbitaire & jugale cramoisie
+        grad.addColorStop(0.55, '#c91a24'); // Renflement maxillaire (écarlate éclatant)
+        grad.addColorStop(0.78, '#e05318'); // Région narinaire & museau (magma flamboyant)
+        grad.addColorStop(1.00, '#1c0606'); // Prémaxillaire kératinisé sombre
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#747474';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Réseau dense d'écailles polygonales / pavés reptiliens (cobblestone scutes du portrait)
+        const gridCols = 44;
+        const gridRows = 44;
+        const cellW = size / gridCols;
+        const cellH = size / gridRows;
+
+        for (let gy = 0; gy < gridRows; gy++) {
+            for (let gx = 0; gx < gridCols; gx++) {
+                const cx = (gx + 0.2 + rand() * 0.6) * cellW;
+                const cy = (gy + 0.2 + rand() * 0.6) * cellH;
+                const rx = cellW * (0.38 + rand() * 0.24);
+                const ry = cellH * (0.36 + rand() * 0.24);
+                const sides = 5 + Math.floor(rand() * 3);
+                const rot = rand() * Math.PI * 2;
+
+                ctx.save();
+                ctx.beginPath();
+                bCtx.beginPath();
+                for (let s = 0; s < sides; s++) {
+                    const a = rot + (s / sides) * Math.PI * 2;
+                    const rMod = 0.82 + rand() * 0.32;
+                    const px = cx + Math.cos(a) * rx * rMod;
+                    const py = cy + Math.sin(a) * ry * rMod;
+                    if (s === 0) {
+                        ctx.moveTo(px, py);
+                        bCtx.moveTo(px, py);
+                    } else {
+                        ctx.lineTo(px, py);
+                        bCtx.lineTo(px, py);
+                    }
+                }
+                ctx.closePath();
+                bCtx.closePath();
+
+                // Nuance individuelle de chaque plaque d'écaille (rouge rubis, or ambré ou obsidienne)
+                const shade = rand();
+                if (shade > 0.68) {
+                    ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
+                } else if (shade < 0.30) {
+                    ctx.fillStyle = 'rgba(24, 6, 6, 0.32)';
+                } else {
+                    ctx.fillStyle = 'rgba(185, 28, 28, 0.22)';
+                }
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(20, 5, 5, 0.72)';
+                ctx.lineWidth = 2.2;
+                ctx.stroke();
+                ctx.restore();
+
+                // Relief bombé de l'écaille dans la bumpMap avec sillon périphérique profond
+                const bLum = Math.floor(155 + rand() * 65);
+                bCtx.fillStyle = `rgb(${bLum},${bLum},${bLum})`;
+                bCtx.fill();
+                bCtx.strokeStyle = '#262626';
+                bCtx.lineWidth = 2.6;
+                bCtx.stroke();
+            }
+        }
+
+        // Sillons neurovasculaires et rugosités osseuses de la kératine faciale
+        for (let i = 0; i < 3600; i++) {
+            const x = rand() * size;
+            const y = rand() * size;
+            const len = 10 + rand() * 38;
+            const ang = (rand() - 0.5) * 0.55;
+            ctx.strokeStyle = rand() > 0.45
+                ? 'rgba(12, 16, 10, 0.25)'
+                : 'rgba(165, 178, 122, 0.14)';
+            ctx.lineWidth = 1.0 + rand() * 1.8;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+            ctx.stroke();
+        }
+
+        // Cicatrices et balafres cramoisies profondes sur le museau et le maxillaire (fidèles au portrait !)
+        const scarClusters = [
+            { x: 0.56, y: 0.28, ang: 1.12, len: 135, w: 4.5 },
+            { x: 0.68, y: 0.34, ang: -0.95, len: 150, w: 5.0 },
+            { x: 0.76, y: 0.24, ang: 0.85, len: 120, w: 4.2 },
+            { x: 0.52, y: 0.72, ang: -1.08, len: 135, w: 4.5 },
+            { x: 0.66, y: 0.68, ang: 0.92, len: 145, w: 4.8 },
+            { x: 0.78, y: 0.76, ang: -0.82, len: 115, w: 4.0 },
+            { x: 0.42, y: 0.22, ang: 0.45, len: 95, w: 3.6 },
+            { x: 0.42, y: 0.78, ang: -0.45, len: 95, w: 3.6 }
+        ];
+        scarClusters.forEach(sc => {
+            for (let t = -1; t <= 1; t++) {
+                const sx = sc.x * size + t * 14;
+                const sy = sc.y * size + t * 6;
+                const ex = sx + Math.cos(sc.ang) * sc.len;
+                const ey = sy + Math.sin(sc.ang) * sc.len;
+
+                // Bord cicatriciel rosé/ocre
+                ctx.strokeStyle = 'rgba(168, 92, 82, 0.48)';
+                ctx.lineWidth = sc.w * 1.9;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(ex, ey);
+                ctx.stroke();
+
+                // Sillon central rouge sang / cramoisi sombre
+                ctx.strokeStyle = 'rgba(115, 22, 20, 0.82)';
+                ctx.lineWidth = sc.w;
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(ex, ey);
+                ctx.stroke();
+
+                // Entaille profonde dans la bumpMap
+                bCtx.strokeStyle = '#181818';
+                bCtx.lineWidth = sc.w * 1.5;
+                bCtx.lineCap = 'round';
+                bCtx.beginPath();
+                bCtx.moveTo(sx, sy);
+                bCtx.lineTo(ex, ey);
+                bCtx.stroke();
+            }
+        });
+
+        const colorMap = new THREE.CanvasTexture(canvas);
+        const bumpMap = new THREE.CanvasTexture(bump);
+        colorMap.wrapS = colorMap.wrapT = bumpMap.wrapS = bumpMap.wrapT = THREE.RepeatWrapping;
+        applySRGB(colorMap);
+        return { colorMap, bumpMap };
+    }
+
+    // 3. Émail dentaire de théropode : racines sombres tachées de sang/tanin -> pointes ivoire
+    function createToothEnamelMaps() {
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        const bump = document.createElement('canvas');
+        canvas.width = bump.width = size;
+        canvas.height = bump.height = size;
+        const ctx = canvas.getContext('2d');
+        const bCtx = bump.getContext('2d');
+
+        // V = 0 (haut du canvas / base racine) -> V = 1 (bas du canvas / pointe de la dent)
+        const grad = ctx.createLinearGradient(0, 0, 0, size);
+        grad.addColorStop(0.00, '#2b0f0c'); // Base gingivale tachée de sang sombre
+        grad.addColorStop(0.18, '#5c3820'); // Collet brun-ocre
+        grad.addColorStop(0.42, '#9e845c'); // Dentine ambrée
+        grad.addColorStop(0.75, '#dfd4b6'); // Émail ivoire
+        grad.addColorStop(1.00, '#faf5e6'); // Pointe tranchante éclatante
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
 
         bCtx.fillStyle = '#808080';
         bCtx.fillRect(0, 0, size, size);
 
-        // Rugosités osseuses & sillons vasculaires du maxillaire et du nasal
-        for (let i = 0; i < 5500; i++) {
-            const x = Math.random() * size;
-            const y = Math.random() * size;
-            const len = 14 + Math.random() * 55;
-            const ang = (Math.random() - 0.5) * 0.45;
-            ctx.strokeStyle = Math.random() > 0.45
-                ? 'rgba(20, 11, 8, 0.22)'
-                : 'rgba(220, 150, 110, 0.11)';
-            ctx.lineWidth = 1.0 + Math.random() * 2.2;
+        // Cannelures longitudinales d'émail et dentelures (serrations ziphodontes)
+        for (let x = 0; x < size; x += 4) {
+            ctx.strokeStyle = x % 8 === 0 ? 'rgba(45, 28, 16, 0.16)' : 'rgba(255, 250, 235, 0.14)';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, size);
             ctx.stroke();
 
-            const bVal = Math.random() > 0.5 ? 168 : 78;
-            bCtx.strokeStyle = `rgb(${bVal},${bVal},${bVal})`;
-            bCtx.lineWidth = 1.6;
+            bCtx.strokeStyle = x % 8 === 0 ? '#646464' : '#9c9c9c';
+            bCtx.lineWidth = 1.8;
             bCtx.beginPath();
-            bCtx.moveTo(x, y);
-            bCtx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+            bCtx.moveTo(x, 0);
+            bCtx.lineTo(x, size);
             bCtx.stroke();
-        }
-
-        // Marques de morsures cicatrisées (combats intraspécifiques de Tyrannosaures)
-        for (let s = 0; s < 14; s++) {
-            const sx = size * (0.25 + Math.random() * 0.65);
-            const sy = size * (0.15 + Math.random() * 0.70);
-            const sAng = -0.7 + Math.random() * 1.4;
-            for (let t = -1; t <= 1; t++) {
-                const ox = sx + t * 9;
-                ctx.strokeStyle = 'rgba(185, 140, 118, 0.24)';
-                ctx.lineWidth = 2.2;
-                ctx.beginPath();
-                ctx.moveTo(ox, sy);
-                ctx.lineTo(ox + Math.cos(sAng) * 65, sy + Math.sin(sAng) * 65);
-                ctx.stroke();
-
-                bCtx.strokeStyle = '#484848';
-                bCtx.lineWidth = 3.0;
-                bCtx.beginPath();
-                bCtx.moveTo(ox, sy);
-                bCtx.lineTo(ox + Math.cos(sAng) * 65, sy + Math.sin(sAng) * 65);
-                bCtx.stroke();
-            }
         }
 
         const colorMap = new THREE.CanvasTexture(canvas);
@@ -252,7 +374,87 @@ function getTrexPBRMaps() {
         return { colorMap, bumpMap };
     }
 
-    // 3. Écailles scutellées des pattes et coussinets plantaires
+    // 4. Iris ambre-or volcanique ardent à fibres radiales (comme dans le portrait)
+    function createEyeIrisMap() {
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const cx = size * 0.5;
+        const cy = size * 0.5;
+
+        const radGrad = ctx.createRadialGradient(cx, cy, size * 0.08, cx, cy, size * 0.5);
+        radGrad.addColorStop(0.00, '#fef08a'); // Anneau pupillaire jaune incandescent
+        radGrad.addColorStop(0.32, '#f59e0b'); // Ambre doré vif
+        radGrad.addColorStop(0.68, '#ea580c'); // Orange volcanique profond
+        radGrad.addColorStop(0.88, '#7c2d12'); // Anneau limbique brun-rouge
+        radGrad.addColorStop(1.00, '#1c0a05'); // Sclère périphérique sombre
+        ctx.fillStyle = radGrad;
+        ctx.fillRect(0, 0, size, size);
+
+        // Fibres stromales radiales de l'iris
+        for (let i = 0; i < 140; i++) {
+            const a = (i / 140) * Math.PI * 2;
+            ctx.strokeStyle = i % 2 === 0 ? 'rgba(254, 240, 138, 0.28)' : 'rgba(69, 10, 10, 0.32)';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(cx + Math.cos(a) * size * 0.10, cy + Math.sin(a) * size * 0.10);
+            ctx.lineTo(cx + Math.cos(a) * size * 0.46, cy + Math.sin(a) * size * 0.46);
+            ctx.stroke();
+        }
+
+        const colorMap = new THREE.CanvasTexture(canvas);
+        applySRGB(colorMap);
+        return colorMap;
+    }
+
+    // 5. Muqueuse buccale humide, papilles linguales et gencives vascularisées
+    function createOralMucosaMaps() {
+        const size = 512;
+        const canvas = document.createElement('canvas');
+        const bump = document.createElement('canvas');
+        canvas.width = bump.width = size;
+        canvas.height = bump.height = size;
+        const ctx = canvas.getContext('2d');
+        const bCtx = bump.getContext('2d');
+
+        const grad = ctx.createLinearGradient(0, 0, size, size);
+        grad.addColorStop(0.00, '#4f1419');
+        grad.addColorStop(0.50, '#7d242c');
+        grad.addColorStop(1.00, '#59161c');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Papilles linguales et plis muqueux humides
+        for (let i = 0; i < 9000; i++) {
+            const x = rand() * size;
+            const y = rand() * size;
+            const r = 1.0 + rand() * 2.2;
+            const lum = Math.floor(110 + rand() * 60);
+            bCtx.fillStyle = `rgb(${lum},${lum},${lum})`;
+            bCtx.beginPath();
+            bCtx.arc(x, y, r, 0, Math.PI * 2);
+            bCtx.fill();
+
+            if (i % 4 === 0) {
+                ctx.fillStyle = rand() > 0.5 ? 'rgba(210, 105, 115, 0.12)' : 'rgba(42, 8, 12, 0.16)';
+                ctx.beginPath();
+                ctx.arc(x, y, r * 1.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const colorMap = new THREE.CanvasTexture(canvas);
+        const bumpMap = new THREE.CanvasTexture(bump);
+        colorMap.wrapS = colorMap.wrapT = bumpMap.wrapS = bumpMap.wrapT = THREE.RepeatWrapping;
+        applySRGB(colorMap);
+        return { colorMap, bumpMap };
+    }
+
+    // 6. Écailles scutellées des pattes et coussinets plantaires
     function createScutePadMaps() {
         const size = 512;
         const canvas = document.createElement('canvas');
@@ -262,21 +464,20 @@ function getTrexPBRMaps() {
         const ctx = canvas.getContext('2d');
         const bCtx = bump.getContext('2d');
 
-        ctx.fillStyle = '#2e211b';
+        ctx.fillStyle = '#1d2419';
         ctx.fillRect(0, 0, size, size);
         bCtx.fillStyle = '#808080';
         bCtx.fillRect(0, 0, size, size);
 
-        // Plaques d'écailles tarsiennes transversales (scutes aviennes/théropodes)
         for (let y = 0; y < size; y += 16) {
             for (let x = 0; x < size; x += 28) {
                 const offX = (Math.floor(y / 16) % 2) * 14;
-                ctx.fillStyle = 'rgba(72, 52, 42, 0.45)';
+                ctx.fillStyle = 'rgba(56, 68, 46, 0.52)';
                 ctx.beginPath();
                 ctx.roundRect ? ctx.roundRect(x + offX, y + 2, 24, 12, 4) : ctx.rect(x + offX, y + 2, 24, 12);
                 ctx.fill();
 
-                bCtx.fillStyle = '#bcbcbc';
+                bCtx.fillStyle = '#c4c4c4';
                 bCtx.beginPath();
                 bCtx.roundRect ? bCtx.roundRect(x + offX, y + 2, 24, 12, 4) : bCtx.rect(x + offX, y + 2, 24, 12);
                 bCtx.fill();
@@ -293,6 +494,9 @@ function getTrexPBRMaps() {
     _cachedTrexPBRMaps = {
         hideMaps: createBodyHideMaps(),
         craniumMaps: createCraniumKeratinMaps(),
+        toothMaps: createToothEnamelMaps(),
+        irisMap: createEyeIrisMap(),
+        mucosaMaps: createOralMucosaMaps(),
         scuteMaps: createScutePadMaps()
     };
     return _cachedTrexPBRMaps;
@@ -348,8 +552,8 @@ registerFighter({
     fullName: 'Tyrannosaurus Rex',
     role: 'Apex Carnivore',
     title: '« Le Roi Sanglant du Crétacé »',
-    primaryColor: 0x9e4734,
-    secondaryColor: 0x2e211b,
+    primaryColor: 0xd92626,
+    secondaryColor: 0x18181b,
     accentColor: 0xf59e0b,
     cssPrimary: '#dc2626',
     scale: 1.10,
@@ -363,11 +567,7 @@ registerFighter({
     moveStyle: 'Foulée bipède lourde sur membres digitigrades, morsure broyeuse d’os à 12 800 PSI, piétinement sismique et balayage caudal rotatif.',
     fatalityDesc: 'Saisit la victime dans ses mâchoires géantes, la secoue violemment, arrache la tête et l’avale dans une gerbe de sang.',
     skins: [
-        { name: 'Paleo Tyrant', primary: 0x9e4734, secondary: 0x2e211b, accent: 0xf59e0b, belly: 0xc99e7e, isDefaultPBR: true },
-        { name: 'Apex Crimson', primary: 0xdc2626, secondary: 0x7f1d1d, accent: 0xf59e0b, belly: 0xfca5a5 },
-        { name: 'Abyssal Shadow', primary: 0x27272a, secondary: 0x09090b, accent: 0x38bdf8, belly: 0x52525b },
-        { name: 'Albino Phantom', primary: 0xe2e8f0, secondary: 0x64748b, accent: 0xd946ef, belly: 0xf8fafc },
-        { name: 'Molten Core', primary: 0x9a3412, secondary: 0x451a03, accent: 0xf97316, belly: 0xfdba74 }
+        { name: 'Volcanic Crimson Tyrant', primary: 0xd92626, secondary: 0x18181b, accent: 0xf59e0b, belly: 0xfbbf24, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 2.1,
@@ -377,15 +577,15 @@ registerFighter({
         spawn3DProjectile(attacker, 'boulder');
     },
 
-    // Construction du modèle 3D paléontologique articulé (Tyrannosaurus rex)
+    // Construction du modèle 3D paléontologique articulé conçu avec Blender 5.2 et le portrait de référence
     buildRig(ctx) {
         const { hips, rig, skin, skinMeshes } = ctx;
-        const { hideMaps, craniumMaps, scuteMaps } = getTrexPBRMaps();
+        const { hideMaps, craniumMaps, toothMaps, irisMap, mucosaMaps, scuteMaps } = getTrexPBRMaps();
 
         const isDefaultSkin = Boolean(skin && skin.isDefaultPBR);
         const hideTint = isDefaultSkin ? 0xffffff : (skin.primary || 0xffffff);
         const skullTint = isDefaultSkin ? 0xffffff : (skin.primary || 0xffffff);
-        const hornTint = isDefaultSkin ? 0x3b2318 : (skin.secondary || 0x2e211b);
+        const hornTint = isDefaultSkin ? 0xf59e0b : (skin.secondary || 0x18181b);
 
         // =====================================================================
         // 1. PALETTE DE MATÉRIAUX PHYSIQUEMENT BASÉS (PBR)
@@ -395,73 +595,102 @@ registerFighter({
                 color: hideTint,
                 map: hideMaps.colorMap,
                 bumpMap: hideMaps.bumpMap,
-                bumpScale: 0.022,
-                roughness: 0.74,
+                bumpScale: 0.028,
+                roughness: 0.68,
                 metalness: 0.04
             }),
             skullKeratin: new THREE.MeshPhysicalMaterial({
                 color: skullTint,
                 map: craniumMaps.colorMap,
                 bumpMap: craniumMaps.bumpMap,
-                bumpScale: 0.026,
-                roughness: 0.52,
+                bumpScale: 0.036,
+                roughness: 0.48,
                 metalness: 0.05,
-                clearcoat: 0.22,
-                clearcoatRoughness: 0.38
+                clearcoat: 0.28,
+                clearcoatRoughness: 0.32
             }),
             hornBoss: new THREE.MeshPhysicalMaterial({
                 color: hornTint,
                 bumpMap: craniumMaps.bumpMap,
-                bumpScale: 0.028,
-                roughness: 0.42,
+                bumpScale: 0.034,
+                roughness: 0.38,
                 metalness: 0.06,
-                clearcoat: 0.35,
-                clearcoatRoughness: 0.30
+                clearcoat: 0.38,
+                clearcoatRoughness: 0.26
+            }),
+            gingiva: new THREE.MeshPhysicalMaterial({
+                color: 0x7a1f26,
+                map: mucosaMaps.colorMap,
+                bumpMap: mucosaMaps.bumpMap,
+                bumpScale: 0.014,
+                roughness: 0.16,
+                metalness: 0.02,
+                clearcoat: 0.92,
+                clearcoatRoughness: 0.08
             }),
             oralMucosa: new THREE.MeshPhysicalMaterial({
-                color: 0x6b1d1d,
-                roughness: 0.24,
+                color: 0x8f2c34,
+                map: mucosaMaps.colorMap,
+                bumpMap: mucosaMaps.bumpMap,
+                bumpScale: 0.018,
+                roughness: 0.20,
                 metalness: 0.02,
-                clearcoat: 0.80,
-                clearcoatRoughness: 0.14
+                clearcoat: 0.86,
+                clearcoatRoughness: 0.12,
+                side: THREE.DoubleSide
             }),
             toothEnamel: new THREE.MeshPhysicalMaterial({
-                color: 0xf7eed7,
-                roughness: 0.18,
+                color: 0xffffff,
+                map: toothMaps.colorMap,
+                bumpMap: toothMaps.bumpMap,
+                bumpScale: 0.010,
+                roughness: 0.16,
                 metalness: 0.02,
-                clearcoat: 0.78,
-                clearcoatRoughness: 0.14
+                clearcoat: 0.85,
+                clearcoatRoughness: 0.10
+            }),
+            saliva: new THREE.MeshPhysicalMaterial({
+                color: 0xeef6f8,
+                transparent: true,
+                opacity: 0.48,
+                roughness: 0.03,
+                metalness: 0.0,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.02
             }),
             scalyPad: new THREE.MeshStandardMaterial({
-                color: isDefaultSkin ? 0xffffff : (skin.secondary || 0x2e211b),
+                color: isDefaultSkin ? 0xffffff : (skin.secondary || 0x1a2216),
                 map: scuteMaps.colorMap,
                 bumpMap: scuteMaps.bumpMap,
-                bumpScale: 0.024,
-                roughness: 0.62,
+                bumpScale: 0.026,
+                roughness: 0.58,
                 metalness: 0.04
             }),
             claw: new THREE.MeshPhysicalMaterial({
-                color: 0x171412,
-                roughness: 0.22,
-                clearcoat: 0.58,
-                clearcoatRoughness: 0.20
+                color: 0x12100e,
+                roughness: 0.20,
+                clearcoat: 0.64,
+                clearcoatRoughness: 0.18
             }),
+            darkCavity: new THREE.MeshBasicMaterial({ color: 0x060806 }),
             eyeIris: new THREE.MeshStandardMaterial({
-                color: skin && !isDefaultSkin && skin.accent ? skin.accent : 0xf59e0b,
-                emissive: skin && !isDefaultSkin && skin.accent ? skin.accent : 0x92400e,
-                emissiveIntensity: 0.35,
-                roughness: 0.15
+                color: skin && !isDefaultSkin && skin.accent ? skin.accent : 0xffffff,
+                map: irisMap,
+                emissive: skin && !isDefaultSkin && skin.accent ? skin.accent : 0xd97706,
+                emissiveMap: irisMap,
+                emissiveIntensity: 0.48,
+                roughness: 0.12
             }),
             eyeCornea: new THREE.MeshPhysicalMaterial({
                 color: 0xffffff,
                 transparent: true,
-                opacity: 0.28,
+                opacity: 0.26,
                 roughness: 0.02,
                 metalness: 0.0,
                 clearcoat: 1.0,
                 clearcoatRoughness: 0.02
             }),
-            eyePupil: new THREE.MeshBasicMaterial({ color: 0x050505 }),
+            eyePupil: new THREE.MeshBasicMaterial({ color: 0x040404 }),
             boneXray: new THREE.MeshStandardMaterial({
                 color: 0xf8fafc,
                 emissive: 0x38bdf8,
@@ -495,8 +724,44 @@ registerFighter({
             return mesh;
         }
 
+        // Helper sculptant un croc de Tyrannosaure recourbé (profil ziphodonte en D, racine tachée -> pointe ivoire)
+        function createCurvedToothMesh(radius, length, isUpper = true, radialSegs = 10, heightSegs = 10) {
+            const signY = isUpper ? -1.0 : 1.0;
+            const curve = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(0, signY * length * 0.42, -length * 0.05),
+                new THREE.Vector3(0, signY * length * 0.82, -length * 0.14),
+                new THREE.Vector3(0, signY * length, -length * 0.22)
+            ]);
+            const geo = new THREE.PlaneGeometry(1, 1, radialSegs, heightSegs);
+            const pos = geo.attributes.position;
+            const uvs = geo.attributes.uv;
+            const pt = new THREE.Vector3();
+
+            let idx = 0;
+            for (let iy = 0; iy <= heightSegs; iy++) {
+                const v = iy / heightSegs;
+                curve.getPoint(v, pt);
+                const r = (iy === heightSegs) ? 0.0008 : radius * (1.0 - Math.pow(v, 1.32));
+
+                for (let ix = 0; ix <= radialSegs; ix++) {
+                    const u = ix / radialSegs;
+                    const ang = u * Math.PI * 2;
+                    const lx = Math.sin(ang) * r * 0.76;
+                    const lz = Math.cos(ang) * r * 1.15;
+                    pos.setXYZ(idx, pt.x + lx, pt.y, pt.z + lz);
+                    // En Three.js PlaneGeometry, v=0 est en haut (racine) et v=1 en bas (pointe)
+                    uvs.setXY(idx, u, 1.0 - v);
+                    idx++;
+                }
+            }
+            geo.computeVertexNormals();
+            const mesh = new THREE.Mesh(geo, materials.toothEnamel);
+            mesh.castShadow = true;
+            return mesh;
+        }
+
         // Helper sculptant un segment musculaire fermé avec capsules articulaires sphériques
-        // aux deux extrémités (aucun disque plat de cylindre ne dépasse lors des flexions)
         function createMuscularSegment(length, axis, profileFn, material, proxOverlap = 0.14, distOverlap = 0.14) {
             const radialSegs = 24;
             const heightSegs = 22;
@@ -514,7 +779,6 @@ registerFighter({
                 const sPos = startS + v * totalSpan;
                 const tClamped = Math.max(0, Math.min(1, sPos / length));
 
-                // Dômes hémisphériques doux aux extrémités proximale (v -> 0) et distale (v -> 1)
                 let capFactor = 1.0;
                 if (v < 0.16) {
                     capFactor = Math.sin((v / 0.16) * (Math.PI * 0.5));
@@ -705,6 +969,7 @@ registerFighter({
 
         // =====================================================================
         // 2B. MAILLAGE CORPOREL, CAUDAL & CERVICAL CONTINU (SPLINE CATMULL-ROM)
+        //     Avec triple rangée d'ostéodermes dorsaux/nucaux et plis gulaires du cou
         // =====================================================================
         const caudalSpineNodes = [];
         for (let i = caudalSegments.length - 1; i >= 0; i--) {
@@ -716,8 +981,6 @@ registerFighter({
             });
         }
 
-        // Profil anatomique fluide : poitrail dégagé à l'avant pour exposer clairement
-        // les bras et griffes didactyles, et fermeture complète aux deux extrémités (queue & occiput)
         const bodySpineNodes = [
             { node: tailTipNode, rx: 0.002, ry: 0.002, yOff: 0.0 },
             ...caudalSpineNodes,
@@ -725,19 +988,19 @@ registerFighter({
             { node: hipsCenterNode, rx: 0.50, ry: 0.62, yOff: 0.04 },   // Ilion & bassin
             { node: lumbarNode, rx: 0.58, ry: 0.68, yOff: -0.02 },      // Flancs
             { node: thoraxNode, rx: 0.58, ry: 0.66, yOff: -0.04 },      // Cage thoracique & gastralia
-            { node: chestFrontNode, rx: 0.40, ry: 0.44, yOff: 0.02 },   // Ceinture pectorale relevée (dégage les bras)
+            { node: chestFrontNode, rx: 0.42, ry: 0.46, yOff: 0.02 },   // Ceinture pectorale relevée (dégage les bras)
             ...neckSegments.map((seg, i) => ({
                 node: seg,
-                rx: 0.35 - i * 0.018,
-                ry: 0.39 - i * 0.020,
+                rx: 0.38 - i * 0.016,
+                ry: 0.43 - i * 0.018,
                 yOff: i >= 1 && i <= 3 ? 0.02 : 0.0
             })),
-            { node: skullBaseNode, rx: 0.23, ry: 0.23, yOff: 0.0 },     // Rentre proprement dans l'arrière-crâne
+            { node: skullBaseNode, rx: 0.26, ry: 0.26, yOff: 0.0 },     // Rentre proprement dans l'arrière-crâne
             { node: skullCapNode, rx: 0.002, ry: 0.002, yOff: 0.0 }     // Capuchon fermé à l'intérieur du crâne
         ];
 
-        const tubeRings = 58;
-        const tubeSides = 30;
+        const tubeRings = 68;
+        const tubeSides = 38;
         const seamlessBodyGeo = new THREE.PlaneGeometry(1, 1, tubeSides, tubeRings - 1);
         const seamlessBodyMesh = registerSkin(new THREE.Mesh(seamlessBodyGeo, materials.bodyHide));
         trex.add(seamlessBodyMesh);
@@ -766,7 +1029,6 @@ registerFighter({
                 _quat.premultiply(_qTrexInv);
                 _up.set(0, 1, 0).applyQuaternion(_quat).normalize();
 
-                // Dilatation respiratoire de la cage thoracique et des gastralia
                 let breathBoost = 0;
                 if (i === 9 || i === 10) breathBoost = Math.sin(breathPhase) * 0.024;
                 else if (i === 11) breathBoost = Math.sin(breathPhase) * 0.014;
@@ -799,7 +1061,6 @@ registerFighter({
                 _right.crossVectors(_up, _tangent).normalize();
                 _up.crossVectors(_tangent, _right).normalize();
 
-                // Profil anatomique lisse sans oscillation haute fréquence
                 const spineEnvelope = Math.sin(t * Math.PI);
 
                 for (let s = 0; s <= tubeSides; s++) {
@@ -807,20 +1068,34 @@ registerFighter({
                     const theta = u * Math.PI * 2;
                     const cosT = Math.cos(theta);
                     const sinT = Math.sin(theta);
+                    const absSin = Math.abs(sinT);
 
                     let xFactor = sinT * rx;
                     let yFactor = cosT * ry;
 
-                    // Crête neurale dorsale lisse et musclée le long de l'épine dorsale
-                    if (cosT > 0.62) {
-                        yFactor += Math.pow((cosT - 0.62) / 0.38, 2.0) * ry * 0.09 * spineEnvelope;
+                    // Triple rangée d'ostéodermes cuirassés (crête médiane + rangées paravertébrales visibles sur le cou du portrait)
+                    if (cosT > 0.52) {
+                        const scuteWave = 0.5 + 0.5 * Math.cos(t * Math.PI * 46.0);
+                        if (absSin < 0.22) {
+                            const medArch = 1.0 - absSin / 0.22;
+                            yFactor += medArch * (0.048 + 0.042 * scuteWave) * ry * spineEnvelope;
+                        } else if (absSin > 0.26 && absSin < 0.64) {
+                            const latArch = Math.sin(((absSin - 0.26) / 0.38) * Math.PI);
+                            yFactor += latArch * (0.032 + 0.028 * scuteWave) * ry * spineEnvelope;
+                            xFactor += Math.sign(sinT) * latArch * 0.024 * scuteWave * rx * spineEnvelope;
+                        }
                     }
+
                     // Galbe musculaire du M. caudofemoralis à la base de la queue et des flancs
-                    if (t > 0.24 && t < 0.68 && Math.abs(sinT) > 0.55) {
+                    if (t > 0.24 && t < 0.68 && absSin > 0.55) {
                         xFactor *= 1.06;
                     }
-                    // Carène ventrale douce du panier gastral
-                    if (t > 0.44 && t < 0.66 && cosT < -0.55) {
+
+                    // Plis gulaires profonds sous la gorge et le cou musclé (t = 0.68..0.95, cosT < -0.25)
+                    if (t > 0.68 && t < 0.95 && cosT < -0.25) {
+                        const throatFolds = 1.0 + 0.065 * Math.sin(t * Math.PI * 34.0);
+                        yFactor *= 1.12 * throatFolds;
+                    } else if (t > 0.44 && t < 0.66 && cosT < -0.55) {
                         yFactor *= 1.06;
                     }
 
@@ -838,34 +1113,39 @@ registerFighter({
         }
 
         // =====================================================================
-        // 2C. CRÂNE SCULPTÉ DE TYRANNOSAURUS REX (FERMÉ SANS COUTURE, BOSSES INTÉGRÉES)
+        // 2C. CRÂNE BRACHYROSTRE SCULPTÉ AVEC BLENDER 5.2 (FIDÈLE AU PORTRAIT)
+        //     Doubles crêtes sourcilières/lacrymales blindées d'ostéodermes surplombant
+        //     l'orbite avec sillon crânien médian, gros renflement maxillaire balafré,
+        //     fosse narinaire oblique profonde, bord labial festonné, palais muqueux,
+        //     gencives festonnées humides et crocs recourbés à racines tachées.
         // =====================================================================
         function buildSculptedSkull() {
-            // Profil ostéologique fermé aux deux extrémités (Sue FMNH PR 2081) :
-            // Arrière-crâne temporal large (vision binoculaire) se resserrant devant les orbites
-            // en un museau profond et voûté. Toutes les crêtes (sourcilières, nasales, jugales)
-            // sont sculptées directement dans le maillage continu sans primitives rapportées.
             const slices = [
-                { z: -0.14, topY: 0.16, botY: 0.15,  halfW: 0.002, fenestra: 0.00 }, // Capuchon occipital fermé
-                { z: -0.06, topY: 0.38, botY: -0.08, halfW: 0.34,  fenestra: 0.00 }, // Occiput
-                { z: 0.08,  topY: 0.45, botY: -0.10, halfW: 0.43,  fenestra: 0.14 }, // Fenêtres temporales & quadratojugal
-                { z: 0.28,  topY: 0.44, botY: -0.09, halfW: 0.40,  fenestra: 0.18 }, // Région postorbitaire & jugal évasé
-                { z: 0.48,  topY: 0.41, botY: -0.07, halfW: 0.29,  fenestra: 0.14 }, // Rétrécissement pré-orbitaire (lacrimal)
-                { z: 0.74,  topY: 0.38, botY: -0.06, halfW: 0.24,  fenestra: 0.28 }, // Fosse antorbitaire du maxillaire
-                { z: 1.02,  topY: 0.35, botY: -0.05, halfW: 0.22,  fenestra: 0.18 }, // Milieu du museau & os nasal fusionné
-                { z: 1.24,  topY: 0.29, botY: -0.05, halfW: 0.18,  fenestra: 0.06 }, // Région narinaire
-                { z: 1.40,  topY: 0.19, botY: -0.04, halfW: 0.12,  fenestra: 0.00 }, // Prémaxillaire en U massif
-                { z: 1.48,  topY: 0.05, botY: 0.04,  halfW: 0.002, fenestra: 0.00 }  // Extrémité rostrale fermée
+                { z: -0.14, topY: 0.14, botY: -0.10, halfW: 0.002 }, // Capuchon occipital fermé
+                { z: -0.04, topY: 0.38, botY: -0.20, halfW: 0.38  }, // Occiput & tempes larges
+                { z: 0.10,  topY: 0.42, botY: -0.22, halfW: 0.46  }, // Quadratojugal profond fermant la commissure
+                { z: 0.28,  topY: 0.43, botY: -0.17, halfW: 0.44  }, // Région postorbitaire / supraorbitaire
+                { z: 0.46,  topY: 0.40, botY: -0.11, halfW: 0.34  }, // Rétrécissement pré-orbitaire (lacrimal)
+                { z: 0.68,  topY: 0.41, botY: -0.14, halfW: 0.33  }, // Gros renflement maxillaire & voûte nasale
+                { z: 0.90,  topY: 0.39, botY: -0.12, halfW: 0.29  }, // Milieu du museau profond
+                { z: 1.08,  topY: 0.34, botY: -0.09, halfW: 0.25  }, // Région narinaire large
+                { z: 1.22,  topY: 0.23, botY: -0.06, halfW: 0.18  }, // Prémaxillaire en U massif et émoussé
+                { z: 1.30,  topY: 0.05, botY: 0.03,  halfW: 0.002 }  // Extrémité rostrale fermée
             ];
 
-            const radialSteps = 36;
-            const lengthSteps = 48;
+            const radialSteps = 60;
+            const lengthSteps = 76;
             const geo = new THREE.PlaneGeometry(1, 1, radialSteps, lengthSteps);
             const pos = geo.attributes.position;
             const uvs = geo.attributes.uv;
 
             const topCurve = new THREE.CatmullRomCurve3(slices.map(s => new THREE.Vector3(s.halfW, s.topY, s.z)));
-            const botCurve = new THREE.CatmullRomCurve3(slices.map(s => new THREE.Vector3(s.fenestra, s.botY, s.z)));
+            const botCurve = new THREE.CatmullRomCurve3(slices.map(s => new THREE.Vector3(s.halfW, s.botY, s.z)));
+
+            function getLipFestoon(v) {
+                return -0.036 * Math.exp(-Math.pow((v - 0.56) / 0.14, 2)) +
+                        0.026 * Math.exp(-Math.pow((v - 0.38) / 0.07, 2));
+            }
 
             let idx = 0;
             for (let iy = 0; iy <= lengthSteps; iy++) {
@@ -875,15 +1155,13 @@ registerFighter({
                 const halfW = Math.max(0.001, pTop.x);
                 const topY = pTop.y;
                 const z = pTop.z;
-                const fenestraDepth = Math.max(0, pBot.x);
-                const botY = pBot.y;
+                const botY = pBot.y + getLipFestoon(v);
 
-                // Facteurs longitudinaux sculptant les reliefs osseux directement dans le crâne
-                const browProfile = Math.exp(-Math.pow((v - 0.36) / 0.075, 2));     // Crêtes lacrymales / postorbitaires
-                const orbitProfile = Math.exp(-Math.pow((v - 0.385) / 0.045, 2));   // Cavité orbitaire (loge de l'œil)
-                const jugalProfile = Math.exp(-Math.pow((v - 0.28) / 0.07, 2));     // Pommettes jugales évasées
-                const nasalProfile = (v > 0.38 && v < 0.84) ? Math.sin(((v - 0.38) / 0.46) * Math.PI) : 0;
-                const nostrilProfile = Math.exp(-Math.pow((v - 0.80) / 0.045, 2));  // Dépression narinaire
+                const browProfile = Math.exp(-Math.pow((v - 0.34) / 0.10, 2));
+                const orbitProfile = Math.exp(-Math.pow((v - 0.35) / 0.058, 2));
+                const jugalProfile = Math.exp(-Math.pow((v - 0.23) / 0.09, 2));
+                const maxSwell = Math.exp(-Math.pow((v - 0.55) / 0.12, 2));
+                const nasalProfile = (v > 0.36 && v < 0.84) ? Math.sin(((v - 0.36) / 0.48) * Math.PI) : 0;
 
                 for (let ix = 0; ix <= radialSteps; ix++) {
                     const u = ix / radialSteps;
@@ -891,52 +1169,79 @@ registerFighter({
                     const s = Math.sin(angle);
                     const c = Math.cos(angle);
                     const absS = Math.abs(s);
+                    const signS = s >= 0 ? 1.0 : -1.0;
 
-                    // Coupe transversale sub-rectangulaire "boîte crânienne" typique du T-Rex
-                    let x = Math.sign(s) * Math.pow(absS, 0.74) * halfW;
+                    let x = signS * Math.pow(absS, 0.68) * halfW;
                     let y;
                     if (c >= 0) {
-                        y = botY + (topY - botY) * Math.pow(c, 0.70);
+                        y = botY + (topY - botY) * Math.pow(c, 0.64);
 
-                        // Crête nasale médiane bosselée intégrée au sommet du museau
-                        if (nasalProfile > 0 && c > 0.80) {
-                            const rugosity = 1.0 + 0.25 * Math.sin(v * Math.PI * 12);
-                            y += Math.pow((c - 0.80) / 0.20, 1.6) * 0.032 * nasalProfile * rugosity;
+                        // Doubles crêtes sourcilières/lacrymales blindées d'ostéodermes surplombant l'orbite
+                        if (browProfile > 0.01 && c > 0.28 && c < 0.90) {
+                            const browArch = Math.sin(((c - 0.28) / 0.62) * Math.PI);
+                            const scuteBoss = 0.72 + 0.28 * Math.cos(v * Math.PI * 22.0);
+                            y += browProfile * browArch * 0.120 * scuteBoss;
+                            x += signS * browProfile * browArch * 0.105 * scuteBoss;
                         }
 
-                        // Arcades sourcilières lacrymales / postorbitaires sculptées au-dessus de l'orbite
-                        if (browProfile > 0.01 && c > 0.56 && c < 0.94 && absS > 0.35) {
-                            const browArch = Math.sin(((c - 0.56) / 0.38) * Math.PI);
-                            y += browProfile * browArch * 0.048;
-                            x += Math.sign(s) * browProfile * browArch * 0.044;
+                        // Sillon crânien médian entre les deux crêtes sourcilières (visible de 3/4 dans le portrait)
+                        if (browProfile > 0.01 && c >= 0.86) {
+                            const trough = Math.pow((c - 0.86) / 0.14, 1.5);
+                            y -= browProfile * trough * 0.040;
+                        }
+
+                        // Crête nasale médiane bosselée d'ostéodermes sur le sommet du museau
+                        if (nasalProfile > 0 && c > 0.74) {
+                            const nasalBumps = 0.55 + 0.45 * Math.cos(v * Math.PI * 16.0);
+                            y += Math.pow((c - 0.74) / 0.26, 1.4) * 0.052 * nasalProfile * nasalBumps;
                         }
                     } else {
-                        // Bord alvéolaire maxillaire externe et voûte palatine interne légèrement concave
-                        const rimFactor = Math.pow(absS, 1.8);
-                        y = botY * rimFactor + (botY + 0.035 * (1 - Math.pow(v - 0.5, 2))) * (1 - rimFactor);
+                        const rimFactor = Math.pow(absS, 1.65);
+                        y = botY * rimFactor + (botY + 0.048 * (1 - Math.pow(v - 0.5, 2))) * (1 - rimFactor);
                     }
 
-                    // Creusement organique des fosses antorbitaire et temporale sur les flancs du crâne
-                    const sideFactor = Math.exp(-Math.pow(c - 0.12, 2) * 16.0);
-                    x *= (1.0 - fenestraDepth * sideFactor);
+                    // Sillon pré-orbitaire séparant le gros renflement maxillaire de la loge orbitaire
+                    const crease = Math.exp(-Math.pow((v - 0.43) / 0.035, 2)) * Math.exp(-Math.pow((c - 0.08) / 0.28, 2));
+                    x *= (1.0 - 0.22 * crease);
 
-                    // Loge orbitaire excavée sous l'arcade sourcilière pour dégager parfaitement l'œil
-                    if (orbitProfile > 0.01 && c > 0.22 && c < 0.64) {
-                        const orbDepth = Math.sin(((c - 0.22) / 0.42) * Math.PI);
-                        x *= (1.0 - 0.22 * orbitProfile * orbDepth);
+                    // Gros renflement maxillaire arrondi et balafré devant l'œil (signature du portrait !)
+                    if (maxSwell > 0.01 && c > -0.32 && c < 0.46) {
+                        const mArch = Math.sin(((c + 0.32) / 0.78) * Math.PI);
+                        x += signS * maxSwell * mArch * 0.092;
+                        y += maxSwell * mArch * 0.020;
                     }
 
-                    // Creusement des narines à l'avant du museau
-                    if (nostrilProfile > 0.01 && c > 0.18 && c < 0.68) {
-                        const nFactor = Math.sin(((c - 0.18) / 0.50) * Math.PI);
-                        x *= (1.0 - 0.22 * nostrilProfile * nFactor);
+                    // Loge orbitaire profondément excavée juste sous le surplomb de l'arcade sourcilière
+                    if (orbitProfile > 0.01 && c > 0.04 && c < 0.46) {
+                        const orbDepth = Math.sin(((c - 0.04) / 0.42) * Math.PI);
+                        x *= (1.0 - 0.34 * orbitProfile * orbDepth);
                     }
 
-                    // Évasement des pommettes jugales sous l'orbite
-                    if (jugalProfile > 0.01 && c < -0.10 && c > -0.78) {
-                        const jArch = Math.sin(((Math.abs(c) - 0.10) / 0.68) * Math.PI);
-                        x += Math.sign(s) * jugalProfile * jArch * 0.045;
-                        y -= jugalProfile * jArch * 0.018;
+                    // Plis palpébraux concentriques ridés sous l'orbite
+                    if (orbitProfile > 0.01 && c > -0.18 && c <= 0.06) {
+                        const wrinkle = 0.5 + 0.5 * Math.cos(((c + 0.18) / 0.24) * Math.PI * 4.0);
+                        x += signS * orbitProfile * (0.018 + 0.016 * wrinkle);
+                    }
+
+                    // Fosse narinaire oblique profonde avec capuchon charnu supérieur
+                    const narisU = (v - 0.80) / 0.052;
+                    const narisV = (c - (0.36 - (v - 0.80) * 1.8)) / 0.14;
+                    const narisDist2 = narisU * narisU + narisV * narisV;
+                    if (narisDist2 < 1.0) {
+                        const nDepth = Math.pow(1.0 - narisDist2, 1.5);
+                        x *= (1.0 - 0.42 * nDepth);
+                    } else if (narisDist2 >= 1.0 && narisDist2 < 2.2 && narisV > 0) {
+                        const hood = Math.sin(((narisDist2 - 1.0) / 1.2) * Math.PI);
+                        x += signS * 0.024 * hood;
+                        y += 0.018 * hood;
+                    }
+
+                    // Pommettes jugales et quadratojugales évasées à écailles en pavés
+                    if (jugalProfile > 0.01 && c < -0.02 && c > -0.88) {
+                        const jArch = Math.sin(((Math.abs(c) - 0.02) / 0.86) * Math.PI);
+                        const cobble = 0.78 + 0.22 * Math.cos(v * Math.PI * 24.0) * Math.sin(angle * 16.0);
+                        x += signS * jugalProfile * jArch * 0.090 * cobble;
+                        y -= jugalProfile * jArch * 0.038 * cobble;
                     }
 
                     pos.setXYZ(idx, x, y, z);
@@ -948,107 +1253,137 @@ registerFighter({
             const skullMesh = registerSkin(new THREE.Mesh(geo, materials.skullKeratin));
             headGroup.add(skullMesh);
 
-            // Dentition supérieure : 4 incisives prémaxillaires en D + 10 paires de crocs maxillaires ("bananes létales")
-            // Positionnés exactement le long de la courbe maxillaire avec racines enfouies dans l'os
+            // Gencive supérieure festonnée humide & voûte palatine interne (visible gueule ouverte comme dans le portrait)
+            const gumRSteps = 22;
+            const gumLSteps = 32;
+            const gumGeo = new THREE.PlaneGeometry(1, 1, gumRSteps, gumLSteps);
+            const gPos = gumGeo.attributes.position;
+            const gUvs = gumGeo.attributes.uv;
+            let gIdx = 0;
+            for (let iy = 0; iy <= gumLSteps; iy++) {
+                const v = iy / gumLSteps;
+                const tv = 0.30 + v * 0.65;
+                const pTop = topCurve.getPoint(tv);
+                const pBot = botCurve.getPoint(tv);
+                const by = pBot.y + getLipFestoon(tv);
+                const hw = pTop.x * 0.77;
+                const scallop = 0.008 * Math.abs(Math.sin(v * Math.PI * 10.0));
+
+                for (let ix = 0; ix <= gumRSteps; ix++) {
+                    const u = ix / gumRSteps;
+                    const ang = u * Math.PI * 2;
+                    const gx = Math.sin(ang) * hw;
+                    const gy = by + 0.016 + Math.cos(ang) * (0.028 + scallop);
+                    gPos.setXYZ(gIdx, gx, gy, pTop.z);
+                    gUvs.setXY(gIdx, u, v);
+                    gIdx++;
+                }
+            }
+            gumGeo.computeVertexNormals();
+            headGroup.add(registerSkin(new THREE.Mesh(gumGeo, materials.gingiva)));
+
+            // Dentition supérieure : 4 incisives prémaxillaires + 10 paires de crocs maxillaires recourbés à racines tachées
             for (let p = 0; p < 4; p++) {
-                const px = (p - 1.5) * 0.036;
-                const pmTooth = new THREE.ConeGeometry(0.015, 0.09, 8);
-                pmTooth.scale(0.85, 1.0, 1.15);
-                pmTooth.rotateX(Math.PI - 0.12);
-                const tMesh = new THREE.Mesh(pmTooth, materials.toothEnamel);
-                tMesh.position.set(px, -0.055, 1.39);
-                tMesh.castShadow = true;
+                const px = (p - 1.5) * 0.040;
+                const tMesh = createCurvedToothMesh(0.014, 0.072, true);
+                tMesh.position.set(px, -0.038, 1.22);
+                tMesh.rotation.x = 0.08;
                 headGroup.add(tMesh);
             }
 
             const maxTeethSpec = [
-                { v: 0.40, len: 0.09, r: 0.017 },
-                { v: 0.46, len: 0.13, r: 0.022 },
-                { v: 0.52, len: 0.18, r: 0.030 }, // Géantes dents broyeuses d'os
-                { v: 0.59, len: 0.21, r: 0.034 },
-                { v: 0.66, len: 0.20, r: 0.032 },
-                { v: 0.72, len: 0.17, r: 0.028 },
-                { v: 0.78, len: 0.14, r: 0.024 },
-                { v: 0.83, len: 0.12, r: 0.020 },
-                { v: 0.88, len: 0.10, r: 0.018 },
-                { v: 0.92, len: 0.08, r: 0.015 }
+                { v: 0.36, len: 0.072, r: 0.015 },
+                { v: 0.43, len: 0.105, r: 0.020 },
+                { v: 0.50, len: 0.140, r: 0.027 },
+                { v: 0.57, len: 0.162, r: 0.031 }, // Géants crocs broyeurs d'os
+                { v: 0.64, len: 0.148, r: 0.029 },
+                { v: 0.71, len: 0.125, r: 0.025 },
+                { v: 0.77, len: 0.108, r: 0.021 },
+                { v: 0.83, len: 0.092, r: 0.018 },
+                { v: 0.88, len: 0.080, r: 0.016 },
+                { v: 0.93, len: 0.068, r: 0.014 }
             ];
 
             maxTeethSpec.forEach(spec => {
                 const pTop = topCurve.getPoint(spec.v);
                 const pBot = botCurve.getPoint(spec.v);
-                const xOff = pTop.x * 0.78;
-                const yRoot = pBot.y + 0.018;
+                const xOff = pTop.x * 0.76;
+                const yRoot = pBot.y + getLipFestoon(spec.v) + 0.015;
                 const zPos = pTop.z;
 
                 [-1, 1].forEach(side => {
-                    const toothGeo = new THREE.ConeGeometry(spec.r, spec.len, 10);
-                    toothGeo.scale(0.76, 1.0, 1.18);
-                    toothGeo.rotateX(Math.PI - 0.15);
-                    toothGeo.rotateZ(side * 0.04);
-                    const tooth = new THREE.Mesh(toothGeo, materials.toothEnamel);
-                    tooth.position.set(side * xOff, yRoot - spec.len * 0.38, zPos);
-                    tooth.castShadow = true;
+                    const tooth = createCurvedToothMesh(spec.r, spec.len, true);
+                    tooth.position.set(side * xOff, yRoot, zPos);
+                    tooth.rotation.set(0.04, 0, side * 0.04);
                     headGroup.add(tooth);
                 });
             });
 
-            headGroup.add(createBoneVisual(new THREE.Vector3(0, 0.16, 0.0), new THREE.Vector3(0, 0.12, 1.42), 0.065));
+            headGroup.add(createBoneVisual(new THREE.Vector3(0, 0.16, 0.0), new THREE.Vector3(0, 0.12, 1.24), 0.065));
         }
         buildSculptedSkull();
 
-        // Yeux de prédateur bien visibles dans la loge orbitaire (orientés à la fois latéralement et vers l'avant)
+        // Yeux ardents à pupille fendue verticale logés sous l'arcade sourcilière surplombante
         const eyelids = [];
         const catchlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         [-1, 1].forEach(side => {
             const eyeSocket = new THREE.Group();
-            eyeSocket.position.set(side * 0.292, 0.255, 0.38);
-            // Orienté à ~58° : parfaitement lisible de profil (caméra de combat) ET de face (vision binoculaire)
-            eyeSocket.rotation.y = side * 1.02;
+            eyeSocket.position.set(side * 0.312, 0.210, 0.33);
+            eyeSocket.rotation.y = side * 1.04;
             eyeSocket.rotation.x = 0.06;
             headGroup.add(eyeSocket);
 
-            // Anneau scléral sombre encadrant le globe oculaire dans l'orbite
-            const socketRing = new THREE.Mesh(new THREE.SphereGeometry(0.044, 14, 14), materials.hornBoss);
-            socketRing.scale.set(1.05, 0.92, 0.65);
-            socketRing.position.set(0, 0, -0.006);
-            eyeSocket.add(socketRing);
+            // Ombre profonde de la cavité orbitaire
+            const socketShadow = new THREE.Mesh(new THREE.SphereGeometry(0.056, 14, 14), materials.darkCavity);
+            socketShadow.scale.set(1.12, 0.92, 0.62);
+            socketShadow.position.set(0, 0, -0.010);
+            eyeSocket.add(socketShadow);
 
-            // Iris ambre-or lumineux
-            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.040, 18, 18), materials.eyeIris);
+            // Repli palpébral inférieur ridé
+            const lowerLid = registerSkin(new THREE.Mesh(
+                new THREE.SphereGeometry(0.050, 14, 10, 0, Math.PI * 2, Math.PI * 0.52, Math.PI * 0.48),
+                materials.hornBoss
+            ));
+            lowerLid.position.set(0, -0.004, 0.006);
+            lowerLid.rotation.x = 0.18;
+            eyeSocket.add(lowerLid);
+
+            // Iris ambre-or volcanique à fibres radiales
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.044, 20, 20), materials.eyeIris);
             iris.position.set(0, 0, 0.008);
             eyeSocket.add(iris);
 
             // Pupille fendue verticale de prédateur
-            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.023, 14, 14), materials.eyePupil);
-            pupil.scale.set(0.46, 1.25, 0.55);
-            pupil.position.set(0, 0, 0.034);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.026, 14, 14), materials.eyePupil);
+            pupil.scale.set(0.36, 1.32, 0.55);
+            pupil.position.set(0, 0, 0.036);
             eyeSocket.add(pupil);
 
             // Éclat spéculaire (catchlight) donnant vie au regard
-            const catchlight = new THREE.Mesh(new THREE.SphereGeometry(0.007, 8, 8), catchlightMat);
-            catchlight.position.set(side * -0.009, 0.012, 0.046);
+            const catchlight = new THREE.Mesh(new THREE.SphereGeometry(0.008, 8, 8), catchlightMat);
+            catchlight.position.set(side * -0.010, 0.013, 0.049);
             eyeSocket.add(catchlight);
 
             // Cornée réfractive brillante
-            const cornea = new THREE.Mesh(new THREE.SphereGeometry(0.043, 18, 18), materials.eyeCornea);
+            const cornea = new THREE.Mesh(new THREE.SphereGeometry(0.047, 18, 18), materials.eyeCornea);
             cornea.position.set(0, 0, 0.008);
             eyeSocket.add(cornea);
 
-            // Paupière supérieure mobile (clignement & froncement agressif)
-            const lidGeo = new THREE.SphereGeometry(0.045, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.50);
+            // Paupière supérieure mobile (clignement & froncement agressif sous l'arcade sourcilière)
+            const lidGeo = new THREE.SphereGeometry(0.050, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.52);
             const lid = registerSkin(new THREE.Mesh(lidGeo, materials.hornBoss));
             lid.position.set(0, 0, 0.008);
-            lid.rotation.x = -Math.PI * 0.48;
+            lid.rotation.x = -Math.PI * 0.44;
             eyeSocket.add(lid);
             eyelids.push(lid);
         });
 
         // =====================================================================
-        // 2D. MANDIBULE ARTICULÉE FERMÉE, LANGUE CHARNUE & MUSCLES ADDUCTEURS INTERNES
+        // 2D. MANDIBULE À MENTON MASSIF, GENCIVES, LANGUE SILLONNÉE,
+        //     MEMBRANES D'ADDUCTEURS ET FILETS DE BAVE DYNAMIQUES (PORTRAIT)
         // =====================================================================
         const jawAdapter = new THREE.Group();
-        jawAdapter.position.set(0, -0.07, 0.08);
+        jawAdapter.position.set(0, -0.10, 0.10);
         jawAdapter.rotation.y = -Math.PI / 2;
         headGroup.add(jawAdapter);
 
@@ -1061,22 +1396,21 @@ registerFighter({
         rig.jaw.add(jawGroup);
 
         function buildSculptedMandible() {
-            // Mandibule fermée aux deux extrémités : large et profonde à l'arrière (surangulaire),
-            // convergeant vers une symphyse mentonnière robuste à l'avant.
+            // Mandibule à surangulaire profond et symphyse mentonnière massive relevée (comme dans le portrait)
             const mSlices = [
-                { z: -0.10, topY: -0.05, botY: -0.06, halfW: 0.002 }, // Capuchon articulaire arrière fermé
-                { z: -0.04, topY: 0.03,  botY: -0.16, halfW: 0.32  },
-                { z: 0.14,  topY: 0.04,  botY: -0.22, halfW: 0.35  },
-                { z: 0.38,  topY: 0.03,  botY: -0.19, halfW: 0.25  },
-                { z: 0.68,  topY: 0.02,  botY: -0.15, halfW: 0.20  },
-                { z: 0.98,  topY: 0.02,  botY: -0.13, halfW: 0.17  },
-                { z: 1.24,  topY: 0.01,  botY: -0.10, halfW: 0.12  },
-                { z: 1.35,  topY: -0.02, botY: -0.05, halfW: 0.06  },
-                { z: 1.39,  topY: -0.03, botY: -0.03, halfW: 0.002 }  // Symphyse mentonnière fermée
+                { z: -0.10, topY:  0.04, botY: -0.08, halfW: 0.002 },
+                { z: -0.02, topY:  0.10, botY: -0.22, halfW: 0.36  }, // Apophyse coronoïde / surangulaire fermant la charnière
+                { z: 0.16,  topY:  0.08, botY: -0.28, halfW: 0.38  },
+                { z: 0.38,  topY:  0.02, botY: -0.23, halfW: 0.28  },
+                { z: 0.62,  topY:  0.01, botY: -0.20, halfW: 0.23  },
+                { z: 0.88,  topY:  0.02, botY: -0.22, halfW: 0.20  }, // Menton dentaire lourd et profond !
+                { z: 1.06,  topY:  0.04, botY: -0.19, halfW: 0.15  },
+                { z: 1.16,  topY:  0.03, botY: -0.11, halfW: 0.09  },
+                { z: 1.21,  topY: -0.01, botY: -0.03, halfW: 0.002 }
             ];
 
-            const rSteps = 28;
-            const lSteps = 40;
+            const rSteps = 40;
+            const lSteps = 48;
             const geo = new THREE.PlaneGeometry(1, 1, rSteps, lSteps);
             const pos = geo.attributes.position;
             const uvs = geo.attributes.uv;
@@ -1100,14 +1434,14 @@ registerFighter({
                     const c = Math.cos(angle);
                     const absS = Math.abs(s);
 
-                    const x = Math.sign(s) * Math.pow(absS, 0.78) * halfW;
+                    const x = Math.sign(s) * Math.pow(absS, 0.72) * halfW;
                     let y;
                     if (c <= 0) {
-                        y = botY * Math.pow(Math.abs(c), 0.72);
+                        const chinRug = 1.0 + (v > 0.60 ? 0.06 * Math.cos(v * Math.PI * 22.0) : 0.0);
+                        y = botY * Math.pow(Math.abs(c), 0.66) * chinRug;
                     } else {
-                        // Bord alvéolaire dentaire solide sur les côtés et plancher buccal légèrement creusé au centre
                         const rim = Math.pow(absS, 1.4);
-                        y = topY * rim + (topY - 0.035 * Math.sin(v * Math.PI)) * (1 - rim);
+                        y = topY * rim + (topY - 0.05 * Math.sin(v * Math.PI)) * (1 - rim);
                     }
 
                     pos.setXYZ(idx, x, y, z);
@@ -1118,66 +1452,159 @@ registerFighter({
             geo.computeVertexNormals();
             jawGroup.add(registerSkin(new THREE.Mesh(geo, materials.skullKeratin)));
 
-            // 9 paires de dents dentaires inférieures ancrées solidement dans l'os dentaire
+            // Gencive inférieure festonnée humide entourant les racines des dents dentaires
+            const gumRSteps = 20;
+            const gumLSteps = 28;
+            const gumGeo = new THREE.PlaneGeometry(1, 1, gumRSteps, gumLSteps);
+            const gPos = gumGeo.attributes.position;
+            const gUvs = gumGeo.attributes.uv;
+            let gIdx = 0;
+            for (let iy = 0; iy <= gumLSteps; iy++) {
+                const v = iy / gumLSteps;
+                const tv = 0.28 + v * 0.62;
+                const ptTop = topCurve.getPoint(tv);
+                const hw = ptTop.x * 0.76;
+                const scallop = 0.008 * Math.abs(Math.sin(v * Math.PI * 9.0));
+
+                for (let ix = 0; ix <= gumRSteps; ix++) {
+                    const u = ix / gumRSteps;
+                    const ang = u * Math.PI * 2;
+                    const gx = Math.sin(ang) * hw;
+                    const gy = ptTop.y - 0.002 + Math.cos(ang) * (0.026 + scallop);
+                    gPos.setXYZ(gIdx, gx, gy, ptTop.z);
+                    gUvs.setXY(gIdx, u, v);
+                    gIdx++;
+                }
+            }
+            gumGeo.computeVertexNormals();
+            jawGroup.add(registerSkin(new THREE.Mesh(gumGeo, materials.gingiva)));
+
+            // 9 paires de crocs dentaires latéraux + 1 paire de crocs symphysaires avant (visibles sur le menton du portrait)
             for (let t = 0; t < 9; t++) {
-                const v = 0.36 + (t / 8) * 0.52;
+                const v = 0.32 + (t / 8) * 0.56;
                 const ptTop = topCurve.getPoint(v);
                 const tx = ptTop.x * 0.74;
                 const ty = ptTop.y;
                 const tz = ptTop.z;
-                const tLen = (t >= 1 && t <= 4) ? 0.12 : 0.085;
-                const tRad = (t >= 1 && t <= 4) ? 0.021 : 0.015;
+                const tLen = (t >= 1 && t <= 4) ? 0.102 : 0.075;
+                const tRad = (t >= 1 && t <= 4) ? 0.019 : 0.014;
 
                 [-1, 1].forEach(side => {
-                    const dToothGeo = new THREE.ConeGeometry(tRad, tLen, 8);
-                    dToothGeo.scale(0.78, 1.0, 1.15);
-                    dToothGeo.rotateX(-0.10);
-                    const dTooth = new THREE.Mesh(dToothGeo, materials.toothEnamel);
-                    dTooth.position.set(side * tx, ty - 0.015 + tLen * 0.36, tz);
-                    dTooth.castShadow = true;
+                    const dTooth = createCurvedToothMesh(tRad, tLen, false);
+                    dTooth.position.set(side * tx, ty, tz);
+                    dTooth.rotation.set(-0.06, 0, side * -0.04);
                     jawGroup.add(dTooth);
                 });
             }
 
-            // Langue charnue articulée logée strictement à l'intérieur de la cavité mandibulaire
-            const tongueGeo = createTrexCapsuleGeometry(0.068, 0.56, 6, 14);
-            tongueGeo.scale(1.05, 0.38, 1.0);
-            tongueGeo.rotateX(Math.PI / 2 - 0.04);
-            tongueGeo.translate(0, -0.01, 0.62);
+            [-1, 1].forEach(side => {
+                const frontTooth = createCurvedToothMesh(0.014, 0.072, false);
+                frontTooth.position.set(side * 0.040, 0.032, 1.08);
+                frontTooth.rotation.set(-0.10, 0, side * -0.02);
+                jawGroup.add(frontTooth);
+            });
+
+            // Langue charnue large et arrondie à sillon médian longitudinal (sulcus) fidèle au portrait
+            const tRSteps = 26;
+            const tLSteps = 28;
+            const tongueGeo = new THREE.PlaneGeometry(1, 1, tRSteps, tLSteps);
+            const tPos = tongueGeo.attributes.position;
+            const tUvs = tongueGeo.attributes.uv;
+            let tIdx = 0;
+            for (let iy = 0; iy <= tLSteps; iy++) {
+                const v = iy / tLSteps;
+                const tz = 0.18 + v * 0.78;
+                const archY = 0.02 + Math.sin(v * Math.PI * 0.85) * 0.065 -
+                    Math.pow(Math.max(0.0, v - 0.65) / 0.35, 1.6) * 0.032;
+                const tipRound = iy < tLSteps ? Math.pow(1.0 - Math.pow(v, 3.5), 0.42) : 0.002;
+                const baseCap = iy === 0 ? 0.002 : 1.0;
+                const w = 0.142 * tipRound * baseCap * (0.75 + 0.25 * Math.sin(v * Math.PI));
+                const h = 0.044 * tipRound * baseCap * Math.sin(Math.min(1.0, v * 1.15) * Math.PI * 0.88);
+
+                for (let ix = 0; ix <= tRSteps; ix++) {
+                    const u = ix / tRSteps;
+                    const ang = u * Math.PI * 2;
+                    const s = Math.sin(ang);
+                    const c = Math.cos(ang);
+                    const lx = s * w;
+                    const sulcus = -0.024 * Math.exp(-Math.pow(s / 0.26, 2)) * Math.max(0.0, c) * Math.sin(v * Math.PI);
+                    const ly = archY + c * h + sulcus;
+                    tPos.setXYZ(tIdx, lx, ly, tz);
+                    tUvs.setXY(tIdx, u, v);
+                    tIdx++;
+                }
+            }
+            tongueGeo.computeVertexNormals();
             const tongueMesh = registerSkin(new THREE.Mesh(tongueGeo, materials.oralMucosa));
             jawGroup.add(tongueMesh);
             jawGroup.userData.tongueMesh = tongueMesh;
 
-            jawGroup.add(createBoneVisual(new THREE.Vector3(0, -0.08, 0.0), new THREE.Vector3(0, -0.05, 1.32), 0.048));
+            jawGroup.add(createBoneVisual(new THREE.Vector3(0, -0.08, 0.0), new THREE.Vector3(0, -0.05, 1.18), 0.048));
         }
         buildSculptedMandible();
 
-        // Muscles adducteurs mandibulaires internes (M. adductor mandibulae) :
-        // placés à l'intérieur des commissures (x = ±0.16) pour n'être visibles que bouche ouverte
+        // Membranes musculaires d'adducteurs mandibulaires (M. pterygoideus / commissures buccales du portrait)
         const jawAdductors = [];
         [-1, 1].forEach(side => {
             const upperAnchor = new THREE.Group();
-            upperAnchor.position.set(side * 0.16, 0.04, 0.24);
+            upperAnchor.position.set(side * 0.22, -0.04, 0.28);
             headGroup.add(upperAnchor);
 
             const lowerAnchor = new THREE.Group();
-            lowerAnchor.position.set(side * 0.15, -0.03, 0.22);
+            lowerAnchor.position.set(side * 0.20, -0.04, 0.26);
             jawGroup.add(lowerAnchor);
 
-            const muscGeo = createTrexCapsuleGeometry(0.038, 0.18, 5, 12);
-            muscGeo.scale(0.72, 1.0, 1.45);
+            const muscGeo = createTrexCapsuleGeometry(0.044, 0.20, 6, 14);
+            muscGeo.scale(0.68, 1.0, 1.85);
             const muscMesh = registerSkin(new THREE.Mesh(muscGeo, materials.oralMucosa));
             headGroup.add(muscMesh);
 
             jawAdductors.push({ side, upperAnchor, lowerAnchor, muscMesh });
         });
 
+        // Filets de bave / salive translucides dynamiques s'étirant entre les crocs à l'ouverture de la gueule
+        const salivaStrands = [];
+        const strandSpecs = [
+            { xUp: -0.20, yUp: -0.10, zUp: 0.58, xLo: -0.16, yLo: 0.03, zLo: 0.54, r: 0.0024 },
+            { xUp: -0.18, yUp: -0.10, zUp: 0.74, xLo: -0.14, yLo: 0.03, zLo: 0.68, r: 0.0022 },
+            { xUp: -0.15, yUp: -0.08, zUp: 0.92, xLo: -0.11, yLo: 0.04, zLo: 0.84, r: 0.0020 },
+            { xUp:  0.20, yUp: -0.10, zUp: 0.64, xLo:  0.16, yLo: 0.03, zLo: 0.58, r: 0.0024 },
+            { xUp:  0.16, yUp: -0.09, zUp: 0.86, xLo:  0.12, yLo: 0.04, zLo: 0.78, r: 0.0020 }
+        ];
+        strandSpecs.forEach(sp => {
+            const upNode = new THREE.Group();
+            upNode.position.set(sp.xUp, sp.yUp, sp.zUp);
+            headGroup.add(upNode);
+
+            const loNode = new THREE.Group();
+            loNode.position.set(sp.xLo, sp.yLo, sp.zLo);
+            jawGroup.add(loNode);
+
+            const sGeo = new THREE.CylinderGeometry(sp.r * 0.65, sp.r, 1.0, 6);
+            const sMesh = new THREE.Mesh(sGeo, materials.saliva);
+            headGroup.add(sMesh);
+            salivaStrands.push({ upNode, loNode, sMesh });
+        });
+
+        // Gouttes de bave pendantes aux crocs avant et au menton (comme sur le portrait)
+        const dripSpecs = [
+            { parent: headGroup, x: -0.10, y: -0.13, z: 1.08, len: 0.09 },
+            { parent: headGroup, x:  0.05, y: -0.11, z: 1.18, len: 0.07 },
+            { parent: jawGroup,  x: -0.07, y: -0.22, z: 0.94, len: 0.10 },
+            { parent: jawGroup,  x:  0.09, y: -0.21, z: 0.84, len: 0.08 }
+        ];
+        dripSpecs.forEach(dr => {
+            const dGeo = new THREE.ConeGeometry(0.0032, dr.len, 6);
+            dGeo.rotateX(Math.PI);
+            const dMesh = new THREE.Mesh(dGeo, materials.saliva);
+            dMesh.position.set(dr.x, dr.y - dr.len * 0.5, dr.z);
+            dr.parent.add(dMesh);
+        });
+
         // =====================================================================
         // 2E. BRAS MUSCLÉS & MAINS DIDACTYLES À GRIFFES FALCIFORMES BIEN VISIBLES
         // =====================================================================
         function buildForelimb(side) {
-            // Attachés sur le bord ventro-latéral de la ceinture scapulo-coracoïdienne,
-            // dégageant complètement les coudes, avant-bras, mains et griffes sous le poitrail
             const shoulder = new THREE.Group();
             shoulder.position.set(side * 0.38, -0.18, 0.90);
             torsoGroup.add(shoulder);
@@ -1215,7 +1642,6 @@ registerFighter({
             wrist.position.set(0, 0, faLen);
             elbow.add(wrist);
 
-            // Paume métacarpienne écaillée
             const palmLen = 0.12;
             const palmMesh = createMuscularSegment(palmLen, 'z', (t) => {
                 const r = THREE.MathUtils.lerp(0.054, 0.046, t);
@@ -1226,8 +1652,8 @@ registerFighter({
             // 2 doigts articulés munis de grandes griffes falciformes noires (Doigt I et Doigt II)
             const fingers = [];
             const digitSpecs = [
-                { idx: 0, yOff: 0.024,  xOff: -side * 0.012, pitch: -0.14, fLen: 0.13, fRad: 0.024, cLen: 0.16, cRad: 0.026 }, // Doigt I (robuste)
-                { idx: 1, yOff: -0.022, xOff: side * 0.010,  pitch: 0.16,  fLen: 0.16, fRad: 0.021, cLen: 0.14, cRad: 0.022 }  // Doigt II (allongé)
+                { idx: 0, yOff: 0.024,  xOff: -side * 0.012, pitch: -0.14, fLen: 0.13, fRad: 0.024, cLen: 0.16, cRad: 0.026 },
+                { idx: 1, yOff: -0.022, xOff: side * 0.010,  pitch: 0.16,  fLen: 0.16, fRad: 0.021, cLen: 0.14, cRad: 0.022 }
             ];
 
             digitSpecs.forEach(spec => {
@@ -1243,7 +1669,6 @@ registerFighter({
                 }, materials.scalyPad, 0.18, 0.16);
                 finger.add(phalMesh);
 
-                // Griffe falciforme noire recourbée
                 const clawGeo = new THREE.ConeGeometry(spec.cRad, spec.cLen, 10);
                 clawGeo.scale(0.78, 1.0, 1.15);
                 clawGeo.rotateX(Math.PI / 2 + 0.36);
@@ -1263,12 +1688,11 @@ registerFighter({
         // 2F. MEMBRES POSTÉRIEURS DIGITIGRADES COLOSSAUX À 4 SEGMENTS ARTICULÉS
         // =====================================================================
         function buildHindlimb(side) {
-            // Ancrage pelvien médial intégré dans le galbe de l'ilion sans débordement
             const hip = new THREE.Group();
             hip.position.set(side * 0.28, -0.04, -0.32);
             torsoGroup.add(hip);
 
-            // 1. Fémur colossal (0.86m) avec capsules articulaires sphériques à la hanche et au genou
+            // 1. Fémur colossal (0.86m)
             const femLen = 0.86;
             const femMesh = createMuscularSegment(femLen, '-y', (t, angle) => {
                 const belly = Math.sin(t * Math.PI * 0.82) * 0.095;
@@ -1332,9 +1756,9 @@ registerFighter({
 
             const toes = [];
             const toeSpecs = [
-                { idx: 0, angleY: 0.28,  xOff: 0.062, len: 0.34, r: 0.044, clawLen: 0.16, clawR: 0.038 }, // Doigt II
-                { idx: 1, angleY: 0.0,   xOff: 0.0,   len: 0.44, r: 0.052, clawLen: 0.20, clawR: 0.046 }, // Doigt III (central géant)
-                { idx: 2, angleY: -0.28, xOff: -0.062, len: 0.33, r: 0.042, clawLen: 0.15, clawR: 0.036 } // Doigt IV
+                { idx: 0, angleY: 0.28,  xOff: 0.062, len: 0.34, r: 0.044, clawLen: 0.16, clawR: 0.038 },
+                { idx: 1, angleY: 0.0,   xOff: 0.0,   len: 0.44, r: 0.052, clawLen: 0.20, clawR: 0.046 },
+                { idx: 2, angleY: -0.28, xOff: -0.062, len: 0.33, r: 0.042, clawLen: 0.15, clawR: 0.036 }
             ];
 
             toeSpecs.forEach(spec => {
@@ -1349,7 +1773,6 @@ registerFighter({
                 }, materials.scalyPad, 0.20, 0.16);
                 toeGroup.add(phalMesh);
 
-                // Griffe ungéale lourde légèrement recourbée vers le sol
                 const ungualGeo = new THREE.ConeGeometry(spec.clawR, spec.clawLen, 10);
                 ungualGeo.scale(0.82, 1.0, 1.1);
                 ungualGeo.rotateX(Math.PI / 2 + 0.18);
@@ -1382,6 +1805,7 @@ registerFighter({
             rightLeg,
             eyelids,
             jawAdductors,
+            salivaStrands,
             tongueMesh: jawGroup.userData.tongueMesh,
             skeletonMeshes,
             materials,
@@ -1402,9 +1826,7 @@ registerFighter({
         // Cinématique des petits bras didactyles : les maintient dégagés sous et devant le poitrail
         function setForelimbPose(arm, shoulderPitch = 0, shoulderAbduct = 0, elbowFlex = 0, wristFlex = 0, clawCurl = 0) {
             const s = arm.side;
-            // x > 0 incline l'humérus vers l'arrière/bas, z = s * (+) écarte le coude vers l'extérieur
             arm.shoulder.rotation.set(0.22 + shoulderPitch, 0, s * (0.22 + shoulderAbduct));
-            // L'avant-bras (+Z) pointe vers l'avant et légèrement vers le bas sous la gorge/poitrail
             arm.elbow.rotation.set(0.08 - elbowFlex, -s * 0.14, 0);
             arm.wrist.rotation.set(0.10 + wristFlex, -s * 0.18, s * 0.28);
             if (arm.fingers) {
@@ -1417,7 +1839,6 @@ registerFighter({
         }
 
         // Cinématique inverse simplifiée du membre postérieur digitigrade à 4 segments
-        // (hip = -0.52, knee = +0.94, ankle = -0.94, foot = +0.52 maintient la plante du pied à plat à y = 0)
         function setDigitigradeLegPose(leg, swingAngle = 0, kneeFlex = 0, ankleFlex = 0, crouchDrop = 0, toeCurl = 0, abduction = 0.04) {
             const rootPitch = rootJoint.rotation.x || 0;
             const cBend = crouchDrop * 0.85;
@@ -1472,9 +1893,8 @@ registerFighter({
                     Math.sin(t * 1.3) * 0.08,
                     Math.cos(t * 1.3) * 0.025
                 );
-                setTrexJawRot(0.08 + Math.max(0, breath) * 0.09);
+                setTrexJawRot(0.12 + Math.max(0, breath) * 0.11);
 
-                // Bras didactyles bien dégagés sous le poitrail avec mouvements de griffes prédateurs
                 [leftArm, rightArm].forEach(arm => {
                     const s = arm.side;
                     const twitch = Math.sin(t * 3.2 + s * 1.1);
@@ -1531,7 +1951,7 @@ registerFighter({
                     -Math.sin(lPhase) * 0.06 * strideAmp,
                     -Math.cos(lPhase) * 0.03 * strideAmp
                 );
-                setTrexJawRot((isSprint ? 0.24 : 0.12) + Math.abs(Math.sin(lPhase)) * 0.14);
+                setTrexJawRot((isSprint ? 0.26 : 0.14) + Math.abs(Math.sin(lPhase)) * 0.14);
 
                 [leftArm, rightArm].forEach(arm => {
                     const phase = arm.side === 1 ? lPhase : rPhase;
@@ -1575,7 +1995,6 @@ registerFighter({
                 setTrexHeadRot(-0.15 + roarVib * 0.025, Math.sin(t * 6) * 0.12, roarVib * 0.02);
                 setTrexJawRot(0.78 + roarVib * 0.08);
 
-                // Bras écartés et griffes grandes ouvertes pendant le rugissement
                 [leftArm, rightArm].forEach(arm => {
                     setForelimbPose(arm, -0.18, 0.16, 0.22, -0.15, -0.35);
                 });
@@ -1601,7 +2020,7 @@ registerFighter({
                     seg.rotation.set(i < 2 ? -0.22 : 0.06, 0, 0);
                 });
                 setTrexHeadRot(0.05, 0, 0);
-                setTrexJawRot(0.16);
+                setTrexJawRot(0.18);
 
                 [leftArm, rightArm].forEach(arm => {
                     setForelimbPose(arm, 0.08, 0.06, 0.25, 0.10, 0.45);
@@ -1631,6 +2050,8 @@ registerFighter({
         const _pUpper = new THREE.Vector3();
         const _pLower = new THREE.Vector3();
         const _pMid = new THREE.Vector3();
+        const _upVec = new THREE.Vector3(0, 1, 0);
+        const _dirVec = new THREE.Vector3();
 
         function updateAnatomicalSkin(time, fighter, modeOverride) {
             const t = time || 0;
@@ -1642,12 +2063,12 @@ registerFighter({
             const jawOpenAmt = Math.max(0, -rig.jaw.rotation.z);
             const glareSquint = Math.min(0.32, jawOpenAmt * 0.28);
             eyelids.forEach(lid => {
-                lid.rotation.x = -Math.PI * 0.48 + Math.max(blinkAmt * 0.92, glareSquint);
+                lid.rotation.x = -Math.PI * 0.44 + Math.max(blinkAmt * 0.92, glareSquint);
             });
 
-            // 2. Vibration de la langue selon l'ouverture de la mâchoire
+            // 2. Courbure et vibration de la langue sillonnée selon l'ouverture de la mâchoire
             if (jawGroup.userData.tongueMesh) {
-                jawGroup.userData.tongueMesh.rotation.x = -0.04 + jawOpenAmt * 0.16 + Math.sin(t * 24) * 0.025 * jawOpenAmt;
+                jawGroup.userData.tongueMesh.rotation.x = -0.02 + jawOpenAmt * 0.14 + Math.sin(t * 24) * 0.022 * jawOpenAmt;
             }
 
             // 3. Gestion des réactions de combat (combat_reactions.js) et neutralisation des surcharges génériques
@@ -1718,11 +2139,11 @@ registerFighter({
             const isXray = Boolean(fighter && fighter.isXrayTarget);
             skeletonMeshes.forEach(m => { m.visible = isXray; });
 
-            // 5. Mettre à jour les matrices mondiales, les muscles adducteurs de la mâchoire et le maillage continu
+            // 5. Mettre à jour les matrices mondiales, les membranes d'adducteurs, les filets de bave et le maillage continu
             trex.updateMatrixWorld(true);
 
             jawAdductors.forEach(item => {
-                item.muscMesh.visible = jawOpenAmt > 0.06;
+                item.muscMesh.visible = jawOpenAmt > 0.05;
                 if (item.muscMesh.visible) {
                     item.upperAnchor.getWorldPosition(_pUpper);
                     item.lowerAnchor.getWorldPosition(_pLower);
@@ -1731,8 +2152,24 @@ registerFighter({
                     _pMid.copy(_pUpper).add(_pLower).multiplyScalar(0.5);
                     const dist = Math.max(0.06, _pUpper.distanceTo(_pLower));
                     item.muscMesh.position.copy(_pMid);
-                    item.muscMesh.scale.set(0.72, dist / 0.22, 1.35);
+                    item.muscMesh.scale.set(0.72, dist / 0.22, 1.45);
                     item.muscMesh.rotation.set(0.15 + jawOpenAmt * 0.32, 0, item.side * 0.08);
+                }
+            });
+
+            salivaStrands.forEach(st => {
+                st.sMesh.visible = jawOpenAmt > 0.08;
+                if (st.sMesh.visible) {
+                    st.upNode.getWorldPosition(_pUpper);
+                    st.loNode.getWorldPosition(_pLower);
+                    headGroup.worldToLocal(_pUpper);
+                    headGroup.worldToLocal(_pLower);
+                    _pMid.copy(_pUpper).add(_pLower).multiplyScalar(0.5);
+                    _dirVec.copy(_pUpper).sub(_pLower);
+                    const dist = Math.max(0.02, _dirVec.length());
+                    st.sMesh.position.copy(_pMid);
+                    st.sMesh.scale.set(1.0, dist, 1.0);
+                    st.sMesh.quaternion.setFromUnitVectors(_upVec, _dirVec.normalize());
                 }
             });
 

@@ -82,6 +82,18 @@ function initBattle3DScene() {
     battleScene.add(arenaGroup);
     battleScene.add(fxGroup);
 
+    if (typeof UIKit !== 'undefined' && UIKit.Root) {
+        const battleUIRoot = new UIKit.Root({
+            camera: battleCamera,
+            renderer: battleRenderer,
+            pixelSize: 0.01,
+            sizeX: 16,
+            sizeY: 9
+        });
+        battleScene.add(battleUIRoot);
+        window.battleUIKitRoot = battleUIRoot;
+    }
+
     // Événements souris pour tourner la caméra 3D
     canvas.addEventListener('mousedown', (e) => {
         isDraggingCam = true;
@@ -129,6 +141,18 @@ function setupArenaPreview(canvasId = 'arenaPreviewCanvas') {
 
     const group = new THREE.Group();
     scene.add(group);
+
+    if (typeof UIKit !== 'undefined' && UIKit.Root) {
+        const previewUIRoot = new UIKit.Root({
+            camera: camera,
+            renderer: renderer,
+            pixelSize: 0.01,
+            sizeX: 12,
+            sizeY: 7
+        });
+        scene.add(previewUIRoot);
+        arenaPreview.uikitRoot = previewUIRoot;
+    }
 
     arenaPreview.renderer = renderer;
     arenaPreview.scene = scene;
@@ -181,7 +205,8 @@ function updateArenaPreview(time) {
 }
 
 function renderBattle3D(now) {
-    if (!battleRenderer || !fighter1 || !fighter2) return;
+    if (!battleRenderer || !fighter1) return;
+    if (!fighter2 && matchState !== 'campaign_level' && matchState !== 'campaign_victory') return;
     const canvas = document.getElementById('battleCanvas');
     if (_battleCanvasNeedsResize || canvas.width < 10) {
         const rect = canvas.parentElement.getBoundingClientRect();
@@ -196,10 +221,16 @@ function renderBattle3D(now) {
     }
 
     // Calcul de la caméra dynamique (Zoom X-Ray, Zoom Fatalité, Relief & Plateformes ou Orbit utilisateur)
-    const midX = (fighter1.x + fighter2.x) * 0.5;
-    const midY = ((fighter1.y || 0) + (fighter2.y || 0)) * 0.5;
-    const dist = Math.abs(fighter1.x - fighter2.x);
-    const vertSpan = Math.abs((fighter1.y || 0) - (fighter2.y || 0));
+    const f2Pos = (fighter2 && !fighter2.isDead) 
+        ? { x: fighter2.x, y: fighter2.y } 
+        : (typeof campaignActiveMinions !== 'undefined' && campaignActiveMinions && campaignActiveMinions[0] 
+            ? { x: campaignActiveMinions[0].x, y: campaignActiveMinions[0].y } 
+            : { x: fighter1.x + (fighter1.facing * 4.5), y: fighter1.y });
+
+    const midX = (fighter1.x + f2Pos.x) * 0.5;
+    const midY = ((fighter1.y || 0) + (f2Pos.y || 0)) * 0.5;
+    const dist = Math.abs(fighter1.x - f2Pos.x);
+    const vertSpan = Math.abs((fighter1.y || 0) - (f2Pos.y || 0));
     let targetDist = Math.max(10.5, Math.min(18.5, dist * 1.15 + vertSpan * 0.65 + 6.5));
     let targetY = 3.6 + midY * 0.65 + camOrbit.pitch * 8;
     let focusX = midX;

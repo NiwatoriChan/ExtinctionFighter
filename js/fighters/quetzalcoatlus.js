@@ -30,15 +30,15 @@ function getQuetzalPBRMaps() {
         const cCtx = colorCanvas.getContext('2d');
         const bCtx = bumpCanvas.getContext('2d');
 
-        // Countershaded organic base coat (U = around circumference, V = tail to head)
+        // Countershaded organic base coat flashy or solaire / ambre doré
         const grad = cCtx.createLinearGradient(0, 0, size, 0);
-        grad.addColorStop(0.0, '#2e241d');   // Dorsal spine (dark sepia-slate)
-        grad.addColorStop(0.22, '#5c4635');  // Upper flank (warm umber)
-        grad.addColorStop(0.42, '#9e7f60');  // Lower flank (ochre-tan)
-        grad.addColorStop(0.5, '#cbb597');   // Ventral belly/throat (pale cream)
-        grad.addColorStop(0.58, '#9e7f60');
-        grad.addColorStop(0.78, '#5c4635');
-        grad.addColorStop(1.0, '#2e241d');
+        grad.addColorStop(0.0, '#451a03');   // Épine dorsale acajou profond
+        grad.addColorStop(0.22, '#b45309');  // Haut des flancs ambre cuivré
+        grad.addColorStop(0.42, '#f59e0b');  // Flancs or solaire étincelant
+        grad.addColorStop(0.5, '#fef08a');   // Gorge / ventre jaune d'or lumineux
+        grad.addColorStop(0.58, '#f59e0b');
+        grad.addColorStop(0.78, '#b45309');
+        grad.addColorStop(1.0, '#451a03');
         cCtx.fillStyle = grad;
         cCtx.fillRect(0, 0, size, size);
 
@@ -103,14 +103,14 @@ function getQuetzalPBRMaps() {
         const ctx = canvas.getContext('2d');
         const bCtx = bump.getContext('2d');
 
-        // Longitudinal gradient from cranial base (left) to spear tip (right)
+        // Longitudinal gradient from cranial base (left) to spear tip (right) flashy or étincelant
         const grad = ctx.createLinearGradient(0, 0, size, 0);
-        grad.addColorStop(0.0, '#29221e');   // Dark cranial base
-        grad.addColorStop(0.25, '#47382c');  // Nasoantorbital region
-        grad.addColorStop(0.58, '#8a5a32');  // Horn-colored mid rostrum
-        grad.addColorStop(0.84, '#c47f35');  // Golden-amber spear blade
-        grad.addColorStop(0.96, '#3b281c');  // Darkened wear tip
-        grad.addColorStop(1.0, '#1c140e');
+        grad.addColorStop(0.0, '#451a03');   // Base crânienne sombre
+        grad.addColorStop(0.25, '#78350f');  // Région nasoantorbitaire
+        grad.addColorStop(0.58, '#d97706');  // Rostre moyen ambre doré
+        grad.addColorStop(0.84, '#fbbf24');  // Lame de bec or éclatant
+        grad.addColorStop(0.96, '#fef08a');  // Pointe solaire
+        grad.addColorStop(1.0, '#78350f');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
 
@@ -163,11 +163,11 @@ function getQuetzalPBRMaps() {
         const ctx = canvas.getContext('2d');
 
         const grad = ctx.createLinearGradient(0, size, size * 0.8, 0);
-        grad.addColorStop(0.0, '#2b1e19');
-        grad.addColorStop(0.22, '#7c2519');
-        grad.addColorStop(0.55, '#b9381e');
-        grad.addColorStop(0.82, '#d9771c');
-        grad.addColorStop(1.0, '#eab354');
+        grad.addColorStop(0.0, '#4c0519');
+        grad.addColorStop(0.22, '#9f1239');
+        grad.addColorStop(0.55, '#e11d48');
+        grad.addColorStop(0.82, '#f43f5e');
+        grad.addColorStop(1.0, '#fef08a');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
 
@@ -199,13 +199,13 @@ function getQuetzalPBRMaps() {
         const bCtx = bumpCanvas.getContext('2d');
         const tCtx = thickCanvas.getContext('2d');
 
-        // V (0 = thick muscular leading edge, 1 = thin translucent trailing edge)
+        // V (0 = bord d'attaque musculaire épais, 1 = bord de fuite translucide flamboyant)
         const grad = cCtx.createLinearGradient(0, 0, 0, size);
-        grad.addColorStop(0.0, '#2b2019');   // Dark leathery leading spar
-        grad.addColorStop(0.18, '#4a3327');  // Muscular anterior membrane
-        grad.addColorStop(0.55, '#6b4332');  // Vascularized mid-chord
-        grad.addColorStop(0.85, '#7c4935');  // Translucent warm trailing zone
-        grad.addColorStop(1.0, '#3a2219');   // Toughened trailing edge rim
+        grad.addColorStop(0.0, '#451a03');   // Longeron d'attaque acajou
+        grad.addColorStop(0.18, '#9a3412');  // Membrane antérieure cuivre
+        grad.addColorStop(0.55, '#ea580c');  // Membrane médiane coucher de soleil
+        grad.addColorStop(0.85, '#f97316');  // Zone de fuite corail ardent translucide
+        grad.addColorStop(1.0, '#c2410c');   // Liseré de fuite renforcé
         cCtx.fillStyle = grad;
         cCtx.fillRect(0, 0, size, size);
 
@@ -342,9 +342,9 @@ registerFighter({
     fullName: 'Quetzalcoatlus Northropi',
     role: 'Monarque Céleste',
     title: '« L’Envergure Démesurée des Cieux »',
-    primaryColor: 0x9e7f60,
-    secondaryColor: 0x2e241d,
-    accentColor: 0xd9771c,
+    primaryColor: 0xf59e0b,
+    secondaryColor: 0x451a03,
+    accentColor: 0xf43f5e,
     cssPrimary: '#f59e0b',
     scale: 0.96,
     previewScale: 0.72,
@@ -357,11 +357,7 @@ registerFighter({
     moveStyle: 'Démarche quadrupède ailée sur de longues échasses, vol libre stratosphérique de 2 secondes avec jauge circulaire d’endurance, estocs foudroyants et piqués dévastateurs.',
     fatalityDesc: 'Saisit l’ennemi de son long bec en dague, s’élève dans la haute atmosphère et le laisse s’écraser à vitesse terminale.',
     skins: [
-        { name: 'Javelina Sovereign', primary: 0x9e7f60, secondary: 0x2e241d, accent: 0xd9771c, membrane: 0x6b4332, beak: 0xc47f35, isDefaultPBR: true },
-        { name: 'Sky Sovereign', primary: 0x38bdf8, secondary: 0x0c4a6e, accent: 0x7dd3fc, membrane: 0x0284c7, beak: 0xfacc15 },
-        { name: 'Blood Harpy', primary: 0xef4444, secondary: 0x450a0a, accent: 0xf87171, membrane: 0x991b1b, beak: 0xe7e5e4 },
-        { name: 'Aurora Spirit', primary: 0x818cf8, secondary: 0x312e81, accent: 0xc084fc, membrane: 0x6366f1, beak: 0xf0abfc },
-        { name: 'Nocturnal Glider', primary: 0x71717a, secondary: 0x18181b, accent: 0x38bdf8, membrane: 0x3f3f46, beak: 0x94a3b8 }
+        { name: 'Solar Phoenix Quetzal', primary: 0xf59e0b, secondary: 0x451a03, accent: 0xf43f5e, membrane: 0xea580c, beak: 0xfacc15, isDefaultPBR: true }
     ]
 }, {
     // Hauteur de base du bassin utilisée par le système d'animation (5.2m de haut, hanches à 1.98m)
@@ -439,7 +435,7 @@ registerFighter({
                 map: pycnoMaps.colorMap,
                 bumpMap: pycnoMaps.bumpMap,
                 bumpScale: 0.014,
-                color: isDefaultSkin ? 0x9c8876 : furTint,
+                color: furTint,
                 roughness: 0.72
             }),
             scalyPad: new THREE.MeshStandardMaterial({

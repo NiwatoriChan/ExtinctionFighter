@@ -40,16 +40,17 @@ function resolveAttackVariant(attacker, type) {
 }
 
 function triggerPlayerAction(attacker, defender, type) {
-    if (!attacker || !defender) return;
+    if (!attacker) return;
+    if (!defender && matchState !== 'campaign_level') return;
     // Verrouillage strict pendant toute l'animation X-Ray
     if (xrayCinematicTimer > 0) return;
 
-    if (matchState === 'finish_him' && defender.isDizzy) {
+    if (matchState === 'finish_him' && defender && defender.isDizzy) {
         // La Fatalité peut TOUJOURS être exécutée pendant la phase ACHEVEZ-LE
         executeUnique3DFatality(attacker, defender);
         return;
     }
-    if (matchState !== 'fight') return;
+    if (matchState !== 'fight' && matchState !== 'campaign_level') return;
 
     // SAUTER
     if (type === 'jump') {

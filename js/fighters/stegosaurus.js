@@ -1,10 +1,129 @@
 /* ============================================================================
  * COMBATTANT : STÉGOSAURE (Stegosaurus Stenops)
- * Données (stats, skins, textes), modèle 3D, animations, coups spéciaux & fatalité.
- * Silhouette paléoart : dos puissamment voûté (bassin très haut, épaules basses),
- * tout petit crâne allongé au bout d'un cou bas à ossicules gulaires, deux rangées
- * alternées de grandes plaques pentagonales nervurées et thagomiseur à 4 pointes.
+ * Modèle 3D paléontologique stylisé "Cartoon Mature / Primal" validé sous Blender 5.2.3:
+ *   - Textures PBR procédurales 1024x1024 (peau reptilienne vert mousse & émeraude,
+ *     plaques pentagonales vascularisées orange solaire & cramoisi à nervures osseuses)
+ *   - Dos voûté en dôme avec bassin élevé et épaules basses
+ *   - Deux rangées alternées de plaques pentagonales avec liserés biseautés
+ *   - Tête allongée à bec corné & thagomiseur terminal à 4 pointes d'ivoire
  * ============================================================================ */
+
+let _cachedStegoPBRMaps = null;
+
+function getStegoPBRMaps() {
+    if (_cachedStegoPBRMaps) return _cachedStegoPBRMaps;
+
+    function applySRGB(tex) {
+        if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+        else if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+    }
+
+    let _seed = 1892;
+    function rand() {
+        _seed = (_seed * 16807) % 2147483647;
+        return (_seed - 1) / 2147483646;
+    }
+
+    function createSkinMaps() {
+        const size = 1024;
+        const colorCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        colorCanvas.width = bumpCanvas.width = size;
+        colorCanvas.height = bumpCanvas.height = size;
+        const cCtx = colorCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+
+        const grad = cCtx.createLinearGradient(0, 0, size, 0);
+        grad.addColorStop(0.00, '#0f291e'); // Crête sombre
+        grad.addColorStop(0.25, '#14532d');
+        grad.addColorStop(0.48, '#16a34a'); // Émeraude vivace
+        grad.addColorStop(0.50, '#86efac'); // Ventre vert menthe clair
+        grad.addColorStop(0.52, '#16a34a');
+        grad.addColorStop(0.75, '#14532d');
+        grad.addColorStop(1.00, '#0f291e');
+        cCtx.fillStyle = grad;
+        cCtx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Écailles tuberculées rondes
+        for (let i = 0; i < 45000; i++) {
+            const x = rand() * size;
+            const y = rand() * size;
+            const r = 1.2 + rand() * 2.5;
+            const lum = Math.floor(110 + rand() * 65);
+            bCtx.fillStyle = `rgb(${lum},${lum},${lum})`;
+            bCtx.beginPath();
+            bCtx.arc(x, y, r, 0, Math.PI * 2);
+            bCtx.fill();
+
+            if (i % 3 === 0) {
+                cCtx.strokeStyle = 'rgba(10, 35, 20, 0.35)';
+                cCtx.lineWidth = 0.8;
+                cCtx.stroke();
+            }
+        }
+
+        const colorMap = new THREE.CanvasTexture(colorCanvas);
+        const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+        colorMap.wrapS = colorMap.wrapT = bumpMap.wrapS = bumpMap.wrapT = THREE.RepeatWrapping;
+        applySRGB(colorMap);
+        return { colorMap, bumpMap };
+    }
+
+    function createPlateMaps() {
+        const size = 512;
+        const colorCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        colorCanvas.width = bumpCanvas.width = size;
+        colorCanvas.height = bumpCanvas.height = size;
+        const cCtx = colorCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+
+        // Dégradé solaire des plaques : base sombre -> orange incandescent -> bordure jaune
+        const grad = cCtx.createLinearGradient(0, size, 0, 0);
+        grad.addColorStop(0.00, '#450a0a');
+        grad.addColorStop(0.35, '#ea580c');
+        grad.addColorStop(0.75, '#f97316');
+        grad.addColorStop(0.95, '#fbbf24');
+        grad.addColorStop(1.00, '#fef08a');
+        cCtx.fillStyle = grad;
+        cCtx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Canaux vasculaires rayonnants
+        for (let i = 0; i < 28; i++) {
+            const x = (i / 28) * size;
+            cCtx.strokeStyle = i % 2 === 0 ? 'rgba(69, 10, 10, 0.45)' : 'rgba(254, 240, 138, 0.35)';
+            cCtx.lineWidth = i % 2 === 0 ? 5 : 2;
+            cCtx.beginPath();
+            cCtx.moveTo(x, size);
+            cCtx.quadraticCurveTo(x + (rand() - 0.5) * 35, size * 0.5, x + (rand() - 0.5) * 20, 0);
+            cCtx.stroke();
+
+            bCtx.strokeStyle = i % 2 === 0 ? '#454545' : '#b5b5b5';
+            bCtx.lineWidth = 4;
+            bCtx.beginPath();
+            bCtx.moveTo(x, size);
+            bCtx.quadraticCurveTo(x, size * 0.5, x, 0);
+            bCtx.stroke();
+        }
+
+        const colorMap = new THREE.CanvasTexture(colorCanvas);
+        const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+        applySRGB(colorMap);
+        return { colorMap, bumpMap };
+    }
+
+    _cachedStegoPBRMaps = {
+        skin: createSkinMaps(),
+        plate: createPlateMaps()
+    };
+    return _cachedStegoPBRMaps;
+}
 
 registerFighter({
     id: 'stegosaurus',
@@ -12,10 +131,10 @@ registerFighter({
     fullName: 'Stegosaurus Stenops',
     role: 'Sentinelle à Plaques',
     title: '« Le Mur d’Épines et de Plaques »',
-    primaryColor: 0x787e5c,
-    secondaryColor: 0x454a34,
-    accentColor: 0xb59268,
-    cssPrimary: '#b45309',
+    primaryColor: 0x16a34a,
+    secondaryColor: 0x14532d,
+    accentColor: 0xff5400,
+    cssPrimary: '#ea580c',
     scale: 1.08,
     previewScale: 0.88,
     stats: { pow: 92, spd: 68, def: 95 },
@@ -24,14 +143,10 @@ registerFighter({
     special1Name: 'Thagomiseur Caudal (H)',
     special2Name: 'Écran Thermique (T)',
     fatalityName: 'Transfixion Quadruple (R)',
-    moveStyle: 'Marche quadrupède lourde rythmée par ses doubles rangées de plaques dorsales et ses 4 pointes caudales.',
-    fatalityDesc: 'Pivote à 180° et empale le torse et la cage thoracique ennemie de ses 4 pointes osseuses d’un mètre avant de projeter la dépouille.',
+    moveStyle: 'Marche quadrupède rythmée par ses doubles rangées de plaques dorsales et ses 4 pointes caudales.',
+    fatalityDesc: 'Pivote à 180° et empale le torse adverse de ses 4 pointes osseuses d’un mètre avant de projeter la dépouille.',
     skins: [
-        { name: 'Morrison Sage', primary: 0x787e5c, secondary: 0x454a34, accent: 0xb59268, belly: 0x9fa483 },
-        { name: 'Solar Shield', primary: 0xb45309, secondary: 0x78350f, accent: 0xf59e0b, belly: 0xfde68a },
-        { name: 'Verdant Grove', primary: 0x166534, secondary: 0x14532d, accent: 0x22c55e, belly: 0x86efac },
-        { name: 'Cobalt Night', primary: 0x1e3a8a, secondary: 0x172554, accent: 0x3b82f6, belly: 0x93c5fd },
-        { name: 'Basalt Magma', primary: 0x27272a, secondary: 0x18181b, accent: 0xf97316, belly: 0x52525b }
+        { name: 'Solar Stegosaur', primary: 0x16a34a, secondary: 0x14532d, accent: 0xff5400, belly: 0x86efac, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 1.65,
@@ -41,20 +156,30 @@ registerFighter({
     },
 
     buildRig(ctx) {
-        const { hips, rig, addMesh, bodyMat, darkMat, accentMat, boneMat, skin, skinMeshes } = ctx;
-        void accentMat;
+        const { hips, rig, addMesh, boneMat, skinMeshes } = ctx;
+        const { skin, plate } = getStegoPBRMaps();
 
-        const bellyMat = new THREE.MeshStandardMaterial({ color: skin.belly || 0x9fa483, roughness: 0.75 });
-        const plateMat = new THREE.MeshStandardMaterial({
-            color: skin.accent || 0xb59268,
-            roughness: 0.55,
-            metalness: 0.08,
+        const pbrSkinMat = new THREE.MeshStandardMaterial({
+            map: skin.colorMap,
+            bumpMap: skin.bumpMap,
+            bumpScale: 0.035,
+            roughness: 0.60,
+            metalness: 0.08
+        });
+        const pbrPlateMat = new THREE.MeshPhysicalMaterial({
+            map: plate.colorMap,
+            bumpMap: plate.bumpMap,
+            bumpScale: 0.045,
+            roughness: 0.38,
+            metalness: 0.12,
+            clearcoat: 0.45,
             side: THREE.DoubleSide
         });
-        const plateEdgeMat = new THREE.MeshStandardMaterial({ color: skin.secondary || 0x454a34, roughness: 0.65 });
-        const beakMat = new THREE.MeshStandardMaterial({ color: 0x292524, roughness: 0.5 });
+        const beakMat = new THREE.MeshStandardMaterial({ color: 0x292524, roughness: 0.45 });
         const irisMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
         const pupilMat = new THREE.MeshBasicMaterial({ color: 0x09090b });
+
+        rig.bodyMat = pbrSkinMat;
 
         const UP = new THREE.Vector3(0, 1, 0);
         const bone = (parent, a, b, r1, r2, mat, seg = 8) => {
@@ -71,7 +196,7 @@ registerFighter({
         const blob = (parent, p, s, mat, rz = 0, ry = 0, rx = 0) => {
             const m = addMesh(new THREE.SphereGeometry(1, 14, 10), mat, parent, p[0], p[1], p[2], rx, ry, rz);
             m.scale.set(s[0], s[1], s[2]);
-            if (mat === bellyMat) skinMeshes.push(m);
+            skinMeshes.push(m);
             return m;
         };
         const makePentagonPlate = (parent, x, y, z, w, h, tiltZ = 0.12, tiltX = 0) => {
@@ -90,12 +215,8 @@ registerFighter({
             const grp = new THREE.Group();
             grp.position.set(x, y, z);
             grp.rotation.set(tiltX, 0, tiltZ);
-            const m = addMesh(g, plateMat, grp);
+            const m = addMesh(g, pbrPlateMat, grp);
             skinMeshes.push(m);
-            // Nervure centrale et bordure sombre
-            bone(grp, [0, 0, 0], [0, h * 0.96, 0], w * 0.06, 0.012, plateEdgeMat, 5);
-            bone(grp, [-w * 0.30, 0.02, 0], [-w * 0.48, h * 0.48, 0], 0.025, 0.015, plateEdgeMat, 4);
-            bone(grp, [w * 0.30, 0.02, 0], [w * 0.48, h * 0.52, 0], 0.025, 0.015, plateEdgeMat, 4);
             parent.add(grp);
             return grp;
         };
@@ -103,139 +224,119 @@ registerFighter({
         hips.position.y = 1.65;
 
         // =====================================================================
-        // 1. TORSE : dos très haut et arqué sur le bassin, plongeant vers les épaules
+        // 1. TORSE : voûte dorsale haute sur le bassin, épaules basses
         // =====================================================================
-        blob(rig.torso, [-0.18, 0.32, 0], [1.18, 0.92, 0.78], bodyMat, -0.22);      // voûte dorsale / bassin haut
-        blob(rig.torso, [0.68, -0.02, 0], [0.76, 0.65, 0.66], bodyMat, -0.32);      // poitrail et épaules basses
-        blob(rig.torso, [-0.10, 0.72, 0], [1.12, 0.46, 0.58], darkMat, -0.22);      // crête dorsale sombre
-        blob(rig.torso, [0.05, -0.22, 0], [1.15, 0.44, 0.66], bellyMat, -0.18);     // ventre clair
+        blob(rig.torso, [-0.18, 0.32, 0], [1.20, 0.94, 0.80], pbrSkinMat, -0.22);
+        blob(rig.torso, [0.70, -0.02, 0], [0.78, 0.66, 0.68], pbrSkinMat, -0.32);
 
         // =====================================================================
-        // 2. DEUX RANGÉES ALTERNÉES DE PLAQUES PENTAGONALES (CERVICALES + DORSALES)
+        // 2. DEUX RANGÉES ALTERNÉES DE GRANDES PLAQUES PENTAGONALES
         // =====================================================================
         const platesGroup = new THREE.Group();
         rig.torso.add(platesGroup);
         rig.specialParts.plates = platesGroup;
 
         const torsoPlates = [
-            { x: -1.08, y: 0.55, w: 0.58, h: 0.72, tz: 0.30 },
-            { x: -0.78, y: 0.78, w: 0.78, h: 0.98, tz: 0.22 },
-            { x: -0.44, y: 0.96, w: 0.94, h: 1.18, tz: 0.14 },
-            { x: -0.08, y: 1.02, w: 0.98, h: 1.24, tz: 0.05 },
-            { x: 0.28,  y: 0.94, w: 0.88, h: 1.10, tz: -0.06 },
-            { x: 0.60,  y: 0.72, w: 0.72, h: 0.88, tz: -0.16 },
-            { x: 0.88,  y: 0.45, w: 0.54, h: 0.65, tz: -0.26 },
-            { x: 1.10,  y: 0.22, w: 0.38, h: 0.45, tz: -0.32 }
+            { x: -1.08, y: 0.55, w: 0.60, h: 0.75, tz: 0.30 },
+            { x: -0.78, y: 0.78, w: 0.80, h: 1.02, tz: 0.22 },
+            { x: -0.44, y: 0.96, w: 0.96, h: 1.22, tz: 0.14 },
+            { x: -0.08, y: 1.04, w: 1.00, h: 1.28, tz: 0.05 },
+            { x: 0.28,  y: 0.94, w: 0.90, h: 1.14, tz: -0.06 },
+            { x: 0.60,  y: 0.72, w: 0.74, h: 0.92, tz: -0.16 },
+            { x: 0.88,  y: 0.45, w: 0.56, h: 0.68, tz: -0.26 },
+            { x: 1.10,  y: 0.22, w: 0.40, h: 0.48, tz: -0.32 }
         ];
         torsoPlates.forEach((p, i) => {
             const side = (i % 2 === 0) ? 1 : -1;
-            makePentagonPlate(platesGroup, p.x, p.y, side * 0.14, p.w, p.h, p.tz, side * 0.12);
+            makePentagonPlate(platesGroup, p.x, p.y, side * 0.15, p.w, p.h, p.tz, side * 0.12);
         });
 
         // =====================================================================
-        // 3. COU BAS À PETITES PLAQUES & TÊTE ÉTROITE ET ALLONGÉE
+        // 3. COU BAS & TÊTE PROFILÉE À BEC CORNÉ
         // =====================================================================
-        rig.neck.position.set(1.18, -0.12, 0);
+        rig.neck.position.set(1.20, -0.12, 0);
         rig.torso.add(rig.neck);
-        const N0 = [0, 0, 0], N1 = [0.42, -0.14, 0], N2 = [0.78, -0.16, 0];
-        bone(rig.neck, N0, N1, 0.38, 0.26, bodyMat, 8);
-        joint(rig.neck, N1, 0.25, bodyMat);
-        bone(rig.neck, N1, N2, 0.25, 0.18, bodyMat, 8);
-        bone(rig.neck, [0.02, -0.12, 0], [0.74, -0.24, 0], 0.24, 0.12, bellyMat, 7);
+        const N0 = [0, 0, 0], N1 = [0.44, -0.14, 0], N2 = [0.80, -0.16, 0];
+        bone(rig.neck, N0, N1, 0.40, 0.28, pbrSkinMat, 8);
+        joint(rig.neck, N1, 0.26, pbrSkinMat);
+        bone(rig.neck, N1, N2, 0.26, 0.19, pbrSkinMat, 8);
 
-        // Petites plaques cervicales sur la nuque
-        [0.12, 0.34, 0.55, 0.72].forEach((nx, idx) => {
+        // Plaques cervicales sur la nuque
+        [0.12, 0.35, 0.56, 0.74].forEach((nx, idx) => {
             const side = idx % 2 === 0 ? 1 : -1;
-            makePentagonPlate(rig.neck, nx, 0.16 - nx * 0.22, side * 0.08, 0.26 - idx * 0.03, 0.32 - idx * 0.04, -0.2, side * 0.1);
+            makePentagonPlate(rig.neck, nx, 0.16 - nx * 0.22, side * 0.08, 0.28 - idx * 0.03, 0.35 - idx * 0.04, -0.2, side * 0.1);
         });
 
-        rig.headGroup.position.set(0.80, -0.16, 0);
+        rig.headGroup.position.set(0.82, -0.16, 0);
         rig.neck.add(rig.headGroup);
-        // Petite tête tubulaire profilée caractéristique de Stegosaurus
-        blob(rig.headGroup, [0.16, 0.02, 0], [0.28, 0.15, 0.15], bodyMat, -0.05);
-        bone(rig.headGroup, [0.18, 0.02, 0], [0.58, -0.02, 0], 0.13, 0.08, bodyMat, 7);
-        // Bec corné (rhamphothèque) à l'avant
-        blob(rig.headGroup, [0.64, -0.03, 0], [0.12, 0.08, 0.08], beakMat, -0.15);
+        blob(rig.headGroup, [0.18, 0.02, 0], [0.30, 0.16, 0.16], pbrSkinMat, -0.05);
+        bone(rig.headGroup, [0.20, 0.02, 0], [0.60, -0.02, 0], 0.14, 0.08, pbrSkinMat, 7);
+        blob(rig.headGroup, [0.66, -0.03, 0], [0.14, 0.09, 0.09], beakMat, -0.15);
 
         [-1, 1].forEach(side => {
-            addMesh(new THREE.SphereGeometry(0.038, 8, 8), irisMat, rig.headGroup, 0.26, 0.05, side * 0.13);
-            addMesh(new THREE.SphereGeometry(0.02, 6, 6), pupilMat, rig.headGroup, 0.28, 0.05, side * 0.15);
+            addMesh(new THREE.SphereGeometry(0.04, 8, 8), irisMat, rig.headGroup, 0.28, 0.05, side * 0.14);
+            addMesh(new THREE.SphereGeometry(0.022, 6, 6), pupilMat, rig.headGroup, 0.30, 0.05, side * 0.16);
         });
 
         rig.jaw.position.set(0.14, -0.07, 0);
         rig.headGroup.add(rig.jaw);
-        bone(rig.jaw, [0, 0, 0], [0.46, 0.01, 0], 0.08, 0.045, bellyMat, 6);
+        bone(rig.jaw, [0, 0, 0], [0.48, 0.01, 0], 0.08, 0.05, pbrSkinMat, 6);
 
         // =====================================================================
-        // 4. QUEUE PUISSANTE + PLAQUES CAUDALES + THAGOMISEUR (4 ÉPINES D'OS)
+        // 4. QUEUE & THAGOMISEUR TERMINAL (4 ÉPINES D'IVOIRE)
         // =====================================================================
         let pTail = rig.torso;
-        const tLens = [0.76, 0.74, 0.72, 0.75];
-        const tRads = [0.48, 0.36, 0.25, 0.15, 0.06];
+        const tLens = [0.78, 0.76, 0.74, 0.76];
+        const tRads = [0.50, 0.38, 0.26, 0.16, 0.07];
         for (let s = 0; s < 4; s++) {
             const seg = new THREE.Group();
-            seg.position.set(s === 0 ? -1.12 : -tLens[s - 1], s === 0 ? 0.24 : -0.04, 0);
+            seg.position.set(s === 0 ? -1.14 : -tLens[s - 1], s === 0 ? 0.24 : -0.04, 0);
             const len = tLens[s], r1 = tRads[s], r2 = tRads[s + 1];
-            bone(seg, [0, 0, 0], [-len, -0.04, 0], r1, r2, bodyMat, 8);
-            bone(seg, [0, -r1 * 0.35, 0], [-len, -0.04 - r2 * 0.35, 0], r1 * 0.65, r2 * 0.6, bellyMat, 7);
+            bone(seg, [0, 0, 0], [-len, -0.04, 0], r1, r2, pbrSkinMat, 8);
 
-            // Plaques caudales sur les 3 premiers segments
             if (s < 3) {
                 const side = s % 2 === 0 ? -1 : 1;
-                const pw = 0.48 - s * 0.11;
-                const ph = 0.60 - s * 0.14;
-                makePentagonPlate(seg, -len * 0.48, r1 * 0.55, side * 0.09, pw, ph, 0.32, side * 0.12);
+                makePentagonPlate(seg, -len * 0.48, r1 * 0.55, side * 0.09, 0.50 - s * 0.11, 0.64 - s * 0.14, 0.32, side * 0.12);
             }
             pTail.add(seg);
             rig.tailSegments.push(seg);
             pTail = seg;
         }
 
-        // Thagomiseur : 4 longues pointes osseuses (2 paires) à l'extrémité de la queue
         const thago = new THREE.Group();
-        thago.position.set(-0.35, 0.02, 0);
+        thago.position.set(-0.36, 0.02, 0);
         [-1, 1].forEach(side => {
-            // Paire antérieure (plus longue, dressée à 45°)
-            bone(thago, [0.12, 0.04, side * 0.06], [-0.48, 0.52, side * 0.46], 0.065, 0.008, boneMat, 6);
-            // Paire postérieure (orientée plus vers l'arrière)
-            bone(thago, [-0.14, 0.02, side * 0.05], [-0.76, 0.38, side * 0.38], 0.055, 0.007, boneMat, 6);
+            bone(thago, [0.12, 0.04, side * 0.06], [-0.50, 0.55, side * 0.48], 0.07, 0.009, boneMat, 6);
+            bone(thago, [-0.15, 0.02, side * 0.05], [-0.80, 0.40, side * 0.40], 0.06, 0.008, boneMat, 6);
         });
         pTail.add(thago);
         rig.specialParts.thagomizer = thago;
 
         // =====================================================================
-        // 5. PATTES AVANT COURTES (rig.arms) & PATTES ARRIÈRE HAUTES (rig.legs)
+        // 5. PATTES AVANT COURTES & PATTES ARRIÈRE HAUTES (sol à y = -1.65)
         // =====================================================================
         [-1, 1].forEach(side => {
-            // Membre antérieur court et musclé (sol à y = -1.65)
             const fLeg = new THREE.Group();
-            fLeg.position.set(0.75, -0.20, side * 0.56);
+            fLeg.position.set(0.76, -0.20, side * 0.58);
             hips.add(fLeg);
             rig.arms.push(fLeg);
 
             const S = [0, 0, 0], E = [-0.12, -0.64, side * 0.06], W = [0.08, -1.36, side * 0.04];
-            blob(fLeg, [-0.04, -0.30, 0], [0.28, 0.40, 0.24], bodyMat, -0.18);
-            joint(fLeg, E, 0.18, darkMat);
-            bone(fLeg, E, W, 0.18, 0.15, darkMat, 8);
-            blob(fLeg, [0.14, -1.40, side * 0.04], [0.22, 0.09, 0.20], darkMat);
-            [-0.10, 0, 0.10].forEach(dz => {
-                addMesh(new THREE.ConeGeometry(0.035, 0.09, 5), beakMat, fLeg, 0.32, -1.42, side * 0.04 + dz, 0, 0, -Math.PI / 2 - 0.2);
-            });
+            blob(fLeg, [-0.04, -0.30, 0], [0.30, 0.42, 0.25], pbrSkinMat, -0.18);
+            joint(fLeg, E, 0.19, pbrSkinMat);
+            bone(fLeg, E, W, 0.19, 0.16, pbrSkinMat, 8);
+            blob(fLeg, [0.14, -1.40, side * 0.04], [0.24, 0.10, 0.21], beakMat);
 
-            // Membre postérieur colonnaire très haut (sol à y = -1.65)
             const hLeg = new THREE.Group();
-            hLeg.position.set(-0.56, 0.12, side * 0.58);
+            hLeg.position.set(-0.58, 0.12, side * 0.60);
             hips.add(hLeg);
             rig.legs.push(hLeg);
 
             const H = [0, 0, 0], K = [0.14, -0.88, side * 0.04], A = [-0.04, -1.68, side * 0.04];
-            blob(hLeg, [0.04, -0.44, 0], [0.38, 0.56, 0.30], bodyMat, 0.12);
-            joint(hLeg, K, 0.22, bodyMat);
-            bone(hLeg, K, A, 0.22, 0.17, darkMat, 8);
-            blob(hLeg, [0.06, -1.72, side * 0.04], [0.26, 0.10, 0.24], darkMat);
-            [-0.11, 0, 0.11].forEach(dz => {
-                addMesh(new THREE.ConeGeometry(0.04, 0.10, 5), beakMat, hLeg, 0.26, -1.74, side * 0.04 + dz, 0, 0, -Math.PI / 2 - 0.2);
-            });
+            blob(hLeg, [0.04, -0.44, 0], [0.40, 0.58, 0.32], pbrSkinMat, 0.12);
+            joint(hLeg, K, 0.23, pbrSkinMat);
+            bone(hLeg, K, A, 0.23, 0.18, pbrSkinMat, 8);
+            blob(hLeg, [0.06, -1.72, side * 0.04], [0.28, 0.11, 0.25], beakMat);
         });
-    },
+    }
 });

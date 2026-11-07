@@ -2,16 +2,86 @@
  * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS COMPLET (13 COMBATTANTS, BOSS DRAGON & ARÈNES)
  * ============================================================================ */
 
-// 1. BASE DE DONNÉES DES COMBATTANTS AVEC ANIMATIONS, SKINS & FATALITÉS 3D DISTINCTES
+// 1. BASE DE DONNÉES DES COMBATTANTS AVEC ANIMATIONS & FATALITÉS 3D DISTINCTES
 const DINO_ROSTER = [];
 const FIGHTER_IMPLS = {};
 const FIGHTER_ANIMATIONS = {};
 let DRAGON_BOSS = null;
 
+// Association de chaque combattant déblocable à son Ère de Campagne
+const UNLOCKABLE_FIGHTER_ERAS = {
+    'pulmonoscorpius': 1, // Débloqué à l'Ère 1 (Paléozoïque)
+    'postosuchus': 2,      // Débloqué à l'Ère 2 (Trias)
+    'apato': 3,            // Débloqué à l'Ère 3 (Jurassique)
+    'therizino': 4,        // Débloqué à l'Ère 4 (Crétacé)
+    'smilodon': 5,         // Débloqué à l'Ère 5 (Cénozoïque)
+    'dragon': 6            // Débloqué à l'Ère 6 (Extinction Apex - Boss jouable !)
+};
+
+// Association de chaque arène déblocable à son Ère de Campagne
+const UNLOCKABLE_ARENA_ERAS = {
+    'swamp': 1,       // Abysse Fongique Toxique (Ère 1)
+    'storm': 2,       // Canyon de l'Orage Primordial (Ère 2)
+    'jungle': 3,      // Vallée d'Émeraude (Ère 3)
+    'volcano': 4,     // Cratère du Chicxulub (Ère 4)
+    'iceage': 5,      // Glacier de l'Ère Glaciaire (Ère 5)
+    'dragonlair': 6   // L'Antre Infernale de Drak'Zul (Ère 6)
+};
+
+// Système de déblocage de combattants (persistance localStorage)
+function isFighterUnlocked(fighterId) {
+    if (!UNLOCKABLE_FIGHTER_ERAS[fighterId]) return true;
+    try {
+        const eraReq = UNLOCKABLE_FIGHTER_ERAS[fighterId];
+        return localStorage.getItem('ek3d_unlocked_' + fighterId) === 'true' ||
+               localStorage.getItem('ek3d_cleared_era_' + eraReq) === 'true';
+    } catch (e) {
+        return false;
+    }
+}
+
+function unlockFighter(fighterId) {
+    try {
+        localStorage.setItem('ek3d_unlocked_' + fighterId, 'true');
+        // Si le dragon est débloqué, l'ajouter dynamiquement au roster sélectionnable
+        if (fighterId === 'dragon' && typeof DRAGON_BOSS !== 'undefined' && DRAGON_BOSS) {
+            if (!DINO_ROSTER.some(d => d.id === 'dragon')) {
+                DINO_ROSTER.push(DRAGON_BOSS);
+            }
+        }
+    } catch (e) {}
+}
+
+function isArenaUnlocked(arenaId) {
+    // Les arènes de départ (volcano & boneyard) sont toujours débloquées
+    if (arenaId === 'volcano' || arenaId === 'boneyard') return true;
+    if (!UNLOCKABLE_ARENA_ERAS[arenaId]) return true;
+    try {
+        const eraReq = UNLOCKABLE_ARENA_ERAS[arenaId];
+        return localStorage.getItem('ek3d_unlocked_arena_' + arenaId) === 'true' ||
+               localStorage.getItem('ek3d_cleared_era_' + eraReq) === 'true';
+    } catch (e) {
+        return true;
+    }
+}
+
+function unlockArena(arenaId) {
+    try {
+        localStorage.setItem('ek3d_unlocked_arena_' + arenaId, 'true');
+    } catch (e) {}
+}
+
 function registerFighter(data, impl) {
     if (data.isBoss) {
         DRAGON_BOSS = data;
+        // Si le dragon est déjà débloqué par le joueur, le rendre sélectionnable
+        if (isFighterUnlocked('dragon') && !DINO_ROSTER.some(d => d.id === 'dragon')) {
+            DINO_ROSTER.push(data);
+        }
     } else {
+        if (UNLOCKABLE_FIGHTER_ERAS[data.id]) {
+            data.isUnlockable = true;
+        }
         DINO_ROSTER.push(data);
     }
     const existingAnims = FIGHTER_ANIMATIONS[data.id] || {};
@@ -20,38 +90,13 @@ function registerFighter(data, impl) {
 
 function registerBoss(data, impl) {
     data.isBoss = true;
+    data.isUnlockable = true;
     DRAGON_BOSS = data;
+    if (isFighterUnlocked('dragon') && !DINO_ROSTER.some(d => d.id === 'dragon')) {
+        DINO_ROSTER.push(data);
+    }
     const existingAnims = FIGHTER_ANIMATIONS[data.id] || {};
     FIGHTER_IMPLS[data.id] = Object.assign({}, existingAnims, impl || {});
-}
-
-function registerFighterAnimation(fighterId, animDef) {
-    if (!FIGHTER_ANIMATIONS[fighterId]) {
-        FIGHTER_ANIMATIONS[fighterId] = {};
-    }
-    Object.assign(FIGHTER_ANIMATIONS[fighterId], animDef);
-    if (!FIGHTER_IMPLS[fighterId]) {
-        FIGHTER_IMPLS[fighterId] = {};
-    }
-    Object.assign(FIGHTER_IMPLS[fighterId], animDef);
-}
-
-// Système de déblocage de combattants (persistance localStorage)
-function isFighterUnlocked(fighterId) {
-    if (fighterId === 'smilodon') {
-        try {
-            return localStorage.getItem('ek3d_unlocked_smilodon') === 'true';
-        } catch (e) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function unlockFighter(fighterId) {
-    try {
-        localStorage.setItem('ek3d_unlocked_' + fighterId, 'true');
-    } catch (e) {}
 }
 
 // Chaque arène est déclarée dans son propre fichier (js/arenas/*.js) via registerArena().

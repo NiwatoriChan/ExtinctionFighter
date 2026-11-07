@@ -1,89 +1,195 @@
+/* ============================================================================
+ * js/core/ai.js — 4-Stage Modular Game AI Pipeline for Three.js
+ *   Stage 1: 3D NavMesh & Kompute Tactical Spatial Analysis (ArenaNavSystem)
+ *   Stage 2: Yuka Steering, Vision/Memory & Goal Arbitration (AIVehicleSystem)
+ *   Stage 3: XState Macro-Statechart & BehaviorTree.js Tactical Execution
+ *   Stage 4: Three.js Object3D Transform Sync & Live AI Telemetry
+ * ============================================================================ */
+
 let aiDecisionCooldown = 0;
+
+window.aiTelemetryState = {
+    enabled: false,
+    macroState: 'PATROL_STALK',
+    btNode: 'Idle',
+    steeringMode: 'ARRIVE_SWEET_SPOT',
+    intent: 'INITIALIZING',
+    sweetSpotX: 0,
+    staleRepeats: 0,
+    momentumBonusPct: 0
+};
+
 function updateAI(ai, target, dt) {
-    if (ai.hitStun > 0 || ai.isDead || ai.isDizzy || ai.actionDuration > 0) return;
-    if (ai.combatController && (ai.combatController.isInKnockdownSequence() || ai.combatController.state === CombatState.BLOCK_DEFLECTED)) {
+    if (!ai || !target || ai.isDead || ai.isDizzy || ai.hitStun > 0) return;
+
+    if (ai.combatController && (
+        ai.combatController.isInKnockdownSequence() ||
+        ai.combatController.state === CombatState.BLOCK_DEFLECTED
+    )) {
         ai.vx = 0;
+        window.aiTelemetryState.macroState = ai.combatController.state;
+        window.aiTelemetryState.intent = 'LOCKED IN RECOVERY';
         return;
     }
 
-    aiDecisionCooldown -= dt;
+    aiDecisionCooldown = Math.max(0, aiDecisionCooldown - dt);
+
+    const nowSec = performance.now() * 0.001;
     const dist = Math.abs(ai.x - target.x);
     const targetAirHeight = (target.y || 0) - (target.groundY || 0);
-    const isBoss = ai.dino && ai.dino.isBoss;
-    const aggr = isBoss ? 0.02 : (aiDifficulty === 'brutal' ? 0.08 : (aiDifficulty === 'normal' ? 0.045 : 0.02));
+    const isBoss = Boolean(ai.dino && ai.dino.isBoss);
+    const diff = typeof aiDifficulty !== 'undefined' ? aiDifficulty : 'normal';
 
-    if (dist > 3.1) {
-        ai.isBlocking = false;
-        ai.blockType = 'none';
-        const speedScale = isBoss ? 0.6 : (aiDifficulty === 'easy' ? 0.7 : 0.95);
-        ai.sprintDuration = (ai.sprintDuration || 0) + dt;
-        const accelMult = ai.sprintDuration > 0.45 ? 1.35 : 1.0;
-        ai.vx = ai.facing * ai.dino.walkSpeed * speedScale * accelMult;
-        ai.x += ai.vx * dt;
-        ai.action = 'walk';
+    // ========================================================================
+    // STAGE 1: 3D NAVMESH & KOMPUTE TACTICAL SPATIAL QUERY
+    // ========================================================================
+    const activeProjectiles = typeof projectiles3D !== 'undefined' ? projectiles3D : [];
+    const navData = (typeof ArenaNavSystem !== 'undefined')
+        ? ArenaNavSystem.computeTacticalNavigation(ai, target, activeProjectiles)
+        : null;
 
-        const rangedChance = isBoss ? 0.015 : aggr * 0.45;
-        if (dist > 5.0 && Math.random() < rangedChance && aiDecisionCooldown <= 0) {
-            if (!ai.cooldowns || ai.cooldowns['special'] <= 0) {
-                ai.startAttack('special');
-                aiDecisionCooldown = isBoss ? 1.3 : 0.7;
-            }
-        }
-    } else {
-        ai.sprintDuration = 0;
-        const blockChance = isBoss ? 0.05 : (aiDifficulty === 'brutal' ? 0.55 : 0.28);
-        if (target.actionDuration > 0 && Math.random() < blockChance) {
-            ai.isBlocking = true;
-            // Choix dynamique entre les 3 gardes directionnelles (High, Mid, Low) avec armure visuelle
-            const incomingZone = typeof DinosaurCombatController !== 'undefined'
-                ? DinosaurCombatController.resolveAttackZoneFromAction(target.action)
-                : 'mid';
-            const matchProb = aiDifficulty === 'brutal' ? 0.78 : (aiDifficulty === 'normal' ? 0.58 : 0.38);
-            if (Math.random() < matchProb) {
-                ai.blockType = incomingZone;
-            } else {
-                const zones = ['high', 'mid', 'low'];
-                ai.blockType = zones[Math.floor(Math.random() * zones.length)];
-            }
-            ai.action = ai.blockType === 'low' ? 'crouch' : 'idle';
-            return;
-        }
-        ai.isBlocking = false;
-        ai.blockType = 'none';
+    const sweetSpot = (navData && navData.sweetSpot) || {
+        x: target.x + (ai.x >= target.x ? 3.1 : -3.1),
+        y: ai.groundY || 0,
+        myReach: 3.45,
+        enemyReach: 3.45,
+        isCornered: false
+    };
 
-        if (aiDecisionCooldown <= 0) {
-            // Le boss ne déclenche pas de cinématique X-Ray pour ne pas frustrer le joueur
-            if (!isBoss && ai.rage >= 100 && (!ai.cooldowns || ai.cooldowns['xray'] <= 0) && Math.random() < 0.6) {
-                executeXRayMove(ai, target);
-                if (ai.cooldowns && ai.maxCooldowns) ai.cooldowns['xray'] = ai.maxCooldowns['xray'];
-            } else if (target.isBlocking && Math.random() < 0.55 && dist < 3.0) {
-                // Mix-up directionnel si le joueur se protège : frappe la zone non protégée
-                if (target.blockType === 'high') {
-                    ai.startAttack('low_light'); // Perce la garde haute
-                } else if (target.blockType === 'low') {
-                    ai.startAttack('up_light');  // Perce la garde basse
-                } else {
-                    ai.startAttack(Math.random() < 0.5 ? 'up_light' : 'low_light');
-                }
-            } else if (targetAirHeight > 0.6 && Math.random() < 0.68) {
-                // Interception céleste d'un adversaire en l'air par une Frappe Haute
-                ai.startAttack('up_light');
-            } else {
-                // 3 Frappes Directionnelles (Haut, Mid, Bas) ou Coup Spécial Unique
-                const moves = ['up_light', 'light', 'low_light', 'special'];
-                const readyMoves = moves.filter(m => !ai.cooldowns || ai.cooldowns[m] === undefined || ai.cooldowns[m] <= 0);
-                if (readyMoves.length > 0) {
-                    const r = Math.random();
-                    let chosen = 'light';
-                    if (r < 0.30) chosen = 'up_light';       // Frappe en Haut
-                    else if (r < 0.65) chosen = 'light';     // Frappe au Milieu
-                    else if (r < 0.85) chosen = 'low_light'; // Frappe en Bas
-                    else if (readyMoves.includes('special')) chosen = 'special'; // Spécial Unique
-                    else chosen = readyMoves[Math.floor(Math.random() * readyMoves.length)];
-                    ai.startAttack(chosen);
-                }
-            }
-            aiDecisionCooldown = isBoss ? 1.15 : (aiDifficulty === 'brutal' ? 0.28 : (aiDifficulty === 'normal' ? 0.50 : 0.82));
+    // ========================================================================
+    // STAGE 2: YUKA PERCEPTION, GOAL ARBITRATION & STEERING VELOCITIES
+    // ========================================================================
+    const steering = (typeof AIVehicleSystem !== 'undefined')
+        ? AIVehicleSystem.computeSteeringStep(ai, target, navData, dt, nowSec)
+        : {
+            vx: ai.facing * ((ai.dino && ai.dino.walkSpeed) || 7.5),
+            steeringMode: 'SEEK',
+            speedRatio: 1.0,
+            targetVisible: true,
+            desiredTargetX: sweetSpot.x
+        };
+
+    // ========================================================================
+    // STAGE 3: XSTATE MACRO-STATECHART & BEHAVIORTREE.JS TACTICAL LOGIC
+    // ========================================================================
+    const tCombatState = target.combatController ? target.combatController.state : 'IDLE';
+
+    // Difficulté et calibrage des profils tactiques IA :
+    // 'easy' : débutant / campagne fluide (larges ouvertures, pas de punitions réflexes, zéro combo)
+    // 'normal' : équilibré, fun, temps de réaction humains (~850ms), footsies lisibles
+    // 'brutal' : tournoi / défi expert
+    const diffParams = {
+        easy: {
+            baseCooldown: 1.35,
+            comboExtendProb: 0.0,
+            whiffPunishProb: 0.12,
+            reactionProb: 0.15,
+            blockChance: 0.10,
+            guardMatchProb: 0.25,
+            mixupProb: 0.12,
+            antiAirProb: 0.15,
+            rangedProb: 0.012,
+            hyperArmorCounterProb: 0.0,
+            guardReadProb: 0.15
+        },
+        normal: {
+            baseCooldown: 0.85,
+            comboExtendProb: 0.20,
+            whiffPunishProb: 0.35,
+            reactionProb: 0.38,
+            blockChance: 0.22,
+            guardMatchProb: 0.40,
+            mixupProb: 0.28,
+            antiAirProb: 0.35,
+            rangedProb: 0.022,
+            hyperArmorCounterProb: 0.12,
+            guardReadProb: 0.35
+        },
+        brutal: {
+            baseCooldown: 0.38,
+            comboExtendProb: 0.70,
+            whiffPunishProb: 0.75,
+            reactionProb: 0.75,
+            blockChance: 0.48,
+            guardMatchProb: 0.72,
+            mixupProb: 0.65,
+            antiAirProb: 0.70,
+            rangedProb: 0.045,
+            hyperArmorCounterProb: 0.30,
+            guardReadProb: 0.70
         }
+    };
+
+    const cfg = diffParams[diff] || diffParams.normal;
+    const baseCooldown = isBoss ? 1.15 : cfg.baseCooldown;
+
+    const blackboard = {
+        ai,
+        target,
+        dt,
+        nowSec,
+        dist,
+        targetAirHeight,
+        isBoss,
+        difficulty: diff,
+        archetype: ai.weightClass || 'brawler',
+        myReach: sweetSpot.myReach || 3.45,
+        enemyReach: sweetSpot.enemyReach || 3.45,
+        isCornered: Boolean(sweetSpot.isCornered),
+        guardStamina: ai.guardStamina !== undefined ? ai.guardStamina : 100,
+        hpRatio: ai.hp / Math.max(1, ai.maxHp),
+        aiActionIdle: ai.actionDuration <= 0,
+        canDecideOffense: aiDecisionCooldown <= 0,
+        canComboExtend: !isBoss && (Math.random() < cfg.comboExtendProb),
+        whiffPunishProb: cfg.whiffPunishProb,
+        guardReadProb: cfg.guardReadProb,
+        hyperArmorCounterProb: isBoss ? 0.0 : cfg.hyperArmorCounterProb,
+        targetIsAttacking: target.actionDuration > 0 && target.action !== 'idle' && target.action !== 'walk' && target.action !== 'crouch',
+        targetInRecovery: tCombatState === CombatState.ATTACK_RECOVERY,
+        targetDeflected: tCombatState === CombatState.BLOCK_DEFLECTED,
+        targetIsDizzy: Boolean(target.isDizzy),
+        targetHasHyperArmor: Boolean(target.hasHyperArmor),
+        projectileThreat: navData ? navData.projectileThreat : null,
+        unblockableThreat: navData ? navData.unblockableThreat : null,
+        steering,
+        reactionProb: isBoss ? 0.25 : cfg.reactionProb,
+        blockChance: isBoss ? 0.06 : cfg.blockChance,
+        guardMatchProb: cfg.guardMatchProb,
+        mixupProb: cfg.mixupProb,
+        antiAirProb: cfg.antiAirProb,
+        rangedProb: isBoss ? 0.020 : cfg.rangedProb,
+        activeBTNode: null,
+        decisionIntent: 'ANALYZING',
+        resetDecisionCooldown(mult = 1.0) {
+            aiDecisionCooldown = baseCooldown * mult;
+        }
+    };
+
+    const macroState = (typeof AIMacroStatechart !== 'undefined')
+        ? AIMacroStatechart.evaluate(blackboard)
+        : 'ALERT_FOOTSIES';
+    blackboard.macroState = macroState;
+
+    if (typeof AICombatBehaviorTree !== 'undefined') {
+        AICombatBehaviorTree.evaluate(blackboard);
     }
+
+    // ========================================================================
+    // STAGE 4: SYNC STEP & TELEMETRY EXPORT
+    // ========================================================================
+    if (typeof YUKA !== 'undefined' && AIVehicleSystem.aiVehicle) {
+        AIVehicleSystem.aiVehicle.position.set(ai.x, ai.y || 0, 0);
+        AIVehicleSystem.aiVehicle.velocity.set(ai.vx || 0, ai.vy || 0, 0);
+    }
+
+    const kCoeff = (ai.config && ai.config.momentumCoefficient) || 0.052;
+    const momPct = Math.round(kCoeff * Math.abs(ai.vx || 0) * 100);
+
+    window.aiTelemetryState.macroState = macroState;
+    window.aiTelemetryState.btNode = blackboard.activeBTNode || 'RootSelector';
+    window.aiTelemetryState.steeringMode = steering.steeringMode || 'ARRIVE';
+    window.aiTelemetryState.intent = blackboard.decisionIntent || ai.action.toUpperCase();
+    window.aiTelemetryState.sweetSpotX = Number(sweetSpot.x || 0).toFixed(1);
+    window.aiTelemetryState.staleRepeats = ai.lastStaleCount || 0;
+    window.aiTelemetryState.momentumBonusPct = momPct;
 }

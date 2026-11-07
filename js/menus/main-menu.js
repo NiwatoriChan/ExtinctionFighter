@@ -1,196 +1,156 @@
 /* ============================================================================
- * MENU : ÉCRAN PRINCIPAL (MAIN MENU)
+ * MENU : ÉCRAN PRINCIPAL (MAIN MENU) — PORTED TO @pmndrs/uikit
  * 1 Joueur (Campagne & Joueur vs IA), 2 Joueurs (1vs1), Paramètres & Grimoire.
  * ============================================================================ */
 
-const MAIN_MENU_HTML = `
-    <!-- ==================== SCREEN 0: MAIN MENU (IMAGE 1 PRIMAL CLASH HOMAGE) ==================== -->
-    <section id="mainMenu" class="w-full h-full flex-1 flex flex-col justify-between p-2 sm:p-4 pb-6 max-w-7xl mx-auto select-none relative z-10 overflow-hidden">
-        
-        <!-- Creeping Jungle Vines & Bone Frame Overlay -->
-        <div class="absolute inset-0 pointer-events-none z-30 overflow-hidden">
-            <!-- Top Vine Garland -->
-            <svg viewBox="0 0 1200 36" preserveAspectRatio="none" class="w-full h-7 sm:h-9 absolute top-0 left-0">
-                <path d="M0 6 Q150 20 300 8 Q450 24 600 10 Q750 22 900 8 Q1050 20 1200 6" fill="none" stroke="#166534" stroke-width="4"/>
-                <path d="M0 4 Q150 18 300 6 Q450 22 600 8 Q750 20 900 6 Q1050 18 1200 4" fill="none" stroke="#22c55e" stroke-width="1.8"/>
-                <polygon points="120,14 126,26 114,28" fill="#15803d"/>
-                <polygon points="280,8 290,22 278,24" fill="#22c55e"/>
-                <polygon points="420,18 430,30 416,32" fill="#16a34a"/>
-                <polygon points="680,14 692,26 678,28" fill="#22c55e"/>
-                <polygon points="850,10 860,24 848,26" fill="#15803d"/>
-                <polygon points="1020,16 1032,28 1018,30" fill="#16a34a"/>
-            </svg>
+const mainMenuActiveSlabSignal = UIKit.signal(0);
+const mainMenuVisibleSignal = UIKit.signal(true);
 
-            <!-- Bottom-Left Prehistoric Raptor Bones / Rib Cage & Vines -->
-            <div class="absolute bottom-12 left-2 w-16 h-16 sm:w-22 sm:h-22 opacity-80 pointer-events-none">
-                <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.95)]">
-                    <path d="M10 90 Q30 70 20 40" fill="none" stroke="#fef3c7" stroke-width="5" stroke-linecap="round"/>
-                    <path d="M22 92 Q42 68 34 35" fill="none" stroke="#fef3c7" stroke-width="4.5" stroke-linecap="round"/>
-                    <path d="M36 94 Q56 70 48 42" fill="none" stroke="#fde68a" stroke-width="4" stroke-linecap="round"/>
-                    <path d="M5 95 Q35 75 25 35" fill="none" stroke="#16a34a" stroke-width="2.5"/>
-                </svg>
-            </div>
-
-            <!-- Floating Volcanic Embers Container -->
-            <div id="mainMenuEmbers" class="absolute inset-0 pointer-events-none z-10 overflow-hidden"></div>
-        </div>
-
-        <!-- MAIN MENU CONTENT (2 COLUMNS: LEFT SLAB BUTTONS, RIGHT PRIMAL LOGO & TABLET) -->
-        <div class="w-full flex-1 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-8 my-auto relative z-20 px-2 sm:px-6">
-            
-            <!-- LEFT COLUMN: VERTICAL STACK OF CHISELED STONE SLAB BUTTONS -->
-            <div class="w-full md:w-76 lg:w-88 flex flex-col gap-2 sm:gap-2.5 z-20">
-                <!-- 1. CAMPAIGN (Active with glowing magma) -->
-                <button id="btnMenuCampaign" class="stone-slab-btn active w-full py-2.5 sm:py-3 px-5 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-base sm:text-lg">🏆</span>
-                        <span>CAMPAGNE</span>
-                    </span>
-                    <span class="text-xs text-amber-200">▶</span>
-                </button>
-
-                <!-- 2. VERSUS (1 VS 1 LOCAL) -->
-                <button id="btnMenuVersus" class="stone-slab-btn w-full py-2.5 sm:py-3 px-5 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-base sm:text-lg">⚔️</span>
-                        <span>VERSUS (1 VS 1)</span>
-                    </span>
-                    <span class="text-xs text-stone-400">▶</span>
-                </button>
-
-                <!-- 3. JOUEUR VS IA -->
-                <button id="btnMenuVsAI" class="stone-slab-btn w-full py-2.5 sm:py-3 px-5 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-base sm:text-lg">🤖</span>
-                        <span>JOUEUR VS IA</span>
-                    </span>
-                    <span class="text-xs text-stone-400">▶</span>
-                </button>
-
-                <!-- 4. ENTRAÎNEMENT (TRAINING) -->
-                <button id="btnMenuTraining" class="stone-slab-btn w-full py-2.5 sm:py-3 px-5 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-base sm:text-lg">🥋</span>
-                        <span>ENTRAÎNEMENT</span>
-                    </span>
-                    <span class="text-xs text-stone-400">▶</span>
-                </button>
-
-                <!-- 5. COMBATTANTS & SKINS (ROSTER) -->
-                <button id="btnMenuRoster" class="stone-slab-btn w-full py-2.5 sm:py-3 px-5 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-base sm:text-lg">🦖</span>
-                        <span>COMBATTANTS</span>
-                    </span>
-                    <span class="text-xs text-stone-400">▶</span>
-                </button>
-
-                <!-- 6. PARAMÈTRES (OPTIONS) -->
-                <button id="btnMenuSettings" class="stone-slab-btn w-full py-2.5 sm:py-3 px-5 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-base sm:text-lg">⚙️</span>
-                        <span>PARAMÈTRES</span>
-                    </span>
-                    <span class="text-xs text-stone-400">▶</span>
-                </button>
-
-                <!-- 7. GRIMOIRE DES COUPS -->
-                <button id="btnMenuMoves" class="stone-slab-btn w-full py-2 sm:py-2.5 px-5 flex items-center justify-between text-left text-xs text-stone-400 hover:text-amber-300">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-base">📜</span>
-                        <span>GRIMOIRE DES COUPS</span>
-                    </span>
-                    <span class="text-xs text-stone-400">▶</span>
-                </button>
-            </div>
-
-            <!-- RIGHT AREA: COLOSSAL STONE LOGO TABLET WITH FLANKING FEMUR BONES & ARTWORK -->
-            <div class="flex-1 flex flex-col items-center justify-center text-center relative max-w-xl mx-auto">
-                <div class="relative w-full py-2 sm:py-4 px-2 sm:px-4">
-                    <!-- Colossal Tablet Frame -->
-                    <div class="primal-logo-tablet p-5 sm:p-7 flex flex-col items-center justify-center relative overflow-hidden">
-                        <!-- Flanking Left Femur Bone -->
-                        <div class="absolute -left-2 top-2 bottom-2 w-7 pointer-events-none hidden sm:block">
-                            <svg viewBox="0 0 32 180" class="w-full h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.95)]">
-                                <ellipse cx="10" cy="14" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
-                                <ellipse cx="22" cy="14" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
-                                <rect x="10" y="14" width="12" height="152" fill="#fde68a" stroke="#78350f" stroke-width="1.2"/>
-                                <ellipse cx="10" cy="166" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
-                                <ellipse cx="22" cy="166" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
-                                <rect x="8" y="55" width="16" height="5" fill="#78350f" rx="2"/>
-                                <rect x="8" y="115" width="16" height="5" fill="#78350f" rx="2"/>
-                            </svg>
-                        </div>
-
-                        <!-- Flanking Right Femur Bone -->
-                        <div class="absolute -right-2 top-2 bottom-2 w-7 pointer-events-none hidden sm:block">
-                            <svg viewBox="0 0 32 180" class="w-full h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.95)]">
-                                <ellipse cx="10" cy="14" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
-                                <ellipse cx="22" cy="14" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
-                                <rect x="10" y="14" width="12" height="152" fill="#fde68a" stroke="#78350f" stroke-width="1.2"/>
-                                <ellipse cx="10" cy="166" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
-                                <ellipse cx="22" cy="166" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
-                                <rect x="8" y="55" width="16" height="5" fill="#78350f" rx="2"/>
-                                <rect x="8" y="115" width="16" height="5" fill="#78350f" rx="2"/>
-                            </svg>
-                        </div>
-
-                        <!-- Ancient Golden & Volcanic Seal -->
-                        <div class="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-amber-400 via-red-600 to-black p-1 flex items-center justify-center shadow-[0_0_35px_rgba(245,158,11,0.85)] border-2 border-amber-300 mb-2 animate-pulse">
-                            <span class="font-cinzel text-2xl sm:text-3xl font-black text-amber-100">EK</span>
-                        </div>
-
-                        <!-- "EXTINCTION" Limestone Carved Title -->
-                        <h2 class="logo-extinction-text text-2xl sm:text-4xl md:text-5xl font-black leading-none uppercase">
-                            EXTINCTION
-                        </h2>
-
-                        <!-- "KOMBAT" Colossal Molten Magma Title -->
-                        <h1 class="logo-kombat-text text-3xl sm:text-5xl md:text-6xl font-black leading-none uppercase -mt-1 sm:-mt-1.5">
-                            KOMBAT
-                        </h1>
-
-                        <!-- Carved Stone Subtitle Plaque -->
-                        <div class="stone-plaque-title px-4 sm:px-6 py-1 mt-3 flex items-center gap-2">
-                            <span class="text-amber-400 text-xs sm:text-sm font-black">🔥</span>
-                            <span class="font-chakra text-[11px] sm:text-xs md:text-sm font-extrabold text-amber-200 uppercase tracking-[0.2em]">
-                                L'Ère des Prédateurs • Beasts of Prey
-                            </span>
-                            <span class="text-amber-400 text-xs sm:text-sm font-black">🔥</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BOTTOM CONTROLS BASE BAR -->
-        <div class="w-full px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs z-30 shrink-0">
-            <!-- Left: Button Map & Controls Badge -->
-            <div class="flex items-center gap-2 text-stone-400 font-chakra text-[11px] sm:text-xs font-bold">
-                <span class="text-amber-400 text-base">🎮</span>
-                <span>MANETTE / CLAVIER</span>
-            </div>
-
-            <!-- Center: Prompts matching Image 1: "PRESS [A] TO SELECT | [B] TO GO BACK" -->
-            <div class="flex items-center justify-center gap-2 font-chakra text-xs sm:text-sm font-black tracking-wider mx-auto">
-                <span class="text-stone-300">APPUYEZ SUR</span>
-                <span class="px-1.5 py-0.5 rounded bg-emerald-600 text-white font-black text-xs shadow-[0_0_8px_#22c55e]">[A]</span>
-                <span class="text-amber-400">CHOISIR</span>
-                <span class="text-stone-500 font-normal">|</span>
-                <span class="px-1.5 py-0.5 rounded bg-red-600 text-white font-black text-xs shadow-[0_0_8px_#ef4444]">[B]</span>
-                <span class="text-stone-300">RETOUR</span>
-            </div>
-
-            <!-- Right: Version & Credits -->
-            <div class="flex items-center gap-3 text-stone-400 font-chakra text-[11px] sm:text-xs">
-                <span class="text-stone-500">v1.04</span>
-                <span class="text-amber-400 font-black">THREE.JS 3D</span>
-            </div>
-        </div>
-    </section>
+const TOP_VINE_GARLAND_SVG = `
+    <svg viewBox="0 0 1200 36" preserveAspectRatio="none" class="w-full h-7 sm:h-9 absolute top-0 left-0">
+        <path d="M0 6 Q150 20 300 8 Q450 24 600 10 Q750 22 900 8 Q1050 20 1200 6" fill="none" stroke="#166534" stroke-width="4"/>
+        <path d="M0 4 Q150 18 300 6 Q450 22 600 8 Q750 20 900 6 Q1050 18 1200 4" fill="none" stroke="#22c55e" stroke-width="1.8"/>
+        <polygon points="120,14 126,26 114,28" fill="#15803d"/>
+        <polygon points="280,8 290,22 278,24" fill="#22c55e"/>
+        <polygon points="420,18 430,30 416,32" fill="#16a34a"/>
+        <polygon points="680,14 692,26 678,28" fill="#22c55e"/>
+        <polygon points="850,10 860,24 848,26" fill="#15803d"/>
+        <polygon points="1020,16 1032,28 1018,30" fill="#16a34a"/>
+    </svg>
 `;
 
-document.getElementById('appMain').insertAdjacentHTML('beforeend', MAIN_MENU_HTML);
+const BOTTOM_LEFT_BONES_SVG = `
+    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.95)]">
+        <path d="M10 90 Q30 70 20 40" fill="none" stroke="#fef3c7" stroke-width="5" stroke-linecap="round"/>
+        <path d="M22 92 Q42 68 34 35" fill="none" stroke="#fef3c7" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="M36 94 Q56 70 48 42" fill="none" stroke="#fde68a" stroke-width="4" stroke-linecap="round"/>
+        <path d="M5 95 Q35 75 25 35" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+    </svg>
+`;
+
+const FEMUR_BONE_SVG = `
+    <svg viewBox="0 0 32 180" class="w-full h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.95)]">
+        <ellipse cx="10" cy="14" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
+        <ellipse cx="22" cy="14" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
+        <rect x="10" y="14" width="12" height="152" fill="#fde68a" stroke="#78350f" stroke-width="1.2"/>
+        <ellipse cx="10" cy="166" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
+        <ellipse cx="22" cy="166" rx="8" ry="12" fill="#fef3c7" stroke="#78350f" stroke-width="1.5"/>
+        <rect x="8" y="55" width="16" height="5" fill="#78350f" rx="2"/>
+        <rect x="8" y="115" width="16" height="5" fill="#78350f" rx="2"/>
+    </svg>
+`;
+
+const MAIN_MENU_SLAB_DEFS = [
+    { id: 'btnMenuCampaign', label: 'CAMPAIGN', isDefaultActive: true },
+    { id: 'btnMenuVersus', label: 'VERSUS' },
+    { id: 'btnMenuTraining', label: 'TRAINING' },
+    { id: 'btnMenuRoster', label: 'ROSTER & CUSTOMIZATION' },
+    { id: 'btnMenuSettings', label: 'OPTIONS' },
+    { id: 'btnMenuExit', label: 'EXIT' }
+];
+
+function createMainMenuSlabButton(def, idx) {
+    const baseClasses = `stone-slab-btn bone-joint-slab ${def.isDefaultActive ? 'active ' : ''}w-full py-2.5 sm:py-3.5 px-6 flex items-center justify-center text-center text-xs sm:text-sm font-black tracking-widest relative`;
+
+    return new UIKit.Button({
+        id: def.id,
+        className: baseClasses,
+        children: [
+            new UIKit.Text({
+                tag: 'span',
+                className: 'font-black tracking-widest uppercase select-none pointer-events-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]',
+                text: def.label
+            })
+        ]
+    });
+}
+
+const mainMenuRoot = new UIKit.Fullscreen({
+    id: 'mainMenu',
+    tag: 'section',
+    hidden: UIKit.computed(() => !mainMenuVisibleSignal.value),
+    className: 'main-menu-stage-bg w-full h-full flex flex-col justify-between p-3 sm:p-6 pb-2 select-none relative z-10 overflow-hidden',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    children: [
+// Prehistoric creeping vines & bones frame border overlay - omitted as the background already includes the frame
+
+        // Dynamic Interactive Canvas for Floating Volcanic Embers & Sparks
+        new UIKit.Container({
+            id: 'mainMenuCanvasContainer',
+            className: 'absolute inset-0 pointer-events-none z-10 overflow-hidden'
+        }),
+
+        // MAIN MENU CONTENT: TWO COLUMNS (LEFT: BUTTONS, RIGHT: PRIMAL CLASH LOGO)
+        new UIKit.Container({
+            className: 'w-full flex-1 flex flex-col md:flex-row items-center justify-between gap-6 my-auto relative z-20 px-4 sm:px-10 lg:px-14',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            children: [
+                // LEFT COLUMN: VERTICAL STACK OF 6 CHISELED STONE SLAB BUTTONS
+                new UIKit.Container({
+                    className: 'w-full md:w-80 lg:w-96 flex flex-col gap-3 sm:gap-4 z-20 py-2 my-auto',
+                    flexDirection: 'column',
+                    gap: 14,
+                    children: MAIN_MENU_SLAB_DEFS.map((def, idx) => createMainMenuSlabButton(def, idx))
+                }),
+
+                // RIGHT COLUMN: THE MAJESTIC PRIMAL CLASH LOGO OVER DINOSAURS
+                new UIKit.Container({
+                    className: 'w-full md:w-[460px] lg:w-[540px] flex items-center justify-center relative z-20 my-auto pointer-events-none',
+                    children: [
+                        new UIKit.Container({
+                            className: 'primal-clash-logo-container w-full max-w-[500px]',
+                            children: [
+                                new UIKit.Image({
+                                    src: 'assets/ui/primal_clash_logo.png',
+                                    className: 'primal-clash-logo-img drop-shadow-[0_15px_35px_rgba(0,0,0,0.95)]'
+                                })
+                            ]
+                        })
+                    ]
+                })
+            ]
+        }),
+
+        // BOTTOM CONTROLS & VERSION BAR
+        new UIKit.Container({
+            className: 'w-full px-4 sm:px-8 py-2 flex flex-wrap items-center justify-between gap-3 text-xs z-30 shrink-0 select-none pointer-events-none',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            children: [
+                new UIKit.Container({
+                    className: 'flex-1',
+                }),
+                new UIKit.Container({
+                    className: 'flex items-center justify-center gap-2 font-chakra text-xs sm:text-sm font-black tracking-wider mx-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]',
+                    children: [
+                        new UIKit.Text({ tag: 'span', className: 'text-stone-300 font-bold', text: 'PRESS' }),
+                        new UIKit.Badge({ className: 'px-2 py-0.5 rounded bg-emerald-600 text-white font-black text-xs shadow-[0_0_10px_#22c55e]', text: '[A]' }),
+                        new UIKit.Text({ tag: 'span', className: 'text-amber-400 font-bold', text: 'TO SELECT' }),
+                        new UIKit.Text({ tag: 'span', className: 'text-stone-500 font-normal', text: '|' }),
+                        new UIKit.Badge({ className: 'px-2 py-0.5 rounded bg-red-600 text-white font-black text-xs shadow-[0_0_10px_#ef4444]', text: '[B]' }),
+                        new UIKit.Text({ tag: 'span', className: 'text-stone-300 font-bold', text: 'TO GO BACK' })
+                    ]
+                }),
+                new UIKit.Container({
+                    className: 'flex-1 flex justify-end items-center',
+                    children: [
+                        new UIKit.Text({
+                            tag: 'span',
+                            className: 'text-stone-400 font-chakra text-xs font-bold tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]',
+                            text: 'v0.2'
+                        })
+                    ]
+                })
+            ]
+        })
+    ]
+});
+
+mainMenuRoot.mount(document.getElementById('appMain'));
 
 function selectMainMenuSlab(btn) {
     if (!btn) return;
@@ -199,33 +159,112 @@ function selectMainMenuSlab(btn) {
         const isMatch = (b === btn);
         b.classList.toggle('active', isMatch);
         b.classList.toggle('selected', isMatch);
-        if (isMatch && typeof mainMenuFocusIdx !== 'undefined') {
-            mainMenuFocusIdx = idx;
+        if (isMatch) {
+            mainMenuActiveSlabSignal.value = idx;
+            if (typeof mainMenuFocusIdx !== 'undefined') {
+                mainMenuFocusIdx = idx;
+            }
         }
     });
 }
 
-function initMainMenu() {
-    // Spawn floating embers in background
-    const embersCont = document.getElementById('mainMenuEmbers');
-    if (embersCont && embersCont.children.length === 0) {
-        for (let i = 0; i < 14; i++) {
-            const p = document.createElement('div');
-            p.className = 'ember-particle';
-            const size = Math.random() * 4 + 2.5;
-            p.style.width = size + 'px';
-            p.style.height = size + 'px';
-            p.style.left = (Math.random() * 96 + 2) + '%';
-            p.style.animationDuration = (Math.random() * 4.5 + 4) + 's';
-            p.style.animationDelay = (Math.random() * 5) + 's';
-            p.style.opacity = (Math.random() * 0.7 + 0.3).toString();
-            embersCont.appendChild(p);
-        }
+function startMainMenuEmberCanvas() {
+    const container = document.getElementById('mainMenuCanvasContainer');
+    if (!container) return;
+    if (document.getElementById('mainMenuCanvas')) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.id = 'mainMenuCanvas';
+    canvas.className = 'absolute inset-0 pointer-events-none z-10 w-full h-full';
+    container.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    });
+
+    const PARTICLE_COUNT = 45;
+    const particles = [];
+    const colors = [
+        'rgba(255, 69, 0, ',    // Red-orange
+        'rgba(255, 140, 0, ',   // Dark orange
+        'rgba(255, 185, 15, ',  // Golden amber
+        'rgba(255, 215, 0, ',   // Gold
+        'rgba(255, 248, 220, '  // Hot ember white-gold
+    ];
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            radius: Math.random() * 2.8 + 1.2,
+            baseSpeedY: Math.random() * 0.9 + 0.4,
+            speedX: (Math.random() - 0.45) * 0.8,
+            colorPrefix: colors[Math.floor(Math.random() * colors.length)],
+            alpha: Math.random() * 0.8 + 0.2,
+            fadeSpeed: (Math.random() * 0.015 + 0.005),
+            fadingIn: Math.random() > 0.5,
+            wiggleAmp: Math.random() * 1.5 + 0.5,
+            wiggleSpeed: Math.random() * 0.03 + 0.01,
+            seed: Math.random() * 100
+        });
     }
+
+    function renderEmbers(time) {
+        if (!mainMenuVisibleSignal.value) {
+            requestAnimationFrame(renderEmbers);
+            return;
+        }
+
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.y -= p.baseSpeedY;
+            p.x += Math.sin(time * 0.001 * p.wiggleSpeed + p.seed) * p.wiggleAmp * 0.4 + p.speedX;
+
+            if (p.fadingIn) {
+                p.alpha += p.fadeSpeed;
+                if (p.alpha >= 0.9) p.fadingIn = false;
+            } else {
+                p.alpha -= p.fadeSpeed;
+                if (p.alpha <= 0.15) p.fadingIn = true;
+            }
+
+            if (p.y < -10 || p.x < -10 || p.x > width + 10) {
+                p.y = height + Math.random() * 20;
+                p.x = Math.random() * width;
+                p.alpha = 0.1;
+                p.fadingIn = true;
+            }
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.colorPrefix + p.alpha.toFixed(2) + ')';
+            ctx.shadowBlur = p.radius * 3.5;
+            ctx.shadowColor = 'rgba(255, 100, 0, 0.8)';
+            ctx.fill();
+        }
+
+        requestAnimationFrame(renderEmbers);
+    }
+
+    requestAnimationFrame(renderEmbers);
+}
+
+function initMainMenu() {
+    startMainMenuEmberCanvas();
 
     const slabButtons = document.querySelectorAll('#mainMenu .stone-slab-btn');
     slabButtons.forEach((btn, idx) => {
         btn.addEventListener('mouseenter', () => {
+            if (mainMenuActiveSlabSignal.value !== idx) {
+                if (typeof sfx !== 'undefined' && sfx.playHit) sfx.playHit(false);
+            }
             selectMainMenuSlab(btn);
             if (typeof setGamepadFocus === 'function') {
                 setGamepadFocus(btn);
@@ -233,14 +272,18 @@ function initMainMenu() {
         });
     });
 
-    // 1. Campagne d'Extinction
+    // 1. Campagne d'Extinction (Road Through Time)
     const btnCamp = document.getElementById('btnMenuCampaign');
     if (btnCamp) {
         btnCamp.addEventListener('click', () => {
             selectMainMenuSlab(btnCamp);
             sfx.playGong();
             gameMode = 'campaign';
-            startCampaignMode();
+            if (typeof openCampaignMap === 'function') {
+                openCampaignMap();
+            } else {
+                startCampaignMode();
+            }
         });
     }
 
@@ -255,7 +298,7 @@ function initMainMenu() {
         });
     }
 
-    // 3. Joueur vs IA
+    // 3. Joueur vs IA / Entraînement
     const btnVsAI = document.getElementById('btnMenuVsAI');
     if (btnVsAI) {
         btnVsAI.addEventListener('click', () => {
@@ -308,13 +351,24 @@ function initMainMenu() {
             document.getElementById('movesModal').classList.remove('hidden');
         });
     }
+
+    // 8. Exit
+    const btnExit = document.getElementById('btnMenuExit');
+    if (btnExit) {
+        btnExit.addEventListener('click', () => {
+            selectMainMenuSlab(btnExit);
+            sfx.playHit(false);
+            if (typeof showGamepadToast === 'function') {
+                showGamepadToast("Extinction Kombat : À bientôt !");
+            }
+        });
+    }
 }
 
 function startCampaignMode() {
     gameMode = 'campaign';
     campaignStage = 1;
 
-    // Sélectionner 5 adversaires aléatoires uniques parmi les créatures débloquées (hors boss)
     const available = [];
     for (let i = 0; i < DINO_ROSTER.length; i++) {
         const d = DINO_ROSTER[i];
@@ -322,14 +376,12 @@ function startCampaignMode() {
             available.push(i);
         }
     }
-    // Shuffle
     for (let i = available.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [available[i], available[j]] = [available[j], available[i]];
     }
     campaignOpponents = available.slice(0, 5);
 
-    // S'assurer que le premier adversaire n'est pas le même que le personnage actuel de J1
     if (campaignOpponents[0] === p1ChoiceIndex) {
         for (let k = 0; k < available.length; k++) {
             if (available[k] !== p1ChoiceIndex) {
@@ -344,12 +396,15 @@ function startCampaignMode() {
 
 function goToMainMenu() {
     matchState = 'main_menu';
+    mainMenuVisibleSignal.value = true;
     const headerEl = document.getElementById('gameHeader');
     if (headerEl) headerEl.classList.add('hidden');
     const gpBar = document.getElementById('gamepadHelperBar');
     if (gpBar) gpBar.style.display = 'none';
 
     document.getElementById('mainMenu').classList.remove('hidden');
+    const campEl = document.getElementById('campaignScreen');
+    if (campEl) campEl.classList.add('hidden');
     document.getElementById('selectScreen').classList.add('hidden');
     document.getElementById('arenaScreen').classList.add('hidden');
     document.getElementById('battleScreen').classList.add('hidden');
@@ -372,12 +427,16 @@ function goToMainMenu() {
 
 function goToSelectScreen() {
     matchState = 'select';
+    mainMenuVisibleSignal.value = false;
     const headerEl = document.getElementById('gameHeader');
     if (headerEl) headerEl.classList.add('hidden');
-    const gpBar = document.getElementById('gamepadHelperBar');
-    if (gpBar) gpBar.style.display = 'none';
+    if (typeof updateGamepadHelperHUD === 'function') {
+        updateGamepadHelperHUD();
+    }
 
     document.getElementById('mainMenu').classList.add('hidden');
+    const campEl2 = document.getElementById('campaignScreen');
+    if (campEl2) campEl2.classList.add('hidden');
     document.getElementById('arenaScreen').classList.add('hidden');
     document.getElementById('battleScreen').classList.add('hidden');
     document.getElementById('battleScreen').classList.remove('flex');

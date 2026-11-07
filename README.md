@@ -13,8 +13,12 @@
 
 ## 🌟 Points Forts du Jeu
 
-* **13 Légendes Préhistoriques + 1 Combattant Déblocable + Boss Secret** : Chaque combattant possède son propre rig 3D articulé, sa palette de coups, ses skins alternatifs, ses attaques spéciales et sa propre Fatalité 3D.
-* **🏆 Mode Campagne d'Extinction Automatisé** : Gravissez 6 étapes épiques. En mode campagne, vous choisissez uniquement votre héros ; le jeu sélectionne chaque adversaire et son arène thématique dédiée, menant à l'ultime affrontement contre Drak'Zul pour débloquer le redoutable **Smilodon (Tigre à Dents de Sabre)** !
+* **13 Légendes Préhistoriques + 2 Combattants Déblocables (Smilodon & Drak'Zul)** : Chaque combattant possède son propre rig 3D articulé fidèle aux fossiles réels, sa palette de coups, ses attaques spéciales et sa propre Fatalité 3D.
+* **🗺️ Nouveau Mode Campagne — *Smash Melee Adventure*** :
+  * **Carte du Monde Pangaea Interactive** : Une carte géologique avec route temporelle reliant 6 Grandes Ères, chacune dotée de son propre blason/logo emblématique.
+  * **Niveaux Smash Melee par Vagues** : Chaque ère est un niveau complet avec essaims d'ennemis de l'époque (Trilobites, Archosaures, Raptors de cendre, Chiens du blizzard), knockback Smash avec projections à haute vélocité, explosions K.O. et objets ramassables 3D (Viande préhistorique +250 PV, Ambre de Rage MAX).
+  * **Boss Monstres Uniques** : À la fin de chaque ère, affrontez un titan colossal sur mesure doté d'une gigantesque barre de vie, d'attaques de zone (jets d'acide, foudre sismique, météores, stalagmites) et d'un mode Enrage à 40% de PV !
+  * **Déblocages par Ère** : Chaque ère conquise débloque un Combattant et une Arène thématique dédiés (Pulmonoscorpius, Postosuchus, Apatosaure, Thérizinosaure, Smilodon, et le Dragon Drak'Zul jouable !).
 * **🎮 Modes de Jeu Complets** :
   * **1 Joueur** : Campagne d'Extinction, Joueur vs IA (Novice, Normal, Brutal), et Mode Entraînement.
   * **2 Joueurs** : 1 vs 1 Local sur le même clavier ou à la manette.
@@ -33,9 +37,13 @@
 
 ## 📸 Galerie d'Écrans
 
-| Menu Principal | Sélecteur d'Arène 3D |
+| Carte de Campagne (Road Through Time) | Niveau Smash Melee : Vague 1 Minions |
 | :---: | :---: |
-| ![Menu Principal](screenshots/main-menu.png) | ![Sélecteur d'Arène](screenshots/arena-select.png) |
+| ![Carte de Campagne](screenshots/campaign_map_screenshot.png) | ![Niveau Smash Melee Minions](screenshots/smash_wave1_minions.png) |
+
+| Niveau Smash Melee : Vague 3 Boss Colossal | Récompenses & Déblocages d'Ère |
+| :---: | :---: |
+| ![Niveau Smash Melee Boss](screenshots/smash_wave3_boss.png) | ![Récompenses d'Ère](screenshots/smash_victory_rewards.png) |
 
 ---
 
@@ -116,20 +124,32 @@ ExtinctionFighter/
 │   ├── main-menu.png
 │   └── arena-select.png
 └── js/
+    ├── libs/                  # Bibliothèques 3D, UI & IA embarquées (zéro bundler)
+    │   ├── three.min.js               # Moteur WebGL 3D Three.js
+    │   ├── pmndrs-uikit.min.js        # Système UI 3D/Spatial & Flexbox réactif (@pmndrs/uikit + @preact/signals-core)
+    │   ├── yuka.min.js                # Moteur IA Yuka (Steering, Vision, Memory, Flocking, SyncManager)
+    │   ├── kompute-tactical.js        # Analyse spatiale tactique Kompute (Sweet-spot, esquive projectiles)
+    │   ├── three-pathfinding.min.js   # Navigation Mesh 3D A* & simulateur de foule RVO
+    │   ├── behaviortree.min.js        # Arbres de comportement BehaviorTree.js (Selector, Sequence, Action)
+    │   └── xstate.umd.js              # Machines à états finis déterministes XState
     ├── core/                  # Moteur principal du jeu
     │   ├── registry.js        # Registre global des combattants et boss
     │   ├── state.js           # Variables d'état et configuration
     │   ├── rig.js             # Moteur de génération des squelettes 3D Three.js
     │   ├── animation.js       # Système d'animation cinématique 3D
     │   ├── scene.js           # Gestionnaire de scène 3D, caméra et réglages graphiques
-    │   ├── arena.js           # Constructeur des décors 3D
+    │   ├── arena.js           # Constructeur des décors 3D & extraction NavMesh
     │   ├── fighter.js         # Classe Fighter3D (physique, PV, barres de rage)
     │   ├── combat.js          # Hitboxes, collisions et système de combos
     │   ├── effects.js         # Particules de sang, os, projectiles et scanner X-Ray
     │   ├── input.js           # Gestionnaire clavier, boutons tactiles et manettes
     │   ├── sound.js           # Synthétiseur audio Web Audio API
     │   ├── match.js           # Gestion des rounds, arbitre et fin de match
-    │   └── ai.js              # Intelligence artificielle adaptative
+    │   ├── ai-navmesh.js      # Étape 1 IA : Génération NavMesh 3D & requêtes spatiales Kompute
+    │   ├── ai-steering.js     # Étape 2 IA : Véhicules Yuka, Goal Evaluators & Flocking faune 3D
+    │   ├── ai-statechart.js   # Étape 3a IA : Statecharts macro-stratégiques XState
+    │   ├── ai-behaviortree.js # Étape 3b IA : Arbre tactique BehaviorTree.js (combos, mix-ups, punitions)
+    │   └── ai.js              # Pipeline IA 4-Étapes & télémétrie en temps réel
     ├── fighters/              # Un fichier modulaire par combattant
     │   ├── trex.js
     │   ├── pachyrhinosaurus.js
@@ -187,6 +207,8 @@ ExtinctionFighter/
 ## 📜 Licence & Technologies
 
 * Moteur 3D : [Three.js](https://threejs.org/)
-* Interface & Styles : [Tailwind CSS](https://tailwindcss.com/)
+* Système UI 3D & Spatial : [`@pmndrs/uikit`](https://pmndrs.github.io/uikit/) (`js/libs/pmndrs-uikit.min.js` avec signaux réactifs `@preact/signals-core`, layout Flexbox Yoga-compatible et panneaux SDF Three.js)
+* Moteurs IA & Navigation 3D : **Yuka** (`yuka`), **Kompute Tactical**, **Three-Pathfinding** (`three-pathfinding`), **BehaviorTree.js** (`behavior-tree`), et **XState** (`xstate`)
+* Interface & Styles : [`@pmndrs/uikit`](https://pmndrs.github.io/uikit/) + [Tailwind CSS](https://tailwindcss.com/)
 * Audio : Web Audio API (oscillateurs synthétiques natifs sans dépendances externes)
 * Code modulaire pur JavaScript (ES6+), sans bundler requis.

@@ -1,10 +1,178 @@
 /* ============================================================================
  * COMBATTANT : SPINOSAURE (Spinosaurus Aegyptiacus)
- * Données (stats, skins, textes), modèle 3D, animations, coups spéciaux & fatalité.
- * Silhouette paléoart : corps allongé semi-aquatique, grande voile dorsale en M
- * à bandes sombres, long museau de baryonychiné à rosette terminale et crête nasale,
- * bras musclés à grandes griffes falciformes, pattes arrière courtes et queue-rame.
+ * Modèle 3D paléontologique stylisé "Cartoon Mature / Primal" validé sous Blender 5.2.3:
+ *   - Textures PBR procédurales 1024x1024 (écailles polygonales crocodiliennes cobalt,
+ *     bandes fluviales sombres, contre-ombrage cyan électrique, voilure M vascularisée)
+ *   - Crâne baryonychiné élancé à encoche sub-narinaire & rosette prémaxillaire à crocs coniques
+ *   - Crête nasale rugueuse médiane & yeux de piscivore
+ *   - Membres antérieurs musclés armés de griffes falciformes géantes
+ *   - Grande voile dorsale en M à épines neurales en relief & queue natatoire en rame
  * ============================================================================ */
+
+let _cachedSpinoPBRMaps = null;
+
+function getSpinoPBRMaps() {
+    if (_cachedSpinoPBRMaps) return _cachedSpinoPBRMaps;
+
+    function applySRGB(tex) {
+        if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+        else if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+    }
+
+    let _seed = 5710;
+    function rand() {
+        _seed = (_seed * 16807) % 2147483647;
+        return (_seed - 1) / 2147483646;
+    }
+
+    function createBodyHideMaps() {
+        const size = 1024;
+        const colorCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        colorCanvas.width = bumpCanvas.width = size;
+        colorCanvas.height = bumpCanvas.height = size;
+        const cCtx = colorCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+
+        // Contre-ombrage fluvial : échine bleu cobalt sombre -> flancs bleu électrique -> ventre cyan-crème lumineux
+        const grad = cCtx.createLinearGradient(0, 0, size, 0);
+        grad.addColorStop(0.00, '#09152e'); // Échine dorsale bleu nuit profond
+        grad.addColorStop(0.18, '#173679'); // Haut des flancs cobalt marin
+        grad.addColorStop(0.38, '#1d4ed8'); // Flancs bleu azur vif
+        grad.addColorStop(0.48, '#06b6d4'); // Transition turquoise
+        grad.addColorStop(0.50, '#67e8f9'); // Ventre cyan clair lumineux
+        grad.addColorStop(0.52, '#06b6d4');
+        grad.addColorStop(0.62, '#1d4ed8');
+        grad.addColorStop(0.82, '#173679');
+        grad.addColorStop(1.00, '#09152e');
+        cCtx.fillStyle = grad;
+        cCtx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#7a7a7a';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Rayures tigrées sombres de prédateur aquatique le long des flancs
+        const numStripes = 28;
+        for (let s = 0; s < numStripes; s++) {
+            const yCenter = ((s + 0.5) / numStripes) * size;
+            const stripeW = 12 + rand() * 16;
+            [0, 1].forEach(side => {
+                const startX = side === 0 ? 0 : size;
+                const endX = side === 0 ? size * (0.34 + rand() * 0.08) : size * (0.66 - rand() * 0.08);
+                const midX = (startX + endX) * 0.5;
+                const waveY = yCenter + (rand() - 0.5) * 22;
+
+                cCtx.save();
+                cCtx.strokeStyle = 'rgba(7, 16, 42, 0.85)';
+                cCtx.lineWidth = stripeW;
+                cCtx.lineCap = 'round';
+                cCtx.beginPath();
+                cCtx.moveTo(startX, yCenter);
+                cCtx.quadraticCurveTo(midX, waveY, endX, yCenter + (rand() - 0.5) * 16);
+                cCtx.stroke();
+
+                // Liseré cyan électrique cel-shaded
+                cCtx.strokeStyle = 'rgba(103, 232, 249, 0.45)';
+                cCtx.lineWidth = stripeW * 0.38;
+                cCtx.beginPath();
+                cCtx.moveTo(startX, yCenter + stripeW * 0.5);
+                cCtx.quadraticCurveTo(midX, waveY + stripeW * 0.5, endX, yCenter + stripeW * 0.4);
+                cCtx.stroke();
+                cCtx.restore();
+
+                bCtx.strokeStyle = '#3e3e3e';
+                bCtx.lineWidth = stripeW * 0.85;
+                bCtx.beginPath();
+                bCtx.moveTo(startX, yCenter);
+                bCtx.quadraticCurveTo(midX, waveY, endX, yCenter);
+                bCtx.stroke();
+            });
+        }
+
+        // Pavage d'écailles polygonales crocodiliennes (60 000 écailles)
+        for (let i = 0; i < 60000; i++) {
+            const x = rand() * size;
+            const y = rand() * size;
+            const u = x / size;
+            const isDorsal = u < 0.22 || u > 0.78;
+            const scaleR = isDorsal ? (1.7 + rand() * 2.8) : (1.0 + rand() * 1.8);
+            const lum = Math.floor(100 + rand() * 75);
+
+            bCtx.fillStyle = `rgb(${lum},${lum},${lum})`;
+            bCtx.beginPath();
+            bCtx.arc(x, y, scaleR, 0, Math.PI * 2);
+            bCtx.fill();
+
+            if (i % 3 === 0) {
+                cCtx.strokeStyle = 'rgba(8, 18, 48, 0.38)';
+                cCtx.lineWidth = 0.9;
+                cCtx.fillStyle = rand() > 0.5 ? 'rgba(6, 182, 212, 0.18)' : 'rgba(12, 26, 68, 0.22)';
+                cCtx.beginPath();
+                cCtx.arc(x, y, scaleR, 0, Math.PI * 2);
+                cCtx.fill();
+                cCtx.stroke();
+            }
+        }
+
+        const colorMap = new THREE.CanvasTexture(colorCanvas);
+        const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+        colorMap.wrapS = colorMap.wrapT = bumpMap.wrapS = bumpMap.wrapT = THREE.RepeatWrapping;
+        applySRGB(colorMap);
+        return { colorMap, bumpMap };
+    }
+
+    function createSailMaps() {
+        const size = 512;
+        const colorCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        colorCanvas.width = bumpCanvas.width = size;
+        colorCanvas.height = bumpCanvas.height = size;
+        const cCtx = colorCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+
+        // Voilure en M : dégradé vertical et vagues vasculaires
+        const grad = cCtx.createLinearGradient(0, size, 0, 0);
+        grad.addColorStop(0.0, '#0c1a44');
+        grad.addColorStop(0.35, '#1d4ed8');
+        grad.addColorStop(0.7, '#06b6d4');
+        grad.addColorStop(0.92, '#38bdf8');
+        grad.addColorStop(1.0, '#a5f3fc');
+        cCtx.fillStyle = grad;
+        cCtx.fillRect(0, 0, size, size);
+
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Rayons vasculaires et chevrons sombres cel-shading
+        for (let i = 0; i < 18; i++) {
+            const x = (i / 18) * size;
+            cCtx.strokeStyle = i % 2 === 0 ? 'rgba(7, 16, 42, 0.75)' : 'rgba(255, 255, 255, 0.25)';
+            cCtx.lineWidth = i % 2 === 0 ? 9 : 3.5;
+            cCtx.beginPath();
+            cCtx.moveTo(x, size);
+            cCtx.quadraticCurveTo(x + (rand() - 0.5) * 40, size * 0.45, x + (rand() - 0.5) * 25, 0);
+            cCtx.stroke();
+
+            bCtx.strokeStyle = i % 2 === 0 ? '#404040' : '#b0b0b0';
+            bCtx.lineWidth = 8;
+            bCtx.beginPath();
+            bCtx.moveTo(x, size);
+            bCtx.quadraticCurveTo(x, size * 0.5, x, 0);
+            bCtx.stroke();
+        }
+
+        const colorMap = new THREE.CanvasTexture(colorCanvas);
+        const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+        applySRGB(colorMap);
+        return { colorMap, bumpMap };
+    }
+
+    _cachedSpinoPBRMaps = {
+        hide: createBodyHideMaps(),
+        sail: createSailMaps()
+    };
+    return _cachedSpinoPBRMaps;
+}
 
 registerFighter({
     id: 'spinosaurus',
@@ -12,9 +180,9 @@ registerFighter({
     fullName: 'Spinosaurus Aegyptiacus',
     role: 'Léviathan du Crétacé',
     title: '« Le Carnivore Démesuré »',
-    primaryColor: 0xc29356,
-    secondaryColor: 0x3b352e,
-    accentColor: 0xd97706,
+    primaryColor: 0x1d4ed8,
+    secondaryColor: 0x0f172a,
+    accentColor: 0x06b6d4,
     cssPrimary: '#0284c7',
     scale: 1.16,
     previewScale: 0.88,
@@ -24,14 +192,10 @@ registerFighter({
     special1Name: 'Tranchage Fluvial (H)',
     special2Name: 'Vague Sanglante (T)',
     fatalityName: 'Éventration du Nil (R)',
-    moveStyle: 'Posture massive avec crête neurale impressionnante, coups de museau et balayages aquatiques.',
+    moveStyle: 'Posture massive semi-aquatique, mâchoire de gavial à rosette, revers de grandes griffes et coups de voile.',
     fatalityDesc: 'Empale la victime de ses griffes crocodiliennes, la soulève au-dessus de sa voile dorsale et la déchiquette en deux parties.',
     skins: [
-        { name: 'Kem Kem Leviathan', primary: 0xc29356, secondary: 0x3b352e, accent: 0xd97706, belly: 0xd9c29c },
-        { name: 'River Emperor', primary: 0x0284c7, secondary: 0x082f49, accent: 0x38bdf8, belly: 0xbae6fd },
-        { name: 'Bile Croc', primary: 0x166534, secondary: 0x14532d, accent: 0x86efac, belly: 0xbbf7d0 },
-        { name: 'Deep Trench', primary: 0x312e81, secondary: 0x1e1b4b, accent: 0x818cf8, belly: 0xc7d2fe },
-        { name: 'Nile Blood', primary: 0x991b1b, secondary: 0x450a0a, accent: 0xfca5a5, belly: 0xfecaca }
+        { name: 'Cobalt Leviathan', primary: 0x1d4ed8, secondary: 0x0f172a, accent: 0x06b6d4, belly: 0x67e8f9, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 1.85,
@@ -42,22 +206,33 @@ registerFighter({
 
     buildRig(ctx) {
         const { hips, rig, addMesh, bodyMat, darkMat, accentMat, boneMat, skin, skinMeshes } = ctx;
+        const { hide, sail } = getSpinoPBRMaps();
 
-        const bellyMat = new THREE.MeshStandardMaterial({ color: skin.belly || 0xd9c29c, roughness: 0.7 });
-        const sailMat = new THREE.MeshStandardMaterial({
-            color: skin.accent || 0xd97706,
-            roughness: 0.65,
+        const isDefaultSkin = Boolean(skin && skin.isDefaultPBR);
+        const bodyTint = isDefaultSkin ? 0xffffff : (skin.primary || 0x1d4ed8);
+
+        const pbrBodyMat = new THREE.MeshStandardMaterial({
+            color: bodyTint,
+            map: hide.colorMap,
+            bumpMap: hide.bumpMap,
+            bumpScale: 0.035,
+            roughness: 0.58,
+            metalness: 0.08
+        });
+        const pbrSailMat = new THREE.MeshPhysicalMaterial({
+            map: sail.colorMap,
+            bumpMap: sail.bumpMap,
+            bumpScale: 0.04,
+            roughness: 0.42,
             metalness: 0.05,
+            clearcoat: 0.28,
             side: THREE.DoubleSide
         });
-        const sailDarkMat = new THREE.MeshStandardMaterial({
-            color: skin.secondary || 0x3b352e,
-            roughness: 0.7,
-            side: THREE.DoubleSide
-        });
-        const clawMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.4 });
-        const irisMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-        const pupilMat = new THREE.MeshBasicMaterial({ color: 0x09090b });
+        const clawMat = new THREE.MeshStandardMaterial({ color: 0x0a101d, roughness: 0.22, metalness: 0.35 });
+        const irisMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+        const pupilMat = new THREE.MeshBasicMaterial({ color: 0x060b14 });
+
+        rig.bodyMat = pbrBodyMat;
 
         const UP = new THREE.Vector3(0, 1, 0);
         const bone = (parent, a, b, r1, r2, mat, seg = 8) => {
@@ -74,7 +249,7 @@ registerFighter({
         const blob = (parent, p, s, mat, rz = 0, ry = 0, rx = 0) => {
             const m = addMesh(new THREE.SphereGeometry(1, 14, 10), mat, parent, p[0], p[1], p[2], rx, ry, rz);
             m.scale.set(s[0], s[1], s[2]);
-            if (mat === bellyMat || mat === sailMat) skinMeshes.push(m);
+            skinMeshes.push(m);
             return m;
         };
         const membrane = (parent, pts, mat) => {
@@ -94,190 +269,145 @@ registerFighter({
         hips.position.y = 1.85;
 
         // =====================================================================
-        // 1. TORSE : long fût cylindrique bas et profilé de nageur
+        // 1. TORSE : fût profilé de prédateur aquatique
         // =====================================================================
-        blob(rig.torso, [0.05, 0.14, 0], [1.48, 0.65, 0.58], bodyMat, 0.04);
-        blob(rig.torso, [-0.65, 0.16, 0], [0.85, 0.58, 0.52], bodyMat, -0.04);
-        blob(rig.torso, [0.78, 0.14, 0], [0.72, 0.56, 0.52], bodyMat, 0.08);
-        blob(rig.torso, [0.08, -0.22, 0], [1.28, 0.36, 0.48], bellyMat, 0.03);
-        blob(rig.torso, [0.0, 0.54, 0], [1.36, 0.24, 0.42], darkMat, 0.04);
-
-        // Motifs sombres latéraux de camouflage fluvial
-        [-0.75, -0.32, 0.12, 0.55, 0.92].forEach((sx, i) => {
-            blob(rig.torso, [sx, 0.25 + (i % 2) * 0.06, 0], [0.11, 0.36, 0.59], darkMat, 0.2);
-        });
+        blob(rig.torso, [0.05, 0.16, 0], [1.52, 0.68, 0.60], pbrBodyMat, 0.04);
+        blob(rig.torso, [-0.68, 0.18, 0], [0.88, 0.60, 0.54], pbrBodyMat, -0.04);
+        blob(rig.torso, [0.82, 0.16, 0], [0.76, 0.58, 0.54], pbrBodyMat, 0.08);
 
         // =====================================================================
-        // 2. GRANDE VOILE DORSALE EN M (Spinosaurus aegyptiacus moderne)
+        // 2. GRANDE VOILE DORSALE EN M VASCULARISÉE (Profil 2026 Spinosaurus)
         // =====================================================================
         const sailGroup = new THREE.Group();
         rig.torso.add(sailGroup);
         rig.specialParts.sailGroup = sailGroup;
 
-        // Profil de la voile : haute à l'avant, léger creux médian, haute sur le bassin
         const spineDefs = [
-            [-1.18, 0.45, 0.95],
-            [-0.88, 0.50, 1.55],
-            [-0.56, 0.52, 1.82],
-            [-0.22, 0.54, 1.62],
-            [0.12, 0.54, 1.58],
-            [0.46, 0.54, 1.88],
-            [0.78, 0.52, 1.72],
-            [1.06, 0.46, 1.05]
+            [-1.20, 0.45, 0.98],
+            [-0.90, 0.50, 1.62],
+            [-0.56, 0.52, 1.90],
+            [-0.22, 0.54, 1.66],
+            [0.12, 0.54, 1.62],
+            [0.46, 0.54, 1.92],
+            [0.80, 0.52, 1.76],
+            [1.10, 0.46, 1.08]
         ];
-        // Membrane principale de la voile
         const sailPoly = [
             [0.0, 0.52, 0],
-            [-1.25, 0.42, 0],
+            [-1.28, 0.42, 0],
             ...spineDefs.map(d => [d[0], d[1] + d[2], 0]),
-            [1.18, 0.40, 0]
+            [1.20, 0.40, 0]
         ];
-        membrane(sailGroup, sailPoly, sailMat);
+        membrane(sailGroup, sailPoly, pbrSailMat);
 
-        // Rayons d'épines neurales en relief + bandes sombres obliques sur la voile
-        spineDefs.forEach((d, idx) => {
-            bone(sailGroup, [d[0], d[1], 0], [d[0] - 0.04, d[1] + d[2], 0], 0.055, 0.028, idx % 2 === 0 ? darkMat : bodyMat, 6);
-            if (idx % 2 === 1 && idx < spineDefs.length - 1) {
-                const nxt = spineDefs[idx + 1];
-                membrane(sailGroup, [
-                    [d[0] - 0.04, d[1] + d[2], 0.015],
-                    [nxt[0] - 0.04, nxt[1] + nxt[2], 0.015],
-                    [nxt[0] + 0.08, nxt[1] + nxt[2] * 0.35, 0.015],
-                    [d[0] + 0.06, d[1] + d[2] * 0.45, 0.015]
-                ], sailDarkMat);
-                membrane(sailGroup, [
-                    [d[0] - 0.04, d[1] + d[2], -0.015],
-                    [d[0] + 0.06, d[1] + d[2] * 0.45, -0.015],
-                    [nxt[0] + 0.08, nxt[1] + nxt[2] * 0.35, -0.015],
-                    [nxt[0] - 0.04, nxt[1] + nxt[2], -0.015]
-                ], sailDarkMat);
-            }
+        spineDefs.forEach((d) => {
+            bone(sailGroup, [d[0], d[1], 0], [d[0] - 0.04, d[1] + d[2], 0], 0.055, 0.026, pbrBodyMat, 6);
         });
 
         // =====================================================================
-        // 3. COU EN S ET LONG MUSEAU CROCODILIEN À ROSETTE TERMINALE
+        // 3. COU EN S & CRÂNE BARYONYCHINÉ À ROSETTE PRÉMAXILLAIRE CROCHUE
         // =====================================================================
-        rig.neck.position.set(1.22, 0.32, 0);
+        rig.neck.position.set(1.24, 0.34, 0);
         rig.torso.add(rig.neck);
-        const N0 = [0, 0, 0], N1 = [0.38, 0.34, 0], N2 = [0.68, 0.62, 0];
-        bone(rig.neck, N0, N1, 0.42, 0.32, bodyMat, 9);
-        joint(rig.neck, N1, 0.31, bodyMat);
-        bone(rig.neck, N1, N2, 0.31, 0.25, bodyMat, 9);
-        // Bande dorsale sombre et fanon gulaire clair sous la gorge
-        bone(rig.neck, [-0.04, 0.14, 0], [0.62, 0.74, 0], 0.18, 0.14, darkMat, 7);
-        blob(rig.neck, [0.35, 0.16, 0], [0.42, 0.18, 0.22], bellyMat, 0.55);
+        const N0 = [0, 0, 0], N1 = [0.40, 0.36, 0], N2 = [0.72, 0.65, 0];
+        bone(rig.neck, N0, N1, 0.44, 0.34, pbrBodyMat, 9);
+        joint(rig.neck, N1, 0.32, pbrBodyMat);
+        bone(rig.neck, N1, N2, 0.32, 0.26, pbrBodyMat, 9);
 
         // Crête d'épines cervicales
         for (let c = 0; c < 5; c++) {
             const t = c / 4;
-            addMesh(new THREE.ConeGeometry(0.03, 0.11, 4), darkMat, rig.neck, 0.12 + t * 0.5, 0.28 + t * 0.48, 0, 0, 0, -0.4);
+            addMesh(new THREE.ConeGeometry(0.035, 0.13, 5), clawMat, rig.neck, 0.12 + t * 0.52, 0.30 + t * 0.50, 0, 0, 0, -0.4);
         }
 
-        rig.headGroup.position.set(0.68, 0.64, 0);
+        rig.headGroup.position.set(0.72, 0.66, 0);
         rig.neck.add(rig.headGroup);
 
-        // Arrière-crâne étroit et haut
-        blob(rig.headGroup, [0.14, 0.06, 0], [0.36, 0.24, 0.24], bodyMat, -0.06);
-        blob(rig.headGroup, [0.10, 0.22, 0], [0.30, 0.12, 0.22], darkMat, -0.06);
-        // Long museau étroit (maxillaire) avec encoche sub-narinaire et rosette terminale renflée au bout
-        bone(rig.headGroup, [0.22, 0.04, 0], [1.22, -0.02, 0], 0.20, 0.12, bodyMat, 8);
-        blob(rig.headGroup, [1.38, -0.02, 0], [0.24, 0.15, 0.13], bodyMat, -0.15); // Rosette prémaxillaire crochue
+        // Arrière-crâne et long rostre avec encoche sub-narinaire
+        blob(rig.headGroup, [0.15, 0.06, 0], [0.38, 0.26, 0.25], pbrBodyMat, -0.06);
+        bone(rig.headGroup, [0.24, 0.04, 0], [1.26, -0.02, 0], 0.21, 0.12, pbrBodyMat, 8);
+        blob(rig.headGroup, [1.42, -0.02, 0], [0.26, 0.16, 0.14], pbrBodyMat, -0.15); // Rosette renflée
 
-        // Crête nasale médiane caractéristique entre les yeux
-        membrane(rig.headGroup, [[0.25, 0.18, 0.02], [0.48, 0.40, 0], [0.76, 0.14, 0.02]], accentMat);
-        membrane(rig.headGroup, [[0.25, 0.18, -0.02], [0.76, 0.14, -0.02], [0.48, 0.40, 0]], accentMat);
-        bone(rig.headGroup, [0.26, 0.20, 0], [0.72, 0.15, 0], 0.05, 0.03, darkMat, 5);
+        // Crête nasale médiane entre les yeux
+        membrane(rig.headGroup, [[0.25, 0.20, 0.02], [0.50, 0.44, 0], [0.80, 0.15, 0.02]], pbrSailMat);
+        membrane(rig.headGroup, [[0.25, 0.20, -0.02], [0.80, 0.15, -0.02], [0.50, 0.44, 0]], pbrSailMat);
 
-        // Yeux haut placés de piscivore
         [-1, 1].forEach(side => {
-            addMesh(new THREE.SphereGeometry(0.055, 8, 8), irisMat, rig.headGroup, 0.26, 0.15, side * 0.20);
-            addMesh(new THREE.SphereGeometry(0.028, 6, 6), pupilMat, rig.headGroup, 0.29, 0.15, side * 0.24);
-            blob(rig.headGroup, [0.25, 0.23, side * 0.19], [0.12, 0.04, 0.06], darkMat, 0.1);
+            addMesh(new THREE.SphereGeometry(0.058, 8, 8), irisMat, rig.headGroup, 0.28, 0.16, side * 0.21);
+            addMesh(new THREE.SphereGeometry(0.028, 6, 6), pupilMat, rig.headGroup, 0.31, 0.16, side * 0.25);
+            blob(rig.headGroup, [0.26, 0.24, side * 0.20], [0.13, 0.05, 0.06], clawMat, 0.1);
         });
 
-        // Dents coniques entrecroisées de piscivore (grandes canines dans la rosette)
-        for (let t = 0; t < 9; t++) {
-            const tx = 0.35 + t * 0.14;
-            const isRosette = t >= 7;
-            const len = isRosette ? 0.16 : 0.10;
+        // Dents coniques entrecroisées
+        for (let t = 0; t < 10; t++) {
+            const tx = 0.36 + t * 0.13;
+            const isRosette = t >= 8;
+            const len = isRosette ? 0.18 : 0.11;
             [-1, 1].forEach(side => {
-                addMesh(new THREE.ConeGeometry(0.02, len, 5), boneMat, rig.headGroup,
-                    tx, isRosette ? -0.13 : -0.10, side * (isRosette ? 0.10 : 0.13), Math.PI, 0, 0);
+                addMesh(new THREE.ConeGeometry(0.022, len, 5), boneMat, rig.headGroup,
+                    tx, isRosette ? -0.14 : -0.10, side * (isRosette ? 0.11 : 0.14), Math.PI, 0, 0);
             });
         }
 
         // Mâchoire inférieure longue et fine
-        rig.jaw.position.set(0.10, -0.10, 0);
+        rig.jaw.position.set(0.12, -0.10, 0);
         rig.headGroup.add(rig.jaw);
-        bone(rig.jaw, [0, 0, 0], [1.18, -0.02, 0], 0.14, 0.08, bellyMat, 7);
-        blob(rig.jaw, [1.28, 0.0, 0], [0.16, 0.09, 0.09], bellyMat, 0.1);
-        for (let t = 0; t < 8; t++) {
-            const tx = 0.25 + t * 0.13;
+        bone(rig.jaw, [0, 0, 0], [1.22, -0.02, 0], 0.15, 0.09, pbrBodyMat, 7);
+        blob(rig.jaw, [1.32, 0.0, 0], [0.18, 0.10, 0.10], pbrBodyMat, 0.1);
+        for (let t = 0; t < 9; t++) {
+            const tx = 0.26 + t * 0.13;
             [-1, 1].forEach(side => {
-                addMesh(new THREE.ConeGeometry(0.018, 0.09, 5), boneMat, rig.jaw, tx, 0.06, side * 0.09);
+                addMesh(new THREE.ConeGeometry(0.02, 0.10, 5), boneMat, rig.jaw, tx, 0.07, side * 0.10);
             });
         }
 
         // =====================================================================
-        // 4. BRAS PUISSANTS ARMÉS DE GRANDES GRIFFES DE PÊCHE / ÉVENTRATION
+        // 4. BRAS PUISSANTS & IMMENSES GRIFFES CROCODILE DU POUCE
         // =====================================================================
         [-1, 1].forEach(side => {
             const arm = new THREE.Group();
-            arm.position.set(0.95, -0.05, side * 0.48);
+            arm.position.set(0.98, -0.05, side * 0.50);
             rig.torso.add(arm);
             rig.arms.push(arm);
 
-            const S = [0, 0, 0], E = [-0.08, -0.45, side * 0.06], W = [0.35, -0.82, side * 0.04];
-            blob(arm, [-0.02, -0.20, 0], [0.18, 0.28, 0.16], bodyMat, 0.2);
-            bone(arm, S, E, 0.16, 0.12, bodyMat, 8);
-            joint(arm, E, 0.12, darkMat);
-            bone(arm, E, W, 0.12, 0.09, darkMat, 8);
-            joint(arm, W, 0.09, darkMat);
+            const S = [0, 0, 0], E = [-0.08, -0.48, side * 0.06], W = [0.38, -0.86, side * 0.04];
+            blob(arm, [-0.02, -0.22, 0], [0.20, 0.30, 0.17], pbrBodyMat, 0.2);
+            bone(arm, S, E, 0.17, 0.13, pbrBodyMat, 8);
+            joint(arm, E, 0.13, clawMat);
+            bone(arm, E, W, 0.13, 0.10, pbrBodyMat, 8);
+            joint(arm, W, 0.10, clawMat);
 
-            // 3 doigts avec griffe du pouce géante recourbée (type Baryonyx/Spinosaurus)
             [-0.06, 0, 0.06].forEach((dz, i) => {
                 const isThumb = i === 0;
-                const fingerTip = [W[0] + 0.18, W[1] - 0.10, W[2] + dz];
-                bone(arm, W, fingerTip, 0.04, 0.028, darkMat, 5);
-                claw(arm, [fingerTip[0] + 0.10, fingerTip[1] - 0.08, fingerTip[2]],
-                    isThumb ? 0.36 : 0.22, isThumb ? 0.048 : 0.032, -Math.PI / 2 - 0.65);
+                const fingerTip = [W[0] + 0.19, W[1] - 0.11, W[2] + dz];
+                bone(arm, W, fingerTip, 0.045, 0.03, clawMat, 5);
+                claw(arm, [fingerTip[0] + 0.11, fingerTip[1] - 0.08, fingerTip[2]],
+                    isThumb ? 0.38 : 0.24, isThumb ? 0.052 : 0.035, -Math.PI / 2 - 0.65);
             });
         });
 
         // =====================================================================
-        // 5. QUEUE EN RAME AQUATIQUE (Paddle Tail à haute crête caudale)
+        // 5. QUEUE NATATOIRE EN RAME (PADDLE TAIL)
         // =====================================================================
         let pTail = rig.torso;
-        const tLen = 0.88;
-        const finHeights = [0.68, 0.78, 0.72, 0.42];
-        const radii = [0.44, 0.32, 0.22, 0.12, 0.04];
+        const tLen = 0.92;
+        const finHeights = [0.72, 0.82, 0.76, 0.45];
         for (let s = 0; s < 4; s++) {
             const seg = new THREE.Group();
-            seg.position.set(s === 0 ? -1.18 : -tLen, s === 0 ? 0.12 : 0, 0);
+            seg.position.set(s === 0 ? -1.15 : -tLen, s === 0 ? 0.16 : 0, 0);
+            const r1 = 0.40 - s * 0.08, r2 = 0.32 - s * 0.07;
+            bone(seg, [0, 0, 0], [-tLen, 0, 0], r1, r2, pbrBodyMat, 8);
 
-            const r1 = radii[s], r2 = radii[s + 1];
-            bone(seg, [0, 0, 0], [-tLen, 0, 0], r1, r2, bodyMat, 8);
-            bone(seg, [0, -r1 * 0.35, 0], [-tLen, -r2 * 0.35, 0], r1 * 0.65, r2 * 0.6, bellyMat, 7);
-
-            // Nageoire caudale supérieure (haute membrane soutenue par épines neurales)
-            const fh1 = finHeights[s], fh2 = finHeights[Math.min(3, s + 1)];
-            membrane(seg, [
-                [0, r1 * 0.6, 0],
-                [-tLen * 0.5, (fh1 + fh2) * 0.52, 0],
-                [-tLen, r2 * 0.6 + fh2 * (s === 3 ? 0.2 : 0.85), 0],
-                [-tLen, r2 * 0.5, 0]
-            ], sailMat);
-            // Nageoire caudale inférieure (chevrons)
-            membrane(seg, [
-                [0, -r1 * 0.5, 0],
-                [-tLen * 0.5, -r1 * 0.5 - fh1 * 0.32, 0],
-                [-tLen, -r2 * 0.5, 0]
-            ], bellyMat);
-
-            // Rayures verticales sombres sur la queue-rame
-            [-0.25, -0.65].forEach(bx => {
-                blob(seg, [bx, fh1 * 0.22, 0], [0.09, fh1 * 0.55, r1 * 0.6 + 0.03], darkMat, 0.05);
-            });
+            // Voilure haute de la queue natatoire
+            const fH = finHeights[s];
+            const finPts = [
+                [0, r1 * 0.8, 0],
+                [-tLen * 0.5, fH, 0],
+                [-tLen, r2 * 0.8, 0],
+                [-tLen, -r2 * 0.5, 0],
+                [0, -r1 * 0.5, 0]
+            ];
+            membrane(seg, finPts, pbrSailMat);
 
             pTail.add(seg);
             rig.tailSegments.push(seg);
@@ -285,32 +415,26 @@ registerFighter({
         }
 
         // =====================================================================
-        // 6. PATTES ARRIÈRE COURTES ET ROBUSTES (anatomie moderne de Spinosaurus)
+        // 6. PATTES ARRIÈRE SEMI-AQUATIQUES DIGITIGRADES (sol à y = -1.85)
         // =====================================================================
         [-1, 1].forEach(side => {
             const leg = new THREE.Group();
-            leg.position.set(-0.35, 0.02, side * 0.46);
+            leg.position.set(-0.35, 0.05, side * 0.48);
             hips.add(leg);
             rig.legs.push(leg);
 
-            const H = [0, 0, 0];
-            const K = [0.22, -0.68, side * 0.04];
-            const A = [-0.16, -1.36, side * 0.04];
-            const F = [0.12, -1.78, side * 0.05];
+            const H = [0, 0, 0], K = [0.22, -0.68, side * 0.04], A = [-0.18, -1.35, side * 0.04], F = [0.12, -1.78, side * 0.04];
+            blob(leg, [0.06, -0.35, 0], [0.38, 0.52, 0.30], pbrBodyMat, 0.22);
+            joint(leg, K, 0.21, clawMat);
+            bone(leg, K, A, 0.20, 0.13, pbrBodyMat, 8);
+            joint(leg, A, 0.13, clawMat);
+            bone(leg, A, F, 0.13, 0.10, pbrBodyMat, 7);
 
-            blob(leg, [0.06, -0.34, 0], [0.38, 0.48, 0.30], bodyMat, 0.22);
-            blob(leg, [0.08, -0.32, side * 0.14], [0.24, 0.09, 0.18], darkMat, 0.15);
-            joint(leg, K, 0.20, bodyMat);
-            bone(leg, K, A, 0.20, 0.13, darkMat, 8);
-            joint(leg, A, 0.13, darkMat);
-            bone(leg, A, F, 0.13, 0.11, darkMat, 7);
-
-            // Pied palmé large à 4 orteils et griffes plates
-            [-0.14, -0.04, 0.06, 0.15].forEach((dz, i) => {
-                const tip = [F[0] + (i === 1 || i === 2 ? 0.38 : 0.28), -1.84, F[2] + dz];
-                bone(leg, F, tip, 0.055, 0.04, darkMat, 5);
-                claw(leg, [tip[0] + 0.06, tip[1], tip[2]], 0.13, 0.035, -Math.PI / 2 - 0.1);
+            [-0.11, 0, 0.11].forEach(dz => {
+                const toeTip = [F[0] + 0.32, -1.82, F[2] + dz];
+                bone(leg, F, toeTip, 0.05, 0.035, clawMat, 5);
+                claw(leg, [toeTip[0] + 0.07, toeTip[1], toeTip[2]], 0.18, 0.038, -Math.PI / 2 - 0.2);
             });
         });
-    },
+    }
 });

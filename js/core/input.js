@@ -40,7 +40,7 @@ function handleEscapeOrStartAction() {
     }
 
     // 4. En combat ou cinématique : ouvrir le menu pause
-    if (matchState === 'fight' || matchState === 'finish_him' || matchState === 'round_over' || matchState === 'intro') {
+    if (matchState === 'fight' || matchState === 'finish_him' || matchState === 'round_over' || matchState === 'intro' || matchState === 'campaign_level') {
         if (typeof openPauseMenu === 'function') openPauseMenu();
         return;
     }
@@ -199,10 +199,50 @@ window.addEventListener('keydown', (e) => {
         }
     }
 
+    // Navigation sur la carte temporelle de Campagne (Road Through Time / Smash Melee)
+    if (matchState === 'campaign_map') {
+        const erasCount = typeof CAMPAIGN_ERAS !== 'undefined' ? CAMPAIGN_ERAS.length : (typeof GEOLOGICAL_PERIODS !== 'undefined' ? GEOLOGICAL_PERIODS.length : 6);
+        const sig = typeof selectedEraIndexSignal !== 'undefined' ? selectedEraIndexSignal : (typeof selectedPeriodIndexSignal !== 'undefined' ? selectedPeriodIndexSignal : null);
+
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA' || e.code === 'KeyQ') {
+            e.preventDefault();
+            if (sig) {
+                sig.value = Math.max(0, sig.value - 1);
+                if (typeof sfx !== 'undefined' && sfx.playHit) sfx.playHit(false);
+            }
+            return;
+        }
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+            e.preventDefault();
+            if (sig) {
+                sig.value = Math.min(erasCount - 1, sig.value + 1);
+                if (typeof sfx !== 'undefined' && sfx.playHit) sfx.playHit(false);
+            }
+            return;
+        }
+        if (e.code === 'KeyH') {
+            e.preventDefault();
+            if (typeof cyclePlayerHero === 'function') cyclePlayerHero();
+            return;
+        }
+        if (e.code === 'Enter' || e.code === 'Space') {
+            e.preventDefault();
+            const btnEnter = document.getElementById('btnEnterPeriod');
+            if (btnEnter) btnEnter.click();
+            return;
+        }
+        if (e.code === 'Escape' || e.code === 'Backspace') {
+            e.preventDefault();
+            if (typeof closeCampaignMap === 'function') closeCampaignMap();
+            if (typeof goToMainMenu === 'function') goToMainMenu();
+            return;
+        }
+    }
+
     // Bloquer tous les contrôles si une cinématique X-Ray est en cours
     if (xrayCinematicTimer > 0) return;
 
-    if (matchState === 'fight' || matchState === 'finish_him') {
+    if (matchState === 'fight' || matchState === 'finish_him' || matchState === 'campaign_level') {
         // Double-tap Gauche/Droite pour Dash rapide
         if (e.code === 'KeyA' || e.code === 'KeyQ' || (gameMode !== 'pvp' && e.code === 'ArrowLeft')) {
             if (now - lastTapTime.left < 280 && fighter1) fighter1.startDash(-1);
@@ -353,10 +393,12 @@ window.addEventListener('gamepaddisconnected', () => {
 function showGamepadToast(msg) {
     let toast = document.getElementById('gamepadToast');
     if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'gamepadToast';
-        toast.className = 'fixed top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none px-4 py-2 rounded-xl bg-zinc-950/95 border-2 border-amber-400 text-amber-300 font-black text-xs sm:text-sm tracking-wider uppercase shadow-[0_0_25px_rgba(245,158,11,0.6)] transition-all duration-300 opacity-0 transform -translate-y-2';
-        document.body.appendChild(toast);
+        const toastUI = new UIKit.Badge({
+            id: 'gamepadToast',
+            text: msg,
+            className: 'fixed top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none px-4 py-2 rounded-xl bg-zinc-950/95 border-2 border-amber-400 text-amber-300 font-black text-xs sm:text-sm tracking-wider uppercase shadow-[0_0_25px_rgba(245,158,11,0.6)] transition-all duration-300 opacity-0 transform -translate-y-2'
+        });
+        toast = toastUI.mount(document.body);
     }
     toast.textContent = msg;
     toast.style.opacity = '1';
@@ -369,13 +411,17 @@ function showGamepadToast(msg) {
 }
 
 
-// 3. BARRE D'AIDE MANETTE CONTEXTUELLE EN BAS D'ÉCRAN
+// 3. BARRE D'AIDE MANETTE CONTEXTUELLE EN BAS D'ÉCRAN (@pmndrs/uikit)
 function createGamepadHelperHUD() {
     if (document.getElementById('gamepadHelperBar')) return;
-    const bar = document.createElement('div');
-    bar.id = 'gamepadHelperBar';
-    bar.className = 'fixed bottom-1 left-1/2 -translate-x-1/2 z-40 pointer-events-none px-3.5 py-1 rounded-full bg-zinc-950/90 backdrop-blur-md border border-amber-500/40 shadow-2xl flex items-center justify-center gap-2 text-[10px] sm:text-xs text-zinc-300 font-bold transition-all duration-200 select-none opacity-95 max-w-[95vw] overflow-x-auto';
-    document.body.appendChild(bar);
+    const barUI = new UIKit.Container({
+        id: 'gamepadHelperBar',
+        className: 'fixed bottom-1 left-1/2 -translate-x-1/2 z-40 pointer-events-none px-3.5 py-1 rounded-full bg-zinc-950/90 backdrop-blur-md border border-amber-500/40 shadow-2xl flex items-center justify-center gap-2 text-[10px] sm:text-xs text-zinc-300 font-bold transition-all duration-200 select-none opacity-95 max-w-[95vw] overflow-x-auto',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center'
+    });
+    barUI.mount(document.body);
 }
 
 let _lastGamepadHelperKey = '';
@@ -440,7 +486,6 @@ function updateGamepadHelperHUD() {
             <span class="text-amber-400 font-extrabold font-chakra">🦖 COMBATTANTS</span>
             <span class="gp-key">D-Pad</span> Choisir
             <span class="gp-key gp-key-gold">A</span> Valider / Suivant
-            <span class="gp-key">LB / RB</span> Skins J1
             <span class="gp-key">X</span> Aléatoire
             <span class="gp-key gp-key-action">START</span> Arène
             <span class="gp-key">B</span> Menu
@@ -454,7 +499,7 @@ function updateGamepadHelperHUD() {
             <span class="gp-key">X</span> Aléatoire
             <span class="gp-key">B</span> Retour
         `;
-    } else if (matchState === 'fight' || matchState === 'finish_him' || matchState === 'round_over' || matchState === 'intro') {
+    } else if (matchState === 'fight' || matchState === 'finish_him' || matchState === 'round_over' || matchState === 'intro' || matchState === 'campaign_level') {
         bar.style.display = 'none';
     }
 }
@@ -554,83 +599,155 @@ function handleGamepadMovesModal(pad, dt) {
     }
 }
 
-// B. PARAMÈTRES DU JEU (MODAL)
+// B. PARAMÈTRES DU JEU (MODAL — PREHISTORIC OVERHAUL)
 function handleGamepadSettingsModal(pad, dt) {
     const nav = checkNavInput(pad, 0, dt);
-    const rowElements = [
-        document.querySelector('.btn-gfx-opt[data-gfx="' + graphicsQuality + '"]') || document.querySelector('.btn-gfx-opt'),
-        document.getElementById('btnToggleFullscreen'),
-        document.getElementById('settingsAiDiff'),
-        document.getElementById('btnSettingsSoundToggle'),
-        document.getElementById('btnSaveSettingsClose')
-    ];
+    const btnA = isGpBtnJustPressed(0, 0); // [A] Select / Toggle
+    const btnB = isGpBtnJustPressed(0, 1) || isGpBtnJustPressed(0, 9); // [B] Back / Start
+    const btnX = isGpBtnJustPressed(0, 2); // [X] Reset Defaults
+    const btnLB = isGpBtnJustPressed(0, 4); // LB Prev Tab
+    const btnRB = isGpBtnJustPressed(0, 5); // RB Next Tab
+
+    // 1. Bouton B ou Start : Fermer la modale
+    if (btnB) {
+        if (typeof closeSettingsModal === 'function') closeSettingsModal();
+        return;
+    }
+
+    // 2. Bouton X : Réinitialiser aux valeurs par défaut
+    if (btnX) {
+        if (typeof resetSettingsToDefaults === 'function') resetSettingsToDefaults();
+        return;
+    }
+
+    // 3. LB / RB : Changer d'onglet (AUDIO, VIDEO, GAMEPLAY, CONTROLS)
+    const tabs = ['audio', 'video', 'gameplay', 'controls'];
+    if (btnLB || btnRB) {
+        const curTab = typeof settingsActiveTabSignal !== 'undefined' ? settingsActiveTabSignal.value : 'gameplay';
+        let tabIdx = tabs.indexOf(curTab);
+        if (tabIdx === -1) tabIdx = 2;
+        const nextIdx = btnLB ? (tabIdx - 1 + tabs.length) % tabs.length : (tabIdx + 1) % tabs.length;
+        if (typeof settingsActiveTabSignal !== 'undefined') {
+            settingsActiveTabSignal.value = tabs[nextIdx];
+            if (typeof updateSettingsUI === 'function') updateSettingsUI();
+            if (typeof sfx !== 'undefined' && typeof sfx.playTabSwitch === 'function') {
+                sfx.playTabSwitch();
+            } else if (typeof sfx !== 'undefined') {
+                sfx.playHit(false);
+            }
+        }
+        return;
+    }
+
+    // 4. Navigation Haut / Bas parmi les lignes actives
+    const rowEls = Array.from(document.querySelectorAll('.settings-row'));
+    if (!rowEls.length) return;
 
     if (nav === 'up') {
         settingsRow = Math.max(0, settingsRow - 1);
-        sfx.playHit(false);
+        if (typeof sfx !== 'undefined') sfx.playHit(false);
     } else if (nav === 'down') {
-        settingsRow = Math.min(rowElements.length - 1, settingsRow + 1);
-        sfx.playHit(false);
+        settingsRow = Math.min(rowEls.length - 1, settingsRow + 1);
+        if (typeof sfx !== 'undefined') sfx.playHit(false);
     }
 
-    const targetEl = rowElements[settingsRow];
-    if (targetEl) setGamepadFocus(targetEl);
+    // Highlight visuel de la ligne active
+    rowEls.forEach((r, idx) => {
+        const label = r.querySelector('.settings-label-slab');
+        if (label) {
+            if (idx === settingsRow) label.classList.add('active-focus');
+            else label.classList.remove('active-focus');
+        }
+    });
 
-    // Modification selon la ligne active
-    const btnA = isGpBtnJustPressed(0, 0);
+    const activeRow = rowEls[settingsRow];
+    if (!activeRow) return;
 
-    if (settingsRow === 0) { // 1. Qualité Graphique
-        const gfxOpts = ['low', 'medium', 'high', 'ultra'];
-        let curIdx = gfxOpts.indexOf(graphicsQuality);
-        if (curIdx === -1) curIdx = 2;
+    // 5. Interaction selon le type de contrôle sur la ligne active
+    const slider = activeRow.querySelector('.bone-slider-wrapper');
+    const toggleCapsule = activeRow.querySelector('.toggle-onoff-capsule');
+    const toggleDisplay = activeRow.querySelector('.toggle-mode-bar');
+    const gfxPicker = activeRow.querySelector('#gfxPicker');
+    const aiPicker = activeRow.querySelector('#aiPicker');
+
+    // A. Slider en os (Volume, Shake, etc.)
+    if (slider) {
+        const sliderId = slider.dataset.sliderId;
+        let curVal = 50;
+        if (sliderId === 'masterVol') curVal = settingsMasterVolSignal.value;
+        else if (sliderId === 'sfxVol') curVal = settingsSfxVolSignal.value;
+        else if (sliderId === 'screenShake') curVal = settingsScreenShakeSignal.value;
+        else if (sliderId === 'musicVol') curVal = settingsMusicVolSignal.value;
 
         if (nav === 'left') {
-            const nextQ = gfxOpts[Math.max(0, curIdx - 1)];
-            applyGraphicsSettings(nextQ);
-            updateSettingsUI();
-            sfx.playHit(false);
-        } else if (nav === 'right' || btnA) {
-            const nextQ = gfxOpts[(curIdx + 1) % gfxOpts.length];
-            applyGraphicsSettings(nextQ);
-            updateSettingsUI();
-            sfx.playHit(false);
+            const nextVal = Math.max(0, curVal - 5);
+            applySliderValue(sliderId, nextVal);
+        } else if (nav === 'right') {
+            const nextVal = Math.min(100, curVal + 5);
+            applySliderValue(sliderId, nextVal);
         }
-    } else if (settingsRow === 1) { // 2. Plein écran
-        if (btnA) {
-            const btnFs = document.getElementById('btnToggleFullscreen');
-            if (btnFs) btnFs.click();
-        }
-    } else if (settingsRow === 2) { // 3. Difficulté de l'IA
-        const diffOpts = ['easy', 'normal', 'brutal'];
-        let curIdx = diffOpts.indexOf(aiDifficulty);
-        if (curIdx === -1) curIdx = 1;
+    }
 
+    // B. Toggle ON / OFF (Gore & Blood, Subtitles, Sound)
+    if (toggleCapsule && (btnA || nav === 'left' || nav === 'right')) {
+        toggleCapsule.click();
+    }
+
+    // C. Toggle Display Mode (Fullscreen / Windowed)
+    if (toggleDisplay && (btnA || nav === 'left' || nav === 'right')) {
+        toggleDisplay.click();
+    }
+
+    // D. GFX Picker (Video tab)
+    if (gfxPicker) {
+        const qOpts = ['low', 'medium', 'high', 'ultra'];
+        let curQIdx = qOpts.indexOf(settingsGraphicsSignal.value);
+        if (curQIdx === -1) curQIdx = 2;
         if (nav === 'left') {
-            aiDifficulty = diffOpts[(curIdx - 1 + diffOpts.length) % diffOpts.length];
-            const sel = document.getElementById('settingsAiDiff');
-            if (sel) sel.value = aiDifficulty;
-            sfx.playHit(false);
+            const nextQ = qOpts[Math.max(0, curQIdx - 1)];
+            const btn = gfxPicker.querySelector(`[data-gfx="${nextQ}"]`);
+            if (btn) btn.click();
         } else if (nav === 'right' || btnA) {
-            aiDifficulty = diffOpts[(curIdx + 1) % diffOpts.length];
-            const sel = document.getElementById('settingsAiDiff');
-            if (sel) sel.value = aiDifficulty;
-            sfx.playHit(false);
-        }
-    } else if (settingsRow === 3) { // 4. Audio
-        if (btnA) {
-            const sndBtn = document.getElementById('btnSettingsSoundToggle');
-            if (sndBtn) sndBtn.click();
-        }
-    } else if (settingsRow === 4) { // 5. Valider & Fermer
-        if (btnA) {
-            closeSettingsModal();
+            const nextQ = qOpts[(curQIdx + 1) % qOpts.length];
+            const btn = gfxPicker.querySelector(`[data-gfx="${nextQ}"]`);
+            if (btn) btn.click();
         }
     }
 
-    // Fermer les paramètres avec B (1) ou Start (9)
-    if (isGpBtnJustPressed(0, 1) || isGpBtnJustPressed(0, 9)) {
-        closeSettingsModal();
+    // E. AI Picker (Controls tab)
+    if (aiPicker) {
+        const aiOpts = ['easy', 'normal', 'brutal'];
+        let curAiIdx = aiOpts.indexOf(settingsAiDiffSignal.value);
+        if (curAiIdx === -1) curAiIdx = 1;
+        if (nav === 'left') {
+            const nextAi = aiOpts[Math.max(0, curAiIdx - 1)];
+            const btn = aiPicker.querySelector(`[data-ai="${nextAi}"]`);
+            if (btn) btn.click();
+        } else if (nav === 'right' || btnA) {
+            const nextAi = aiOpts[(curAiIdx + 1) % aiOpts.length];
+            const btn = aiPicker.querySelector(`[data-ai="${nextAi}"]`);
+            if (btn) btn.click();
+        }
     }
+}
+
+function applySliderValue(sliderId, val) {
+    if (sliderId === 'masterVol') {
+        settingsMasterVolSignal.value = val;
+        if (typeof sfx !== 'undefined' && typeof sfx.setMasterVolume === 'function') sfx.setMasterVolume(val / 100);
+    } else if (sliderId === 'sfxVol') {
+        settingsSfxVolSignal.value = val;
+        if (typeof sfx !== 'undefined' && typeof sfx.setSfxVolume === 'function') sfx.setSfxVolume(val / 100);
+    } else if (sliderId === 'screenShake') {
+        settingsScreenShakeSignal.value = val;
+        window.screenShakeMultiplier = val / 100;
+    } else if (sliderId === 'musicVol') {
+        settingsMusicVolSignal.value = val;
+    }
+    if (typeof sfx !== 'undefined' && typeof sfx.playSliderTick === 'function') {
+        sfx.playSliderTick();
+    }
+    if (typeof updateSettingsUI === 'function') updateSettingsUI();
 }
 
 // C. MENU DE PAUSE & OPTIONS RAPIDES (MODAL)
@@ -886,9 +1003,7 @@ function handleGamepadSelectScreen(pad, pad2, dt) {
             updateSelectScreenUI();
         }
 
-        // Raccourcis Manette 2 : Skins & Aléatoire
-        if (isGpBtnJustPressed(1, 4)) { const b = document.getElementById('btnP2PrevSkin'); if (b) b.click(); }
-        if (isGpBtnJustPressed(1, 5)) { const b = document.getElementById('btnP2NextSkin'); if (b) b.click(); }
+        // Raccourcis Manette 2 : Aléatoire
         if (isGpBtnJustPressed(1, 2)) { // X = Aléatoire J2
             const unlocked = DINO_ROSTER.map((d, i) => (!d.isUnlockable || isFighterUnlocked(d.id)) ? i : -1).filter(i => i !== -1);
             do {
@@ -898,12 +1013,6 @@ function handleGamepadSelectScreen(pad, pad2, dt) {
             sfx.playHit(false);
         }
     }
-
-    // Raccourcis manette J1 (sur le Roster)
-    if (isGpBtnJustPressed(0, 4)) { const b = document.getElementById('btnP1PrevSkin'); if (b) b.click(); } // LB = Skin précédent J1
-    if (isGpBtnJustPressed(0, 5)) { const b = document.getElementById('btnP1NextSkin'); if (b) b.click(); } // RB = Skin suivant J1
-    if (isGpBtnJustPressed(0, 6)) { const b = document.getElementById('btnP2PrevSkin'); if (b) b.click(); } // LT = Skin précédent J2
-    if (isGpBtnJustPressed(0, 7)) { const b = document.getElementById('btnP2NextSkin'); if (b) b.click(); } // RT = Skin suivant J2
 
     if (isGpBtnJustPressed(0, 2)) { // X = Aléatoire
         const rndBtn = document.getElementById('btnRandomFighters');

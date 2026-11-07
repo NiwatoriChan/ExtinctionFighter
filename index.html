@@ -3,8 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <title>EXTINCTION KOMBAT 3D - Jurassic Blood</title>
+    <script>
+    window.__testErrors = [];
+    window.addEventListener('error', (e) => {
+        const info = e.target && e.target.src ? `Resource error: ${e.target.src}` : (e.message || String(e));
+        window.__testErrors.push({ message: info, filename: e.filename || (e.target && e.target.src), lineno: e.lineno });
+    }, true);
+    window.addEventListener('unhandledrejection', (e) => {
+        window.__testErrors.push({ reason: String(e.reason) });
+    });
+    if (window.location.search.includes('test=1')) {
+        const sendLog = (type, data) => {
+            try {
+                fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, data, ts: performance.now(), href: location.href }) }).catch(() => {});
+            } catch (_) {}
+        };
+        const origErr = console.error;
+        console.error = (...args) => {
+            origErr.apply(console, args);
+            sendLog('error', { consoleError: args.map(String).join(' ') });
+        };
+        const origWarn = console.warn;
+        console.warn = (...args) => {
+            origWarn.apply(console, args);
+            sendLog('warn', { consoleWarn: args.map(String).join(' ') });
+        };
+        const origLog = console.log;
+        console.log = (...args) => {
+            origLog.apply(console, args);
+            sendLog('log', { consoleLog: args.map(String).join(' ') });
+        };
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                sendLog('done', {
+                    matchState: typeof matchState !== 'undefined' ? matchState : null,
+                    uikitDefined: typeof UIKit !== 'undefined',
+                    activeRootsCount: typeof UIKit !== 'undefined' ? UIKit.activeRoots.size : 0,
+                    domElements: {
+                        mainMenu: !!document.getElementById('mainMenu'),
+                        selectScreen: !!document.getElementById('selectScreen'),
+                        arenaScreen: !!document.getElementById('arenaScreen'),
+                        battleScreen: !!document.getElementById('battleScreen'),
+                        pauseModal: !!document.getElementById('pauseModal'),
+                        settingsModal: !!document.getElementById('settingsModal'),
+                        movesModal: !!document.getElementById('movesModal')
+                    }
+                });
+            }, 1000);
+        });
+    }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="js/libs/three.min.js"></script>
+    <!-- Système d'interface utilisateur 3D / Spatial & Flexbox réactif (@pmndrs/uikit + @preact/signals-core) -->
+    <script src="js/libs/pmndrs-uikit.min.js"></script>
+    <!-- Bibliothèques d'IA & Navigation 3D (Yuka, Kompute, Three-Pathfinding, BehaviorTree.js, XState) -->
+    <script src="js/libs/yuka.min.js"></script>
+    <script src="js/libs/kompute-tactical.js"></script>
+    <script src="js/libs/three-pathfinding.min.js"></script>
+    <script src="js/libs/behaviortree.min.js"></script>
+    <script src="js/libs/xstate.umd.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Permanent+Marker&family=Rubik+Wet+Paint&family=Chakra+Petch:ital,wght@0,600;0,700;1,700&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -146,11 +204,18 @@
     <script src="js/core/effects.js"></script>
     <script src="js/core/input.js"></script>
     <script src="js/core/combat.js"></script>
+    <script src="js/core/campaign-level.js"></script>
     <script src="js/core/match.js"></script>
+    <!-- Architecture IA 4-Étapes (NavMesh -> Yuka Steering -> XState / BehaviorTree -> Sync) -->
+    <script src="js/core/ai-navmesh.js"></script>
+    <script src="js/core/ai-steering.js"></script>
+    <script src="js/core/ai-statechart.js"></script>
+    <script src="js/core/ai-behaviortree.js"></script>
     <script src="js/core/ai.js"></script>
     <!-- Menus (un fichier par menu) -->
     <script src="js/menus/header.js"></script>
     <script src="js/menus/main-menu.js"></script>
+    <script src="js/menus/campaign-map.js"></script>
     <script src="js/menus/select-screen.js"></script>
     <script src="js/menus/arena-chooser.js"></script>
     <script src="js/menus/settings-modal.js"></script>

@@ -1,151 +1,234 @@
 /* ============================================================================
  * MENU : MENU PAUSE & OPTIONS EN COMBAT (TRIGGERED BY ESCAPE / START)
- * Remplace la barre d'en-tête web par un véritable menu pause console plein écran.
- * Accessible à tout moment en combat via la touche Échap ou le bouton Start.
+ * Ported to @pmndrs/uikit (UIKit.Dialog, UIKit.Card, UIKit.Button, UIKit.Signal).
  * ============================================================================ */
 
-const PAUSE_MODAL_HTML = `
-    <!-- MODAL DE PAUSE & OPTIONS DU JEU (HOMMAGE JEU DE COMBAT CONSOLE) -->
-    <div id="pauseModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 select-none">
-        <div class="stone-panel rounded-2xl max-w-md w-full flex flex-col overflow-hidden border-2 border-amber-500/80 shadow-[0_0_60px_rgba(0,0,0,0.95)]">
-            
-            <!-- En-tête de stèle sculptée -->
-            <div class="p-4 border-b border-stone-800 bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <!-- Sceau Royal EK -->
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 via-red-600 to-black p-0.5 flex items-center justify-center border border-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.6)]">
-                        <span class="font-cinzel text-xs font-black text-amber-100">EK</span>
-                    </div>
-                    <div>
-                        <h3 class="font-cinzel text-lg sm:text-xl font-black text-amber-300 tracking-wider">
-                            KOMBAT EN PAUSE
-                        </h3>
-                        <p class="font-chakra text-[10px] text-amber-400/80 uppercase tracking-widest font-bold">
-                            Options & Commandes de Jeu
-                        </p>
-                    </div>
-                </div>
-                <button id="btnPauseClose" class="w-8 h-8 rounded-lg bg-stone-900 hover:bg-red-950 border border-stone-700 hover:border-red-500 text-stone-300 hover:text-red-300 font-bold text-sm flex items-center justify-center transition">✕</button>
-            </div>
+const pauseOpenSignal = UIKit.signal(false);
+const pauseAudioEnabledSignal = UIKit.signal(true);
+const pauseFocusIndexSignal = UIKit.signal(0);
 
-            <!-- Liste des dalles d'options -->
-            <div id="pauseOptionsList" class="p-4 space-y-2 font-chakra">
-                <!-- 1. Reprendre -->
-                <button id="btnPauseResume" class="stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm active">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-sm">▶</span>
-                        <span class="font-black tracking-wide text-amber-100">REPRENDRE LE KOMBAT</span>
-                    </span>
-                    <span class="text-[10px] text-amber-400 font-bold">[START / ÉCHAP]</span>
-                </button>
+const PAUSE_OPTIONS_CONFIG = [
+    {
+        id: 'btnPauseResume',
+        className: 'stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm active',
+        icon: '▶',
+        label: 'REPRENDRE LE KOMBAT',
+        labelClass: 'font-black tracking-wide text-amber-100',
+        rightText: '[START / ÉCHAP]',
+        rightClass: 'text-[10px] text-amber-400 font-bold'
+    },
+    {
+        id: 'btnPauseMoves',
+        className: 'stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm',
+        icon: '📜',
+        label: 'GRIMOIRE DES COUPS & COMBOS',
+        labelClass: 'font-bold tracking-wide text-stone-200',
+        rightText: '▶',
+        rightClass: 'text-xs text-stone-400'
+    },
+    {
+        id: 'btnPauseSettings',
+        className: 'stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm',
+        icon: '⚙️',
+        label: 'PARAMÈTRES (GRAPHISMES, IA)',
+        labelClass: 'font-bold tracking-wide text-stone-200',
+        rightText: '▶',
+        rightClass: 'text-xs text-stone-400'
+    },
+    {
+        id: 'btnPauseAudio',
+        className: 'stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm',
+        iconId: 'pauseSoundIcon',
+        icon: UIKit.computed(() => pauseAudioEnabledSignal.value ? '🔊' : '🔇'),
+        label: 'SON & EFFETS SPÉCIAUX',
+        labelClass: 'font-bold tracking-wide text-stone-200',
+        rightId: 'pauseSoundLabel',
+        rightText: UIKit.computed(() => pauseAudioEnabledSignal.value ? 'ACTIVÉ' : 'COUPÉ'),
+        rightClass: UIKit.computed(() => `text-xs font-black ${pauseAudioEnabledSignal.value ? 'text-amber-400' : 'text-stone-500'}`)
+    },
+    {
+        id: 'btnPauseResetCam',
+        className: 'stone-slab-btn w-full py-2 px-4 flex items-center justify-between text-left text-xs text-stone-300',
+        icon: '🎥',
+        label: 'RÉINITIALISER LA CAMÉRA 3D',
+        labelClass: 'font-bold tracking-wide',
+        rightText: '3/4 PROFIL',
+        rightClass: 'text-xs text-cyan-400'
+    },
+    {
+        id: 'btnPauseRestart',
+        className: 'stone-slab-btn w-full py-2 px-4 flex items-center justify-between text-left text-xs text-stone-300',
+        icon: '🔄',
+        label: 'RECOMMENCER LE KOMBAT',
+        labelClass: 'font-bold tracking-wide',
+        rightText: 'ROUND 1',
+        rightClass: 'text-xs text-amber-400'
+    },
+    {
+        id: 'btnPauseSelect',
+        className: 'stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm',
+        icon: '🦖',
+        label: 'SÉLECTION DES COMBATTANTS',
+        labelClass: 'font-bold tracking-wide text-stone-200',
+        rightText: '▶',
+        rightClass: 'text-xs text-stone-400'
+    },
+    {
+        id: 'btnPauseMainMenu',
+        className: 'stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm text-red-300 hover:text-white',
+        icon: '🏠',
+        label: 'QUITTER VERS LE MENU PRINCIPAL',
+        labelClass: 'font-bold tracking-wide',
+        rightText: '▶',
+        rightClass: 'text-xs text-red-400'
+    }
+];
 
-                <!-- 2. Grimoire des coups -->
-                <button id="btnPauseMoves" class="stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-sm">📜</span>
-                        <span class="font-bold tracking-wide text-stone-200">GRIMOIRE DES COUPS & COMBOS</span>
-                    </span>
-                    <span class="text-xs text-stone-400">▶</span>
-                </button>
+const pauseModalRoot = new UIKit.Dialog({
+    id: 'pauseModal',
+    open: pauseOpenSignal,
+    className: 'hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 select-none',
+    children: [
+        new UIKit.Card({
+            className: 'stone-panel rounded-2xl max-w-md w-full flex flex-col overflow-hidden border-2 border-amber-500/80 shadow-[0_0_60px_rgba(0,0,0,0.95)]',
+            create3DMesh: true,
+            backgroundColor: '#15161e',
+            borderColor: '#f59e0b',
+            borderWidth: 2,
+            borderRadius: 16,
+            children: [
+                // En-tête de stèle sculptée
+                new UIKit.Container({
+                    className: 'p-4 border-b border-stone-800 bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 flex items-center justify-between',
+                    children: [
+                        new UIKit.Container({
+                            className: 'flex items-center gap-3',
+                            children: [
+                                new UIKit.Container({
+                                    className: 'w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 via-red-600 to-black p-0.5 flex items-center justify-center border border-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.6)]',
+                                    children: [
+                                        new UIKit.Text({ tag: 'span', className: 'font-cinzel text-xs font-black text-amber-100', text: 'EK' })
+                                    ]
+                                }),
+                                new UIKit.Container({
+                                    children: [
+                                        new UIKit.Text({
+                                            tag: 'h3',
+                                            className: 'font-cinzel text-lg sm:text-xl font-black text-amber-300 tracking-wider',
+                                            text: 'KOMBAT EN PAUSE'
+                                        }),
+                                        new UIKit.Text({
+                                            tag: 'p',
+                                            className: 'font-chakra text-[10px] text-amber-400/80 uppercase tracking-widest font-bold',
+                                            text: 'Options & Commandes de Jeu'
+                                        })
+                                    ]
+                                })
+                            ]
+                        }),
+                        new UIKit.Button({
+                            id: 'btnPauseClose',
+                            className: 'w-8 h-8 rounded-lg bg-stone-900 hover:bg-red-950 border border-stone-700 hover:border-red-500 text-stone-300 hover:text-red-300 font-bold text-sm flex items-center justify-center transition',
+                            text: '✕'
+                        })
+                    ]
+                }),
 
-                <!-- 3. Paramètres du Jeu -->
-                <button id="btnPauseSettings" class="stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-sm">⚙️</span>
-                        <span class="font-bold tracking-wide text-stone-200">PARAMÈTRES (GRAPHISMES, IA)</span>
-                    </span>
-                    <span class="text-xs text-stone-400">▶</span>
-                </button>
+                // Liste des dalles d'options
+                new UIKit.Container({
+                    id: 'pauseOptionsList',
+                    className: 'p-4 space-y-2 font-chakra',
+                    flexDirection: 'column',
+                    gap: 8,
+                    children: PAUSE_OPTIONS_CONFIG.map((opt) => new UIKit.Button({
+                        id: opt.id,
+                        className: opt.className,
+                        children: [
+                            new UIKit.Container({
+                                tag: 'span',
+                                className: 'flex items-center gap-2.5',
+                                children: [
+                                    new UIKit.Text({
+                                        id: opt.iconId,
+                                        tag: 'span',
+                                        className: 'text-sm',
+                                        text: opt.icon
+                                    }),
+                                    new UIKit.Text({
+                                        tag: 'span',
+                                        className: opt.labelClass,
+                                        text: opt.label
+                                    })
+                                ]
+                            }),
+                            new UIKit.Text({
+                                id: opt.rightId,
+                                tag: 'span',
+                                className: opt.rightClass,
+                                text: opt.rightText
+                            })
+                        ]
+                    }))
+                }),
 
-                <!-- 4. Activer / Couper le son -->
-                <button id="btnPauseAudio" class="stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span id="pauseSoundIcon" class="text-sm">🔊</span>
-                        <span class="font-bold tracking-wide text-stone-200">SON & EFFETS SPÉCIAUX</span>
-                    </span>
-                    <span id="pauseSoundLabel" class="text-xs font-black text-amber-400">ACTIVÉ</span>
-                </button>
+                // Barre de commandes manette / clavier inférieure
+                new UIKit.Container({
+                    className: 'p-3 border-t border-stone-800 bg-stone-950 flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-400 font-chakra',
+                    children: [
+                        new UIKit.Container({
+                            tag: 'span',
+                            className: 'flex items-center gap-1.5',
+                            children: [
+                                new UIKit.Badge({ className: 'px-1.5 py-0.2 rounded bg-stone-800 text-amber-400 font-black', text: '↑↓ / D-PAD' }),
+                                new UIKit.Text({ text: 'Naviguer' })
+                            ]
+                        }),
+                        new UIKit.Container({
+                            tag: 'span',
+                            className: 'flex items-center gap-1.5',
+                            children: [
+                                new UIKit.Badge({ className: 'px-1.5 py-0.2 rounded bg-emerald-700 text-white font-black', text: '[A] / ENTRÉE' }),
+                                new UIKit.Text({ text: 'Valider' })
+                            ]
+                        }),
+                        new UIKit.Container({
+                            tag: 'span',
+                            className: 'flex items-center gap-1.5',
+                            children: [
+                                new UIKit.Badge({ className: 'px-1.5 py-0.2 rounded bg-red-700 text-white font-black', text: '[B] / ÉCHAP' }),
+                                new UIKit.Text({ text: 'Reprendre' })
+                            ]
+                        })
+                    ]
+                })
+            ]
+        })
+    ]
+});
 
-                <!-- 5. Réinitialiser la Caméra 3D -->
-                <button id="btnPauseResetCam" class="stone-slab-btn w-full py-2 px-4 flex items-center justify-between text-left text-xs text-stone-300">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-sm">🎥</span>
-                        <span class="font-bold tracking-wide">RÉINITIALISER LA CAMÉRA 3D</span>
-                    </span>
-                    <span class="text-xs text-cyan-400">3/4 PROFIL</span>
-                </button>
-
-                <!-- 6. Recommencer le match -->
-                <button id="btnPauseRestart" class="stone-slab-btn w-full py-2 px-4 flex items-center justify-between text-left text-xs text-stone-300">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-sm">🔄</span>
-                        <span class="font-bold tracking-wide">RECOMMENCER LE KOMBAT</span>
-                    </span>
-                    <span class="text-xs text-amber-400">ROUND 1</span>
-                </button>
-
-                <!-- 7. Retour Sélection des Combattants -->
-                <button id="btnPauseSelect" class="stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-sm">🦖</span>
-                        <span class="font-bold tracking-wide text-stone-200">SÉLECTION DES COMBATTANTS</span>
-                    </span>
-                    <span class="text-xs text-stone-400">▶</span>
-                </button>
-
-                <!-- 8. Quitter vers le Menu Principal -->
-                <button id="btnPauseMainMenu" class="stone-slab-btn w-full py-2.5 px-4 flex items-center justify-between text-left text-xs sm:text-sm text-red-300 hover:text-white">
-                    <span class="flex items-center gap-2.5">
-                        <span class="text-sm">🏠</span>
-                        <span class="font-bold tracking-wide">QUITTER VERS LE MENU PRINCIPAL</span>
-                    </span>
-                    <span class="text-xs text-red-400">▶</span>
-                </button>
-            </div>
-
-            <!-- Barre de commandes manette / clavier inférieure -->
-            <div class="p-3 border-t border-stone-800 bg-stone-950 flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-400 font-chakra">
-                <span class="flex items-center gap-1.5">
-                    <span class="px-1.5 py-0.2 rounded bg-stone-800 text-amber-400 font-black">↑↓ / D-PAD</span> Naviguer
-                </span>
-                <span class="flex items-center gap-1.5">
-                    <span class="px-1.5 py-0.2 rounded bg-emerald-700 text-white font-black">[A] / ENTRÉE</span> Valider
-                </span>
-                <span class="flex items-center gap-1.5">
-                    <span class="px-1.5 py-0.2 rounded bg-red-700 text-white font-black">[B] / ÉCHAP</span> Reprendre
-                </span>
-            </div>
-        </div>
-    </div>
-`;
-
-document.getElementById('appMain').insertAdjacentHTML('afterend', PAUSE_MODAL_HTML);
+pauseModalRoot.mount(document.getElementById('appMain'), 'afterend');
 
 let pauseFocusIdx = 0;
 
 function updatePauseAudioUI() {
-    const icon = document.getElementById('pauseSoundIcon');
-    const label = document.getElementById('pauseSoundLabel');
-    if (icon) icon.textContent = sfx.enabled ? '🔊' : '🔇';
-    if (label) {
-        label.textContent = sfx.enabled ? 'ACTIVÉ' : 'COUPÉ';
-        label.className = `text-xs font-black ${sfx.enabled ? 'text-amber-400' : 'text-stone-500'}`;
-    }
+    pauseAudioEnabledSignal.value = Boolean(sfx.enabled);
 }
 
 function openPauseMenu() {
     isMatchPaused = true;
+    pauseOpenSignal.value = true;
     const modal = document.getElementById('pauseModal');
-    if (!modal) return;
-    modal.classList.remove('hidden');
+    if (modal) modal.classList.remove('hidden');
     updatePauseAudioUI();
     pauseFocusIdx = 0;
+    pauseFocusIndexSignal.value = 0;
     updatePauseFocus();
     sfx.playHit(false);
 }
 
 function closePauseMenu() {
     isMatchPaused = false;
+    pauseOpenSignal.value = false;
     const modal = document.getElementById('pauseModal');
     if (modal) modal.classList.add('hidden');
 }
@@ -165,6 +248,7 @@ function getPauseNavButtons() {
 }
 
 function updatePauseFocus() {
+    pauseFocusIndexSignal.value = pauseFocusIdx;
     const buttons = getPauseNavButtons();
     buttons.forEach((btn, idx) => {
         btn.classList.toggle('active', idx === pauseFocusIdx);
@@ -172,7 +256,6 @@ function updatePauseFocus() {
 }
 
 function initHeaderMenu() {
-    // Boutons de la modale Pause
     const btnResume = document.getElementById('btnPauseResume');
     if (btnResume) btnResume.addEventListener('click', closePauseMenu);
 

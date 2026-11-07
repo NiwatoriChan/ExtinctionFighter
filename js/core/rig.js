@@ -1,6 +1,6 @@
 // 4. CONSTRUCTEUR DE MODÈLES 3D ARTICULÉS (THREE.JS) POUR CHAQUE ESPÈCE
 function createDino3DRig(dino, skinIndex = 0) {
-    const skin = (dino.skins && dino.skins[skinIndex]) ? dino.skins[skinIndex] : {
+    const skin = (dino.skins && dino.skins[skinIndex]) ? dino.skins[skinIndex] : (dino.skins && dino.skins[0]) ? dino.skins[0] : {
         primary: dino.primaryColor,
         secondary: dino.secondaryColor,
         accent: dino.accentColor

@@ -29,37 +29,38 @@ registerArena({
         const targetGroup = group || arenaGroup;
 
         // ====================================================================
-        // 1. GÉNÉRATEURS DE TEXTURES PROCÉDURALES
+        // 1. GÉNÉRATEURS DE TEXTURES PROCÉDURALES "CARTOON MATURE"
         // ====================================================================
         function getBarkTexture() {
             const canvas = document.createElement('canvas');
-            canvas.width = 128;
+            canvas.width = 256;
             canvas.height = 256;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#3b281e';
-            ctx.fillRect(0, 0, 128, 256);
+            ctx.fillStyle = '#291811';
+            ctx.fillRect(0, 0, 256, 256);
 
-            for (let i = 0; i < 220; i++) {
-                const x = Math.random() * 128;
+            for (let i = 0; i < 400; i++) {
+                const x = Math.random() * 256;
                 const y = Math.random() * 256;
-                const w = 2 + Math.random() * 4;
-                const h = 12 + Math.random() * 35;
+                const w = 3 + Math.random() * 6;
+                const h = 16 + Math.random() * 45;
                 const shade = Math.random();
-                ctx.fillStyle = shade < 0.3 ? '#241710' : (shade < 0.7 ? '#4e3629' : '#2d4c2b');
+                ctx.fillStyle = shade < 0.35 ? '#170c07' : (shade < 0.75 ? '#4a2e1d' : '#22543d');
                 ctx.fillRect(x, y, w, h);
             }
-            ctx.strokeStyle = 'rgba(20, 12, 8, 0.45)';
-            ctx.lineWidth = 2;
-            for (let y = 0; y < 256; y += 12) {
+            ctx.strokeStyle = 'rgba(10, 6, 4, 0.72)';
+            ctx.lineWidth = 2.5;
+            for (let y = 0; y < 256; y += 14) {
                 ctx.beginPath();
-                ctx.moveTo(0, y + Math.sin(y) * 3);
-                ctx.lineTo(128, y + Math.cos(y) * 3);
+                ctx.moveTo(0, y + Math.sin(y) * 4);
+                ctx.lineTo(256, y + Math.cos(y) * 4);
                 ctx.stroke();
             }
             const tex = new THREE.CanvasTexture(canvas);
             tex.wrapS = THREE.RepeatWrapping;
             tex.wrapT = THREE.RepeatWrapping;
-            tex.repeat.set(2, 3);
+            tex.repeat.set(2, 2);
+            if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
             return tex;
         }
 
@@ -68,20 +69,26 @@ registerArena({
             canvas.width = 256;
             canvas.height = 256;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#475b4c';
+            ctx.fillStyle = '#2d4a3e';
             ctx.fillRect(0, 0, 256, 256);
-            for (let i = 0; i < 600; i++) {
+
+            // Pavage d'écailles polygonales stylisées
+            for (let i = 0; i < 850; i++) {
                 const x = Math.random() * 256;
                 const y = Math.random() * 256;
-                const r = 2 + Math.random() * 5;
-                ctx.fillStyle = i % 3 === 0 ? '#2a3a2e' : 'rgba(15, 28, 20, 0.18)';
+                const r = 2.5 + Math.random() * 5.5;
+                ctx.fillStyle = i % 3 === 0 ? '#1b2e26' : (i % 2 === 0 ? '#4ade80' : '#14532d');
                 ctx.beginPath();
                 ctx.arc(x, y, r, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.strokeStyle = '#0f1713';
+                ctx.lineWidth = 1.0;
+                ctx.stroke();
             }
             const tex = new THREE.CanvasTexture(canvas);
             tex.wrapS = THREE.RepeatWrapping;
             tex.wrapT = THREE.RepeatWrapping;
+            if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
             return tex;
         }
 
@@ -92,11 +99,14 @@ registerArena({
             const ctx = canvas.getContext('2d');
             const grad = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
             grad.addColorStop(0, 'rgba(255, 255, 230, 1)');
-            grad.addColorStop(0.35, 'rgba(134, 239, 172, 0.75)');
-            grad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            grad.addColorStop(0.35, 'rgba(74, 222, 128, 0.85)');
+            grad.addColorStop(0.7, 'rgba(16, 185, 129, 0.4)');
+            grad.addColorStop(1, 'rgba(5, 46, 22, 0)');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, 64, 64);
-            return new THREE.CanvasTexture(canvas);
+            const tex = new THREE.CanvasTexture(canvas);
+            if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+            return tex;
         }
 
         const barkTex = getBarkTexture();
@@ -142,6 +152,20 @@ registerArena({
         const peak1 = new THREE.Mesh(volcanoGeo, volcanoMat);
         peak1.position.set(-28, 11, -38);
         targetGroup.add(peak1);
+
+        // Cascade jurassique descendant du pic rocheux vers la rivière
+        const waterfallGeo = new THREE.PlaneGeometry(5.5, 24, 8, 16);
+        const waterfallMat = new THREE.MeshBasicMaterial({
+            color: 0x6ee7b7,
+            transparent: true,
+            opacity: 0.75,
+            side: THREE.DoubleSide
+        });
+        const waterfall = new THREE.Mesh(waterfallGeo, waterfallMat);
+        waterfall.position.set(-23.5, 4.0, -32);
+        waterfall.rotation.y = 0.55;
+        waterfall.rotation.x = -0.12;
+        targetGroup.add(waterfall);
 
         const peak2 = new THREE.Mesh(new THREE.ConeGeometry(18, 26, 8, 2, true), volcanoMat);
         peak2.position.set(30, 9, -42);
@@ -558,6 +582,7 @@ registerArena({
 
         return {
             waterMesh,
+            waterfall,
             animatedFoliage,
             brachiosaurs,
             pterosaurs,
@@ -573,7 +598,10 @@ registerArena({
     animate(decor, group, scene, time, dt) {
         if (!decor) return;
 
-        // 1. Ondulations liquides de la rivière préhistorique
+        // 1. Ondulations liquides de la rivière préhistorique et chute d'eau
+        if (decor.waterfall && decor.waterfall.material) {
+            decor.waterfall.material.opacity = 0.65 + Math.sin(time * 8.0) * 0.15;
+        }
         if (decor.waterMesh && decor.waterMesh.geometry && decor.waterMesh.geometry.attributes.position) {
             const pos = decor.waterMesh.geometry.attributes.position;
             for (let i = 0; i < pos.count; i++) {
@@ -634,8 +662,10 @@ registerArena({
             });
         }
 
-        // 5. Vol stationnaire et vrombissement des ailes des Meganeura
-        if (decor.dragonflies) {
+        // 5. Vol stationnaire, Flocking autonome Yuka (Separation/Alignment/Cohesion/Wander) et vrombissement des ailes des Meganeura
+        if (typeof ArenaFaunaFlockSystem !== 'undefined') {
+            ArenaFaunaFlockSystem.update(decor, time, dt);
+        } else if (decor.dragonflies) {
             decor.dragonflies.forEach(d => {
                 const t = time * 2.0 + d.phase;
                 d.group.position.x = d.baseX + Math.sin(t) * 1.8;

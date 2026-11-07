@@ -1,41 +1,41 @@
 // 3. ÉTAT GLOBAL DE L'APPLICATION
-let gameMode = 'cpu'; // 'campaign', 'cpu', 'pvp', 'practice'
-let aiDifficulty = 'normal';
-let currentArena = 'volcano';
-let activeSelectSlot = 1;
-let p1ChoiceIndex = 0; // T-Rex
-let p2ChoiceIndex = 1; // Pachyrhinosaure
-let p1SkinIndex = 0;
-let p2SkinIndex = 0;
+var gameMode = 'cpu'; // 'campaign', 'cpu', 'pvp', 'practice'
+var aiDifficulty = 'normal';
+var currentArena = 'volcano';
+var activeSelectSlot = 1;
+var p1ChoiceIndex = 0; // T-Rex
+var p2ChoiceIndex = 1; // Pachyrhinosaure
+var p1SkinIndex = 0;
+var p2SkinIndex = 0;
 
 // Mode Campagne (5 adversaires aléatoires + Boss Dragon final)
-let campaignStage = 1;
-let campaignOpponents = [];
-const CAMPAIGN_TOTAL_STAGES = 6;
+var campaignStage = 1;
+var campaignOpponents = [];
+var CAMPAIGN_TOTAL_STAGES = 6;
 
 // Paramètres graphiques & affichage
-let graphicsQuality = localStorage.getItem('ek3d_graphics_quality') || 'high'; // 'low', 'medium', 'high', 'ultra'
-let isMatchPaused = false;
+var graphicsQuality = localStorage.getItem('ek3d_graphics_quality') || 'high'; // 'low', 'medium', 'high', 'ultra'
+var isMatchPaused = false;
 
 // Contrôles et états d'entrées
-let matchState = 'main_menu';
-const keys = {};
-const touchState = { left: false, right: false, up: false, down: false, jump: false, guard: false };
-const p2TouchState = { left: false, right: false, up: false, down: false, jump: false, guard: false };
-const lastTapTime = { left: 0, right: 0, p2Left: 0, p2Right: 0, gp1Left: 0, gp1Right: 0, gp2Left: 0, gp2Right: 0 };
+var matchState = 'main_menu';
+var keys = {};
+var touchState = { left: false, right: false, up: false, down: false, jump: false, guard: false };
+var p2TouchState = { left: false, right: false, up: false, down: false, jump: false, guard: false };
+var lastTapTime = { left: 0, right: 0, p2Left: 0, p2Right: 0, gp1Left: 0, gp1Right: 0, gp2Left: 0, gp2Right: 0 };
 
 // Combattants actifs & Session de combat 3D
-let fighter1 = null;
-let fighter2 = null;
-let roundNumber = 1;
-let roundTimer = 99;
-let roundTimerAccum = 0;
-let projectiles3D = [];
-let particles3D = [];
-let xrayCinematicTimer = 0;
-let xrayStage = 0;
-let xrayLockPositions = null;
-let fatalityFocusFighter = null;
-let stateTimer = 0;
-let hitstopTimer = 0;
-let screenShake = 0;
+var fighter1 = null;
+var fighter2 = null;
+var roundNumber = 1;
+var roundTimer = 99;
+var roundTimerAccum = 0;
+var projectiles3D = [];
+var particles3D = [];
+var xrayCinematicTimer = 0;
+var xrayStage = 0;
+var xrayLockPositions = null;
+var fatalityFocusFighter = null;
+var stateTimer = 0;
+var hitstopTimer = 0;
+var screenShake = 0;

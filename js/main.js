@@ -9,6 +9,11 @@ function mainGameLoop(now) {
         pollGamepadInputs(dt, now);
     }
 
+    // Mise à jour réactive et layout Flexbox 3D @pmndrs/uikit
+    if (typeof UIKit !== 'undefined' && typeof UIKit.updateAllRoots === 'function') {
+        UIKit.updateAllRoots(dt, now);
+    }
+
     if (matchState === 'select') {
         updatePreviewModels(now);
     } else if (matchState === 'arena_select') {
@@ -59,12 +64,32 @@ function bootGame() {
         if (smiloIdx >= 0) p1ChoiceIndex = smiloIdx;
     }
 
-    if (urlParams.get('mode') === 'campaign') {
-        startCampaignMode();
-        updatePreviewModels(16);
+    if (urlParams.get('mode') === 'campaign' || urlParams.get('screen') === 'campaign') {
+        openCampaignMap();
+    } else if (urlParams.get('mode') === 'smash_level') {
+        const eraIdx = parseInt(urlParams.get('era') || '0', 10);
+        const era = (typeof CAMPAIGN_ERAS !== 'undefined' && CAMPAIGN_ERAS[eraIdx]) ? CAMPAIGN_ERAS[eraIdx] : null;
+        if (era) {
+            startCampaignEraLevel(era);
+            const waveParam = urlParams.get('wave');
+            if (waveParam) {
+                const targetWave = parseInt(waveParam, 10) - 1;
+                if (targetWave >= 0 && targetWave <= 2 && typeof startCampaignWave === 'function') {
+                    startCampaignWave(targetWave);
+                }
+            }
+            if (urlParams.get('victory') === '1' && typeof showEraVictoryRewardsModal === 'function') {
+                showEraVictoryRewardsModal(era);
+            }
+        } else {
+            openCampaignMap();
+        }
     } else if (urlParams.get('screen') === 'select') {
         goToSelectScreen();
         updatePreviewModels(16);
+    } else if (urlParams.get('screen') === 'settings' || urlParams.get('screen') === 'options') {
+        goToMainMenu();
+        openSettingsModal();
     } else if (urlParams.get('screen') === 'arena') {
         openArenaChooser();
         updateArenaPreview(16);
