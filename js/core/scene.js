@@ -231,7 +231,7 @@ function renderBattle3D(now) {
     const midY = ((fighter1.y || 0) + (f2Pos.y || 0)) * 0.5;
     const dist = Math.abs(fighter1.x - f2Pos.x);
     const vertSpan = Math.abs((fighter1.y || 0) - (f2Pos.y || 0));
-    let targetDist = Math.max(10.5, Math.min(18.5, dist * 1.15 + vertSpan * 0.65 + 6.5));
+    let targetDist = Math.max(10.5, Math.min(24.0, dist * 1.05 + vertSpan * 0.65 + 6.5));
     let targetY = 3.6 + midY * 0.65 + camOrbit.pitch * 8;
     let focusX = midX;
     let focusY = 2.1 + midY * 0.75;

@@ -5,19 +5,23 @@
     <title>EXTINCTION KOMBAT 3D - Jurassic Blood</title>
     <script>
     window.__testErrors = [];
+    const sendLog = (type, data) => {
+        try {
+            fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, data, ts: performance.now(), href: location.href }) }).catch(() => {});
+        } catch (_) {}
+    };
     window.addEventListener('error', (e) => {
         const info = e.target && e.target.src ? `Resource error: ${e.target.src}` : (e.message || String(e));
-        window.__testErrors.push({ message: info, filename: e.filename || (e.target && e.target.src), lineno: e.lineno });
+        const errObj = { message: info, filename: e.filename || (e.target && e.target.src), lineno: e.lineno, colno: e.colno, error: e.error ? String(e.error.stack || e.error) : null };
+        window.__testErrors.push(errObj);
+        sendLog('runtime_error', errObj);
     }, true);
     window.addEventListener('unhandledrejection', (e) => {
-        window.__testErrors.push({ reason: String(e.reason) });
+        const errObj = { reason: String(e.reason && e.reason.stack ? e.reason.stack : e.reason) };
+        window.__testErrors.push(errObj);
+        sendLog('unhandled_rejection', errObj);
     });
     if (window.location.search.includes('test=1')) {
-        const sendLog = (type, data) => {
-            try {
-                fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, data, ts: performance.now(), href: location.href }) }).catch(() => {});
-            } catch (_) {}
-        };
         const origErr = console.error;
         console.error = (...args) => {
             origErr.apply(console, args);
@@ -90,7 +94,9 @@
     <script src="js/fighters/megatherium.js"></script>
     <script src="js/fighters/smilodon.js"></script>
     <script src="js/fighters/dragon.js"></script>
+    <script src="js/fighters/anomalocaris.js"></script>
     <!-- Arènes (un fichier par arène) -->
+    <script src="js/arenas/cambrian.js"></script>
     <script src="js/arenas/volcano.js"></script>
     <script src="js/arenas/boneyard.js"></script>
     <script src="js/arenas/swamp.js"></script>

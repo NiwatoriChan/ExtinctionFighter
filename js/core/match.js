@@ -262,7 +262,8 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
 
     if (isBlocking && !guardBroken) {
         // --- PARADE DIRECTIONNELLE RÉUSSIE : DÉVIATION (BLOCK_DEFLECT_[ZONE]) & DÉSAVANTAGE DE FRAMES ---
-        const isCorner = Math.abs(defender.x) >= STAGE_RIGHT_3D - 1.2;
+        const bnds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: STAGE_LEFT_3D, right: STAGE_RIGHT_3D };
+        const isCorner = Math.abs(defender.x) >= bnds.right - 1.2;
         const staleBlockstunMult = attacker.combatController
             ? attacker.combatController.calculateStaleBlockstunMultiplier(attacker.lastStaleCount || 0)
             : 1.0;
@@ -375,7 +376,8 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
 
     // Ne pas repousser les personnages pendant que le X-Ray verrouille leurs positions
     if (!isLockedXrayHit && !xrayLockPositions) {
-        const isCorner = Math.abs(defender.x) >= STAGE_RIGHT_3D - 1.2;
+        const bnds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: STAGE_LEFT_3D, right: STAGE_RIGHT_3D };
+        const isCorner = Math.abs(defender.x) >= bnds.right - 1.2;
         const pushbackBonus = (attacker.comboCount || 0) * 1.5;
 
         if (attackCategory === 'antiair') {
@@ -579,24 +581,25 @@ function resolveFighterBodyBlocker(f1, f2) {
         f2.x -= side * overlap * push2Ratio;
 
         // Contrainte stricte aux murs de l'arène : si f2 est bloqué contre un mur, f1 subit 100% du recul
-        if (f2.x < STAGE_LEFT_3D) {
-            f2.x = STAGE_LEFT_3D;
+        const bnds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: STAGE_LEFT_3D, right: STAGE_RIGHT_3D };
+        if (f2.x < bnds.left) {
+            f2.x = bnds.left;
             f1.x = f2.x + side * minSep;
-        } else if (f2.x > STAGE_RIGHT_3D) {
-            f2.x = STAGE_RIGHT_3D;
+        } else if (f2.x > bnds.right) {
+            f2.x = bnds.right;
             f1.x = f2.x + side * minSep;
         }
 
-        if (f1.x < STAGE_LEFT_3D) {
-            f1.x = STAGE_LEFT_3D;
+        if (f1.x < bnds.left) {
+            f1.x = bnds.left;
             f2.x = f1.x - side * minSep;
-        } else if (f1.x > STAGE_RIGHT_3D) {
-            f1.x = STAGE_RIGHT_3D;
+        } else if (f1.x > bnds.right) {
+            f1.x = bnds.right;
             f2.x = f1.x - side * minSep;
         }
 
-        f1.x = Math.max(STAGE_LEFT_3D, Math.min(STAGE_RIGHT_3D, f1.x));
-        f2.x = Math.max(STAGE_LEFT_3D, Math.min(STAGE_RIGHT_3D, f2.x));
+        f1.x = Math.max(bnds.left, Math.min(bnds.right, f1.x));
+        f2.x = Math.max(bnds.left, Math.min(bnds.right, f2.x));
 
         // Annuler la vélocité entrante pour empêcher l'accumulation de vitesse à travers le bloqueur
         if (side === -1) {
@@ -828,7 +831,8 @@ function updateBattle3D(dt, nowSec) {
         f.vx *= f.dashTimer > 0 ? 0.94 : 0.82;
 
         // Rebond mural dynamique (Wall Splat) en bordure d'arène
-        const wallBound = STAGE_RIGHT_3D - 0.25;
+        const bounds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: STAGE_LEFT_3D, right: STAGE_RIGHT_3D };
+        const wallBound = bounds.right - 0.25;
         if ((f.x >= wallBound || f.x <= -wallBound) && Math.abs(f.vx) > 6.4 && f.hitStun > 0.08) {
             f.vx = -f.vx * 0.45;
             f.vy = 5.2;
@@ -838,13 +842,58 @@ function updateBattle3D(dt, nowSec) {
             spawn3DBloodAndBones(f.x, f.y + 2.0, 16, true);
         }
 
-        f.x = Math.max(STAGE_LEFT_3D, Math.min(STAGE_RIGHT_3D, f.x));
+        f.x = Math.max(bounds.left, Math.min(bounds.right, f.x));
         resolveFighterBodyBlocker(fighter1, fighter2);
 
-        const floorY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, f.x, 0) : 0;
+        const groundFloorY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, f.x, 0) : 0;
+        let supportY = groundFloorY;
+        const platforms = typeof getArenaPlatforms === 'function' ? getArenaPlatforms(currentArena) : [];
 
-        // Gravité et suivi du relief topographique 3D au sol
-        f.groundY = floorY;
+        // Gestion de la traversée descendante des plateformes semi-solides (Drop Through)
+        if (f._dropThroughTimer > 0) {
+            f._dropThroughTimer -= dt;
+        }
+
+        for (const plat of platforms) {
+            if (plat.isJumpPad) continue;
+            if (f.x >= plat.xMin && f.x <= plat.xMax) {
+                const platY = plat.y;
+                if (f._dropThroughTimer <= 0) {
+                    const prevY = f._prevY !== undefined ? f._prevY : f.y;
+                    if (prevY >= platY - 0.24 && f.y >= platY - 0.44 && f.vy <= 0.1) {
+                        if (platY > supportY) {
+                            supportY = platY;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Détection et activation des Cheminées Hydrothermales (Geyser Jump Pads)
+        if (f._geyserCooldown > 0) {
+            f._geyserCooldown -= dt;
+        } else {
+            for (const plat of platforms) {
+                if (plat.isJumpPad) {
+                    const padX = plat.x;
+                    const padY = plat.y !== undefined ? plat.y : groundFloorY;
+                    if (Math.abs(f.x - padX) < 1.35 && Math.abs(f.y - padY) < 1.4) {
+                        f.vy = plat.jumpForce || 17.5;
+                        f.groundY = groundFloorY;
+                        f.action = 'jump';
+                        f._geyserCooldown = 0.6;
+                        if (typeof sfx !== 'undefined' && sfx.playWhoosh) sfx.playWhoosh();
+                        if (typeof spawnBubbleGeyserFx === 'function') spawnBubbleGeyserFx(padX, padY);
+                        if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(f.x, '💨 GEYSER ABYSSAL !', '#38bdf8');
+                        break;
+                    }
+                }
+            }
+        }
+
+        f._prevY = f.y;
+        f.groundY = supportY;
+        const floorY = supportY;
         if (f.isFlying) {
             const maxFlightY = floorY + 6.4;
             if (f.y > maxFlightY) {

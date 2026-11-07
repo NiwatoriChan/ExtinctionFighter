@@ -553,6 +553,14 @@ function spawn3DProjectile(owner, kind) {
     } else if (kind === 'dragon_fire') {
         geo = cache.geo.projFire;
         mat = cache.mat.projFire;
+    } else if (kind === 'hydro') {
+        geo = new THREE.TorusGeometry(0.38, 0.14, 8, 16);
+        mat = new THREE.MeshStandardMaterial({
+            color: 0x22d3ee,
+            emissive: 0x06b6d4,
+            emissiveIntensity: 0.95,
+            roughness: 0.2
+        });
     } else {
         geo = cache.geo.projBoulder;
         mat = new THREE.MeshLambertMaterial({
@@ -563,15 +571,46 @@ function spawn3DProjectile(owner, kind) {
     }
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(owner.x + dir * 2.1, (owner.y || 0) + 2.0, 0);
-    if (kind === 'sonic') mesh.rotation.y = Math.PI / 2;
+    if (kind === 'sonic' || kind === 'hydro') mesh.rotation.y = Math.PI / 2;
     fxGroup.add(mesh);
 
     projectiles3D.push({
         owner,
         mesh,
         kind,
-        vx: dir * (kind === 'sonic' ? 19.5 : (kind === 'dragon_fire' ? 11.5 : 15.5)),
-        damage: kind === 'xray_wave' ? 165 : (kind === 'dragon_fire' ? 42 : 85),
+        vx: dir * (kind === 'sonic' ? 19.5 : (kind === 'dragon_fire' ? 11.5 : (kind === 'hydro' ? 18.0 : 15.5))),
+        damage: kind === 'xray_wave' ? 165 : (kind === 'dragon_fire' ? 42 : (kind === 'hydro' ? 95 : 85)),
         life: 1.5
     });
 }
+
+function spawnBubbleGeyserFx(x, y) {
+    if (!battleScene) return;
+    const count = 18;
+    for (let i = 0; i < count; i++) {
+        const bubble = new THREE.Mesh(
+            new THREE.SphereGeometry(0.12 + Math.random() * 0.16, 6, 6),
+            new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.85 })
+        );
+        bubble.position.set(x + (Math.random() - 0.5) * 1.2, y + 0.3 + Math.random() * 0.8, (Math.random() - 0.5) * 0.8);
+        battleScene.add(bubble);
+        const vy = 9 + Math.random() * 11;
+        const vx = (Math.random() - 0.5) * 2.5;
+        const startTime = performance.now();
+        const anim = () => {
+            const elapsed = (performance.now() - startTime) / 1000;
+            bubble.position.y += vy * 0.016;
+            bubble.position.x += vx * 0.016;
+            bubble.material.opacity = Math.max(0, 0.85 - elapsed * 1.4);
+            if (elapsed < 0.6) {
+                requestAnimationFrame(anim);
+            } else {
+                battleScene.remove(bubble);
+                bubble.geometry.dispose();
+                bubble.material.dispose();
+            }
+        };
+        requestAnimationFrame(anim);
+    }
+}
+window.spawnBubbleGeyserFx = spawnBubbleGeyserFx;

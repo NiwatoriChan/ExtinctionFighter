@@ -64,15 +64,47 @@ global.spawnHitSparks3D = () => {};
 global.updateBattleHUD = () => {};
 
 // Mock THREE.js
+class MockVector3 {
+    constructor(x = 0, y = 0, z = 0) {
+        this.x = x; this.y = y; this.z = z;
+    }
+    set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; }
+    copy(v) { if (v) { this.x = v.x; this.y = v.y; this.z = v.z; } return this; }
+}
+
 class MockObject3D {
     constructor() {
         this.children = [];
-        this.position = { x: 0, y: 0, z: 0, set: (x, y, z) => { this.position.x = x; this.position.y = y; this.position.z = z; } };
-        this.rotation = { x: 0, y: 0, z: 0, set: (x, y, z) => { this.rotation.x = x; this.rotation.y = y; this.rotation.z = z; } };
-        this.scale = { x: 1, y: 1, z: 1, set: (x, y, z) => { this.scale.x = x; this.scale.y = y; this.scale.z = z; } };
+        this.position = new MockVector3();
+        this.rotation = new MockVector3();
+        this.scale = new MockVector3(1, 1, 1);
     }
     add(c) { if (c) this.children.push(c); }
     remove(c) { const idx = this.children.indexOf(c); if (idx >= 0) this.children.splice(idx, 1); }
+    getObjectByName(name) {
+        if (this.name === name) return this;
+        for (const child of this.children) {
+            if (child.getObjectByName) {
+                const res = child.getObjectByName(name);
+                if (res) return res;
+            }
+        }
+        return null;
+    }
+    traverse(callback) {
+        callback(this);
+        for (const child of this.children) {
+            if (child.traverse) child.traverse(callback);
+        }
+    }
+}
+
+class MockGeometry {
+    scale() { return this; }
+    rotateX() { return this; }
+    rotateY() { return this; }
+    rotateZ() { return this; }
+    translate() { return this; }
 }
 
 global.THREE = {
@@ -84,10 +116,12 @@ global.THREE = {
             this.mat = mat;
         }
     },
-    SphereGeometry: class { scale() {} },
-    CylinderGeometry: class {},
-    ConeGeometry: class { rotateZ() {} },
-    OctahedronGeometry: class {},
+    SphereGeometry: class extends MockGeometry {},
+    CylinderGeometry: class extends MockGeometry {},
+    ConeGeometry: class extends MockGeometry {},
+    OctahedronGeometry: class extends MockGeometry {},
+    BoxGeometry: class extends MockGeometry {},
+    TorusGeometry: class extends MockGeometry {},
     MeshStandardMaterial: class { constructor(opt) { Object.assign(this, opt); this.emissive = { setHex: () => {} }; } },
     MeshBasicMaterial: class { constructor(opt) { Object.assign(this, opt); } }
 };

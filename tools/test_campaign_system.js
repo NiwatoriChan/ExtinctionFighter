@@ -99,13 +99,13 @@ console.log("[PASS] Initial state: Era 1 unlocked, Era 2 locked.");
 clearEraProgress(1);
 if (!isEraCleared(1)) throw new Error("Era 1 should be marked cleared");
 if (!isEraUnlocked(2)) throw new Error("Era 2 should be unlocked after clearing Era 1");
-if (localStorage.getItem('ek3d_unlocked_pulmonoscorpius') !== 'true') {
-    throw new Error("Pulmonoscorpius should be unlocked after Era 1");
+if (localStorage.getItem('ek3d_unlocked_anomalocaris') !== 'true') {
+    throw new Error("Anomalocaris should be unlocked after Era 1");
 }
-if (localStorage.getItem('ek3d_unlocked_arena_swamp') !== 'true') {
-    throw new Error("Swamp arena should be unlocked after Era 1");
+if (localStorage.getItem('ek3d_unlocked_arena_cambrian') !== 'true') {
+    throw new Error("Cambrian arena should be unlocked after Era 1");
 }
-console.log("[PASS] Era 1 cleared: Unlocked Era 2 + Pulmonoscorpius + Swamp Arena!");
+console.log("[PASS] Era 1 cleared: Unlocked Era 2 + Anomalocaris Boss Character + Cambrian Abyss Arena!");
 
 // Clear Era 2
 clearEraProgress(2);

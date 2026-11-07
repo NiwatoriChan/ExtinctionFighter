@@ -1,6 +1,13 @@
-// 8. MOTEUR DE COMBAT 3D (POSITIONS X EN UNITÉS 3D : -11 À +11)
+// 8. MOTEUR DE COMBAT 3D (POSITIONS X EN UNITÉS 3D : DYNAMIQUE PAR ARÈNE, DÉFAUT -11 À +11)
 const STAGE_LEFT_3D = -11.0;
 const STAGE_RIGHT_3D = 11.0;
+
+function getStageBounds3D() {
+    const arena = (typeof ARENAS !== 'undefined' && typeof currentArena !== 'undefined') ? ARENAS[currentArena] : null;
+    const bound = (arena && arena.stageBound) ? arena.stageBound : STAGE_RIGHT_3D;
+    return { left: -bound, right: bound };
+}
+window.getStageBounds3D = getStageBounds3D;
 
 class Fighter3D extends AnimalPrototype {
     constructor(dino, isP1, skinIndex = 0) {
@@ -68,6 +75,20 @@ class Fighter3D extends AnimalPrototype {
     isAirborne(threshold = 0.08) {
         const gY = this.groundY !== undefined ? this.groundY : (typeof getFighterSupportHeight === 'function' ? getFighterSupportHeight(this, currentArena) : 0);
         return (this.y - gY) > threshold || Boolean(this.isFlying);
+    }
+
+    takeDamage(damage, knockbackX = 0, knockbackY = 0) {
+        if (typeof applyDamageToPlayer === 'function') {
+            applyDamageToPlayer(this, damage, knockbackX, knockbackY);
+        } else {
+            this.hp = Math.max(0, this.hp - damage);
+            this.hitStun = 0.28;
+            this.vx = knockbackX;
+            if (knockbackY > 0) this.vy = knockbackY;
+            this.action = 'hit';
+            this.actionTimer = 0;
+            this.actionDuration = 0.32;
+        }
     }
 
     resetForRound() {

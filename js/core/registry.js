@@ -8,9 +8,20 @@ const FIGHTER_IMPLS = {};
 const FIGHTER_ANIMATIONS = {};
 let DRAGON_BOSS = null;
 
+function registerFighterAnimation(id, animObj) {
+    if (!FIGHTER_ANIMATIONS[id]) {
+        FIGHTER_ANIMATIONS[id] = {};
+    }
+    Object.assign(FIGHTER_ANIMATIONS[id], animObj || {});
+    if (FIGHTER_IMPLS[id]) {
+        Object.assign(FIGHTER_IMPLS[id], animObj || {});
+    }
+}
+window.registerFighterAnimation = registerFighterAnimation;
+
 // Association de chaque combattant déblocable à son Ère de Campagne
 const UNLOCKABLE_FIGHTER_ERAS = {
-    'pulmonoscorpius': 1, // Débloqué à l'Ère 1 (Paléozoïque)
+    'anomalocaris': 1,    // Débloqué à l'Ère 1 (Cambrien - Boss jouable !)
     'postosuchus': 2,      // Débloqué à l'Ère 2 (Trias)
     'apato': 3,            // Débloqué à l'Ère 3 (Jurassique)
     'therizino': 4,        // Débloqué à l'Ère 4 (Crétacé)
@@ -20,7 +31,7 @@ const UNLOCKABLE_FIGHTER_ERAS = {
 
 // Association de chaque arène déblocable à son Ère de Campagne
 const UNLOCKABLE_ARENA_ERAS = {
-    'swamp': 1,       // Abysse Fongique Toxique (Ère 1)
+    'cambrian': 1,    // Récif Abyssal du Cambrien (Ère 1)
     'storm': 2,       // Canyon de l'Orage Primordial (Ère 2)
     'jungle': 3,      // Vallée d'Émeraude (Ère 3)
     'volcano': 4,     // Cratère du Chicxulub (Ère 4)
@@ -124,7 +135,8 @@ const FIGHTER_THEMED_ARENAS = {
     quetzal: 'storm',
     ankylo: 'boneyard',
     apato: 'jungle',
-    therizino: 'boneyard'
+    therizino: 'boneyard',
+    anomalocaris: 'cambrian'
 };
 
 function getThemedArenaForFighter(fighterId) {

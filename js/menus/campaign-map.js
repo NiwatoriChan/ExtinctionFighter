@@ -285,11 +285,11 @@ function buildCampaignMapUIKit() {
         id: 'campaignParchmentMap',
         className: 'flex-1 h-full min-h-[420px] sm:min-h-[500px] parchment-map-bg p-3 relative rounded-2xl flex flex-col justify-between overflow-hidden shadow-2xl border-4 border-[#785838]',
         children: [
-            // Arrière-plan cartographique Pangaea
+            // Arrière-plan cartographique Pangaea propre (sans texte d'ère pré-imprimé)
             new UIKit.Image({
-                src: 'assets/mockups/campaign_map_bg.jpg',
+                src: 'assets/mockups/campaign_parchment_clean.jpg',
                 alt: 'World Map Background',
-                className: 'absolute inset-0 w-full h-full object-cover filter contrast-125 brightness-75 pointer-events-none'
+                className: 'absolute inset-0 w-full h-full object-cover filter contrast-105 brightness-95 pointer-events-none'
             }),
             new UIKit.Container({ className: 'parchment-texture-overlay' }),
 
@@ -437,7 +437,16 @@ function buildCampaignMapUIKit() {
         id: 'campaignScreen',
         tag: 'section',
         className: 'hidden w-full h-full flex-1 flex flex-col justify-between arena-screen-bg select-none relative z-10 overflow-hidden',
-        children: [header, mainStage, footer]
+        children: [
+            new UIKit.Image({
+                src: 'assets/mockups/main_menu_clean_bg.jpg',
+                alt: 'Campaign Jungle Backdrop',
+                className: 'absolute inset-0 w-full h-full object-cover filter brightness-[0.38] contrast-125 pointer-events-none z-0'
+            }),
+            header,
+            mainStage,
+            footer
+        ]
     });
 
     campaignMapRoot.mount(document.getElementById('appMain'));

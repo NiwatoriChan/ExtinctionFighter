@@ -20,7 +20,8 @@ const FIGHTER_PORTRAIT_IMAGES = {
     quetzal: 'assets/portraits/quetzal.png',
     giantsloth: 'assets/portraits/giantsloth.png',
     smilodon: 'assets/portraits/smilodon.png',
-    dragon: 'assets/portraits/dragon.png'
+    dragon: 'assets/portraits/dragon.png',
+    anomalocaris: 'assets/portraits/anomalocaris.png'
 };
 
 function getFighterPortraitUrl(fighterId) {
@@ -511,10 +512,10 @@ const selectScreenRoot = new UIKit.Fullscreen({
             ]
         }),
 
-        // BOTTOM STONE PLINTH: CONTROLS & NAVIGATION
+        // BOTTOM CONTROLS & NAVIGATION (TRANSPARENT, NO BAR)
         new UIKit.Container({
             tag: 'footer',
-            className: 'arena-bottom-slab w-full py-2.5 px-4 sm:px-8 flex items-center justify-between shrink-0 relative z-30',
+            className: 'w-full py-2.5 px-4 sm:px-8 flex items-center justify-between shrink-0 relative z-30 bg-transparent',
             children: [
                 new UIKit.Svg({
                     className: 'absolute -top-5 left-1 w-28 sm:w-36 h-10 pointer-events-none z-20 overflow-visible opacity-90 hidden sm:block',

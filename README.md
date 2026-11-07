@@ -165,14 +165,17 @@ ExtinctionFighter/
     │   ├── quetzalcoatlus.js
     │   ├── megatherium.js
     │   ├── smilodon.js            # Combattant déblocable (Tigre à Dents de Sabre)
-    │   └── dragon.js              # Boss Drak'Zul non jouable
+    │   ├── dragon.js              # Boss Drak'Zul jouable une fois débloqué
+    │   └── anomalocaris.js        # Boss du Cambrien déblocable en combattant jouable
     ├── arenas/                    # Un fichier modulaire par arène 3D
+    │   ├── cambrian.js            # Grande carte avec plateformes & geysers de saut
     │   ├── volcano.js
     │   ├── boneyard.js
     │   ├── swamp.js
     │   ├── storm.js
     │   ├── ice-age.js             # Arène du Glacier de l'Ère Glaciaire
-    │   └── dragon-lair.js
+    │   ├── dragon-lair.js
+    │   └── jungle.js
     ├── menus/                 # Un fichier par composant de menu
     │   ├── header.js          # Barre d'en-tête (retour, caméra, options)
     │   ├── main-menu.js       # Écran d'accueil (1P Campagne / IA, 2P 1v1)

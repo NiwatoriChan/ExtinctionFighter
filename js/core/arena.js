@@ -134,7 +134,8 @@ function getArenaStagePBRMaps(arenaType, floorColor, accentColor) {
 function getArenaGroundHeight(arenaType, x, z = 0) {
     const key = arenaType || (typeof currentArena !== 'undefined' ? currentArena : 'volcano');
     const arena = (typeof ARENAS !== 'undefined' && (ARENAS[key] || ARENAS['volcano'])) || null;
-    const clampedX = Math.max(-16, Math.min(16, x || 0));
+    const bound = (arena && arena.stageBound) ? arena.stageBound : 16;
+    const clampedX = Math.max(-bound, Math.min(bound, x || 0));
     if (arena && typeof arena.getGroundHeight === 'function') {
         return arena.getGroundHeight(clampedX, z);
     }
@@ -142,19 +143,29 @@ function getArenaGroundHeight(arenaType, x, z = 0) {
 }
 
 function getArenaPlatforms(arenaType) {
-    void arenaType;
-    return [];
+    const key = arenaType || (typeof currentArena !== 'undefined' ? currentArena : 'volcano');
+    const arena = (typeof ARENAS !== 'undefined' && (ARENAS[key] || ARENAS['volcano'])) || null;
+    return (arena && Array.isArray(arena.platforms)) ? arena.platforms : [];
 }
 
 function getPlatformSurfaceY(plat, x) {
-    void plat;
-    void x;
-    return 0;
+    if (!plat) return 0;
+    return plat.y || 0;
 }
 
 function getFighterSupportHeight(fighter, arenaType) {
     if (!fighter) return 0;
-    return getArenaGroundHeight(arenaType, fighter.x, 0);
+    const groundH = getArenaGroundHeight(arenaType, fighter.x, 0);
+    let support = groundH;
+    const plats = getArenaPlatforms(arenaType);
+    for (const p of plats) {
+        if (!p.isJumpPad && fighter.x >= p.xMin && fighter.x <= p.xMax) {
+            if (fighter.y >= p.y - 0.28) {
+                if (p.y > support) support = p.y;
+            }
+        }
+    }
+    return support;
 }
 
 function getFighterSurfaceSlope(fighter, arenaType) {
@@ -166,10 +177,68 @@ function getFighterSurfaceSlope(fighter, arenaType) {
 }
 
 function buildArenaPlatforms3D(arena, group, accentColor) {
-    void arena;
-    void group;
-    void accentColor;
-    return [];
+    if (!arena || !Array.isArray(arena.platforms) || !group) return [];
+    const meshes = [];
+
+    const platMat = new THREE.MeshStandardMaterial({
+        color: arena.floorColor || 0x082535,
+        roughness: 0.65,
+        metalness: 0.25
+    });
+
+    const glowRimMat = new THREE.MeshStandardMaterial({
+        color: accentColor || 0x22d3ee,
+        emissive: accentColor || 0x22d3ee,
+        emissiveIntensity: 0.85,
+        roughness: 0.2
+    });
+
+    const undersideMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(arena.floorColor || 0x082535).multiplyScalar(0.45),
+        roughness: 0.85,
+        metalness: 0.15
+    });
+
+    for (const plat of arena.platforms) {
+        if (plat.isJumpPad) continue; // Les jump pads sont modélisés dans le décor 3D
+        const w = (plat.xMax - plat.xMin);
+        const centerX = (plat.xMin + plat.xMax) * 0.5;
+        const platY = plat.y;
+        const depth = 4.2;
+        const thickness = 0.42;
+
+        const platGroup = new THREE.Group();
+        platGroup.position.set(centerX, platY - thickness * 0.5, 0);
+
+        // 1. Dalle de plateforme praticable
+        const slabGeo = new THREE.BoxGeometry(w, thickness, depth, 16, 2, 6);
+        const slab = new THREE.Mesh(slabGeo, platMat);
+        slab.receiveShadow = true;
+        slab.castShadow = true;
+        platGroup.add(slab);
+
+        // 2. Bordure lumineuse d'accentuation (pour une lisibilité visuelle parfaite)
+        const rimGeo = new THREE.BoxGeometry(w + 0.12, 0.08, depth + 0.12);
+        const rim = new THREE.Mesh(rimGeo, glowRimMat);
+        rim.position.y = thickness * 0.5;
+        platGroup.add(rim);
+
+        // 3. Contreforts de roche / concrétions inférieures
+        const strutCount = Math.max(2, Math.floor(w / 3.0));
+        for (let s = 0; s < strutCount; s++) {
+            const sx = -w * 0.4 + (s / (strutCount - 1 || 1)) * (w * 0.8);
+            const strutGeo = new THREE.ConeGeometry(0.38, 1.4, 5);
+            strutGeo.rotateX(Math.PI);
+            const strut = new THREE.Mesh(strutGeo, undersideMat);
+            strut.position.set(sx, -thickness * 0.5 - 0.65, 0);
+            strut.castShadow = true;
+            platGroup.add(strut);
+        }
+
+        group.add(platGroup);
+        meshes.push(platGroup);
+    }
+    return meshes;
 }
 
 function buildArena3D(arenaType, customGroup = null, customScene = null) {
@@ -205,9 +274,9 @@ function buildArena3D(arenaType, customGroup = null, customScene = null) {
     // ========================================================================
     // 1. DALLE TOPOGRAPHIQUE SCULPTÉE EN RELIEF 3D (STYLE MATURE CARTOON PBR)
     // ========================================================================
-    const stageWidth = 32;
-    const stageDepth = 12;
-    const segsX = 80;
+    const stageWidth = (arena && arena.stageWidth) ? arena.stageWidth : 32;
+    const stageDepth = (arena && arena.stageDepth) ? arena.stageDepth : 12;
+    const segsX = Math.round(stageWidth * 2.5);
     const segsZ = 22;
     const stageGeo = new THREE.BoxGeometry(stageWidth, 3.2, stageDepth, segsX, 4, segsZ);
     const pos = stageGeo.attributes.position;
@@ -319,7 +388,8 @@ function buildArena3D(arenaType, customGroup = null, customScene = null) {
         metalness: 0.4
     });
 
-    for (let bx = -15; bx <= 15; bx += 3.0) {
+    const maxBx = Math.floor((stageWidth * 0.5) - 1.0);
+    for (let bx = -maxBx; bx <= maxBx; bx += 3.0) {
         [-1, 1].forEach(zSide => {
             const bz = zSide * (stageDepth * 0.5 + 0.12);
             const gh = getArenaGroundHeight(arenaType, bx, bz);
@@ -342,7 +412,12 @@ function buildArena3D(arenaType, customGroup = null, customScene = null) {
     }
 
     // ========================================================================
-    // 3. ÉLÉMENTS DE DÉCOR 3D SPÉCIFIQUES DE L'ARÈNE
+    // 3. PLATEFORMES ÉTAGÉES & SURFACES PRATICABLES 3D
+    // ========================================================================
+    buildArenaPlatforms3D(arena, group, accentColor);
+
+    // ========================================================================
+    // 4. ÉLÉMENTS DE DÉCOR 3D SPÉCIFIQUES DE L'ARÈNE
     // ========================================================================
     if (arena && arena.buildDecor) {
         const oldArenaGroup = arenaGroup;

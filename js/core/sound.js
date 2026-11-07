@@ -65,7 +65,24 @@ class SoundEngine {
         osc.start(now);
         osc.stop(now + (heavy ? 0.27 : 0.14));
     }
-                playThunder() {
+    playWhoosh() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(420, now);
+        osc.frequency.exponentialRampToValueAtTime(75, now + 0.16);
+        gain.gain.setValueAtTime(0.24, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+        osc.connect(gain);
+        gain.connect(this.destination);
+        osc.start(now);
+        osc.stop(now + 0.17);
+    }
+    playThunder() {
         if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;

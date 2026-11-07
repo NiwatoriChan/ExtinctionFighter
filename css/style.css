@@ -1391,6 +1391,338 @@ canvas {
     z-index: 25;
 }
 
+/* ==================== 7. REDESIGNED PREHISTORIC PAUSE MENU ==================== */
+.pause-stage-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 90;
+    background: radial-gradient(circle at center, rgba(16, 12, 10, 0.82) 0%, rgba(5, 4, 3, 0.95) 100%);
+    backdrop-filter: blur(8px) brightness(0.68) saturate(1.2);
+    -webkit-backdrop-filter: blur(8px) brightness(0.68) saturate(1.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    user-select: none;
+    padding: 12px;
+}
+
+#pauseCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.pause-monolith-card {
+    position: relative;
+    z-index: 20;
+    width: 100%;
+    max-width: 530px;
+    background-image: url('../assets/ui/settings_main_slab.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-color: #12100e;
+    border-radius: 18px;
+    border: 2px solid rgba(245, 158, 11, 0.45);
+    box-shadow: 
+        inset 0 0 45px rgba(0, 0, 0, 0.92),
+        0 24px 60px rgba(0, 0, 0, 0.98),
+        0 0 35px rgba(245, 158, 11, 0.25);
+    padding: 16px 24px 14px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+    animation: pauseCardEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pauseCardEnter {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.pause-logo-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    max-width: 82%;
+    opacity: 0.09;
+    pointer-events: none;
+    z-index: 1;
+    filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.4));
+    animation: magmaBreathe 5s ease-in-out infinite;
+}
+
+.pause-header-box {
+    position: relative;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+}
+
+.pause-title-plaque-wrapper {
+    position: relative;
+    width: 330px;
+    height: 74px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: options-plaque-pulse 4s ease-in-out infinite;
+}
+
+.pause-title-plaque-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+.pause-title-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-top: 3px;
+}
+
+.pause-title-text {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.48rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    color: #fffbeb;
+    text-shadow: 
+        0 0 10px #f59e0b,
+        0 0 22px #ea580c,
+        0 0 35px #dc2626,
+        0 2px 4px #000;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.pause-subtitle-text {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    color: #fde047;
+    text-transform: uppercase;
+    text-shadow: 0 1px 3px #000, 0 0 8px rgba(245, 158, 11, 0.85);
+}
+
+.pause-close-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    z-index: 25;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+    border: 1.5px solid #52525b;
+    color: #d4d4d8;
+    font-size: 1rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    transition: all 0.18s ease;
+}
+
+.pause-close-btn:hover {
+    background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
+    border-color: #ef4444;
+    color: #fee2e2;
+    transform: scale(1.08);
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.75);
+}
+
+.pause-options-list {
+    position: relative;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pause-bone-btn {
+    position: relative;
+    width: 100%;
+    min-height: 44px;
+    height: 46px;
+    padding: 0 20px;
+    background-image: url('../assets/ui/stone_slab_normal.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.9));
+    cursor: pointer;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.18s ease, color 0.15s ease;
+    user-select: none;
+    outline: none;
+}
+
+.pause-bone-btn:hover {
+    background-image: url('../assets/ui/stone_slab_active.png') !important;
+    filter: drop-shadow(0 0 22px rgba(245, 158, 11, 0.9)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.95)) !important;
+    transform: translateX(4px) scale(1.02);
+}
+
+.pause-bone-btn.active {
+    background-image: url('../assets/ui/stone_slab_active.png') !important;
+    filter: drop-shadow(0 0 26px rgba(245, 158, 11, 0.98)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.98)) !important;
+    transform: translateX(6px) scale(1.028) !important;
+}
+
+.pause-bone-btn-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.pause-bone-btn-icon {
+    font-size: 0.95rem;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.9));
+}
+
+.pause-bone-btn-label {
+    font-family: 'Cinzel Decorative', 'Chakra Petch', sans-serif;
+    font-weight: 900;
+    font-size: clamp(0.72rem, 0.95vw, 0.85rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e5e5e5;
+    text-shadow: 0 2px 4px #000, 0 1px 1px rgba(0, 0, 0, 0.9);
+    transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.pause-bone-btn:hover .pause-bone-btn-label,
+.pause-bone-btn.active .pause-bone-btn-label {
+    color: #fffbeb !important;
+    text-shadow: 0 0 14px rgba(254, 240, 138, 1), 0 2px 4px #000, 0 0 22px rgba(245, 158, 11, 0.9) !important;
+}
+
+.pause-bone-btn-right {
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 800;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    pointer-events: none;
+}
+
+.pause-footer-bar {
+    position: relative;
+    z-index: 15;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(245, 158, 11, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 0.72rem;
+    color: #a1a1aa;
+    user-select: none;
+}
+
+.pause-footer-prompts {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-weight: 700;
+}
+
+.pause-footer-prompt-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pause-footer-version {
+    font-weight: 700;
+    font-size: 0.68rem;
+    color: #71717a;
+    letter-spacing: 0.05em;
+}
+
+/* Audio on/off toggle capsule in pause menu */
+.pause-audio-capsule {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background-image: url('../assets/ui/toggle_container.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    padding: 2px;
+    height: 26px;
+    width: 82px;
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+.pause-capsule-btn {
+    flex: 1;
+    height: 100%;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Cinzel Decorative', 'Chakra Petch', sans-serif;
+    font-weight: 900;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #71717a;
+    background: transparent;
+    transition: all 0.15s ease;
+}
+
+.pause-capsule-btn.active {
+    background-image: url('../assets/ui/toggle_btn_active.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    color: #fef08a;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.9), 0 1px 2px #000;
+    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
+}
+
+.pause-capsule-btn.inactive {
+    background-image: url('../assets/ui/toggle_btn_inactive.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    color: #52525b;
+}
+
+
 
 
 

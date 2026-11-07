@@ -285,7 +285,7 @@ function buildArenaChooserUIKit() {
 
     const footer = new UIKit.Container({
         tag: 'footer',
-        className: 'arena-bottom-slab w-full py-2.5 px-3 sm:px-8 flex flex-wrap items-center justify-between shrink-0 relative z-20',
+        className: 'w-full py-2.5 px-3 sm:px-8 flex flex-wrap items-center justify-between shrink-0 relative z-20 bg-transparent',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',

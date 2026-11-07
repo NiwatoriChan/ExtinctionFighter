@@ -34,7 +34,8 @@ t = threading.Thread(target=server.serve_forever, daemon=True)
 t.start()
 time.sleep(1)
 
-FIREFOX_BIN = '/nix/store/bfd2xf7qr3z7y6i7xs8xw0ljpgjjh6pf-firefox-159.0.1/bin/firefox'
+import shutil
+FIREFOX_BIN = shutil.which('firefox') or '/run/current-system/sw/bin/firefox'
 
 print("1. Capturing Campaign Map Screenshot...")
 cap_map_path = os.path.abspath("screenshots/campaign_map_screenshot.png")

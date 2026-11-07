@@ -2,6 +2,9 @@ import os
 from PIL import Image, ImageFilter, ImageOps, ImageDraw, ImageEnhance
 
 def generate_clean_char_select_bg():
+    if os.path.exists('assets/mockups/character_select_clean_bg.jpg') and not os.environ.get('FORCE_REGEN_CS_BG'):
+        print('assets/mockups/character_select_clean_bg.jpg is already cleanly generated and finalized.')
+        return
     src = Image.open('assets/mockups/character_select_bg.jpg').convert('RGB')
     w, h = src.size # 1024, 572
     clean = src.copy()

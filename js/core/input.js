@@ -411,97 +411,17 @@ function showGamepadToast(msg) {
 }
 
 
-// 3. BARRE D'AIDE MANETTE CONTEXTUELLE EN BAS D'ÉCRAN (@pmndrs/uikit)
+// 3. BARRE D'AIDE MANETTE CONTEXTUELLE EN BAS D'ÉCRAN (SUPPRIMÉE)
 function createGamepadHelperHUD() {
-    if (document.getElementById('gamepadHelperBar')) return;
-    const barUI = new UIKit.Container({
-        id: 'gamepadHelperBar',
-        className: 'fixed bottom-1 left-1/2 -translate-x-1/2 z-40 pointer-events-none px-3.5 py-1 rounded-full bg-zinc-950/90 backdrop-blur-md border border-amber-500/40 shadow-2xl flex items-center justify-center gap-2 text-[10px] sm:text-xs text-zinc-300 font-bold transition-all duration-200 select-none opacity-95 max-w-[95vw] overflow-x-auto',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center'
-    });
-    barUI.mount(document.body);
+    const bar = document.getElementById('gamepadHelperBar');
+    if (bar) bar.remove();
 }
 
 let _lastGamepadHelperKey = '';
 
 function updateGamepadHelperHUD() {
     const bar = document.getElementById('gamepadHelperBar');
-    if (!bar) return;
-
-    const movesModal = document.getElementById('movesModal');
-    const isMovesModalOpen = !!(movesModal && !movesModal.classList.contains('hidden'));
-
-    const settingsModal = document.getElementById('settingsModal');
-    const isSettingsModalOpen = !!(settingsModal && !settingsModal.classList.contains('hidden'));
-
-    const pauseModal = document.getElementById('pauseModal');
-    const isPauseOpen = !!(pauseModal && !pauseModal.classList.contains('hidden'));
-
-    const postMatchMenu = document.getElementById('postMatchMenu');
-    const isPostMatchOpen = !!(postMatchMenu && !postMatchMenu.classList.contains('hidden'));
-
-    const stateKey = `${matchState}|${isMovesModalOpen ? 1 : 0}|${isSettingsModalOpen ? 1 : 0}|${isPauseOpen ? 1 : 0}|${isPostMatchOpen ? 1 : 0}`;
-    if (stateKey === _lastGamepadHelperKey) return;
-    _lastGamepadHelperKey = stateKey;
-
-    if (isMovesModalOpen) {
-        bar.style.display = 'flex';
-        bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold font-chakra">📜 GRIMOIRE</span>
-            <span class="gp-key">Stick / D-Pad</span> Défiler
-            <span class="gp-key gp-key-gold">B / START</span> Fermer
-        `;
-    } else if (isSettingsModalOpen) {
-        bar.style.display = 'flex';
-        bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold font-chakra">⚙️ PARAMÈTRES</span>
-            <span class="gp-key">D-Pad Haut/Bas</span> Naviguer
-            <span class="gp-key gp-key-gold">◀ ▶ / A</span> Modifier
-            <span class="gp-key">B / START</span> Fermer
-        `;
-    } else if (isPauseOpen) {
-        bar.style.display = 'flex';
-        bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold font-chakra">⏸ PAUSE</span>
-            <span class="gp-key">D-Pad Haut/Bas</span> Naviguer
-            <span class="gp-key gp-key-gold">A</span> Valider
-            <span class="gp-key">B / START</span> Reprendre
-        `;
-    } else if (matchState === 'match_over' || (isPostMatchOpen && matchState !== 'select' && matchState !== 'arena_select' && matchState !== 'main_menu' && matchState !== 'fight')) {
-        bar.style.display = 'flex';
-        bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold font-chakra">🏆 FIN DU MATCH</span>
-            <span class="gp-key">D-Pad Gauche/Droite</span> Choisir
-            <span class="gp-key gp-key-gold">A</span> Valider
-            <span class="gp-key">START</span> Revanche
-            <span class="gp-key">B</span> Combattants
-        `;
-    } else if (matchState === 'main_menu') {
-        bar.style.display = 'none';
-    } else if (matchState === 'select') {
-        bar.style.display = 'flex';
-        bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold font-chakra">🦖 COMBATTANTS</span>
-            <span class="gp-key">D-Pad</span> Choisir
-            <span class="gp-key gp-key-gold">A</span> Valider / Suivant
-            <span class="gp-key">X</span> Aléatoire
-            <span class="gp-key gp-key-action">START</span> Arène
-            <span class="gp-key">B</span> Menu
-        `;
-    } else if (matchState === 'arena_select') {
-        bar.style.display = 'flex';
-        bar.innerHTML = `
-            <span class="text-amber-400 font-extrabold font-chakra">🌋 ARÈNES</span>
-            <span class="gp-key">D-Pad</span> Choisir Arène
-            <span class="gp-key gp-key-action">START / A</span> Lancer le Kombat !
-            <span class="gp-key">X</span> Aléatoire
-            <span class="gp-key">B</span> Retour
-        `;
-    } else if (matchState === 'fight' || matchState === 'finish_him' || matchState === 'round_over' || matchState === 'intro' || matchState === 'campaign_level') {
-        bar.style.display = 'none';
-    }
+    if (bar) bar.remove();
 }
 
 
@@ -1472,6 +1392,14 @@ function handlePlayer1Inputs(dt) {
 
     // SAUTER : Action de saut dédiée (Espace), complètement découplée de Haut pour frapper en haut sans sauter
     if (jump && p1AirH <= 0.08) {
+        // Descente à travers les plateformes semi-solides (Bas + Saut)
+        const gFloor = (typeof getArenaGroundHeight === 'function') ? getArenaGroundHeight(currentArena, fighter1.x, 0) : 0;
+        if (isDown && fighter1.y > gFloor + 0.35) {
+            fighter1._dropThroughTimer = 0.35;
+            fighter1.vy = -4.0;
+            fighter1.y -= 0.16;
+            return;
+        }
         fighter1.vy = fighter1.jumpVy || 11.8;
         if (moveLeft) fighter1.vx = -curWalkSpd * 0.65;
         if (moveRight) fighter1.vx = curWalkSpd * 0.65;
@@ -1605,6 +1533,13 @@ function handlePlayer2Inputs(dt) {
     fighter2.blockType = 'none';
 
     if (jump && p2AirH <= 0.08) {
+        const gFloor2 = (typeof getArenaGroundHeight === 'function') ? getArenaGroundHeight(currentArena, fighter2.x, 0) : 0;
+        if (isDown && fighter2.y > gFloor2 + 0.35) {
+            fighter2._dropThroughTimer = 0.35;
+            fighter2.vy = -4.0;
+            fighter2.y -= 0.16;
+            return;
+        }
         fighter2.vy = fighter2.jumpVy || 11.8;
         if (moveLeft) fighter2.vx = -curWalkSpd * 0.65;
         if (moveRight) fighter2.vx = curWalkSpd * 0.65;
