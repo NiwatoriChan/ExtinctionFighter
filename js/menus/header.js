@@ -165,10 +165,11 @@ pauseModalRoot.mount(document.getElementById('appMain'), 'afterend');
 function startPauseEmbers() {
     if (pauseEmbersRunning) return;
     const canvas = document.getElementById('pauseCanvas');
-    if (!canvas) return;
+    if (!canvas || typeof canvas.getContext !== 'function') return;
 
     pauseEmbersRunning = true;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
@@ -252,7 +253,7 @@ function stopPauseEmbers() {
         pauseEmbersAnimId = null;
     }
     const canvas = document.getElementById('pauseCanvas');
-    if (canvas) {
+    if (canvas && typeof canvas.getContext === 'function') {
         const ctx = canvas.getContext('2d');
         if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
