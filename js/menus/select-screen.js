@@ -28,6 +28,27 @@ function getFighterPortraitUrl(fighterId) {
     return FIGHTER_PORTRAIT_IMAGES[fighterId] || `assets/portraits/${fighterId}.png`;
 }
 
+// Préchargement asynchrone des portraits du roster pour accélérer le mode Versus
+const PRELOADED_PORTRAIT_IMAGES = {};
+function preloadRosterPortraits() {
+    try {
+        Object.values(FIGHTER_PORTRAIT_IMAGES).forEach(url => {
+            if (!PRELOADED_PORTRAIT_IMAGES[url]) {
+                const img = new Image();
+                img.src = url;
+                PRELOADED_PORTRAIT_IMAGES[url] = img;
+            }
+        });
+    } catch (_) {}
+}
+if (typeof window !== 'undefined') {
+    if (document.readyState === 'complete') {
+        setTimeout(preloadRosterPortraits, 50);
+    } else {
+        window.addEventListener('load', () => setTimeout(preloadRosterPortraits, 50));
+    }
+}
+
 // Aperçus vectoriels stylisés pour chacun des combattants (fallback)
 const FIGHTER_PORTRAITS = {
     trex: `
@@ -867,10 +888,17 @@ function updatePreviewModels(time) {
     });
 }
 
-function initRosterUI() {
+let _rosterUIIsBuilt = false;
+
+function initRosterUI(forceRebuild = false) {
     const gridNode = UIKit.getElementById('rosterGrid');
     if (!gridNode) return;
+    if (_rosterUIIsBuilt && !forceRebuild) {
+        updateSelectScreenUI();
+        return;
+    }
     gridNode.clearChildren();
+    _rosterUIIsBuilt = true;
 
     DINO_ROSTER.forEach((dino, idx) => {
         const isLocked = dino.isUnlockable && !isFighterUnlocked(dino.id);
@@ -1411,7 +1439,7 @@ function showFighterUnlockedModal(fighterId = 'smilodon') {
                                     const m = document.getElementById('unlockedFighterModal');
                                     if (m) m.remove();
                                     sfx.playHit(false);
-                                    initRosterUI();
+                                    initRosterUI(true);
                                 }
                             })
                         ]

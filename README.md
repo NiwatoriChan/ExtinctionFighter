@@ -14,9 +14,9 @@
 ## 🌟 Points Forts du Jeu
 
 * **13 Légendes Préhistoriques + 2 Combattants Déblocables (Smilodon & Drak'Zul)** : Chaque combattant possède son propre rig 3D articulé fidèle aux fossiles réels, sa palette de coups, ses attaques spéciales et sa propre Fatalité 3D.
-* **🗺️ Nouveau Mode Campagne — *Smash Melee Adventure*** :
+* **🗺️ Nouveau Mode Campagne — *L'Odyssée des Ères*** :
   * **Carte du Monde Pangaea Interactive** : Une carte géologique avec route temporelle reliant 6 Grandes Ères, chacune dotée de son propre blason/logo emblématique.
-  * **Niveaux Smash Melee par Vagues** : Chaque ère est un niveau complet avec essaims d'ennemis de l'époque (Trilobites, Archosaures, Raptors de cendre, Chiens du blizzard), knockback Smash avec projections à haute vélocité, explosions K.O. et objets ramassables 3D (Viande préhistorique +250 PV, Ambre de Rage MAX).
+  * **Niveaux d'Ère par Vagues** : Chaque ère est un niveau complet avec essaims d'ennemis de l'époque (Trilobites, Archosaures, Raptors de cendre, Chiens du blizzard), combats dynamiques avec projections à haute vélocité, explosions K.O. et objets ramassables 3D (Viande préhistorique +250 PV, Ambre de Rage MAX).
   * **Boss Monstres Uniques** : À la fin de chaque ère, affrontez un titan colossal sur mesure doté d'une gigantesque barre de vie, d'attaques de zone (jets d'acide, foudre sismique, météores, stalagmites) et d'un mode Enrage à 40% de PV !
   * **Déblocages par Ère** : Chaque ère conquise débloque un Combattant et une Arène thématique dédiés (Pulmonoscorpius, Postosuchus, Apatosaure, Thérizinosaure, Smilodon, et le Dragon Drak'Zul jouable !).
 * **🎮 Modes de Jeu Complets** :
@@ -37,13 +37,13 @@
 
 ## 📸 Galerie d'Écrans
 
-| Carte de Campagne (Road Through Time) | Niveau Smash Melee : Vague 1 Minions |
+| Carte de Campagne (Road Through Time) | Niveau de Campagne : Vague 1 Minions |
 | :---: | :---: |
-| ![Carte de Campagne](screenshots/campaign_map_screenshot.png) | ![Niveau Smash Melee Minions](screenshots/smash_wave1_minions.png) |
+| ![Carte de Campagne](screenshots/campaign_map_screenshot.png) | ![Niveau de Campagne Minions](screenshots/smash_wave1_minions.png) |
 
-| Niveau Smash Melee : Vague 3 Boss Colossal | Récompenses & Déblocages d'Ère |
+| Niveau de Campagne : Vague 3 Boss Colossal | Récompenses & Déblocages d'Ère |
 | :---: | :---: |
-| ![Niveau Smash Melee Boss](screenshots/smash_wave3_boss.png) | ![Récompenses d'Ère](screenshots/smash_victory_rewards.png) |
+| ![Niveau de Campagne Boss](screenshots/smash_wave3_boss.png) | ![Récompenses d'Ère](screenshots/smash_victory_rewards.png) |
 
 ---
 

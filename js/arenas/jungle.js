@@ -9,6 +9,94 @@
  *   - Atmosphère : Rayons crépusculaires volumétriques & nuée de spores bioluminescentes
  * ============================================================================ */
 
+let _cachedJungleBarkTex = null;
+let _cachedJungleDinoSkinTex = null;
+let _cachedJungleSporeTex = null;
+
+function getJungleBarkTexture() {
+    if (_cachedJungleBarkTex) return _cachedJungleBarkTex;
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#291811';
+    ctx.fillRect(0, 0, 256, 256);
+
+    for (let i = 0; i < 400; i++) {
+        const x = Math.random() * 256;
+        const y = Math.random() * 256;
+        const w = 3 + Math.random() * 6;
+        const h = 16 + Math.random() * 45;
+        const shade = Math.random();
+        ctx.fillStyle = shade < 0.35 ? '#170c07' : (shade < 0.75 ? '#4a2e1d' : '#22543d');
+        ctx.fillRect(x, y, w, h);
+    }
+    ctx.strokeStyle = 'rgba(10, 6, 4, 0.72)';
+    ctx.lineWidth = 2.5;
+    for (let y = 0; y < 256; y += 14) {
+        ctx.beginPath();
+        ctx.moveTo(0, y + Math.sin(y) * 4);
+        ctx.lineTo(256, y + Math.cos(y) * 4);
+        ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 2);
+    if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    _cachedJungleBarkTex = tex;
+    return _cachedJungleBarkTex;
+}
+
+function getJungleDinoSkinTexture() {
+    if (_cachedJungleDinoSkinTex) return _cachedJungleDinoSkinTex;
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#2d4a3e';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Pavage d'écailles polygonales stylisées
+    for (let i = 0; i < 850; i++) {
+        const x = Math.random() * 256;
+        const y = Math.random() * 256;
+        const r = 2.5 + Math.random() * 5.5;
+        ctx.fillStyle = i % 3 === 0 ? '#1b2e26' : (i % 2 === 0 ? '#4ade80' : '#14532d');
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#0f1713';
+        ctx.lineWidth = 1.0;
+        ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    _cachedJungleDinoSkinTex = tex;
+    return _cachedJungleDinoSkinTex;
+}
+
+function getJungleSporeGlowTexture() {
+    if (_cachedJungleSporeTex) return _cachedJungleSporeTex;
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
+    grad.addColorStop(0, 'rgba(255, 255, 230, 1)');
+    grad.addColorStop(0.35, 'rgba(74, 222, 128, 0.85)');
+    grad.addColorStop(0.7, 'rgba(16, 185, 129, 0.4)');
+    grad.addColorStop(1, 'rgba(5, 46, 22, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 64, 64);
+    const tex = new THREE.CanvasTexture(canvas);
+    if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    _cachedJungleSporeTex = tex;
+    return _cachedJungleSporeTex;
+}
+
 registerArena({
     id: 'jungle',
     label: "🌿 Vallée d'Émeraude (Jungle du Jurassique)",
@@ -28,90 +116,9 @@ registerArena({
     buildDecor(group, scene) {
         const targetGroup = group || arenaGroup;
 
-        // ====================================================================
-        // 1. GÉNÉRATEURS DE TEXTURES PROCÉDURALES "CARTOON MATURE"
-        // ====================================================================
-        function getBarkTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 256;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#291811';
-            ctx.fillRect(0, 0, 256, 256);
-
-            for (let i = 0; i < 400; i++) {
-                const x = Math.random() * 256;
-                const y = Math.random() * 256;
-                const w = 3 + Math.random() * 6;
-                const h = 16 + Math.random() * 45;
-                const shade = Math.random();
-                ctx.fillStyle = shade < 0.35 ? '#170c07' : (shade < 0.75 ? '#4a2e1d' : '#22543d');
-                ctx.fillRect(x, y, w, h);
-            }
-            ctx.strokeStyle = 'rgba(10, 6, 4, 0.72)';
-            ctx.lineWidth = 2.5;
-            for (let y = 0; y < 256; y += 14) {
-                ctx.beginPath();
-                ctx.moveTo(0, y + Math.sin(y) * 4);
-                ctx.lineTo(256, y + Math.cos(y) * 4);
-                ctx.stroke();
-            }
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.wrapS = THREE.RepeatWrapping;
-            tex.wrapT = THREE.RepeatWrapping;
-            tex.repeat.set(2, 2);
-            if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
-            return tex;
-        }
-
-        function getDinoSkinTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 256;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#2d4a3e';
-            ctx.fillRect(0, 0, 256, 256);
-
-            // Pavage d'écailles polygonales stylisées
-            for (let i = 0; i < 850; i++) {
-                const x = Math.random() * 256;
-                const y = Math.random() * 256;
-                const r = 2.5 + Math.random() * 5.5;
-                ctx.fillStyle = i % 3 === 0 ? '#1b2e26' : (i % 2 === 0 ? '#4ade80' : '#14532d');
-                ctx.beginPath();
-                ctx.arc(x, y, r, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#0f1713';
-                ctx.lineWidth = 1.0;
-                ctx.stroke();
-            }
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.wrapS = THREE.RepeatWrapping;
-            tex.wrapT = THREE.RepeatWrapping;
-            if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
-            return tex;
-        }
-
-        function getSporeGlowTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 64;
-            canvas.height = 64;
-            const ctx = canvas.getContext('2d');
-            const grad = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
-            grad.addColorStop(0, 'rgba(255, 255, 230, 1)');
-            grad.addColorStop(0.35, 'rgba(74, 222, 128, 0.85)');
-            grad.addColorStop(0.7, 'rgba(16, 185, 129, 0.4)');
-            grad.addColorStop(1, 'rgba(5, 46, 22, 0)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 64, 64);
-            const tex = new THREE.CanvasTexture(canvas);
-            if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
-            return tex;
-        }
-
-        const barkTex = getBarkTexture();
-        const dinoSkinTex = getDinoSkinTexture();
-        const sporeTex = getSporeGlowTexture();
+        const barkTex = getJungleBarkTexture();
+        const dinoSkinTex = getJungleDinoSkinTexture();
+        const sporeTex = getJungleSporeGlowTexture();
 
         // ====================================================================
         // 2. SOL DE LA VALLÉE ET RIVIÈRE PRÉHISTORIQUE ANIMÉE

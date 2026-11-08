@@ -56,12 +56,20 @@ function bootGame() {
 
     // Le jeu démarre sur le Menu Principal (ou directement sur l'écran spécifié via ?screen=...)
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('unlock') === '1' || urlParams.get('unlock') === 'smilodon') {
-        unlockFighter('smilodon');
+    const unlockParam = urlParams.get('unlock');
+    if (unlockParam) {
+        if (unlockParam === '1' || unlockParam === 'all') {
+            if (typeof DINO_ROSTER !== 'undefined') {
+                DINO_ROSTER.forEach(d => unlockFighter(d.id));
+            }
+        } else {
+            unlockFighter(unlockParam);
+        }
     }
-    if (urlParams.get('p1') === 'smilodon') {
-        const smiloIdx = DINO_ROSTER.findIndex(d => d.id === 'smilodon');
-        if (smiloIdx >= 0) p1ChoiceIndex = smiloIdx;
+    const p1Param = urlParams.get('p1');
+    if (p1Param && typeof DINO_ROSTER !== 'undefined') {
+        const targetIdx = DINO_ROSTER.findIndex(d => d.id === p1Param);
+        if (targetIdx >= 0) p1ChoiceIndex = targetIdx;
     }
 
     if (urlParams.get('mode') === 'campaign' || urlParams.get('screen') === 'campaign') {

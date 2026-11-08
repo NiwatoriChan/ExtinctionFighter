@@ -127,14 +127,14 @@ function buildCampaignMapUIKit() {
                         text: UIKit.computed(() => CAMPAIGN_ERAS[selectedEraIndexSignal.value].description)
                     }),
 
-                    // Section Smash Melee Level Breakdown
+                    // Section Programme du Niveau
                     new UIKit.Container({
                         className: 'space-y-1.5 mb-3 bg-stone-950/60 p-2.5 rounded-xl border border-stone-700/60',
                         children: [
                             new UIKit.Text({
                                 tag: 'div',
                                 className: 'font-chakra text-[10px] font-black text-amber-400 uppercase tracking-widest mb-1',
-                                text: 'PROGRAMME DU NIVEAU SMASH MELEE :'
+                                text: 'PROGRAMME DU NIVEAU :'
                             }),
                             new UIKit.Text({
                                 tag: 'div',
@@ -245,7 +245,7 @@ function buildCampaignMapUIKit() {
                 ]
             }),
 
-            // Bouton Principal d'Action : Lancer le Niveau Smash
+            // Bouton Principal d'Action : Lancer le Niveau d'Ère
             new UIKit.Button({
                 id: 'btnEnterPeriod',
                 className: UIKit.computed(() => {
@@ -262,8 +262,8 @@ function buildCampaignMapUIKit() {
                 text: UIKit.computed(() => {
                     const era = CAMPAIGN_ERAS[selectedEraIndexSignal.value];
                     if (!isEraUnlocked(era.id)) return '🔒 TERMINER L\'ÈRE PRÉCÉDENTE';
-                    if (isEraCleared(era.id)) return '⭐ REJOUER LE NIVEAU SMASH ➔';
-                    return '⚔️ COMMENCER LE NIVEAU SMASH ➔';
+                    if (isEraCleared(era.id)) return '⭐ REJOUER LE NIVEAU ➔';
+                    return '⚔️ COMMENCER LE NIVEAU ➔';
                 }),
                 onClick: () => {
                     const era = CAMPAIGN_ERAS[selectedEraIndexSignal.value];
@@ -428,7 +428,7 @@ function buildCampaignMapUIKit() {
             new UIKit.Text({
                 tag: 'div',
                 className: 'text-[11px] font-chakra font-black text-amber-400 uppercase tracking-widest',
-                text: 'MODE CAMPAGNE SMASH MELEE'
+                text: 'MODE CAMPAGNE'
             })
         ]
     });

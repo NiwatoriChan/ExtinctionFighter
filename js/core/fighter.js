@@ -140,6 +140,8 @@ class Fighter3D extends AnimalPrototype {
         this.staleMultiplier = 1.0;
         this.momentumMultiplier = 1.0;
         this.lastStaleCount = 0;
+        this._dropThroughTimer = 0;
+        this._prevY = this.y;
         this.rig.headGroup.scale.setScalar(1);
 
         if (this.combatController) {

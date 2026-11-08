@@ -99,7 +99,7 @@ registerArena({
             x: -11.0,
             y: 0.15,
             isJumpPad: true,
-            jumpForce: 17.8
+            jumpForce: 21.0
         },
         {
             id: 'cambrian_geyser_right',
@@ -107,62 +107,62 @@ registerArena({
             x: 11.0,
             y: 0.15,
             isJumpPad: true,
-            jumpForce: 17.8
+            jumpForce: 21.0
         },
 
-        // 2. Étage 1 : Plateaux Coralliens Inférieurs (Y = 2.8)
+        // 2. Étage 1 : Plateaux Coralliens Inférieurs (Y = 4.2)
         {
             id: 'cambrian_shelf_left',
             label: "🪸 Lagon Corallien Inférieur Ouest",
             xMin: -24.0,
-            xMax: -15.0,
-            y: 2.8,
+            xMax: -14.5,
+            y: 4.2,
             style: 'coral'
         },
         {
             id: 'cambrian_shelf_right',
             label: "🪸 Lagon Corallien Inférieur Est",
-            xMin: 15.0,
+            xMin: 14.5,
             xMax: 24.0,
-            y: 2.8,
+            y: 4.2,
             style: 'coral'
         },
 
-        // 3. Étage 2 : Autel Récifal Central (Y = 3.5)
+        // 3. Étage 2 : Autel Récifal Central (Y = 5.2)
         {
             id: 'cambrian_bridge_center',
             label: "🌊 Autel Récifal Central",
-            xMin: -5.5,
-            xMax: 5.5,
-            y: 3.5,
+            xMin: -5.8,
+            xMax: 5.8,
+            y: 5.2,
             style: 'altar'
         },
 
-        // 4. Étage 3 : Aiguilles de Stromatolites Élevées (Y = 5.6)
+        // 4. Étage 3 : Aiguilles de Stromatolites Élevées (Y = 8.2)
         {
             id: 'cambrian_spire_left',
             label: "🏛️ Aiguille de Stromatolites Ouest",
             xMin: -17.5,
-            xMax: -8.5,
-            y: 5.6,
+            xMax: -8.0,
+            y: 8.2,
             style: 'spire'
         },
         {
             id: 'cambrian_spire_right',
             label: "🏛️ Aiguille de Stromatolites Est",
-            xMin: 8.5,
+            xMin: 8.0,
             xMax: 17.5,
-            y: 5.6,
+            y: 8.2,
             style: 'spire'
         },
 
-        // 5. Étage 4 : Pinacle Abyssal Suprême (Y = 7.2)
+        // 5. Étage 4 : Pinacle Abyssal Suprême (Y = 10.5)
         {
             id: 'cambrian_spire_center_high',
             label: "⭐ Pinacle Abyssal Suprême",
-            xMin: -2.8,
-            xMax: 2.8,
-            y: 7.2,
+            xMin: -3.2,
+            xMax: 3.2,
+            y: 10.5,
             style: 'apex'
         }
     ],

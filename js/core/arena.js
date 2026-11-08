@@ -160,7 +160,8 @@ function getFighterSupportHeight(fighter, arenaType) {
     const plats = getArenaPlatforms(arenaType);
     for (const p of plats) {
         if (!p.isJumpPad && fighter.x >= p.xMin && fighter.x <= p.xMax) {
-            if (fighter.y >= p.y - 0.28) {
+            // Tolérance dynamique basée sur la vélocité et la position
+            if (fighter.y >= p.y - 0.45) {
                 if (p.y > support) support = p.y;
             }
         }

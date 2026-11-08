@@ -806,6 +806,7 @@ function renderArenaCards() {
 }
 
 function selectArena(arenaId) {
+    if (currentArena === arenaId && arenaPreview.arenaId === arenaId) return;
     currentArena = arenaId;
 
     const sel = document.getElementById('arenaSelect');
@@ -813,7 +814,7 @@ function selectArena(arenaId) {
 
     renderArenaCards();
 
-    if (arenaPreview.group && arenaPreview.scene) {
+    if (arenaPreview.group && arenaPreview.scene && arenaPreview.arenaId !== currentArena) {
         buildArena3D(currentArena, arenaPreview.group, arenaPreview.scene);
         arenaPreview.arenaId = currentArena;
     }
@@ -879,7 +880,7 @@ function openArenaChooser(force = false) {
     if (!arenaPreview.renderer) {
         setupArenaPreview('arenaPreviewCanvas');
     }
-    if (arenaPreview.group && arenaPreview.scene) {
+    if (arenaPreview.group && arenaPreview.scene && arenaPreview.arenaId !== currentArena) {
         buildArena3D(currentArena, arenaPreview.group, arenaPreview.scene);
         arenaPreview.arenaId = currentArena;
     }

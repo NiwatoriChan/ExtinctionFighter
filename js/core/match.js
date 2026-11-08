@@ -852,15 +852,23 @@ function updateBattle3D(dt, nowSec) {
         // Gestion de la traversée descendante des plateformes semi-solides (Drop Through)
         if (f._dropThroughTimer > 0) {
             f._dropThroughTimer -= dt;
+        } else {
+            f._dropThroughTimer = 0;
         }
 
         for (const plat of platforms) {
             if (plat.isJumpPad) continue;
             if (f.x >= plat.xMin && f.x <= plat.xMax) {
                 const platY = plat.y;
-                if (f._dropThroughTimer <= 0) {
+                if (!f._dropThroughTimer || f._dropThroughTimer <= 0) {
                     const prevY = f._prevY !== undefined ? f._prevY : f.y;
-                    if (prevY >= platY - 0.24 && f.y >= platY - 0.44 && f.vy <= 0.1) {
+                    // Détection one-way platform robuste : si le combattant était au-dessus ou proche du niveau
+                    // de la plateforme et tombe ou s'y déplace (ou était déjà dessus)
+                    const fallSpeedTolerance = Math.max(0.48, Math.abs(f.vy || 0) * dt * 2.2);
+                    const wasAboveOrOn = (prevY >= platY - 0.20) || (f.groundY !== undefined && Math.abs(f.groundY - platY) < 0.05);
+                    const isWithinLatchingZone = f.y >= platY - fallSpeedTolerance;
+
+                    if (wasAboveOrOn && isWithinLatchingZone && f.vy <= 0.15) {
                         if (platY > supportY) {
                             supportY = platY;
                         }
