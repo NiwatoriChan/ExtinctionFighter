@@ -56,6 +56,10 @@ function bootGame() {
 
     // Le jeu démarre sur le Menu Principal (ou directement sur l'écran spécifié via ?screen=...)
     const urlParams = new URLSearchParams(window.location.search);
+    const modeParam = urlParams.get('mode');
+    if (modeParam && ['campaign', 'cpu', 'pvp', 'practice'].includes(modeParam)) {
+        gameMode = modeParam;
+    }
     const unlockParam = urlParams.get('unlock');
     if (unlockParam) {
         if (unlockParam === '1' || unlockParam === 'all') {

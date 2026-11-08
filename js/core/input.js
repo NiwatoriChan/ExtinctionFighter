@@ -811,6 +811,7 @@ function handleGamepadSelectScreen(pad, pad2, dt) {
     const bottomButtons = [
         document.getElementById('btnSelectSlotP1'),
         document.getElementById('btnSelectSlotP2'),
+        document.getElementById('btnToggleVsMode'),
         document.getElementById('btnRandomFighters'),
         document.getElementById('btnGoToArena')
     ].filter(b => b && !b.classList.contains('hidden'));

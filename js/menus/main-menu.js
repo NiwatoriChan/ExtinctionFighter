@@ -42,7 +42,8 @@ const FEMUR_BONE_SVG = `
 
 const MAIN_MENU_SLAB_DEFS = [
     { id: 'btnMenuCampaign', label: 'CAMPAIGN', isDefaultActive: true },
-    { id: 'btnMenuVersus', label: 'VERSUS' },
+    { id: 'btnMenuVsAI', label: 'VERSUS AI' },
+    { id: 'btnMenuVersus', label: 'VERSUS 2P' },
     { id: 'btnMenuTraining', label: 'TRAINING' },
     { id: 'btnMenuRoster', label: 'ROSTER & CUSTOMIZATION' },
     { id: 'btnMenuSettings', label: 'OPTIONS' },
@@ -50,7 +51,7 @@ const MAIN_MENU_SLAB_DEFS = [
 ];
 
 function createMainMenuSlabButton(def, idx) {
-    const baseClasses = `stone-slab-btn bone-joint-slab ${def.isDefaultActive ? 'active ' : ''}w-full py-2.5 sm:py-3.5 px-6 flex items-center justify-center text-center text-xs sm:text-sm font-black tracking-widest relative`;
+    const baseClasses = `stone-slab-btn bone-joint-slab ${def.isDefaultActive ? 'active ' : ''}w-full py-2 sm:py-2.5 px-6 flex items-center justify-center text-center text-xs sm:text-sm font-black tracking-widest relative`;
 
     return new UIKit.Button({
         id: def.id,
@@ -88,11 +89,11 @@ const mainMenuRoot = new UIKit.Fullscreen({
             justifyContent: 'space-between',
             alignItems: 'center',
             children: [
-                // LEFT COLUMN: VERTICAL STACK OF 6 CHISELED STONE SLAB BUTTONS
+                // LEFT COLUMN: VERTICAL STACK OF 7 CHISELED STONE SLAB BUTTONS
                 new UIKit.Container({
-                    className: 'w-full md:w-80 lg:w-96 flex flex-col gap-3 sm:gap-4 z-20 py-2 my-auto',
+                    className: 'w-full md:w-80 lg:w-96 flex flex-col gap-2 sm:gap-2.5 z-20 py-1 sm:py-2 my-auto',
                     flexDirection: 'column',
-                    gap: 14,
+                    gap: 10,
                     children: MAIN_MENU_SLAB_DEFS.map((def, idx) => createMainMenuSlabButton(def, idx))
                 }),
 
@@ -287,24 +288,24 @@ function initMainMenu() {
         });
     }
 
-    // 2. 1vs1 Local
-    const btnVersus = document.getElementById('btnMenuVersus');
-    if (btnVersus) {
-        btnVersus.addEventListener('click', () => {
-            selectMainMenuSlab(btnVersus);
-            sfx.playHit(false);
-            gameMode = 'pvp';
-            goToSelectScreen();
-        });
-    }
-
-    // 3. Joueur vs IA / Entraînement
+    // 2. Joueur vs IA (Versus AI)
     const btnVsAI = document.getElementById('btnMenuVsAI');
     if (btnVsAI) {
         btnVsAI.addEventListener('click', () => {
             selectMainMenuSlab(btnVsAI);
             sfx.playHit(false);
             gameMode = 'cpu';
+            goToSelectScreen();
+        });
+    }
+
+    // 3. 1vs1 Local (Versus 2P)
+    const btnVersus = document.getElementById('btnMenuVersus');
+    if (btnVersus) {
+        btnVersus.addEventListener('click', () => {
+            selectMainMenuSlab(btnVersus);
+            sfx.playHit(false);
+            gameMode = 'pvp';
             goToSelectScreen();
         });
     }

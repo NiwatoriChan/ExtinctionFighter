@@ -483,21 +483,28 @@ const selectScreenRoot = new UIKit.Fullscreen({
                             className: 'w-full max-w-[620px] flex flex-col gap-2 shrink-0 z-20',
                             children: [
                                 new UIKit.Container({
-                                    className: 'flex items-center justify-center gap-2.5',
+                                    className: 'flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap',
                                     children: [
                                         new UIKit.Button({
                                             id: 'btnSelectSlotP1',
-                                            className: 'stone-btn px-4 py-1.5 rounded-lg text-xs font-black text-sky-300 uppercase tracking-wider shadow cursor-pointer',
+                                            className: 'stone-btn px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black text-sky-300 uppercase tracking-wider shadow cursor-pointer',
                                             text: 'Choisir J1'
                                         }),
                                         new UIKit.Button({
                                             id: 'btnSelectSlotP2',
-                                            className: 'stone-btn px-4 py-1.5 rounded-lg text-xs font-black text-red-300 uppercase tracking-wider shadow cursor-pointer',
-                                            text: 'Choisir J2'
+                                            className: 'stone-btn px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black text-red-300 uppercase tracking-wider shadow cursor-pointer',
+                                            text: 'Choisir IA'
+                                        }),
+                                        new UIKit.Button({
+                                            id: 'btnToggleVsMode',
+                                            className: 'stone-btn px-3 py-1.5 rounded-lg text-xs font-black text-amber-300 uppercase tracking-wider shadow cursor-pointer flex items-center gap-1.5 border border-amber-600/40 hover:border-amber-400 transition-all',
+                                            children: [
+                                                new UIKit.Text({ id: 'btnToggleVsModeText', tag: 'span', text: '🤖 MODE: VS IA' })
+                                            ]
                                         }),
                                         new UIKit.Button({
                                             id: 'btnRandomFighters',
-                                            className: 'stone-btn px-4 py-1.5 rounded-lg text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-1.5 shadow cursor-pointer',
+                                            className: 'stone-btn px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-1.5 shadow cursor-pointer',
                                             children: [
                                                 new UIKit.Text({ tag: 'span', text: '🎲' }),
                                                 new UIKit.Text({ tag: 'span', text: 'Aléatoire' })
@@ -580,9 +587,10 @@ const selectScreenRoot = new UIKit.Fullscreen({
                 new UIKit.Container({
                     className: 'flex items-center gap-3 relative z-30',
                     children: [
-                        new UIKit.Container({
+                        new UIKit.Button({
                             id: 'selectScreenModeBadge',
-                            className: 'text-[10px] sm:text-xs font-extrabold text-amber-400 tracking-wider uppercase',
+                            className: 'text-[10px] sm:text-xs font-extrabold text-amber-400 hover:text-amber-300 tracking-wider uppercase cursor-pointer transition-colors',
+                            title: 'Cliquer pour basculer le mode Kombat (IA / 2 Joueurs)',
                             innerHTML: 'JOUEUR VS IA'
                         }),
                         new UIKit.Badge({
@@ -1108,17 +1116,32 @@ function updateSelectScreenUI() {
     if (gameMode === 'campaign') {
         if (modeBadge) {
             modeBadge.innerHTML = `<span class="text-amber-400">🏆 CAMPAGNE : ÉTAPE ${campaignStage} / ${CAMPAIGN_TOTAL_STAGES}</span>`;
+            modeBadge.style.cursor = 'default';
         }
         if (slot1Btn) slot1Btn.classList.add('hidden');
         if (slot2Btn) slot2Btn.classList.add('hidden');
+        const toggleVsModeBtn = document.getElementById('btnToggleVsMode');
+        if (toggleVsModeBtn) toggleVsModeBtn.classList.add('hidden');
         p2HeaderLabelSignal.value = campaignStage === 6 ? "DRAK'ZUL" : `ÉTAPE ${campaignStage}`;
     } else {
         if (slot1Btn) slot1Btn.classList.remove('hidden');
-        if (slot2Btn) slot2Btn.classList.remove('hidden');
+        if (slot2Btn) {
+            slot2Btn.classList.remove('hidden');
+            slot2Btn.textContent = gameMode === 'cpu' ? 'Choisir IA' : (gameMode === 'practice' ? 'Choisir Mannequin' : 'Choisir J2');
+        }
+        const toggleVsModeBtn = document.getElementById('btnToggleVsMode');
+        const toggleVsModeText = document.getElementById('btnToggleVsModeText');
+        if (toggleVsModeBtn) {
+            toggleVsModeBtn.classList.remove('hidden');
+            if (toggleVsModeText) {
+                toggleVsModeText.textContent = gameMode === 'cpu' ? '🤖 ADVERSAIRE: IA' : (gameMode === 'practice' ? '🥋 ENTRAÎNEMENT' : '👥 ADVERSAIRE: J2');
+            }
+        }
         if (modeBadge) {
+            modeBadge.style.cursor = 'pointer';
             modeBadge.innerHTML = gameMode === 'pvp'
-                ? `<span>👥 2 JOUEURS (1 VS 1)</span>`
-                : (gameMode === 'practice' ? `<span>🥋 ENTRAÎNEMENT</span>` : `<span>👤 JOUEUR VS IA</span>`);
+                ? `<span>👥 2 JOUEURS (1 VS 1) ⇋</span>`
+                : (gameMode === 'practice' ? `<span>🥋 ENTRAÎNEMENT</span>` : `<span>🤖 JOUEUR VS IA ⇋</span>`);
         }
         p2HeaderLabelSignal.value = gameMode === 'pvp' ? 'PLAYER 2' : (gameMode === 'practice' ? 'MANNEQUIN' : 'PLAYER 2 (IA)');
     }
@@ -1315,6 +1338,25 @@ function initSelectScreenMenu() {
             updateSelectScreenUI();
         }
     });
+
+    function toggleVsMode() {
+        if (gameMode === 'campaign') return;
+        if (typeof sfx !== 'undefined' && sfx.playHit) sfx.playHit(false);
+        gameMode = (gameMode === 'cpu') ? 'pvp' : 'cpu';
+        updateSelectScreenUI();
+    }
+
+    const toggleVsModeBtn = document.getElementById('btnToggleVsMode');
+    if (toggleVsModeBtn) {
+        toggleVsModeBtn.addEventListener('click', toggleVsMode);
+    }
+
+    const selectScreenModeBadgeEl = document.getElementById('selectScreenModeBadge');
+    if (selectScreenModeBadgeEl) {
+        selectScreenModeBadgeEl.addEventListener('click', () => {
+            if (gameMode !== 'campaign') toggleVsMode();
+        });
+    }
 
     document.getElementById('btnRandomFighters').addEventListener('click', () => {
         sfx.playHit(false);
