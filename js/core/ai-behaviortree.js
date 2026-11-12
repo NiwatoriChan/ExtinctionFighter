@@ -396,18 +396,29 @@ const AICombatBehaviorTree = {
 
                             // Apply Yuka Steering Velocity to Fighter3D locomotion
                             const steerVx = bb.steering ? bb.steering.vx : (ai.facing * (ai.dino.walkSpeed || 7.5));
-                            if (Math.abs(steerVx) > 0.35) {
+                            const targetDx = bb.steering && bb.steering.desiredTargetX !== undefined
+                                ? (bb.steering.desiredTargetX - ai.x)
+                                : (target.x - ai.x);
+                            const needsMove = Math.abs(targetDx) > 0.35;
+
+                            if (Math.abs(steerVx) > 0.02 || needsMove) {
+                                const baseWalk = (ai.dino && ai.dino.walkSpeed) || 7.5;
+                                let moveVx = steerVx;
+                                if (Math.abs(moveVx) < 1.5 && needsMove) {
+                                    moveVx = Math.sign(targetDx) * baseWalk * 0.75;
+                                }
                                 ai.sprintDuration = (ai.sprintDuration || 0) + bb.dt;
-                                const isSprint = ai.sprintDuration > 0.42 && Math.abs(steerVx) > (ai.dino.walkSpeed || 7.5) * 0.85;
+                                const isSprint = ai.sprintDuration > 0.42 && Math.abs(moveVx) > baseWalk * 0.85;
                                 ai.isSprinting = isSprint;
                                 const accelMult = isSprint ? 1.28 : 1.0;
-                                ai.vx = steerVx * accelMult;
+                                ai.vx = moveVx * accelMult;
                                 ai.x += ai.vx * bb.dt;
                                 ai.action = 'walk';
                                 bb.decisionIntent = `STEER: ${bb.steering ? bb.steering.steeringMode : 'SEEK'}`;
                             } else {
                                 ai.sprintDuration = 0;
                                 ai.isSprinting = false;
+                                ai.vx = 0;
                                 ai.action = 'idle';
                                 bb.decisionIntent = 'FOOTSIES HOLD';
                             }

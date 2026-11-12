@@ -120,7 +120,14 @@ function updateAI(ai, target, dt) {
         }
     };
 
-    const cfg = diffParams[diff] || diffParams.normal;
+    const cfg = Object.assign({}, diffParams[diff] || diffParams.normal);
+    if (typeof gameMode !== 'undefined' && gameMode === 'cpu') {
+        cfg.baseCooldown *= 0.65;
+        cfg.comboExtendProb = Math.min(0.95, cfg.comboExtendProb + 0.25);
+        cfg.whiffPunishProb = Math.min(0.95, cfg.whiffPunishProb + 0.25);
+        cfg.reactionProb = Math.min(0.95, cfg.reactionProb + 0.20);
+        cfg.blockChance = Math.min(0.75, cfg.blockChance + 0.15);
+    }
     const baseCooldown = isBoss ? 1.15 : cfg.baseCooldown;
 
     const blackboard = {
