@@ -75,9 +75,10 @@ function updateAI(ai, target, dt) {
     const tCombatState = target.combatController ? target.combatController.state : 'IDLE';
 
     // Difficulté et calibrage des profils tactiques IA :
-    // 'easy' : débutant / campagne fluide (larges ouvertures, pas de punitions réflexes, zéro combo)
-    // 'normal' : équilibré, fun, temps de réaction humains (~850ms), footsies lisibles
-    // 'brutal' : tournoi / défi expert
+    // 'easy'      : débutant / campagne fluide (larges ouvertures, pas de punitions réflexes, zéro combo)
+    // 'normal'    : intermédiaire accessible (entre facile et difficile, footsies lisibles)
+    // 'hard'      : ancien normal, réactif et punisseur (~850ms base, mixups & garde adaptative)
+    // 'very_hard' : ancien brutal (tournoi / défi expert, combos complets et pression soutenue)
     const diffParams = {
         easy: {
             baseCooldown: 1.35,
@@ -93,6 +94,19 @@ function updateAI(ai, target, dt) {
             guardReadProb: 0.15
         },
         normal: {
+            baseCooldown: 1.10,
+            comboExtendProb: 0.10,
+            whiffPunishProb: 0.24,
+            reactionProb: 0.26,
+            blockChance: 0.16,
+            guardMatchProb: 0.33,
+            mixupProb: 0.20,
+            antiAirProb: 0.25,
+            rangedProb: 0.017,
+            hyperArmorCounterProb: 0.06,
+            guardReadProb: 0.25
+        },
+        hard: {
             baseCooldown: 0.85,
             comboExtendProb: 0.20,
             whiffPunishProb: 0.35,
@@ -105,7 +119,7 @@ function updateAI(ai, target, dt) {
             hyperArmorCounterProb: 0.12,
             guardReadProb: 0.35
         },
-        brutal: {
+        very_hard: {
             baseCooldown: 0.38,
             comboExtendProb: 0.70,
             whiffPunishProb: 0.75,
@@ -120,7 +134,8 @@ function updateAI(ai, target, dt) {
         }
     };
 
-    const cfg = Object.assign({}, diffParams[diff] || diffParams.normal);
+    const resolvedDiff = diff === 'brutal' ? 'very_hard' : diff;
+    const cfg = Object.assign({}, diffParams[resolvedDiff] || diffParams.normal);
     if (typeof gameMode !== 'undefined' && gameMode === 'cpu') {
         cfg.baseCooldown *= 0.65;
         cfg.comboExtendProb = Math.min(0.95, cfg.comboExtendProb + 0.25);
@@ -138,7 +153,7 @@ function updateAI(ai, target, dt) {
         dist,
         targetAirHeight,
         isBoss,
-        difficulty: diff,
+        difficulty: resolvedDiff,
         archetype: ai.weightClass || 'brawler',
         myReach: sweetSpot.myReach || 3.45,
         enemyReach: sweetSpot.enemyReach || 3.45,

@@ -171,8 +171,10 @@ try {
     if (savedGfx) settingsGraphicsSignal.value = savedGfx;
     const savedAi = localStorage.getItem('ek3d_ai_difficulty');
     if (savedAi) {
-        settingsAiDiffSignal.value = savedAi;
-        if (typeof aiDifficulty !== 'undefined') aiDifficulty = savedAi;
+        const normalizedAi = savedAi === 'brutal' ? 'very_hard' : savedAi;
+        const validAi = ['easy', 'normal', 'hard', 'very_hard'].includes(normalizedAi) ? normalizedAi : 'normal';
+        settingsAiDiffSignal.value = validAi;
+        if (typeof aiDifficulty !== 'undefined') aiDifficulty = validAi;
     }
     const savedMode = localStorage.getItem('ek3d_display_mode');
     if (savedMode === 'fullscreen' || savedMode === 'windowed') {
@@ -298,13 +300,14 @@ function renderSettingsRowsHTML(tab) {
     }
 
     if (tab === 'controls') {
-        const ai = settingsAiDiffSignal.value;
+        const ai = settingsAiDiffSignal.value === 'brutal' ? 'very_hard' : settingsAiDiffSignal.value;
         const aiControl = `
             <div class="settings-control-area">
                 <div class="gfx-segmented-picker" id="aiPicker">
-                    <button type="button" class="gfx-segment-btn ${ai === 'easy' ? 'active' : ''}" data-ai="easy">NOVICE</button>
+                    <button type="button" class="gfx-segment-btn ${ai === 'easy' ? 'active' : ''}" data-ai="easy">FACILE</button>
                     <button type="button" class="gfx-segment-btn ${ai === 'normal' ? 'active' : ''}" data-ai="normal">NORMAL</button>
-                    <button type="button" class="gfx-segment-btn ${ai === 'brutal' ? 'active' : ''}" data-ai="brutal">BRUTAL</button>
+                    <button type="button" class="gfx-segment-btn ${ai === 'hard' ? 'active' : ''}" data-ai="hard">DIFFICILE</button>
+                    <button type="button" class="gfx-segment-btn ${ai === 'very_hard' ? 'active' : ''}" data-ai="very_hard">TRÈS DUR</button>
                 </div>
             </div>
         `;
@@ -386,7 +389,8 @@ const settingsModalRoot = new UIKit.Dialog({
             <select id="settingsAiDiff" class="hidden" aria-hidden="true">
                 <option value="easy">easy</option>
                 <option value="normal" selected>normal</option>
-                <option value="brutal">brutal</option>
+                <option value="hard">hard</option>
+                <option value="very_hard">very_hard</option>
             </select>
             <span id="currentGraphicsLabel" class="hidden" aria-hidden="true">HIGH</span>
         </div>

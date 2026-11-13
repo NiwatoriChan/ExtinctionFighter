@@ -518,12 +518,129 @@ function testMovesModalAndVictoryModal() {
     console.log('[PASS] Moves Grimoire locked hints & Campaign victory reward badges');
 }
 
+function testAiDifficultyTiers() {
+    const captured = {};
+    let currentDiff = 'normal';
+
+    const ctxAi = vm.createContext({
+        window: {},
+        console,
+        Math,
+        performance: { now: () => 2000 },
+        aiDifficulty: 'normal',
+        gameMode: 'arcade',
+        CombatState: { IDLE: 'IDLE', ATTACK_RECOVERY: 'ATTACK_RECOVERY', BLOCK_DEFLECTED: 'BLOCK_DEFLECTED' },
+        ArenaNavSystem: {
+            computeTacticalNavigation: () => ({
+                sweetSpot: { x: 0, y: 0, myReach: 3.5, enemyReach: 3.5, isCornered: false }
+            })
+        },
+        AIVehicleSystem: {
+            aiVehicle: { position: { set() {} }, velocity: { set() {} } },
+            computeSteeringStep: () => ({ vx: 0, steeringMode: 'ARRIVE' })
+        },
+        AIMacroStatechart: { evaluate: () => 'ALERT_FOOTSIES' },
+        AICombatBehaviorTree: { evaluate: (bb) => { captured[currentDiff] = bb; } },
+        YUKA: undefined
+    });
+    loadIntoContext(ctxAi, 'js/core/ai.js');
+
+    const ai = {
+        x: 3, y: 0, groundY: 0, vx: 0, hp: 1000, maxHp: 1000,
+        action: 'idle', actionDuration: 0, guardStamina: 100,
+        dino: { isBoss: false, walkSpeed: 10 },
+        isDead: false, isDizzy: false, hitStun: 0
+    };
+    const target = {
+        x: -1, y: 0, groundY: 0, hp: 1000, maxHp: 1000,
+        action: 'idle', actionDuration: 0
+    };
+
+    ['easy', 'normal', 'hard', 'very_hard', 'brutal'].forEach(d => {
+        currentDiff = d;
+        ctxAi.aiDifficulty = d;
+        ctxAi.updateAI(ai, target, 0.016);
+    });
+
+    const e = captured.easy;
+    const n = captured.normal;
+    const h = captured.hard;
+    const vh = captured.very_hard;
+    const br = captured.brutal;
+
+    assert.strictEqual(n.difficulty, 'normal');
+    assert.strictEqual(h.difficulty, 'hard');
+    assert.strictEqual(vh.difficulty, 'very_hard');
+    assert.strictEqual(br.difficulty, 'very_hard', 'legacy brutal must alias to very_hard');
+
+    // Normal must sit strictly between easy and hard on all reactive probabilities
+    assert(e.reactionProb < n.reactionProb && n.reactionProb < h.reactionProb && h.reactionProb < vh.reactionProb,
+        `reactionProb ordering mismatch: ${e.reactionProb}, ${n.reactionProb}, ${h.reactionProb}, ${vh.reactionProb}`);
+    assert(e.whiffPunishProb < n.whiffPunishProb && n.whiffPunishProb < h.whiffPunishProb && h.whiffPunishProb < vh.whiffPunishProb,
+        'whiffPunishProb should strictly increase from easy -> normal -> hard -> very_hard');
+    assert(e.blockChance < n.blockChance && n.blockChance < h.blockChance && h.blockChance < vh.blockChance,
+        'blockChance should strictly increase from easy -> normal -> hard -> very_hard');
+    assert(e.guardMatchProb < n.guardMatchProb && n.guardMatchProb < h.guardMatchProb && h.guardMatchProb < vh.guardMatchProb,
+        'guardMatchProb should strictly increase from easy -> normal -> hard -> very_hard');
+
+    // Verify steering desirability + speed scaling in ai-steering.js
+    class GoalEvaluator { constructor(bias = 1) { this.characterBias = bias; } }
+    const ctxSteer = vm.createContext({
+        window: {},
+        console,
+        Math,
+        aiDifficulty: 'normal',
+        YUKA: {
+            GoalEvaluator,
+            EntityManager: class { add() {} },
+            Vehicle: class {
+                constructor() {
+                    this.position = { set() {} };
+                    this.velocity = { set() {} };
+                    this.forward = { set() {} };
+                    this.steering = { add() {} };
+                }
+            },
+            Vector3: class { copy() {} },
+            Path: class {},
+            SeekBehavior: class {},
+            ArriveBehavior: class {},
+            PursueBehavior: class {},
+            EvadeBehavior: class {},
+            FleeBehavior: class {},
+            FollowPathBehavior: class {},
+            Vision: class { visible() { return true; } },
+            MemorySystem: class { createRecord() {} getRecord() { return {}; } },
+            Think: class { addEvaluator() {} execute() {} },
+            Time: class { update() { return { getDelta: () => 0.016 }; } }
+        }
+    });
+    loadIntoContext(ctxSteer, 'js/core/ai-steering.js');
+    const evalInstance = vm.runInContext('new MomentumPursueGoalEvaluator(1.0)', ctxSteer);
+    const des = {};
+    ['easy', 'normal', 'hard', 'very_hard', 'brutal'].forEach(d => {
+        des[d] = evalInstance.calculateDesirability({
+            blackboard: { difficulty: d, targetInRecovery: true, targetDeflected: false, dist: 2, myReach: 3.5, hpRatio: 1 }
+        });
+    });
+    assert(des.easy < des.normal && des.normal < des.hard && des.hard < des.very_hard,
+        `steering desirability ordering mismatch: ${JSON.stringify(des)}`);
+    assert.strictEqual(des.brutal, des.very_hard, 'steering brutal must match very_hard');
+
+    const settingsSrc = fs.readFileSync(path.join(ROOT, 'js/menus/settings-modal.js'), 'utf8');
+    ['data-ai="easy"', 'data-ai="normal"', 'data-ai="hard"', 'data-ai="very_hard"'].forEach(attr => {
+        assert(settingsSrc.includes(attr), `settings-modal.js missing ${attr}`);
+    });
+    console.log('[PASS] AI 4-tier difficulty progression (easy < normal < hard < very_hard)');
+}
+
 function main() {
     console.log('=== RUNNING EXTINCTION KOMBAT 3D COHERENCE OVERHAUL SUITE ===');
     testStateAndHtml();
     testSoundEngine();
     testEffectsAndXRayAndTeardown();
     testMovesModalAndVictoryModal();
+    testAiDifficultyTiers();
     console.log('=== ALL COHERENCE OVERHAUL TESTS PASSED! ===');
 }
 

@@ -21,14 +21,19 @@ class MomentumPursueGoalEvaluator extends YUKA.GoalEvaluator {
     calculateDesirability(aiAgent) {
         if (!aiAgent || !aiAgent.blackboard) return 0.25;
         const bb = aiAgent.blackboard;
-        const diff = bb.difficulty || 'normal';
+        const rawDiff = bb.difficulty || 'normal';
+        const diff = rawDiff === 'brutal' ? 'very_hard' : rawDiff;
         if (bb.targetIsDizzy) return 0.96;
         if (bb.targetInRecovery || bb.targetDeflected) {
-            return diff === 'brutal' ? 0.90 : (diff === 'normal' ? 0.62 : 0.35);
+            if (diff === 'very_hard') return 0.90;
+            if (diff === 'hard') return 0.62;
+            if (diff === 'normal') return 0.49;
+            return 0.35;
         }
         if (bb.dist > bb.myReach * 1.35 && bb.hpRatio >= 0.30) {
-            if (diff === 'brutal') return bb.archetype === 'speed' ? 0.85 : 0.75;
-            if (diff === 'normal') return 0.50;
+            if (diff === 'very_hard') return bb.archetype === 'speed' ? 0.85 : 0.75;
+            if (diff === 'hard') return 0.50;
+            if (diff === 'normal') return 0.39;
             return 0.28;
         }
         return 0.25;
@@ -143,8 +148,10 @@ const AIVehicleSystem = {
         this.targetVehicle.forward.set(targetFighter.facing || 1, 0, 0);
 
         const isBoss = Boolean(aiFighter.dino && aiFighter.dino.isBoss);
-        const diff = typeof aiDifficulty !== 'undefined' ? aiDifficulty : 'normal';
-        const speedScale = isBoss ? 0.65 : (diff === 'brutal' ? 1.0 : (diff === 'normal' ? 0.82 : 0.68));
+        const rawDiff = typeof aiDifficulty !== 'undefined' ? aiDifficulty : 'normal';
+        const diff = rawDiff === 'brutal' ? 'very_hard' : rawDiff;
+        const speedMult = diff === 'very_hard' ? 1.0 : (diff === 'hard' ? 0.82 : (diff === 'normal' ? 0.75 : 0.68));
+        const speedScale = isBoss ? 0.65 : speedMult;
         const baseWalk = (aiFighter.dino && aiFighter.dino.walkSpeed) || 7.5;
         this.aiVehicle.maxSpeed = baseWalk * speedScale;
 

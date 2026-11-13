@@ -65,11 +65,12 @@ const AICombatBehaviorTree = {
                                 run: (bb) => {
                                     const ai = bb.ai;
                                     let nextMove = null;
+                                    const isVeryHard = bb.difficulty === 'very_hard' || bb.difficulty === 'brutal';
                                     if (ai.action === 'light') {
                                         nextMove = 'light2';
-                                    } else if ((ai.action === 'light2' || ai.action.endsWith('_light')) && bb.difficulty === 'brutal') {
+                                    } else if ((ai.action === 'light2' || ai.action.endsWith('_light')) && isVeryHard) {
                                         nextMove = this.selectFreshMove(ai, ['heavy', 'fwd_heavy', 'low_heavy']);
-                                    } else if (ai.action.includes('heavy') && bb.difficulty === 'brutal') {
+                                    } else if (ai.action.includes('heavy') && isVeryHard) {
                                         if (!ai.cooldowns || ai.cooldowns['special'] <= 0) {
                                             nextMove = 'special';
                                         }

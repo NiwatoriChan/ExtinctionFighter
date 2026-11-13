@@ -676,8 +676,9 @@ function handleGamepadSettingsModal(pad, dt) {
 
     // E. AI Picker (Controls tab)
     if (aiPicker) {
-        const aiOpts = ['easy', 'normal', 'brutal'];
-        let curAiIdx = aiOpts.indexOf(settingsAiDiffSignal.value);
+        const aiOpts = ['easy', 'normal', 'hard', 'very_hard'];
+        const curVal = settingsAiDiffSignal.value === 'brutal' ? 'very_hard' : settingsAiDiffSignal.value;
+        let curAiIdx = aiOpts.indexOf(curVal);
         if (curAiIdx === -1) curAiIdx = 1;
         if (nav === 'left') {
             const nextAi = aiOpts[Math.max(0, curAiIdx - 1)];
