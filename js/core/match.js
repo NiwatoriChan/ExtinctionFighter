@@ -1,7 +1,72 @@
+function teardownActiveBattle() {
+    isMatchPaused = false;
+    xrayCinematicTimer = 0;
+    xrayElapsed = 0;
+    xrayPhaseApplied = 0;
+    xrayContext = null;
+    xrayStage = 0;
+    xrayLockPositions = null;
+    fatalityFocusFighter = null;
+    hitstopTimer = 0;
+    screenShake = 0;
+    roundIntroAnnounced = false;
+
+    if (typeof cleanupCampaignTransientEntities === 'function') {
+        cleanupCampaignTransientEntities();
+    }
+    if (typeof campaignBossFighter !== 'undefined' && campaignBossFighter) {
+        if (campaignBossFighter !== fighter1 && campaignBossFighter !== fighter2 && typeof campaignBossFighter.destroy === 'function') {
+            campaignBossFighter.destroy();
+        }
+        campaignBossFighter = null;
+    }
+    if (fighter1) {
+        fighter1.destroy();
+        fighter1 = null;
+    }
+    if (fighter2) {
+        fighter2.destroy();
+        fighter2 = null;
+    }
+
+    if (typeof fxGroup !== 'undefined' && fxGroup) {
+        while (fxGroup.children.length > 0) {
+            fxGroup.remove(fxGroup.children[0]);
+        }
+    }
+    for (let i = 0; i < particles3D.length; i++) {
+        const pt = particles3D[i];
+        if (pt && pt.ownsMaterial && pt.mesh && pt.mesh.material) {
+            pt.mesh.material.dispose();
+        }
+    }
+    projectiles3D = [];
+    particles3D = [];
+
+    ['pauseModal', 'postMatchMenu', 'xrayOverlayHud', 'fatalityPromptBox', 'duelTopHudOverlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
+    ['campaignSmashHUD', 'eraVictoryModal', 'campaignGameOverModal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
+
+    if (typeof sfx !== 'undefined' && typeof sfx.startMusicLoop === 'function' && sfx.enabled) {
+        sfx.startMusicLoop('menu');
+    }
+}
+if (typeof window !== 'undefined') {
+    window.teardownActiveBattle = teardownActiveBattle;
+}
+
 // 10. DÉMARRAGE DU MATCH ET GESTION DES ROUNDS
 function startMatch() {
     sfx.init();
     sfx.playGong();
+    if (typeof sfx.startMusicLoop === 'function') {
+        sfx.startMusicLoop('battle');
+    }
     initBattle3DScene();
 
     const p1Dino = DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0];
@@ -120,9 +185,13 @@ function startNewRound() {
     roundTimer = 99;
     roundTimerAccum = 0;
     xrayCinematicTimer = 0;
+    xrayElapsed = 0;
+    xrayPhaseApplied = 0;
+    xrayContext = null;
     xrayStage = 0;
     xrayLockPositions = null;
     fatalityFocusFighter = null;
+    roundIntroAnnounced = false;
 
     const roundTextEl = document.getElementById('hudRoundText');
     if (roundTextEl) roundTextEl.textContent = `ROUND ${roundNumber}`;
@@ -145,13 +214,6 @@ function startNewRound() {
     if (typeof updateGamepadHelperHUD === 'function') {
         updateGamepadHelperHUD();
     }
-
-    setTimeout(() => {
-        if (matchState === 'intro') {
-            showAnnouncer('KOMBAT !', 'AFFRONTEZ-VOUS EN 3D !');
-            sfx.playRoar(90, 0.35);
-        }
-    }, 900);
 }
 
 function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLockedXrayHit = false, attackCategory = 'mid') {
@@ -406,6 +468,9 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
         defender.vy = 0;
     }
     screenShake = isHeavy ? 0.38 : 0.16;
+    if (isHeavy && typeof triggerGamepadRumble === 'function') {
+        triggerGamepadRumble(defender.isP1 ? 0 : 1, 0.35, 0.75, 160);
+    }
     if (typeof spawn3DHitImpactBurst === 'function') {
         spawn3DHitImpactBurst(defender, attackZone, isHeavy);
     }
@@ -434,7 +499,7 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
 
     if (gameMode === 'practice' && !defender.isP1) {
         defender.hp = Math.max(150, defender.hp - finalDamage);
-        setTimeout(() => { defender.hp = defender.maxHp; updateBattleHUD(); }, 1800);
+        defender._practiceRegenDelay = 1.8;
     } else if (isLockedXrayHit) {
         // Garder au moins 1 PV pendant les phases 1 et 2 du X-Ray pour que l'animation complète se joue
         defender.hp = Math.max(1, defender.hp - finalDamage);
@@ -457,13 +522,17 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
         }
         if (matchState === 'fight') {
             xrayCinematicTimer = 0;
+            xrayElapsed = 0;
+            xrayPhaseApplied = 0;
+            xrayContext = null;
             xrayStage = 0;
             xrayLockPositions = null;
             fighter1.isXrayTarget = false;
             fighter2.isXrayTarget = false;
             fighter1.isXrayAttacker = false;
             fighter2.isXrayAttacker = false;
-            document.getElementById('xrayOverlayHud').classList.add('hidden');
+            const xHud = document.getElementById('xrayOverlayHud');
+            if (xHud) xHud.classList.add('hidden');
             handleKnockout(attacker, defender);
         }
     }
@@ -487,6 +556,9 @@ function handleKnockout(winner, loser) {
 
     sfx.playGong();
     sfx.playRoar(70, 0.65);
+    if (typeof triggerGamepadRumble === 'function') {
+        triggerGamepadRumble(loser.isP1 ? 0 : 1, 0.7, 1.0, 360);
+    }
     updateBattleHUD();
 
     if (winner.roundsWon >= 2) {
@@ -636,6 +708,45 @@ function updateBattle3D(dt, nowSec) {
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 1.5);
     if (xrayCinematicTimer > 0) {
         xrayCinematicTimer -= dt;
+        xrayElapsed += dt;
+
+        // Phases 2 et 3 pilotées par dt (s'arrêtent proprement si le jeu est en pause)
+        if (xrayContext && xrayContext.attacker && xrayContext.defender) {
+            const { attacker, defender, totalDmg, hit2, hit3 } = xrayContext;
+            const titleEl = document.getElementById('xrayBoneTitle');
+            const psiEl = document.getElementById('xrayPsiDetail');
+            const phaseEl = document.getElementById('xrayPhaseCounter');
+
+            if (xrayPhaseApplied === 1 && xrayElapsed >= 0.75) {
+                xrayPhaseApplied = 2;
+                xrayStage = 2;
+                if (phaseEl) phaseEl.textContent = 'IMPACT 2 / 3 • THORAX';
+                if (titleEl) titleEl.textContent = '🫀 PERFORATION DE LA CAGE THORACIQUE';
+                if (psiEl) psiEl.textContent = 'PRESSION : 6 400 PSI • 6 CÔTES BRISÉES & HÉMORRAGIE';
+                sfx.playBoneCrack();
+                sfx.playHit(true);
+                screenShake = 0.7;
+                if (typeof triggerGamepadRumble === 'function') triggerGamepadRumble(0, 0.6, 0.9, 240);
+                spawn3DBloodAndBones(defender.x, 2.1, 28, true);
+                applyDamage(attacker, defender, hit2, true, '☢ X-RAY : CÔTES PULVÉRISÉES !', true);
+            } else if (xrayPhaseApplied === 2 && xrayElapsed >= 1.50) {
+                xrayPhaseApplied = 3;
+                xrayStage = 3;
+                if (phaseEl) phaseEl.textContent = 'IMPACT 3 / 3 • VERTÈBRES';
+                if (titleEl) titleEl.textContent = '⚡ RUPTURE VERTÉBRALE CRITIQUE';
+                if (psiEl) psiEl.textContent = 'PRESSION : 8 900 PSI • DISLOCATION CERVICALE TOTALE';
+                sfx.playBoneCrack();
+                sfx.playRoar(62, 0.65);
+                screenShake = 0.95;
+                if (typeof triggerGamepadRumble === 'function') triggerGamepadRumble(0, 0.85, 1.0, 320);
+                spawn3DBloodAndBones(defender.x, 2.3, 38, true);
+                xrayLockPositions = null;
+                applyDamage(attacker, defender, hit3, true, `💥 TOTAL X-RAY : -${totalDmg} PV !`, false);
+                defender.vx = attacker.facing * 13.5;
+                defender.vy = 6.8;
+            }
+        }
+
         // Tant que la cinématique X-Ray est active, figer les positions des 2 combattants
         if (xrayLockPositions) {
             const { attacker, defender, attX, defX, attY, defY, attFacing, defFacing } = xrayLockPositions;
@@ -655,19 +766,26 @@ function updateBattle3D(dt, nowSec) {
         }
         if (xrayCinematicTimer <= 0) {
             xrayStage = 0;
+            xrayElapsed = 0;
+            xrayPhaseApplied = 0;
+            xrayContext = null;
             xrayLockPositions = null;
-            fighter1.isXrayTarget = false;
-            fighter2.isXrayTarget = false;
-            fighter1.isXrayAttacker = false;
-            fighter2.isXrayAttacker = false;
-            if (fighter1.action === 'xray') { fighter1.action = 'idle'; fighter1.actionDuration = 0; }
-            if (fighter2.action === 'xray') { fighter2.action = 'idle'; fighter2.actionDuration = 0; }
-            document.getElementById('xrayOverlayHud').classList.add('hidden');
+            if (fighter1) { fighter1.isXrayTarget = false; fighter1.isXrayAttacker = false; }
+            if (fighter2) { fighter2.isXrayTarget = false; fighter2.isXrayAttacker = false; }
+            if (fighter1 && fighter1.action === 'xray') { fighter1.action = 'idle'; fighter1.actionDuration = 0; }
+            if (fighter2 && fighter2.action === 'xray') { fighter2.action = 'idle'; fighter2.actionDuration = 0; }
+            const xHud = document.getElementById('xrayOverlayHud');
+            if (xHud) xHud.classList.add('hidden');
         }
     }
 
     if (matchState === 'intro') {
         stateTimer -= dt;
+        if (!roundIntroAnnounced && stateTimer <= 0.70) {
+            roundIntroAnnounced = true;
+            showAnnouncer('KOMBAT !', 'AFFRONTEZ-VOUS EN 3D !');
+            sfx.playRoar(90, 0.35);
+        }
         if (stateTimer <= 0) {
             matchState = 'fight';
             clearAnnouncer();
@@ -727,6 +845,23 @@ function updateBattle3D(dt, nowSec) {
     // Bloquer tous les inputs de déplacement et d'IA pendant le X-Ray
     if ((matchState === 'fight' || matchState === 'finish_him' || matchState === 'campaign_level') && xrayCinematicTimer <= 0) {
         handlePlayer1Inputs(dt);
+
+        // Assistance Auto-Block optionnelle (Paramètres -> Contrôles)
+        if (typeof window !== 'undefined' && window.autoBlockEnabled && fighter1 && fighter2 &&
+            !fighter1.isDead && !fighter1.isDizzy && fighter1.hitStun <= 0 &&
+            fighter1.actionDuration <= 0 && !fighter1.isBlocking && fighter1.guardStamina > 15 &&
+            (fighter1.y - (fighter1.groundY || 0)) <= 0.1) {
+            const enemyAttacking = fighter2.actionDuration > 0 &&
+                fighter2.action !== 'idle' && fighter2.action !== 'walk' && fighter2.action !== 'crouch';
+            if (enemyAttacking && Math.abs(fighter1.x - fighter2.x) < 4.5) {
+                fighter1.isBlocking = true;
+                const act2 = fighter2.action || '';
+                fighter1.blockType = (act2 === 'up_light' || act2 === 'anti_air' || act2.startsWith('air_'))
+                    ? 'high'
+                    : (act2.startsWith('low_') ? 'low' : 'mid');
+            }
+        }
+
         if (gameMode === 'pvp') {
             handlePlayer2Inputs(dt);
         } else if ((gameMode === 'cpu' || gameMode === 'campaign') && matchState === 'fight' && fighter2) {
@@ -738,6 +873,25 @@ function updateBattle3D(dt, nowSec) {
         if (fighter1 && fighter2) {
             resolveFighterBodyBlocker(fighter1, fighter2);
         }
+    }
+
+    // Mode Entraînement : régénération fluide des PV et de la jauge de Rage
+    if (gameMode === 'practice' && matchState === 'fight') {
+        let hudDirty = false;
+        [fighter1, fighter2].forEach(pf => {
+            if (!pf || pf.isDead) return;
+            if (pf._practiceRegenDelay > 0) {
+                pf._practiceRegenDelay = Math.max(0, pf._practiceRegenDelay - dt);
+            } else if (pf.hitStun <= 0 && pf.hp < pf.maxHp) {
+                pf.hp = Math.min(pf.maxHp, pf.hp + Math.max(1, pf.maxHp * 0.35 * dt));
+                hudDirty = true;
+            }
+            if (pf.isP1 && pf.rage < 100) {
+                pf.rage = Math.min(100, pf.rage + 5 * dt);
+                hudDirty = true;
+            }
+        });
+        if (hudDirty && typeof updateBattleHUD === 'function') updateBattleHUD();
     }
 
     [fighter1, fighter2].forEach(f => {
@@ -1111,14 +1265,7 @@ function finishMatch(winner, loser) {
             if (campaignStage < 6) {
                 showAnnouncer('ÉTAPE REMPORTÉE !', `${winner.dino.name} ACCÈDE À L'ÉTAPE ${campaignStage + 1} / 6`);
             } else {
-                showAnnouncer('👑 VICTOIRE DE LA CAMPAGNE !', "VOUS AVEZ TERRASSÉ DRAK'ZUL LE DRAGON SUPRÊME !");
-                // Déblocage du combattant secret : SMILODON !
-                unlockFighter('smilodon');
-                setTimeout(() => {
-                    if (typeof showFighterUnlockedModal === 'function') {
-                        showFighterUnlockedModal('smilodon');
-                    }
-                }, 1800);
+                showAnnouncer('👑 VICTOIRE DE LA TOUR ARCADE !', "VOUS AVEZ TERRASSÉ DRAK'ZUL LE DRAGON SUPRÊME !");
             }
         } else {
             showAnnouncer('DÉFAITE...', `ÉCHEC À L'ÉTAPE ${campaignStage} / 6`);

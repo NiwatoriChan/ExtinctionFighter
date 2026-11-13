@@ -41,13 +41,13 @@ const FEMUR_BONE_SVG = `
 `;
 
 const MAIN_MENU_SLAB_DEFS = [
-    { id: 'btnMenuCampaign', label: 'CAMPAIGN', isDefaultActive: true },
-    { id: 'btnMenuVsAI', label: 'VERSUS AI' },
-    { id: 'btnMenuVersus', label: 'VERSUS 2P' },
-    { id: 'btnMenuTraining', label: 'TRAINING' },
-    { id: 'btnMenuRoster', label: 'ROSTER & CUSTOMIZATION' },
-    { id: 'btnMenuSettings', label: 'OPTIONS' },
-    { id: 'btnMenuExit', label: 'EXIT' }
+    { id: 'btnMenuCampaign', label: 'CAMPAGNE', isDefaultActive: true },
+    { id: 'btnMenuVsAI', label: 'DUEL VS IA' },
+    { id: 'btnMenuVersus', label: 'DUEL 2 JOUEURS' },
+    { id: 'btnMenuTraining', label: 'ENTRAÎNEMENT' },
+    { id: 'btnMenuRoster', label: 'ROSTER & GRIMOIRE' },
+    { id: 'btnMenuSettings', label: 'PARAMÈTRES' },
+    { id: 'btnMenuExit', label: 'QUITTER' }
 ];
 
 function createMainMenuSlabButton(def, idx) {
@@ -128,12 +128,12 @@ const mainMenuRoot = new UIKit.Fullscreen({
                 new UIKit.Container({
                     className: 'flex items-center justify-center gap-2 font-chakra text-xs sm:text-sm font-black tracking-wider mx-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]',
                     children: [
-                        new UIKit.Text({ tag: 'span', className: 'text-stone-300 font-bold', text: 'PRESS' }),
+                        new UIKit.Text({ tag: 'span', className: 'text-stone-300 font-bold', text: 'APPUYEZ' }),
                         new UIKit.Badge({ className: 'px-2 py-0.5 rounded bg-emerald-600 text-white font-black text-xs shadow-[0_0_10px_#22c55e]', text: '[A]' }),
-                        new UIKit.Text({ tag: 'span', className: 'text-amber-400 font-bold', text: 'TO SELECT' }),
+                        new UIKit.Text({ tag: 'span', className: 'text-amber-400 font-bold', text: 'VALIDER' }),
                         new UIKit.Text({ tag: 'span', className: 'text-stone-500 font-normal', text: '|' }),
                         new UIKit.Badge({ className: 'px-2 py-0.5 rounded bg-red-600 text-white font-black text-xs shadow-[0_0_10px_#ef4444]', text: '[B]' }),
-                        new UIKit.Text({ tag: 'span', className: 'text-stone-300 font-bold', text: 'TO GO BACK' })
+                        new UIKit.Text({ tag: 'span', className: 'text-stone-300 font-bold', text: 'RETOUR' })
                     ]
                 }),
                 new UIKit.Container({
@@ -142,7 +142,7 @@ const mainMenuRoot = new UIKit.Fullscreen({
                         new UIKit.Text({
                             tag: 'span',
                             className: 'text-stone-400 font-chakra text-xs font-bold tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]',
-                            text: 'v0.2'
+                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.2.1'
                         })
                     ]
                 })
@@ -169,24 +169,53 @@ function selectMainMenuSlab(btn) {
     });
 }
 
+let mainMenuEmbersAnimId = null;
+let mainMenuEmbersRunning = false;
+
+function stopMainMenuEmberCanvas() {
+    mainMenuEmbersRunning = false;
+    if (mainMenuEmbersAnimId) {
+        cancelAnimationFrame(mainMenuEmbersAnimId);
+        mainMenuEmbersAnimId = null;
+    }
+    const canvas = document.getElementById('mainMenuCanvas');
+    if (canvas && typeof canvas.getContext === 'function') {
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
 function startMainMenuEmberCanvas() {
+    if (typeof window !== 'undefined' && window.volcanicEmbersEnabled === false) {
+        stopMainMenuEmberCanvas();
+        return;
+    }
+    if (mainMenuEmbersRunning) return;
     const container = document.getElementById('mainMenuCanvasContainer');
     if (!container) return;
-    if (document.getElementById('mainMenuCanvas')) return;
 
-    const canvas = document.createElement('canvas');
-    canvas.id = 'mainMenuCanvas';
-    canvas.className = 'absolute inset-0 pointer-events-none z-10 w-full h-full';
-    container.appendChild(canvas);
+    let canvas = document.getElementById('mainMenuCanvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = 'mainMenuCanvas';
+        canvas.className = 'absolute inset-0 pointer-events-none z-10 w-full h-full';
+        container.appendChild(canvas);
+    }
 
+    mainMenuEmbersRunning = true;
     const ctx = canvas.getContext('2d');
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
-    window.addEventListener('resize', () => {
+    const onResize = () => {
+        if (!mainMenuEmbersRunning) return;
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
-    });
+    };
+    if (!canvas._resizeBound) {
+        canvas._resizeBound = true;
+        window.addEventListener('resize', onResize);
+    }
 
     const PARTICLE_COUNT = 45;
     const particles = [];
@@ -216,8 +245,10 @@ function startMainMenuEmberCanvas() {
     }
 
     function renderEmbers(time) {
-        if (!mainMenuVisibleSignal.value) {
-            requestAnimationFrame(renderEmbers);
+        if (!mainMenuEmbersRunning || !mainMenuVisibleSignal.value || (typeof window !== 'undefined' && window.volcanicEmbersEnabled === false)) {
+            mainMenuEmbersRunning = false;
+            mainMenuEmbersAnimId = null;
+            ctx.clearRect(0, 0, width, height);
             return;
         }
 
@@ -251,10 +282,10 @@ function startMainMenuEmberCanvas() {
             ctx.fill();
         }
 
-        requestAnimationFrame(renderEmbers);
+        mainMenuEmbersAnimId = requestAnimationFrame(renderEmbers);
     }
 
-    requestAnimationFrame(renderEmbers);
+    mainMenuEmbersAnimId = requestAnimationFrame(renderEmbers);
 }
 
 function initMainMenu() {
@@ -321,7 +352,7 @@ function initMainMenu() {
         });
     }
 
-    // 5. Roster / Combattants
+    // 5. Roster / Combattants & Grimoire
     const btnRoster = document.getElementById('btnMenuRoster');
     if (btnRoster) {
         btnRoster.addEventListener('click', () => {
@@ -332,7 +363,7 @@ function initMainMenu() {
         });
     }
 
-    // 6. Settings
+    // 6. Paramètres
     const btnSettings = document.getElementById('btnMenuSettings');
     if (btnSettings) {
         btnSettings.addEventListener('click', () => {
@@ -342,18 +373,7 @@ function initMainMenu() {
         });
     }
 
-    // 7. Moves Modal
-    const btnMoves = document.getElementById('btnMenuMoves');
-    if (btnMoves) {
-        btnMoves.addEventListener('click', () => {
-            selectMainMenuSlab(btnMoves);
-            sfx.playHit(false);
-            if (typeof renderMovesModalList === 'function') renderMovesModalList();
-            document.getElementById('movesModal').classList.remove('hidden');
-        });
-    }
-
-    // 8. Exit
+    // 7. Quitter
     const btnExit = document.getElementById('btnMenuExit');
     if (btnExit) {
         btnExit.addEventListener('click', () => {
@@ -396,6 +416,9 @@ function startCampaignMode() {
 }
 
 function goToMainMenu() {
+    if (typeof teardownActiveBattle === 'function') {
+        teardownActiveBattle();
+    }
     matchState = 'main_menu';
     mainMenuVisibleSignal.value = true;
     const headerEl = document.getElementById('gameHeader');
@@ -416,6 +439,11 @@ function goToMainMenu() {
     if (btnCam) btnCam.classList.add('hidden');
     document.getElementById('postMatchMenu').classList.add('hidden');
 
+    startMainMenuEmberCanvas();
+    if (typeof stopSelectScreenEmberCanvas === 'function') {
+        stopSelectScreenEmberCanvas();
+    }
+
     const menuButtons = typeof getMainMenuNavElements === 'function' ? getMainMenuNavElements() : Array.from(document.querySelectorAll('#mainMenu .stone-slab-btn'));
     if (typeof mainMenuFocusIdx === 'number' && menuButtons[mainMenuFocusIdx]) {
         selectMainMenuSlab(menuButtons[mainMenuFocusIdx]);
@@ -429,6 +457,7 @@ function goToMainMenu() {
 function goToSelectScreen() {
     matchState = 'select';
     mainMenuVisibleSignal.value = false;
+    stopMainMenuEmberCanvas();
     const headerEl = document.getElementById('gameHeader');
     if (headerEl) headerEl.classList.add('hidden');
     if (typeof updateGamepadHelperHUD === 'function') {
@@ -447,6 +476,9 @@ function goToSelectScreen() {
     const btnCam2 = document.getElementById('btnResetCam');
     if (btnCam2) btnCam2.classList.add('hidden');
 
+    if (typeof startSelectScreenEmberCanvas === 'function') {
+        startSelectScreenEmberCanvas();
+    }
     if (typeof initRosterUI === 'function') {
         initRosterUI();
     }

@@ -986,7 +986,7 @@ canvas {
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;
-    gap: 8px;
+    gap: 5px;
     z-index: 20;
 }
 
@@ -994,8 +994,8 @@ canvas {
     height: 78%;
     min-width: 110px;
     flex: 1;
-    max-width: 145px;
-    padding: 0 14px;
+    max-width: 25%;
+    padding: 0 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1022,13 +1022,14 @@ canvas {
 
 .settings-tab-btn.active {
     height: 100%;
+    margin-bottom: -3px;
     background-image: url('../assets/ui/settings_tab_active.png');
     background-size: 100% 100%;
     font-size: 0.86rem;
     color: #fed7aa;
     text-shadow: 0 0 12px rgba(249, 115, 22, 0.95), 0 2px 4px rgba(0, 0, 0, 0.98);
     filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.75));
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     z-index: 2;
 }
 
@@ -1042,11 +1043,11 @@ canvas {
     background-image: url('../assets/ui/settings_main_slab.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    padding: 22px 28px 18px 24px;
+    padding: 24px 32px 20px 26px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.95);
+    filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.92));
     z-index: 15;
 }
 
@@ -1064,7 +1065,7 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: 16px;
     width: 100%;
     height: 15.5%;
 }
@@ -1074,27 +1075,28 @@ canvas {
     background-image: url('../assets/ui/stone_label_slab.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    width: 188px;
+    width: clamp(180px, 34%, 220px);
     height: 100%;
-    max-height: 42px;
+    max-height: 44px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 0 10px;
+    padding: 0 18px;
     font-family: 'Cinzel Decorative', 'Chakra Petch', sans-serif;
     font-weight: 900;
-    font-size: 0.74rem;
-    letter-spacing: 0.08em;
+    font-size: clamp(0.64rem, 0.92vw, 0.75rem);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
     color: #e4e4e7;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.85);
     cursor: default;
-    transition: filter 0.15s ease;
+    transition: filter 0.15s ease, color 0.15s ease;
 }
 
 .settings-label-slab.active-focus {
-    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.8));
+    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.85));
     color: #fef08a;
 }
 
@@ -1125,8 +1127,17 @@ canvas {
     background-size: 100% 100%;
     background-repeat: no-repeat;
     width: 100%;
-    height: 32px;
+    height: 34px;
     position: relative;
+}
+
+.bone-slider-fill {
+    position: absolute;
+    inset: 0;
+    background-image: url('../assets/ui/bone_slider_fill.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    pointer-events: none;
 }
 
 .bone-slider-thumb-claw {
@@ -1141,6 +1152,7 @@ canvas {
     background-position: center;
     filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.95)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
     pointer-events: none;
+    z-index: 2;
     transition: transform 0.05s ease;
 }
 
@@ -1148,7 +1160,7 @@ canvas {
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 30px;
+    width: 28px;
     height: 36px;
     background-image: url('../assets/ui/slider_thumb_bone.png');
     background-size: contain;
@@ -1156,6 +1168,7 @@ canvas {
     background-position: center;
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.9));
     pointer-events: none;
+    z-index: 2;
     transition: transform 0.05s ease;
 }
 
@@ -1175,12 +1188,12 @@ canvas {
     background-image: url('../assets/ui/toggle_display_mode_bar.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    width: 275px;
-    height: 38px;
+    width: 100%;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 12px;
+    padding: 0 10px;
     cursor: pointer;
     position: relative;
     transition: filter 0.15s ease;
@@ -1191,11 +1204,13 @@ canvas {
 }
 
 .toggle-mode-label {
+    flex: 1;
+    text-align: center;
     font-family: 'Cinzel Decorative', 'Chakra Petch', sans-serif;
     font-weight: 900;
     font-size: 0.72rem;
     letter-spacing: 0.06em;
-    color: #d4d4d8;
+    color: #a1a1aa;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
     transition: color 0.15s ease, text-shadow 0.15s ease;
 }
@@ -1206,24 +1221,38 @@ canvas {
 }
 
 .toggle-mode-indicator {
-    width: 44px;
-    height: 22px;
-    border-radius: 4px;
-    background: linear-gradient(180deg, #52525b 0%, #27272a 100%);
-    border: 1px solid #71717a;
-    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.8);
+    width: 78px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: 5px;
+    background: rgba(12, 10, 9, 0.45);
     position: relative;
-    overflow: hidden;
 }
 
 .toggle-mode-indicator-glow {
     position: absolute;
-    top: 2px;
-    bottom: 2px;
-    width: 20px;
-    border-radius: 2px;
-    background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%);
-    box-shadow: 0 0 8px #f97316;
+    top: 3px;
+    bottom: 3px;
+    width: 34px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, rgba(234, 88, 12, 0.85) 0%, rgba(194, 65, 12, 0.75) 100%);
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.9);
+    transition: left 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toggle-mode-knob {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background-image: url('../assets/ui/toggle_mode_knob.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
+    z-index: 2;
+    pointer-events: none;
     transition: left 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1232,13 +1261,14 @@ canvas {
     background-image: url('../assets/ui/toggle_container.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    width: 175px;
-    height: 40px;
+    width: 196px;
+    height: 42px;
+    margin: 0 auto;
     display: flex;
     align-items: center;
-    padding: 3px 5px;
+    padding: 5px 12px;
     cursor: pointer;
-    gap: 4px;
+    gap: 6px;
     transition: filter 0.15s ease;
 }
 
@@ -1254,7 +1284,7 @@ canvas {
     justify-content: center;
     font-family: 'Cinzel Decorative', 'Chakra Petch', sans-serif;
     font-weight: 900;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     border-radius: 6px;
     transition: all 0.15s ease;
     border: none;
@@ -1280,24 +1310,29 @@ canvas {
 .gfx-segmented-picker {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     width: 100%;
-    max-width: 290px;
 }
 
 .gfx-segment-btn {
     flex: 1;
-    padding: 7px 4px;
-    font-family: 'Chakra Petch', sans-serif;
+    height: 36px;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel Decorative', 'Chakra Petch', sans-serif;
     font-weight: 900;
     font-size: 0.72rem;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     text-align: center;
     border-radius: 6px;
-    background-image: url('../assets/ui/stone_label_slab.png');
+    background-image: url('../assets/ui/toggle_btn_inactive.png');
     background-size: 100% 100%;
+    background-repeat: no-repeat;
     color: #a1a1aa;
-    text-shadow: 0 1px 2px #000;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
     border: 1px solid #3f3f46;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -1306,14 +1341,16 @@ canvas {
 .gfx-segment-btn:hover {
     color: #f4f4f5;
     border-color: #71717a;
+    filter: brightness(1.15);
 }
 
 .gfx-segment-btn.active {
-    color: #fef08a;
-    background: linear-gradient(180deg, #991b1b 0%, #7f1d1d 100%);
+    color: #ffffff;
+    background-image: url('../assets/ui/toggle_btn_active.png');
+    background-size: 100% 100%;
     border-color: #f59e0b;
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.75);
-    text-shadow: 0 0 8px rgba(245, 158, 11, 0.8), 0 1px 3px #000;
+    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.85));
+    text-shadow: 0 0 10px rgba(251, 146, 60, 0.95), 0 2px 4px rgba(0, 0, 0, 0.95);
 }
 
 /* Footer Navigation Bar */

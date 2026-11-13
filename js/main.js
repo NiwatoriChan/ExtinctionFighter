@@ -100,6 +100,10 @@ function bootGame() {
         goToSelectScreen();
         updatePreviewModels(16);
     } else if (urlParams.get('screen') === 'settings' || urlParams.get('screen') === 'options') {
+        const reqTab = urlParams.get('tab');
+        if (reqTab && ['audio', 'video', 'gameplay', 'controls'].includes(reqTab) && typeof settingsActiveTabSignal !== 'undefined') {
+            settingsActiveTabSignal.value = reqTab;
+        }
         goToMainMenu();
         openSettingsModal();
     } else if (urlParams.get('screen') === 'arena') {

@@ -83,15 +83,22 @@ function renderMovesModalList() {
 
     DINO_ROSTER.forEach(d => {
         if (d.isUnlockable && !isFighterUnlocked(d.id)) {
+            const reqEraId = (typeof UNLOCKABLE_FIGHTER_ERAS !== 'undefined' && UNLOCKABLE_FIGHTER_ERAS[d.id]) || null;
+            const reqEra = (reqEraId && typeof CAMPAIGN_ERAS !== 'undefined')
+                ? CAMPAIGN_ERAS.find(e => e.id === reqEraId)
+                : null;
+            const unlockHint = reqEra
+                ? `Conquérez l'Ère ${reqEra.id} (${reqEra.name}) en Campagne pour déverrouiller ce combattant et son grimoire.`
+                : "Triomphez de la Campagne d'Extinction pour déverrouiller ce combattant et son grimoire.";
             modalListNode.add(new UIKit.Card({
                 className: 'p-3 rounded-xl bg-zinc-950/80 border border-amber-500/30 border-dashed text-center flex flex-col items-center justify-center py-5',
                 children: [
                     new UIKit.Text({ tag: 'span', className: 'text-2xl mb-1 text-amber-400', text: '🔒' }),
-                    new UIKit.Text({ tag: 'span', className: 'mk-title font-black text-amber-400 text-sm', text: '??? (COMBATTANT DÉBLOCABLE)' }),
+                    new UIKit.Text({ tag: 'span', className: 'mk-title font-black text-amber-400 text-sm', text: '??? (COMBATTANT DÉBLOQUABLE)' }),
                     new UIKit.Text({
                         tag: 'span',
                         className: 'text-[10px] text-zinc-400 mt-1 max-w-xs',
-                        text: "Triomphez de la Campagne d'Extinction et éliminez le Dragon Suprême pour déverrouiller ce félin préhistorique et son grimoire."
+                        text: unlockHint
                     })
                 ]
             }));

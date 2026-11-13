@@ -150,7 +150,7 @@ const pauseModalRoot = new UIKit.Dialog({
                         <span>NAVIGUER</span>
                     </div>
                 </div>
-                <span class="pause-footer-version">v1.04</span>
+                <span class="pause-footer-version">${typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.2.1'}</span>
             </div>
         </div>
     `
@@ -365,10 +365,20 @@ function initHeaderMenu() {
     if (btnAudio) {
         btnAudio.addEventListener('click', () => {
             if (typeof sfx !== 'undefined') {
-                sfx.enabled = !sfx.enabled;
-                if (typeof sfx.setMasterVolume === 'function') {
-                    sfx.setMasterVolume(sfx.enabled ? 0.8 : 0);
+                const nextEnabled = !sfx.enabled;
+                if (typeof sfx.setEnabled === 'function') {
+                    sfx.setEnabled(nextEnabled);
+                } else {
+                    sfx.enabled = nextEnabled;
+                    if (typeof sfx.setMasterVolume === 'function') {
+                        const savedMaster = typeof settingsMasterVolSignal !== 'undefined' ? (settingsMasterVolSignal.value / 100) : 0.8;
+                        sfx.setMasterVolume(sfx.enabled ? savedMaster : 0);
+                    }
                 }
+                if (typeof settingsSoundSignal !== 'undefined') {
+                    settingsSoundSignal.value = nextEnabled;
+                }
+                try { localStorage.setItem('ek3d_sound_enabled', String(nextEnabled)); } catch (_) {}
                 updatePauseAudioUI();
                 if (sfx.enabled && typeof sfx.playHit === 'function') {
                     sfx.playHit(false);
@@ -395,7 +405,12 @@ function initHeaderMenu() {
     if (btnRestart) {
         btnRestart.addEventListener('click', () => {
             closePauseMenu();
-            if (typeof startMatch === 'function') startMatch();
+            if (typeof teardownActiveBattle === 'function') teardownActiveBattle();
+            if (typeof matchState !== 'undefined' && matchState === 'campaign_level' && typeof activeCampaignEra !== 'undefined' && activeCampaignEra && typeof startCampaignEraLevel === 'function') {
+                startCampaignEraLevel(activeCampaignEra);
+            } else if (typeof startMatch === 'function') {
+                startMatch();
+            }
         });
     }
 
@@ -403,6 +418,7 @@ function initHeaderMenu() {
     if (btnSelect) {
         btnSelect.addEventListener('click', () => {
             closePauseMenu();
+            if (typeof teardownActiveBattle === 'function') teardownActiveBattle();
             if (typeof returnToSelect === 'function') returnToSelect();
         });
     }
@@ -411,6 +427,7 @@ function initHeaderMenu() {
     if (btnMainMenu) {
         btnMainMenu.addEventListener('click', () => {
             closePauseMenu();
+            if (typeof teardownActiveBattle === 'function') teardownActiveBattle();
             if (typeof goToMainMenu === 'function') goToMainMenu();
         });
     }

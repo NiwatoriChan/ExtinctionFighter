@@ -5,7 +5,9 @@
     <title>EXTINCTION KOMBAT 3D - Jurassic Blood</title>
     <script>
     window.__testErrors = [];
+    const __isTestMode = window.location.search.includes('test=1');
     const sendLog = (type, data) => {
+        if (!__isTestMode) return;
         try {
             fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, data, ts: performance.now(), href: location.href }) }).catch(() => {});
         } catch (_) {}
@@ -210,6 +212,20 @@
     <script src="js/core/effects.js"></script>
     <script src="js/core/input.js"></script>
     <script src="js/core/combat.js"></script>
+    <!-- Niveaux de Campagne (un fichier par ère / sous-ère) -->
+    <script src="js/campaign/era-01-cambrian.js"></script>
+    <script src="js/campaign/era-02-ordovician.js"></script>
+    <script src="js/campaign/era-03-silurian.js"></script>
+    <script src="js/campaign/era-04-devonian.js"></script>
+    <script src="js/campaign/era-05-carboniferous.js"></script>
+    <script src="js/campaign/era-06-permian.js"></script>
+    <script src="js/campaign/era-07-triassic.js"></script>
+    <script src="js/campaign/era-08-jurassic.js"></script>
+    <script src="js/campaign/era-09-cretaceous.js"></script>
+    <script src="js/campaign/era-10-paleogene.js"></script>
+    <script src="js/campaign/era-11-neogene.js"></script>
+    <script src="js/campaign/era-12-quaternary.js"></script>
+    <script src="js/campaign/era-13-extinction.js"></script>
     <script src="js/core/campaign-level.js"></script>
     <script src="js/core/match.js"></script>
     <!-- Architecture IA 4-Étapes (NavMesh -> Yuka Steering -> XState / BehaviorTree -> Sync) -->

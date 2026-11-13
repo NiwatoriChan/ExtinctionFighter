@@ -181,6 +181,8 @@ function executeXRayMove(attacker, defender) {
         };
 
         xrayCinematicTimer = 2.35;
+        xrayElapsed = 0;
+        xrayPhaseApplied = 1;
         xrayStage = 1;
 
         const hud = document.getElementById('xrayOverlayHud');
@@ -189,54 +191,25 @@ function executeXRayMove(attacker, defender) {
         const phaseEl = document.getElementById('xrayPhaseCounter');
         const targetEl = document.getElementById('xrayTargetLabel');
 
-        hud.classList.remove('hidden');
-        targetEl.textContent = `CIBLE VERROUILLÉE : ${defender.dino.fullName.toUpperCase()}`;
+        if (hud) hud.classList.remove('hidden');
+        if (targetEl) targetEl.textContent = `CIBLE VERROUILLÉE : ${defender.dino.fullName.toUpperCase()}`;
 
         const totalDmg = Math.round(attacker.dino.stats.pow * 2.55);
         const hit1 = Math.round(totalDmg * 0.30);
         const hit2 = Math.round(totalDmg * 0.35);
         const hit3 = totalDmg - hit1 - hit2;
 
-        // PHASE 1 : FRACTURE DU CRÂNE & MÂCHOIRE (Mouvement bloqué)
-        phaseEl.textContent = 'IMPACT 1 / 3 • CRÂNE';
-        titleEl.textContent = '💀 FRACTURE MAXILLO-CRÂNIENNE';
-        psiEl.textContent = 'PRESSION : 4 950 PSI • DENTS & OS TEMPORAL BROYÉS';
+        xrayContext = { attacker, defender, totalDmg, hit2, hit3 };
+
+        // PHASE 1 : FRACTURE DU CRÂNE & MÂCHOIRE (Phases 2 & 3 pilotées par dt dans updateBattle3D)
+        if (phaseEl) phaseEl.textContent = 'IMPACT 1 / 3 • CRÂNE';
+        if (titleEl) titleEl.textContent = '💀 FRACTURE MAXILLO-CRÂNIENNE';
+        if (psiEl) psiEl.textContent = 'PRESSION : 4 950 PSI • DENTS & OS TEMPORAL BROYÉS';
         sfx.playBoneCrack();
         screenShake = 0.55;
+        if (typeof triggerGamepadRumble === 'function') triggerGamepadRumble(0, 0.5, 0.8, 220);
         spawn3DBloodAndBones(defender.x, 2.8, 22, true);
         applyDamage(attacker, defender, hit1, true, '☢ X-RAY : CRÂNE BROYÉ !', true);
-
-        // PHASE 2 : CAGE THORACIQUE & ORGANES INTERNES (Mouvement bloqué)
-        setTimeout(() => {
-            if (xrayCinematicTimer <= 0 || matchState !== 'fight') return;
-            xrayStage = 2;
-            phaseEl.textContent = 'IMPACT 2 / 3 • THORAX';
-            titleEl.textContent = '🫀 PERFORATION DE LA CAGE THORACIQUE';
-            psiEl.textContent = 'PRESSION : 6 400 PSI • 6 CÔTES BRISÉES & HÉMORRAGIE';
-            sfx.playBoneCrack();
-            sfx.playHit(true);
-            screenShake = 0.7;
-            spawn3DBloodAndBones(defender.x, 2.1, 28, true);
-            applyDamage(attacker, defender, hit2, true, '☢ X-RAY : CÔTES PULVÉRISÉES !', true);
-        }, 750);
-
-        // PHASE 3 : RUPTURE DE LA COLONNE VERTÉBRALE & PROJECTION FINALE
-        setTimeout(() => {
-            if (xrayCinematicTimer <= 0 || matchState !== 'fight') return;
-            xrayStage = 3;
-            phaseEl.textContent = 'IMPACT 3 / 3 • VERTÈBRES';
-            titleEl.textContent = '⚡ RUPTURE VERTÉBRALE CRITIQUE';
-            psiEl.textContent = 'PRESSION : 8 900 PSI • DISLOCATION CERVICALE TOTALE';
-            sfx.playBoneCrack();
-            sfx.playRoar(62, 0.65);
-            screenShake = 0.95;
-            spawn3DBloodAndBones(defender.x, 2.3, 38, true);
-            // Libérer le verrouillage sur l'impact final pour projeter la victime et autoriser le KO
-            xrayLockPositions = null;
-            applyDamage(attacker, defender, hit3, true, `💥 TOTAL X-RAY : -${totalDmg} PV !`, false);
-            defender.vx = attacker.facing * 13.5;
-            defender.vy = 6.8;
-        }, 1500);
     } else {
         attacker.action = 'xray';
         attacker.actionTimer = 0;

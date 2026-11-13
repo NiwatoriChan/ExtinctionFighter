@@ -36,10 +36,11 @@ function buildCampaignMapUIKit() {
                         className: 'font-chakra font-black text-xs sm:text-sm text-amber-300 tracking-[0.2em] uppercase',
                         text: UIKit.computed(() => {
                             let cleared = 0;
+                            const total = typeof CAMPAIGN_ERAS !== 'undefined' ? CAMPAIGN_ERAS.length : 13;
                             if (typeof CAMPAIGN_ERAS !== 'undefined') {
                                 CAMPAIGN_ERAS.forEach(e => { if (isEraCleared(e.id)) cleared++; });
                             }
-                            return `SÉLECTIONNEZ UNE ÈRE • ${cleared} / 6 ÈRES CONQUISES`;
+                            return `SÉLECTIONNEZ UNE ÈRE • ${cleared} / ${total} ÈRES CONQUISES`;
                         })
                     }),
                     new UIKit.Container({ className: 'w-16 sm:w-32 h-0.5 bg-gradient-to-l from-transparent to-amber-500' })
@@ -150,6 +151,22 @@ function buildCampaignMapUIKit() {
                                 tag: 'div',
                                 className: 'font-chakra text-xs text-red-400 font-black flex items-center gap-1.5',
                                 text: UIKit.computed(() => `👑 BOSS APEX : ${CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves[2].bossName}`)
+                            }),
+                            new UIKit.Text({
+                                tag: 'div',
+                                className: 'font-chakra text-[11px] text-cyan-300 font-bold leading-snug pt-1 border-t border-stone-800',
+                                text: UIKit.computed(() => {
+                                    const era = CAMPAIGN_ERAS[selectedEraIndexSignal.value];
+                                    return era.hazard ? `⚡ MÉCANIQUE : ${era.hazard.name} — ${era.hazard.desc}` : '';
+                                })
+                            }),
+                            new UIKit.Text({
+                                tag: 'div',
+                                className: 'font-chakra text-[10px] text-orange-300 font-bold leading-snug',
+                                text: UIKit.computed(() => {
+                                    const boss = CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves[2];
+                                    return boss.phase2Desc ? `🔥 ${boss.phase2Desc}` : '';
+                                })
                             })
                         ]
                     }),
@@ -293,25 +310,24 @@ function buildCampaignMapUIKit() {
             }),
             new UIKit.Container({ className: 'parchment-texture-overlay' }),
 
-            // Lignes SVG reliant les 6 Nœuds d'Ères
+            // Lignes SVG reliant dynamiquement tous les Nœuds d'Ères
             new UIKit.Svg({
                 className: 'absolute inset-0 w-full h-full pointer-events-none z-10',
-                svg: `
+                svg: (() => {
+                    const eras = typeof CAMPAIGN_ERAS !== 'undefined' ? CAMPAIGN_ERAS : [];
+                    const pts = eras.map((e, i) => `${i === 0 ? 'M' : 'L'}${Math.round(e.mapX * 10)} ${Math.round(e.mapY * 6)}`).join(' ');
+                    const circles = eras.map(e => `<circle cx="${Math.round(e.mapX * 10)}" cy="${Math.round(e.mapY * 6)}" r="7" fill="${e.themeColor || '#f59e0b'}"/>`).join('\n                        ');
+                    return `
                     <svg viewBox="0 0 1000 600" preserveAspectRatio="none" class="w-full h-full">
-                        <!-- Ligne d'énergie de la Timeline reliant les 6 Ères -->
-                        <path d="M200 400 L360 250 L520 370 L660 210 L780 350 L880 180" 
-                              fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="10,8" opacity="0.85" filter="drop-shadow(0 0 8px #f59e0b)"/>
-                        <circle cx="200" cy="400" r="8" fill="#14b8a6"/>
-                        <circle cx="360" cy="250" r="8" fill="#f59e0b"/>
-                        <circle cx="520" cy="370" r="8" fill="#22c55e"/>
-                        <circle cx="660" cy="210" r="8" fill="#ef4444"/>
-                        <circle cx="780" cy="350" r="8" fill="#38bdf8"/>
-                        <circle cx="880" cy="180" r="8" fill="#c084fc"/>
+                        <path d="${pts}" 
+                              fill="none" stroke="#f59e0b" stroke-width="3.5" stroke-dasharray="10,8" opacity="0.85" filter="drop-shadow(0 0 8px #f59e0b)"/>
+                        ${circles}
                     </svg>
-                `
+                `;
+                })()
             }),
 
-            // Nœuds Interactifs des 6 Ères avec Logos Dédiés
+            // Nœuds Interactifs des Ères & Sous-Ères avec Logos Dédiés
             new UIKit.Container({
                 id: 'periodNodesLayer',
                 className: 'absolute inset-0 w-full h-full pointer-events-auto z-20',
@@ -322,8 +338,8 @@ function buildCampaignMapUIKit() {
                             const isSelected = selectedEraIndexSignal.value === idx;
                             const unlocked = isEraUnlocked(era.id);
                             const cleared = isEraCleared(era.id);
-                            let cls = 'period-timeline-node absolute p-2 rounded-2xl flex items-center gap-2.5 cursor-pointer shadow-2xl transition-all ';
-                            if (isSelected) cls += 'active ring-4 ring-amber-400 scale-110 ';
+                            let cls = 'period-timeline-node absolute p-1 rounded-xl flex flex-col items-center gap-0.5 cursor-pointer shadow-xl transition-all ';
+                            if (isSelected) cls += 'active ring-4 ring-amber-400 scale-115 z-30 ';
                             if (!unlocked) cls += 'locked opacity-60 grayscale ';
                             if (cleared) cls += 'border-emerald-500 ';
                             return cls;
@@ -340,7 +356,7 @@ function buildCampaignMapUIKit() {
                         children: [
                             // Médaillon Logo de l'Ère
                             new UIKit.Container({
-                                className: 'w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 border-amber-400/90 bg-stone-950 flex items-center justify-center shrink-0 shadow-lg relative',
+                                className: 'w-9 h-9 sm:w-12 sm:h-12 rounded-xl overflow-hidden border-2 border-amber-400/90 bg-stone-950 flex items-center justify-center shrink-0 shadow-lg relative',
                                 children: [
                                     new UIKit.Image({
                                         src: era.logo,
@@ -349,11 +365,11 @@ function buildCampaignMapUIKit() {
                                     }),
                                     // Badge Clé / Couronne
                                     new UIKit.Container({
-                                        className: 'absolute top-0.5 right-0.5',
+                                        className: 'absolute top-0 right-0',
                                         children: [
                                             new UIKit.Text({
                                                 tag: 'span',
-                                                className: 'text-xs filter drop-shadow',
+                                                className: 'text-[10px] filter drop-shadow',
                                                 text: UIKit.computed(() => {
                                                     if (isEraCleared(era.id)) return '👑';
                                                     if (!isEraUnlocked(era.id)) return '🔒';
@@ -364,24 +380,19 @@ function buildCampaignMapUIKit() {
                                     })
                                 ]
                             }),
-                            // Plaque d'information
+                            // Étiquette compacte
                             new UIKit.Container({
-                                className: 'hidden sm:flex flex-col text-left pr-2 bg-stone-950/80 px-2 py-1 rounded-lg border border-stone-700/80',
+                                className: 'hidden sm:flex flex-col items-center text-center bg-stone-950/90 px-1.5 py-0.5 rounded border border-stone-700/80',
                                 children: [
                                     new UIKit.Text({
                                         tag: 'span',
-                                        className: 'font-cinzel font-black text-xs text-amber-200 uppercase leading-none whitespace-nowrap',
-                                        text: era.name
+                                        className: 'font-cinzel font-black text-[9px] text-amber-200 uppercase leading-none whitespace-nowrap',
+                                        text: era.shortLabel || era.name
                                     }),
                                     new UIKit.Text({
                                         tag: 'span',
-                                        className: 'font-chakra text-[9px] font-bold text-amber-400/90 uppercase leading-none mt-1 whitespace-nowrap',
+                                        className: 'font-chakra text-[8px] font-bold text-amber-400/90 uppercase leading-none mt-0.5 whitespace-nowrap',
                                         text: era.periodYears
-                                    }),
-                                    new UIKit.Text({
-                                        tag: 'span',
-                                        className: 'font-chakra text-[8px] font-black text-stone-300 uppercase leading-none mt-1 whitespace-nowrap',
-                                        text: `BOSS: ${era.waves[2].bossName}`
                                     })
                                 ]
                             })

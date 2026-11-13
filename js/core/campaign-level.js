@@ -9,393 +9,7 @@
  *   - Déblocage automatique d'un combattant et d'une arène à chaque ère conquise
  * ============================================================================ */
 
-// 1. CONFIGURATION OFFICIELLE DES 6 GRANDES ÈRES DE CAMPAGNE
-const CAMPAIGN_ERAS = [
-    {
-        id: 1,
-        slug: 'cambrian',
-        name: 'I. ÈRE DU CAMBRIEN',
-        subtitle: 'L\'EXPLOSION DU VIVANT & L\'ABYSSE PRIMORDIAL',
-        periodYears: '541 - 485 Ma',
-        logo: 'assets/ui/era_logos/era_1_paleozoic.png',
-        arenaId: 'cambrian',
-        themeColor: '#0e7490', // ocean cyan / teal
-        mapX: 20,
-        mapY: 66,
-        description: 'Plongez dans les abysses grandioses de l\'océan Cambrien, vaste carte sous-marine aux récifs étagés et geysers hydrothermaux. Terrassez le tout premier super-prédateur de l\'histoire terrestre : Anomalocaris Titan, et débloquez-le comme combattant jouable !',
-        reward: {
-            fighterId: 'anomalocaris',
-            fighterName: 'Anomalocaris Titan',
-            fighterRole: 'Super-Prédateur Radiodonte',
-            fighterPortrait: 'assets/portraits/anomalocaris.png',
-            arenaId: 'cambrian',
-            arenaName: 'Récif Abyssal du Cambrien',
-            arenaDesc: 'Vaste océan primordial avec plateaux coralliens étagés et geysers hydrothermaux'
-        },
-        waves: [
-            {
-                waveNum: 1,
-                name: 'ESSAIM DE TRILOBITES ÉPINEUX',
-                count: 3,
-                enemyType: 'cambrian_trilobite',
-                enemyDisplayName: 'Trilobite Primordial',
-                hp: 210,
-                speed: 5.8,
-                scale: 0.58,
-                color: 0x14b8a6,
-                baseDino: 'anomalocaris'
-            },
-            {
-                waveNum: 2,
-                name: 'GARDE D\'OPABINIA & RADIODONTES',
-                count: 2,
-                enemyType: 'opabinia_radiodont_elite',
-                enemyDisplayName: 'Garde Radiodonte',
-                hp: 390,
-                speed: 7.2,
-                scale: 0.84,
-                color: 0x0891b2,
-                baseDino: 'anomalocaris'
-            },
-            {
-                waveNum: 3,
-                isBoss: true,
-                name: 'LE TITAN RADIODONTE',
-                bossId: 'boss_anomalocaris',
-                bossName: 'ANOMALOCARIS TITAN',
-                bossTitle: 'SUPER-PRÉDATEUR DE L\'EXPLOSION CAMBRIENNE',
-                hp: 2400,
-                speed: 7.4,
-                scale: 1.6,
-                color: 0x0e7490,
-                accentColor: 0x22d3ee,
-                baseDino: 'anomalocaris',
-                signatureMove: 'Broyeur Raptorial & Vortex Hydro-Sismique',
-                specialMoves: ['raptorial_slam', 'peytoia_vortex', 'abyssal_surge']
-            }
-        ]
-    },
-    {
-        id: 2,
-        slug: 'triassic',
-        name: 'II. ÈRE DU TRIAS',
-        subtitle: 'L\'AUBE DES ARCHOSAURES PRÉDATEURS',
-        periodYears: '252 - 201 Ma',
-        logo: 'assets/ui/era_logos/era_2_triassic.png',
-        arenaId: 'storm',
-        themeColor: '#f59e0b', // amber
-        mapX: 36,
-        mapY: 42,
-        description: 'Les rudes terres rouges du Trias résonnent du tonnerre des premiers grands carnassiers. Échappez aux meutes d\'archosaures et domptez le colosse briseur de roche.',
-        reward: {
-            fighterId: 'postosuchus',
-            fighterName: 'Postosuchus',
-            fighterRole: 'Archosaurien Carnassier',
-            fighterPortrait: 'assets/portraits/postosuchus.png',
-            arenaId: 'storm',
-            arenaName: 'Canyon de l\'Orage Primordial',
-            arenaDesc: 'Colonnes de basalte balayées par des tempêtes d\'éclairs'
-        },
-        waves: [
-            {
-                waveNum: 1,
-                name: 'MEUTE DE PROTO-CARNASSIERS',
-                count: 3,
-                enemyType: 'triassic_hound',
-                enemyDisplayName: 'Chien de Terreur du Trias',
-                hp: 220,
-                speed: 6.5,
-                scale: 0.6,
-                color: 0xb45309,
-                baseDino: 'postosuchus'
-            },
-            {
-                waveNum: 2,
-                name: 'AVANT-GARDE CYNODONTE',
-                count: 2,
-                enemyType: 'cynodont_elite',
-                enemyDisplayName: 'Guerrier Postosuchien',
-                hp: 400,
-                speed: 7.2,
-                scale: 0.8,
-                color: 0x92400e,
-                baseDino: 'postosuchus'
-            },
-            {
-                waveNum: 3,
-                isBoss: true,
-                name: 'LE COLOSSE BRIS' + 'EUR DE ROCHE',
-                bossId: 'boss_fasolasuchus',
-                bossName: 'FASOLASUCHUS GIGANTEUS',
-                bossTitle: 'TITAN DES CERCLES DU TONNERRE',
-                hp: 2350,
-                speed: 7.0,
-                scale: 1.5,
-                color: 0x78350f,
-                accentColor: 0xfbbf24,
-                baseDino: 'postosuchus',
-                signatureMove: 'Charge Sismique & Morsure Foudroyante',
-                specialMoves: ['thunder_stomp', 'savage_lunge', 'lightning_roar']
-            }
-        ]
-    },
-    {
-        id: 3,
-        slug: 'jurassic',
-        name: 'III. ÈRE JURASSIQUE',
-        subtitle: 'LE RÈGNE DES GÉANTS & TITANS FÉROCES',
-        periodYears: '201 - 145 Ma',
-        logo: 'assets/ui/era_logos/era_3_jurassic.png',
-        arenaId: 'jungle',
-        themeColor: '#22c55e', // emerald green
-        mapX: 52,
-        mapY: 60,
-        description: 'La canopée luxuriante abrite les plus gigantesques sauropodes et stégosaures de l\'histoire. Survivez aux assauts de la forêt et abattez le colossal titan tellurique.',
-        reward: {
-            fighterId: 'apatosaurus',
-            fighterName: 'Apatosaure',
-            fighterRole: 'Titan Sauropode Sismique',
-            fighterPortrait: 'assets/portraits/apato.png',
-            arenaId: 'jungle',
-            arenaName: 'Vallée d\'Émeraude',
-            arenaDesc: 'Jungle tropicale luxuriante et cascades primordiales'
-        },
-        waves: [
-            {
-                waveNum: 1,
-                name: 'TRAQUEURS DES FOUGÈRES',
-                count: 3,
-                enemyType: 'jurassic_raptor',
-                enemyDisplayName: 'Pousseur Jurassique',
-                hp: 240,
-                speed: 6.8,
-                scale: 0.6,
-                color: 0x16a34a,
-                baseDino: 'stegosaurus'
-            },
-            {
-                waveNum: 2,
-                name: 'SENTINELLES À ÉPINES',
-                count: 2,
-                enemyType: 'stego_sentinel',
-                enemyDisplayName: 'Sentinelle Thagomizer',
-                hp: 440,
-                speed: 6.4,
-                scale: 0.82,
-                color: 0x15803d,
-                baseDino: 'stegosaurus'
-            },
-            {
-                waveNum: 3,
-                isBoss: true,
-                name: 'L\'ÉCRASEUR TELLURIQUE',
-                bossId: 'boss_brontotitan',
-                bossName: 'TITANO-COLOSSUS BRONTOR',
-                bossTitle: 'L\'ÉCRASEUR TELLURIQUE DU JURASSIQUE',
-                hp: 2600,
-                speed: 6.4,
-                scale: 1.55,
-                color: 0x064e3b,
-                accentColor: 0x4ade80,
-                baseDino: 'apatosaurus',
-                signatureMove: 'Onde Sismique Tellurique & Fouet Caudal Sonique',
-                specialMoves: ['earthquake_stomp', 'tail_tornado', 'boulder_throw']
-            }
-        ]
-    },
-    {
-        id: 4,
-        slug: 'cretaceous',
-        name: 'IV. ÈRE CRÉTACÉE',
-        subtitle: 'L\'IMPACT DU CHICXULUB & LE ROYAUME DE MAGMA',
-        periodYears: '145 - 66 Ma',
-        logo: 'assets/ui/era_logos/era_4_cretaceous.png',
-        arenaId: 'volcano',
-        themeColor: '#ef4444', // red
-        mapX: 66,
-        mapY: 34,
-        description: 'La Terre brûle sous une pluie de météores incandescents. Les prédateurs suprêmes se battent pour la survie avant l\'extinction totale. Affrontez le mastodonte volcanique.',
-        reward: {
-            fighterId: 'therizino',
-            fighterName: 'Thérizinosaure',
-            fighterRole: 'Faucheuse Préhistorique',
-            fighterPortrait: 'assets/portraits/therizino.png',
-            arenaId: 'volcano',
-            arenaName: 'Cratère du Chicxulub',
-            arenaDesc: 'Lave en fusion et météores enflammés'
-        },
-        waves: [
-            {
-                waveNum: 1,
-                name: 'RAVAGEURS DE CENDRES',
-                count: 3,
-                enemyType: 'ash_raptor',
-                enemyDisplayName: 'Raptor Igné',
-                hp: 260,
-                speed: 7.2,
-                scale: 0.62,
-                color: 0xd97706,
-                baseDino: 'trex'
-            },
-            {
-                waveNum: 2,
-                name: 'BERSERKERS À CORNES',
-                count: 2,
-                enemyType: 'magma_ceratopsian',
-                enemyDisplayName: 'Guerrier Volcanique',
-                hp: 480,
-                speed: 7.0,
-                scale: 0.85,
-                color: 0xb91c1c,
-                baseDino: 'pachyrhino'
-            },
-            {
-                waveNum: 3,
-                isBoss: true,
-                name: 'LE TYRAN DE MAGMA',
-                bossId: 'boss_pyroclast',
-                bossName: 'PYROCLAST CERATOKING',
-                bossTitle: 'JUGGERNAUT DU FEU & DU CHICXULUB',
-                hp: 2800,
-                speed: 7.2,
-                scale: 1.55,
-                color: 0x7f1d1d,
-                accentColor: 0xf97316,
-                baseDino: 'pachyrhino',
-                signatureMove: 'Éruption Tellurique de Flammes & Corne Météorite',
-                specialMoves: ['magma_breath', 'meteor_slam', 'flame_charge']
-            }
-        ]
-    },
-    {
-        id: 5,
-        slug: 'cenozoic',
-        name: 'V. ÈRE CÉNOZOÏQUE',
-        subtitle: 'LE GRAND GLACIER & LA FAUNE GÉANTE',
-        periodYears: '66 Ma - Aujourd\'hui',
-        logo: 'assets/ui/era_logos/era_5_cenozoic.png',
-        arenaId: 'iceage',
-        themeColor: '#38bdf8', // sky blue
-        mapX: 78,
-        mapY: 58,
-        description: 'La planète s\'est figée dans un hiver glaciaire sans fin. Traquez les meutes de la toundra polaire et terrassez le colosse givré des monts de glace.',
-        reward: {
-            fighterId: 'smilodon',
-            fighterName: 'Smilodon',
-            fighterRole: 'Tigre à Dents de Sabre',
-            fighterPortrait: 'assets/portraits/smilodon.png',
-            arenaId: 'iceage',
-            arenaName: 'Glacier de l\'Ère Glaciaire',
-            arenaDesc: 'Blizzard en 3D, pics de glace et aurore boréale'
-        },
-        waves: [
-            {
-                waveNum: 1,
-                name: 'TRAQUEURS DU BLIZZARD',
-                count: 3,
-                enemyType: 'frost_hound',
-                enemyDisplayName: 'Loup Glaciaire',
-                hp: 280,
-                speed: 7.5,
-                scale: 0.62,
-                color: 0x0284c7,
-                baseDino: 'smilodon'
-            },
-            {
-                waveNum: 2,
-                name: 'AVASSAL DU GIVRE',
-                count: 2,
-                enemyType: 'glacier_panther',
-                enemyDisplayName: 'Félin de Glace',
-                hp: 510,
-                speed: 7.4,
-                scale: 0.85,
-                color: 0x0369a1,
-                baseDino: 'smilodon'
-            },
-            {
-                waveNum: 3,
-                isBoss: true,
-                name: 'LE COLOSSE DES NEIGES',
-                bossId: 'boss_wendigo',
-                bossName: 'FROST-GOLIATH BOREALIS',
-                bossTitle: 'WENDIGO PRIMORDIAL DU BLIZZARD ÉTERNEL',
-                hp: 3000,
-                speed: 7.4,
-                scale: 1.58,
-                color: 0x0c4a6e,
-                accentColor: 0x38bdf8,
-                baseDino: 'giantsloth',
-                signatureMove: 'Avalanche Cryogénique & Pilonnage de Stalagmites',
-                specialMoves: ['ice_spikes', 'blizzard_roar', 'frost_stomp']
-            }
-        ]
-    },
-    {
-        id: 6,
-        slug: 'extinction',
-        name: 'VI. L\'APOGÉE DE L\'EXTINCTION',
-        subtitle: 'L\'AFFRONTEMENT COSMIQUE CONTRE LE DRAGON',
-        periodYears: 'Temps Infini',
-        logo: 'assets/ui/era_logos/era_6_extinction.png',
-        arenaId: 'dragonlair',
-        themeColor: '#c084fc', // purple
-        mapX: 88,
-        mapY: 30,
-        description: 'La faille temporelle ultime. Au sommet de la caldera calcinée sommeille Drak\'Zul, le titan né des cataclysmes de toutes les extinctions terrestres.',
-        reward: {
-            fighterId: 'dragon',
-            fighterName: 'Drak\'Zul le Dragon',
-            fighterRole: 'Titan Suprême de l\'Extinction (Jouable !)',
-            fighterPortrait: 'assets/portraits/dragon.png',
-            arenaId: 'dragonlair',
-            arenaName: 'L\'Antre Infernale de Drak\'Zul',
-            arenaDesc: 'Caldera volcanique cosmique sous tempête d\'étoiles'
-        },
-        waves: [
-            {
-                waveNum: 1,
-                name: 'SPECTRES DES OS CÉLESTES',
-                count: 3,
-                enemyType: 'void_wraith',
-                enemyDisplayName: 'Ombre d\'Extinction',
-                hp: 320,
-                speed: 7.6,
-                scale: 0.65,
-                color: 0x7e22ce,
-                baseDino: 'quetzal'
-            },
-            {
-                waveNum: 2,
-                name: 'CHAMPIONS DU NÉANT',
-                count: 2,
-                enemyType: 'void_champion',
-                enemyDisplayName: 'Démon Tellurique',
-                hp: 580,
-                speed: 7.6,
-                scale: 0.9,
-                color: 0x6b21a8,
-                baseDino: 'spinosaurus'
-            },
-            {
-                waveNum: 3,
-                isBoss: true,
-                name: 'LE DRAGON DE L\'EXTINCTION',
-                bossId: 'boss_drakzul',
-                bossName: 'DRAK\'ZUL LE DRAGON SUPRÊME',
-                bossTitle: 'L\'INCARNATION DU CHÂTIMENT DES ÈRES',
-                hp: 3500,
-                speed: 8.0,
-                scale: 1.65,
-                color: 0x581c87,
-                accentColor: 0xe879f9,
-                baseDino: 'dragon',
-                signatureMove: 'Cataclysme Cosmique & Souffle du Néant Pourpre',
-                specialMoves: ['void_fire', 'meteor_cataclysm', 'cosmic_dive']
-            }
-        ]
-    }
-];
+// 1. LES 13 NIVEAUX DE CAMPAGNE SONT DÉCLARÉS SÉPARÉMENT DANS js/campaign/era-*.js VIA registerCampaignEra()
 
 // 2. GESTION DE LA PROGRESSION DE CAMPAGNE (LOCALSTORAGE)
 function isEraUnlocked(eraId) {
@@ -426,28 +40,31 @@ function clearEraProgress(eraId) {
         // Débloquer la récompense de combattant et d'arène
         const era = CAMPAIGN_ERAS.find(e => e.id === eraId);
         if (era && era.reward) {
-            unlockFighter(era.reward.fighterId);
-            unlockArena(era.reward.arenaId);
+            if (typeof unlockFighter === 'function') unlockFighter(era.reward.fighterId);
+            if (typeof unlockArena === 'function') unlockArena(era.reward.arenaId);
         }
     } catch (e) {
         console.warn("Could not save era progress:", e);
     }
 }
 
-function unlockArena(arenaId) {
-    try {
-        localStorage.setItem('ek3d_unlocked_arena_' + arenaId, 'true');
-    } catch (e) {}
+if (typeof window !== 'undefined' && typeof window.unlockArena !== 'function') {
+    window.unlockArena = function unlockArena(arenaId) {
+        try {
+            localStorage.setItem('ek3d_unlocked_arena_' + arenaId, 'true');
+        } catch (e) {}
+    };
 }
 
-function isArenaUnlocked(arenaId) {
-    // Les 2 arènes de départ sont débloquées par défaut
-    if (arenaId === 'volcano' || arenaId === 'jungle') return true;
-    try {
-        return localStorage.getItem('ek3d_unlocked_arena_' + arenaId) === 'true';
-    } catch (e) {
-        return true;
-    }
+if (typeof window !== 'undefined' && typeof window.isArenaUnlocked !== 'function') {
+    window.isArenaUnlocked = function isArenaUnlocked(arenaId) {
+        if (arenaId === 'volcano' || arenaId === 'boneyard') return true;
+        try {
+            return localStorage.getItem('ek3d_unlocked_arena_' + arenaId) === 'true';
+        } catch (e) {
+            return true;
+        }
+    };
 }
 
 // 3. ÉTAT DYNAMIQUE DU NIVEAU SMASH EN COURS
@@ -459,12 +76,27 @@ var campaignComboCount = 0;
 var campaignComboTimer = 0;
 var campaignActiveMinions = [];
 var campaignActivePickups = [];
+var campaignActiveProjectiles = [];
+var campaignActiveHazards = [];
 var campaignBossFighter = null;
+var campaignBossPhase = 1;
 var campaignBossHealthBarEl = null;
 var campaignSmashHudRoot = null;
 var campaignWaveBannerTimer = 0;
 var campaignWaveAnnounceTitle = '';
 var campaignWaveAnnounceSub = '';
+var campaignWaveObjective = 'clear';
+var campaignWaveTimer = 0;
+var campaignWaveDuration = 0;
+var campaignSurviveRespawnTimer = 0;
+var campaignTimeAttackBonusAwarded = false;
+var campaignHazardTimer = 0;
+var campaignHazardActiveDir = 0;
+var campaignHazardActiveTimer = 0;
+var campaignHazardTickTimer = 0;
+var campaignSunbeamX = 0;
+var campaignSunbeamMesh = null;
+var campaignCurrentTideHigh = false;
 
 function applyDamageToPlayer(player, damage, knockbackX = 0, knockbackY = 0) {
     if (!player || player.isDead) return;
@@ -500,13 +132,15 @@ function applyDamageToPlayer(player, damage, knockbackX = 0, knockbackY = 0) {
 }
 window.applyDamageToPlayer = applyDamageToPlayer;
 
-// 4. CLASSE MINION 3D : ADVERSAIRE DE STYLE SMASH MELEE
+// 4. CLASSE MINION 3D : ADVERSAIRE DE STYLE SMASH MELEE & ARCHÉTYPES
 class EraMinion3D {
     constructor(def, spawnX, arenaGroundY = 0) {
         this.def = def;
+        this.archetype = def.archetype || 'brawler';
         this.x = spawnX;
-        this.y = arenaGroundY;
         this.groundY = arenaGroundY;
+        this.floatHeight = this.archetype === 'aerial' ? (2.1 + Math.random() * 0.7) : 0;
+        this.y = arenaGroundY + this.floatHeight;
         this.vx = 0;
         this.vy = 0;
         this.facing = -1;
@@ -518,8 +152,12 @@ class EraMinion3D {
         this.actionTimer = 0;
         this.hitStun = 0;
         this.isDead = false;
-        this.attackCooldown = 0.5 + Math.random() * 1.5;
-        this.isAirborne = false;
+        this.attackCooldown = 0.6 + Math.random() * 1.2;
+        this.rangedCooldown = 1.6 + Math.random() * 1.4;
+        this.swoopTimer = 0;
+        this.isAirborne = this.archetype === 'aerial';
+        this.wings = [];
+        this.segments = [];
 
         // Modèle 3D procédural Three.js
         this.root = new THREE.Group();
@@ -544,10 +182,17 @@ class EraMinion3D {
         });
         const glowEyeMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9 });
         const amberMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3 });
+        const wingMat = new THREE.MeshStandardMaterial({
+            color: 0xa7f3d0,
+            roughness: 0.25,
+            transparent: true,
+            opacity: 0.65
+        });
 
-        if (this.def.enemyType === 'cambrian_trilobite') {
-            // === VAGUE 1 : TRILOBITE PRIMORDIAL (OLENOIDES SERRATUS / BURGESS SHALE) ===
-            // Céphalon semi-circulaire large avec glabelle axiale et 4 sillons glabellaires
+        const t = this.def.enemyType;
+
+        if (t === 'cambrian_trilobite') {
+            // === TRILOBITE PRIMORDIAL ===
             const cephGeo = new THREE.CylinderGeometry(0.72, 0.96, 0.28, 10, 1, false, 0, Math.PI);
             cephGeo.rotateZ(-Math.PI / 2);
             cephGeo.rotateY(Math.PI / 2);
@@ -556,22 +201,18 @@ class EraMinion3D {
             this.bodyMesh.castShadow = true;
             this.root.add(this.bodyMesh);
 
-            // Glabelle axiale bombée centrale
             const glabellaGeo = new THREE.CylinderGeometry(0.24, 0.28, 0.65, 8);
             glabellaGeo.rotateZ(Math.PI / 2);
             const glabella = new THREE.Mesh(glabellaGeo, darkMat);
             glabella.position.set(0.12, 0.12, 0);
             this.bodyMesh.add(glabella);
 
-            // Sillons glabellaires transversaux (Glabellar furrows)
             for (let f = 0; f < 3; f++) {
-                const furrowGeo = new THREE.BoxGeometry(0.04, 0.04, 0.44);
-                const furrow = new THREE.Mesh(furrowGeo, mat);
+                const furrow = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.44), mat);
                 furrow.position.set(0.25 - f * 0.15, 0.22, 0);
                 this.bodyMesh.add(furrow);
             }
 
-            // Épines génales latérales allongées effilées (Genal Spines s'étendant le long du thorax)
             [-0.88, 0.88].forEach(z => {
                 const spineGeo = new THREE.ConeGeometry(0.07, 1.25, 5);
                 spineGeo.rotateZ(Math.PI / 2);
@@ -581,7 +222,6 @@ class EraMinion3D {
                 this.bodyMesh.add(spine);
             });
 
-            // Yeux composés réniformes (en croissant) surélevés
             [-0.36, 0.36].forEach(z => {
                 const eyeGeo = new THREE.SphereGeometry(0.13, 8, 8);
                 eyeGeo.scale(1.2, 0.8, 1.0);
@@ -590,7 +230,6 @@ class EraMinion3D {
                 this.bodyMesh.add(eye);
             });
 
-            // Paire d'antennules céphaliques articulées flexibles
             this.antennules = [];
             [-0.18, 0.18].forEach((z, i) => {
                 const antGroup = new THREE.Group();
@@ -604,26 +243,19 @@ class EraMinion3D {
                 this.antennules.push(antGroup);
             });
 
-            // 7 segments thoraciques tri-lobés (Anneau axial central + plèvres latérales à épines pleurales)
             for (let i = 0; i < 7; i++) {
                 const segGroup = new THREE.Group();
                 segGroup.position.set(-0.16 - i * 0.20, 0, 0);
-
-                // Lobe axial central
                 const axialGeo = new THREE.CylinderGeometry(0.22 - i * 0.015, 0.22 - i * 0.015, 0.18, 6);
                 axialGeo.rotateZ(Math.PI / 2);
-                const axial = new THREE.Mesh(axialGeo, darkMat);
-                segGroup.add(axial);
+                segGroup.add(new THREE.Mesh(axialGeo, darkMat));
 
-                // Plèvres latérales (Pleurae) et épines pleurales incurvées
                 [-1, 1].forEach(side => {
                     const pleuraW = 0.52 - i * 0.04;
-                    const pleuraGeo = new THREE.BoxGeometry(0.16, 0.14, pleuraW);
-                    const pleura = new THREE.Mesh(pleuraGeo, i % 2 === 0 ? mat : darkMat);
+                    const pleura = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, pleuraW), i % 2 === 0 ? mat : darkMat);
                     pleura.position.set(0, -0.02, side * (0.22 + pleuraW * 0.5));
                     segGroup.add(pleura);
 
-                    // Épine pleurale pointue
                     const plSpineGeo = new THREE.ConeGeometry(0.04, 0.32, 4);
                     plSpineGeo.rotateZ(Math.PI / 2);
                     plSpineGeo.rotateY(side * 0.4);
@@ -634,7 +266,6 @@ class EraMinion3D {
                 this.bodyMesh.add(segGroup);
             }
 
-            // Pygidium semi-circulaire à 5 paires d'épines marginales
             const pygidiumGeo = new THREE.CylinderGeometry(0.48, 0.18, 0.22, 8, 1, false, 0, Math.PI);
             pygidiumGeo.rotateZ(Math.PI / 2);
             pygidiumGeo.rotateY(-Math.PI / 2);
@@ -642,45 +273,22 @@ class EraMinion3D {
             pygidium.position.set(-1.62, -0.02, 0);
             this.bodyMesh.add(pygidium);
 
-            for (let p = 0; p < 5; p++) {
-                [-1, 1].forEach(side => {
-                    const margSpineGeo = new THREE.ConeGeometry(0.035, 0.35 - p * 0.04, 4);
-                    margSpineGeo.rotateZ(Math.PI / 2);
-                    margSpineGeo.rotateY(side * (0.3 + p * 0.18));
-                    const margSpine = new THREE.Mesh(margSpineGeo, amberMat);
-                    margSpine.position.set(-0.12 - p * 0.04, -0.02, side * (0.15 + p * 0.08));
-                    pygidium.add(margSpine);
-                });
-            }
-
-            // Appendices biramés sous la carapace (7 paires de pattes marchantes + branchies exopodites)
             this.legs = [];
-            this.gills = [];
             for (let i = 0; i < 7; i++) {
                 [-1, 1].forEach(side => {
                     const legRoot = new THREE.Group();
                     legRoot.position.set(0.18 - i * 0.22, -0.16, side * 0.35);
-
-                    // Endopodite (pattes marcheuses articulées)
                     const endoGeo = new THREE.CylinderGeometry(0.04, 0.025, 0.46, 5);
                     endoGeo.rotateZ(side * -0.35);
                     const endo = new THREE.Mesh(endoGeo, darkMat);
                     endo.position.set(0, -0.18, side * 0.16);
                     legRoot.add(endo);
-
-                    // Exopodite branchial plumeux (Gill filament)
-                    const exoGeo = new THREE.BoxGeometry(0.12, 0.03, 0.28);
-                    const exo = new THREE.Mesh(exoGeo, amberMat);
-                    exo.position.set(0.04, -0.06, side * 0.12);
-                    legRoot.add(exo);
-
                     this.bodyMesh.add(legRoot);
                     this.legs.push(legRoot);
                 });
             }
-        } else if (this.def.enemyType === 'opabinia_radiodont_elite') {
-            // === VAGUE 2 : OPABINIA REGALIS (5 YEUX PÉDONCULÉS, TROMPE & 15 PAIRES DE LOBES) ===
-            // Tronc fuselé à 15 métamères
+        } else if (t === 'opabinia_radiodont_elite') {
+            // === OPABINIA REGALIS (5 YEUX PÉDONCULÉS, TROMPE & LOBES) ===
             const bodyGeo = new THREE.CylinderGeometry(0.32, 0.16, 2.1, 10);
             bodyGeo.rotateZ(Math.PI / 2);
             this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
@@ -688,118 +296,77 @@ class EraMinion3D {
             this.bodyMesh.castShadow = true;
             this.root.add(this.bodyMesh);
 
-            // Tête céphalique carénée
             const headGeo = new THREE.ConeGeometry(0.34, 0.65, 8);
             headGeo.rotateZ(-Math.PI / 2);
             const head = new THREE.Mesh(headGeo, mat);
             head.position.set(1.15, 0, 0);
             this.bodyMesh.add(head);
 
-            // LES 5 YEUX PÉDONCULÉS LÉGENDAIRES D'OPABINIA (Burgess Shale Signature) :
-            // 1 oeil médian frontal dorsal + 2 yeux antérolatéraux + 2 yeux postérolatéraux
             const opabiniaEyes = [
-                { name: 'median', x: 1.12, y: 0.32, z: 0, stalkLen: 0.18, bulbR: 0.09 },
-                { name: 'ant_L',  x: 1.05, y: 0.28, z: 0.24, stalkLen: 0.26, bulbR: 0.11 },
-                { name: 'ant_R',  x: 1.05, y: 0.28, z: -0.24, stalkLen: 0.26, bulbR: 0.11 },
-                { name: 'post_L', x: 0.88, y: 0.32, z: 0.32, stalkLen: 0.32, bulbR: 0.12 },
-                { name: 'post_R', x: 0.88, y: 0.32, z: -0.32, stalkLen: 0.32, bulbR: 0.12 }
+                { x: 1.12, y: 0.32, z: 0, stalkLen: 0.18, bulbR: 0.09 },
+                { x: 1.05, y: 0.28, z: 0.24, stalkLen: 0.26, bulbR: 0.11 },
+                { x: 1.05, y: 0.28, z: -0.24, stalkLen: 0.26, bulbR: 0.11 },
+                { x: 0.88, y: 0.32, z: 0.32, stalkLen: 0.32, bulbR: 0.12 },
+                { x: 0.88, y: 0.32, z: -0.32, stalkLen: 0.32, bulbR: 0.12 }
             ];
-
             opabiniaEyes.forEach(eyeSpec => {
                 const stalk = new THREE.Group();
                 stalk.position.set(eyeSpec.x, eyeSpec.y, eyeSpec.z);
-
                 const stalkGeo = new THREE.CylinderGeometry(0.03, 0.035, eyeSpec.stalkLen, 5);
                 stalkGeo.rotateX(eyeSpec.z > 0 ? -0.35 : (eyeSpec.z < 0 ? 0.35 : 0));
-                const stalkMesh = new THREE.Mesh(stalkGeo, darkMat);
-                stalk.add(stalkMesh);
-
-                const eyeBulbGeo = new THREE.SphereGeometry(eyeSpec.bulbR, 8, 8);
-                const eyeBulb = new THREE.Mesh(eyeBulbGeo, glowEyeMat);
+                stalk.add(new THREE.Mesh(stalkGeo, darkMat));
+                const eyeBulb = new THREE.Mesh(new THREE.SphereGeometry(eyeSpec.bulbR, 8, 8), glowEyeMat);
                 eyeBulb.position.set(0, eyeSpec.stalkLen * 0.9, 0);
                 stalk.add(eyeBulb);
-
                 this.bodyMesh.add(stalk);
             });
 
-            // TROMPE FRONTALE RAPACE ANNELÉE (PROBOSCIS FLEXIBLE / NOZZLE)
             const probRoot = new THREE.Group();
             probRoot.position.set(1.35, -0.05, 0);
-
             let currProb = probRoot;
-            const probSegments = [];
             for (let s = 0; s < 5; s++) {
                 const segNode = new THREE.Group();
                 segNode.position.set(s === 0 ? 0 : 0.22, s === 0 ? 0 : (s < 3 ? -0.06 : 0.08), 0);
                 segNode.rotation.z = (s < 3 ? -0.15 : 0.25);
-
                 const ringGeo = new THREE.CylinderGeometry(0.09 - s * 0.012, 0.10 - s * 0.012, 0.24, 7);
                 ringGeo.rotateZ(Math.PI / 2);
-                const ringMesh = new THREE.Mesh(ringGeo, s % 2 === 0 ? mat : darkMat);
-                segNode.add(ringMesh);
-
+                segNode.add(new THREE.Mesh(ringGeo, s % 2 === 0 ? mat : darkMat));
                 currProb.add(segNode);
                 currProb = segNode;
-                probSegments.push(segNode);
             }
-
-            // Pince raptoriale bilatérale terminale munie d'épines masticatrices (Denticles)
             const clawL = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.28, 4), amberMat);
             clawL.position.set(0.24, 0.10, 0.07);
             clawL.rotation.z = -Math.PI / 3;
             currProb.add(clawL);
-
             const clawR = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.28, 4), amberMat);
             clawR.position.set(0.24, -0.10, -0.07);
             clawR.rotation.z = Math.PI / 3;
             currProb.add(clawR);
-
             this.proboscis = probRoot;
             this.probClaws = [clawL, clawR];
             this.bodyMesh.add(probRoot);
 
-            // BOUCHE VENTRALE POSTÉRO-INVERSÉE (Ventral mouth under head)
-            const mouthGeo = new THREE.TorusGeometry(0.12, 0.04, 6, 12);
-            const mouthMesh = new THREE.Mesh(mouthGeo, darkMat);
-            mouthMesh.position.set(0.95, -0.28, 0);
-            mouthMesh.rotation.x = Math.PI / 2;
-            this.bodyMesh.add(mouthMesh);
-
-            // 15 PAIRES DE LOBES NATATOIRES LATÉRAUX & BANDES BRANCHIALES SÉTIFÈRES
             this.swimmingFlaps = [];
-            const flapCount = 15;
-            for (let i = 0; i < flapCount; i++) {
+            for (let i = 0; i < 15; i++) {
                 const factor = (i < 5) ? (0.65 + i * 0.12) : (1.25 - (i - 5) * 0.08);
                 const flapX = 0.85 - i * 0.18;
-
                 [-1, 1].forEach(side => {
                     const flapGroup = new THREE.Group();
                     flapGroup.position.set(flapX, -0.06, side * (0.28 * factor));
-
-                    const flapGeo = new THREE.BoxGeometry(0.16, 0.035, 0.40 * factor);
-                    const flapMesh = new THREE.Mesh(flapGeo, glowEyeMat);
+                    const flapMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.035, 0.40 * factor), glowEyeMat);
                     flapMesh.position.z = side * (0.20 * factor);
                     flapGroup.add(flapMesh);
-
-                    // Bande branchiale sétifère dorsale
-                    const gillGeo = new THREE.BoxGeometry(0.14, 0.02, 0.32 * factor);
-                    const gill = new THREE.Mesh(gillGeo, mat);
-                    gill.position.set(0, 0.03, side * (0.16 * factor));
-                    flapGroup.add(gill);
-
                     this.bodyMesh.add(flapGroup);
                     this.swimmingFlaps.push({ mesh: flapGroup, side, idx: i });
                 });
             }
 
-            // FURCA CAUDALE V-STABILISATRICE (3 PAIRES DE PALETTES DIRIGÉES VERS LE HAUT)
             const tailFanGroup = new THREE.Group();
             tailFanGroup.position.set(-1.15, 0.08, 0);
-            tailFanGroup.rotation.z = 0.40; // Tilted upward stabilizer
+            tailFanGroup.rotation.z = 0.40;
             for (let f = 0; f < 3; f++) {
-                const angle = (f - 1) * 0.42;
                 const finGeo = new THREE.BoxGeometry(0.55, 0.035, 0.22);
-                finGeo.rotateY(angle);
+                finGeo.rotateY((f - 1) * 0.42);
                 const fin = new THREE.Mesh(finGeo, darkMat);
                 fin.position.set(-0.25, 0.08 + Math.abs(f - 1) * 0.08, (f - 1) * 0.24);
                 tailFanGroup.add(fin);
@@ -807,42 +374,238 @@ class EraMinion3D {
             this.bodyMesh.add(tailFanGroup);
             this.tailFan = tailFanGroup;
             this.legs = [];
+        } else if (t === 'orthoceras') {
+            // === ORTHOCERAS (COQUILLE CONIQUE + TENTACULES) ===
+            const shellGeo = new THREE.ConeGeometry(0.55, 2.6, 10);
+            shellGeo.rotateZ(Math.PI / 2);
+            this.bodyMesh = new THREE.Mesh(shellGeo, mat);
+            this.bodyMesh.position.set(-0.3, 0.85, 0);
+            this.bodyMesh.castShadow = true;
+            this.root.add(this.bodyMesh);
+
+            for (let r = 0; r < 5; r++) {
+                const ring = new THREE.Mesh(new THREE.TorusGeometry(0.45 - r * 0.07, 0.04, 6, 12), darkMat);
+                ring.rotation.y = Math.PI / 2;
+                ring.position.set(0.65 - r * 0.38, 0, 0);
+                this.bodyMesh.add(ring);
+            }
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.46, 8, 8), darkMat);
+            head.position.set(1.25, 0, 0);
+            this.bodyMesh.add(head);
+
+            this.antennules = [];
+            for (let tIdx = 0; tIdx < 6; tIdx++) {
+                const tent = new THREE.Group();
+                tent.position.set(1.55, (tIdx - 2.5) * 0.12, (tIdx % 2 === 0 ? 0.18 : -0.18));
+                const tentMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.02, 0.8, 5), amberMat);
+                tentMesh.rotation.z = -Math.PI / 2;
+                tentMesh.position.x = 0.4;
+                tent.add(tentMesh);
+                this.bodyMesh.add(tent);
+                this.antennules.push(tent);
+            }
+            this.legs = [];
+        } else if (t === 'eurypterid') {
+            // === EURYPTÉRIDE / PTERYGOTUS / MEGALOGRAPTUS ===
+            const torsoGeo = new THREE.BoxGeometry(1.6, 0.35, 1.0);
+            this.bodyMesh = new THREE.Mesh(torsoGeo, mat);
+            this.bodyMesh.position.set(0, 0.5, 0);
+            this.bodyMesh.castShadow = true;
+            this.root.add(this.bodyMesh);
+
+            const shield = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.38, 1.1), darkMat);
+            shield.position.set(0.9, 0.05, 0);
+            this.bodyMesh.add(shield);
+
+            [-0.45, 0.45].forEach(z => {
+                const arm = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.18, 0.2), amberMat);
+                arm.position.set(1.45, 0, z);
+                this.bodyMesh.add(arm);
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 6), glowEyeMat);
+                eye.position.set(1.1, 0.22, z * 0.7);
+                this.bodyMesh.add(eye);
+            });
+
+            const tail = new THREE.Mesh(new THREE.ConeGeometry(0.22, 1.4, 5), darkMat);
+            tail.rotation.z = Math.PI / 2;
+            tail.position.set(-1.45, 0.15, 0);
+            this.bodyMesh.add(tail);
+
+            this.legs = [];
+            for (let i = 0; i < 6; i++) {
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.04, 0.75, 5), darkMat);
+                leg.position.set(0.4 - (i % 3) * 0.45, -0.25, i < 3 ? 0.65 : -0.65);
+                this.bodyMesh.add(leg);
+                this.legs.push(leg);
+            }
+        } else if (t === 'meganeura' || t === 'bird_pterosaur') {
+            // === CRÉATURE AÉRIENNE (MEGANEURA / ARGENTAVIS / VOID QUETZAL) ===
+            const bodyLen = t === 'meganeura' ? 2.1 : 1.4;
+            const bodyGeo = new THREE.CylinderGeometry(0.22, 0.15, bodyLen, 8);
+            bodyGeo.rotateZ(Math.PI / 2);
+            this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
+            this.bodyMesh.position.set(0, 0.9, 0);
+            this.bodyMesh.castShadow = true;
+            this.root.add(this.bodyMesh);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 8, 8), darkMat);
+            head.position.set(bodyLen * 0.55, 0.08, 0);
+            this.bodyMesh.add(head);
+
+            if (t !== 'meganeura') {
+                const beak = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.9, 5), amberMat);
+                beak.rotation.z = -Math.PI / 2;
+                beak.position.set(0.55, -0.02, 0);
+                head.add(beak);
+            }
+
+            const wingCount = t === 'meganeura' ? 2 : 1;
+            this.wings = [];
+            for (let w = 0; w < wingCount; w++) {
+                [-1, 1].forEach(side => {
+                    const wingPivot = new THREE.Group();
+                    wingPivot.position.set(0.3 - w * 0.45, 0.15, side * 0.2);
+                    const wingGeo = new THREE.BoxGeometry(0.55, 0.04, 1.85);
+                    const wing = new THREE.Mesh(wingGeo, t === 'meganeura' ? wingMat : mat);
+                    wing.position.z = side * 0.95;
+                    wingPivot.add(wing);
+                    this.bodyMesh.add(wingPivot);
+                    this.wings.push({ pivot: wingPivot, side, idx: w });
+                });
+            }
+            this.legs = [];
+        } else if (t === 'arthropleura' || t === 'serpent') {
+            // === CRÉATURE MULTI-SEGMENTÉE (ARTHROPLEURA / TITANOBOA) ===
+            const segCount = t === 'serpent' ? 9 : 8;
+            this.bodyMesh = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 8), mat);
+            this.bodyMesh.position.set(0.8, 0.55, 0);
+            this.bodyMesh.castShadow = true;
+            this.root.add(this.bodyMesh);
+
+            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 6), glowEyeMat);
+            eyeL.position.set(0.32, 0.15, 0.25);
+            this.bodyMesh.add(eyeL);
+            const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 6), glowEyeMat);
+            eyeR.position.set(0.32, 0.15, -0.25);
+            this.bodyMesh.add(eyeR);
+
+            this.segments = [];
+            this.legs = [];
+            for (let s = 0; s < segCount; s++) {
+                const radius = t === 'serpent' ? (0.42 - s * 0.03) : 0.48;
+                const seg = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), s % 2 === 0 ? mat : darkMat);
+                seg.scale.set(1.1, t === 'arthropleura' ? 0.65 : 0.95, 1.15);
+                seg.position.set(-0.45 - s * 0.48, 0, 0);
+                this.bodyMesh.add(seg);
+                this.segments.push(seg);
+
+                if (t === 'arthropleura') {
+                    [-1, 1].forEach(side => {
+                        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.03, 0.5, 4), amberMat);
+                        leg.position.set(0, -0.25, side * 0.45);
+                        seg.add(leg);
+                        this.legs.push(leg);
+                    });
+                }
+            }
+        } else if (t === 'bothriolepis' || t === 'scutosaurus' || t === 'dino_tank') {
+            // === CRÉATURE CUIRASSÉE / TANK ===
+            const bodyGeo = new THREE.BoxGeometry(1.9, 0.95, 1.35);
+            this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
+            this.bodyMesh.position.set(0, 0.95, 0);
+            this.bodyMesh.castShadow = true;
+            this.root.add(this.bodyMesh);
+
+            const shieldPlate = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.05, 1.45), amberMat);
+            shieldPlate.position.set(0.95, 0.05, 0);
+            this.bodyMesh.add(shieldPlate);
+
+            for (let sp = 0; sp < 4; sp++) {
+                const plate = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.55, 4), darkMat);
+                plate.position.set(0.5 - sp * 0.45, 0.65, 0);
+                this.bodyMesh.add(plate);
+            }
+
+            const clubTail = new THREE.Mesh(new THREE.SphereGeometry(0.34, 8, 8), darkMat);
+            clubTail.position.set(-1.5, 0, 0);
+            this.bodyMesh.add(clubTail);
+
+            this.legs = [];
+            for (let i = 0; i < 4; i++) {
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.12, 0.8, 6), darkMat);
+                leg.position.set(i < 2 ? 0.55 : -0.55, -0.55, i % 2 === 0 ? 0.55 : -0.55);
+                this.bodyMesh.add(leg);
+                this.legs.push(leg);
+            }
+        } else if (t === 'jawless_fish' || t === 'shark_placoderm') {
+            // === POISSON / REQUIN PRIMORDIAL ===
+            const bodyGeo = new THREE.ConeGeometry(0.52, 2.3, 8);
+            bodyGeo.rotateZ(-Math.PI / 2);
+            this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
+            this.bodyMesh.position.set(0, 0.85, 0);
+            this.bodyMesh.castShadow = true;
+            this.root.add(this.bodyMesh);
+
+            const dorsalFin = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.85, 4), darkMat);
+            dorsalFin.position.set(-0.1, 0.55, 0);
+            this.bodyMesh.add(dorsalFin);
+
+            const tailFin = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.85, 0.08), darkMat);
+            tailFin.position.set(-1.25, 0.1, 0);
+            this.bodyMesh.add(tailFin);
+            this.tailFan = tailFin;
+            this.legs = [];
         } else {
-            // Modèle standard pour autres espèces / minions
-            const bodyGeo = new THREE.SphereGeometry(1.0, 8, 8);
-            bodyGeo.scale(1.2, 0.7, 0.8);
+            // === RAPTORS, SYNAPSIDES & MAMMIFÈRES PRÉHISTORIQUES ===
+            const bodyGeo = new THREE.SphereGeometry(0.95, 8, 8);
+            bodyGeo.scale(1.3, 0.72, 0.78);
             this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
             this.bodyMesh.position.y = 1.0;
             this.bodyMesh.castShadow = true;
             this.root.add(this.bodyMesh);
 
-            const headGeo = new THREE.ConeGeometry(0.55, 1.1, 7);
+            const headGeo = new THREE.ConeGeometry(0.5, 1.15, 7);
             headGeo.rotateZ(-Math.PI / 2);
             this.headMesh = new THREE.Mesh(headGeo, mat);
-            this.headMesh.position.set(0.9, 1.1, 0);
+            this.headMesh.position.set(1.05, 0.55, 0);
             this.bodyMesh.add(this.headMesh);
 
+            if (t === 'synapsid' || t === 'mammal' || t === 'glacier_panther') {
+                // Crocs proéminents (Gorgonopsides / Loups / Smilodons)
+                [-0.14, 0.14].forEach(z => {
+                    const fang = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.35, 4), amberMat);
+                    fang.rotation.z = Math.PI;
+                    fang.position.set(0.18, -0.24, z);
+                    this.headMesh.add(fang);
+                });
+            } else {
+                // Crête de raptor
+                const crest = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.25, 0.08), amberMat);
+                crest.position.set(-0.1, 0.38, 0);
+                this.headMesh.add(crest);
+            }
+
             const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), glowEyeMat);
-            eyeL.position.set(0.2, 0.25, 0.35);
+            eyeL.position.set(0.15, 0.2, 0.3);
             this.headMesh.add(eyeL);
             const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), glowEyeMat);
-            eyeR.position.set(0.2, 0.25, -0.35);
+            eyeR.position.set(0.15, 0.2, -0.3);
             this.headMesh.add(eyeR);
 
             this.legs = [];
             for (let i = 0; i < 4; i++) {
-                const legGeo = new THREE.CylinderGeometry(0.08, 0.05, 0.9, 5);
+                const legGeo = new THREE.CylinderGeometry(0.09, 0.06, 0.9, 5);
                 const leg = new THREE.Mesh(legGeo, darkMat);
-                leg.position.set((i < 2 ? 0.4 : -0.4), -0.3, (i % 2 === 0 ? 0.6 : -0.6));
-                leg.rotation.z = (i < 2 ? -0.3 : 0.3);
+                leg.position.set((i < 2 ? 0.45 : -0.45), -0.45, (i % 2 === 0 ? 0.55 : -0.55));
+                leg.rotation.z = (i < 2 ? -0.25 : 0.25);
                 this.bodyMesh.add(leg);
                 this.legs.push(leg);
             }
 
-            const tailGeo = new THREE.ConeGeometry(0.2, 1.2, 5);
+            const tailGeo = new THREE.ConeGeometry(0.22, 1.35, 5);
             tailGeo.rotateZ(Math.PI / 2);
             this.tailMesh = new THREE.Mesh(tailGeo, darkMat);
-            this.tailMesh.position.set(-1.1, 0.3, 0);
+            this.tailMesh.position.set(-1.3, 0.15, 0);
             this.bodyMesh.add(this.tailMesh);
         }
     }
@@ -853,16 +616,34 @@ class EraMinion3D {
         this.root.rotation.y = this.facing > 0 ? Math.PI / 2 : -Math.PI / 2;
     }
 
-    takeDamage(damage, knockbackX = 0, knockbackY = 0) {
+    takeDamage(damage, knockbackX = 0, knockbackY = 0, attackAction = '') {
         if (this.isDead) return;
-        this.hp = Math.max(0, this.hp - damage);
+
+        let finalDmg = damage;
+        if (this.archetype === 'armored' && typeof fighter1 !== 'undefined' && fighter1) {
+            const hitFromFront = ((fighter1.x - this.x) * this.facing) > 0;
+            const isSpecialOrAir = (attackAction && (attackAction.includes('special') || attackAction === 'anti_air')) || (fighter1.y - this.y > 0.8);
+            if (hitFromFront && !isSpecialOrAir) {
+                finalDmg = Math.max(15, Math.round(damage * 0.45));
+                knockbackX *= 0.4;
+                if (typeof spawnFloatingPopup === 'function') {
+                    spawnFloatingPopup(this.x, '🛡️ BLINDAGE FRONTAL !', '#60a5fa');
+                }
+            } else if (!hitFromFront) {
+                finalDmg = Math.round(damage * 1.25);
+                if (typeof spawnFloatingPopup === 'function') {
+                    spawnFloatingPopup(this.x, '💥 FLANC PERCÉ !', '#facc15');
+                }
+            }
+        }
+
+        this.hp = Math.max(0, this.hp - finalDmg);
         this.hitStun = 0.35;
         this.vx = knockbackX;
         this.vy = knockbackY;
         this.action = 'hit';
         this.actionTimer = 0.35;
 
-        // Flash rouge vif
         if (this.bodyMesh && this.bodyMesh.material) {
             this.bodyMesh.material.emissive.setHex(0xffffff);
             setTimeout(() => {
@@ -872,15 +653,13 @@ class EraMinion3D {
             }, 80);
         }
 
-        // Pop-up dégâts flottant & particules de sang
         if (typeof spawnFloatingPopup === 'function') {
-            spawnFloatingPopup(this.x, `-${Math.round(damage)}`, '#ef4444');
+            spawnFloatingPopup(this.x, `-${Math.round(finalDmg)}`, '#ef4444');
         }
         if (typeof spawn3DBloodAndBones === 'function') {
             spawn3DBloodAndBones(this.x, this.y + 1.0, 5, false);
         }
 
-        // Mort du minion
         if (this.hp <= 0) {
             this.die();
         }
@@ -891,7 +670,6 @@ class EraMinion3D {
         this.isDead = true;
         this.hp = 0;
 
-        // Effet K.O. Smash Melee (explosion d'étincelles & son gong)
         sfx.playHit(true);
         if (typeof spawnHitSparks3D === 'function') {
             spawnHitSparks3D(this.x, this.y + 1.0, true);
@@ -900,7 +678,6 @@ class EraMinion3D {
             spawnFloatingPopup(this.x, '💥 K.O. !', '#f59e0b');
         }
 
-        // Chance de faire tomber un objet ramassable (45% viande, 20% ambre)
         const dropRoll = Math.random();
         if (dropRoll < 0.45) {
             spawnPrehistoricPickup(this.x, this.y + 0.8, 'meat');
@@ -908,7 +685,6 @@ class EraMinion3D {
             spawnPrehistoricPickup(this.x, this.y + 0.8, 'amber');
         }
 
-        // Retrait immédiat du minion après explosion
         setTimeout(() => {
             this.destroy();
         }, 120);
@@ -923,9 +699,11 @@ class EraMinion3D {
     update(dt, player) {
         if (this.isDead) return;
 
-        // Physique & gravité
         this.x += this.vx * dt;
         this.y += this.vy * dt;
+
+        const bounds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: -18, right: 18 };
+        this.x = Math.max(bounds.left, Math.min(bounds.right, this.x));
 
         const groundFloor = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, this.x, 0) : 0;
         let support = groundFloor;
@@ -940,10 +718,9 @@ class EraMinion3D {
             }
         }
 
-        // Activation des geysers de projection pour les minions
         if (this._geyserCd > 0) {
             this._geyserCd -= dt;
-        } else {
+        } else if (this.archetype !== 'aerial') {
             for (const p of plats) {
                 if (p.isJumpPad && Math.abs(this.x - p.x) < 1.35 && Math.abs(this.y - (p.y || groundFloor)) < 1.4) {
                     this.vy = p.jumpForce || 16.5;
@@ -957,8 +734,15 @@ class EraMinion3D {
 
         this.groundY = support;
 
-        if (this.y > this.groundY) {
-            this.vy -= 28.0 * dt; // gravité
+        if (this.archetype === 'aerial' && this.hitStun <= 0) {
+            // Vol stationnaire & piqués aériens
+            const hoverTarget = this.groundY + (this.swoopTimer > 0 ? 0.65 : this.floatHeight);
+            this.y += (hoverTarget - this.y) * Math.min(1, dt * 4.5);
+            this.vy = 0;
+            this.isAirborne = true;
+            if (this.swoopTimer > 0) this.swoopTimer -= dt;
+        } else if (this.y > this.groundY) {
+            this.vy -= 28.0 * dt;
             this.isAirborne = true;
         } else {
             this.y = this.groundY;
@@ -966,49 +750,81 @@ class EraMinion3D {
             this.isAirborne = false;
         }
 
-        // Décélération du knockback
         this.vx *= (1.0 - dt * 6.0);
 
-        // Décrémenter stun & cooldown
         if (this.hitStun > 0) {
             this.hitStun = Math.max(0, this.hitStun - dt);
             this.syncPosition();
             return;
         }
 
-        if (this.attackCooldown > 0) {
-            this.attackCooldown -= dt;
-        }
+        if (this.attackCooldown > 0) this.attackCooldown -= dt;
+        if (this.rangedCooldown > 0) this.rangedCooldown -= dt;
 
-        // IA du minion
+        // IA spécialisée par archétype
         if (player && !player.isDead) {
             const dx = player.x - this.x;
             const dist = Math.abs(dx);
             this.facing = dx >= 0 ? 1 : -1;
 
-            if (dist > 1.4) {
-                // Avancer vers le joueur
-                this.x += Math.sign(dx) * this.speed * dt;
-                this.action = 'walk';
-                // Animation de trottinement des pattes
-                if (this.legs && this.legs.length > 0) {
-                    const step = Math.sin(performance.now() * 0.016);
-                    this.legs.forEach((l, idx) => {
-                        l.rotation.x = Math.sin(performance.now() * 0.016 + idx * 0.5) * 0.45;
-                    });
+            if (this.archetype === 'zoning') {
+                // Garde ses distances et tire un projectile
+                if (dist > 6.8) {
+                    this.x += Math.sign(dx) * this.speed * dt;
+                    this.action = 'walk';
+                } else if (dist < 3.0) {
+                    this.x -= Math.sign(dx) * (this.speed * 0.75) * dt;
+                    this.action = 'walk';
+                } else {
+                    this.action = 'attack';
+                    if (this.rangedCooldown <= 0) {
+                        this.rangedCooldown = 2.2 + Math.random() * 1.1;
+                        this.fireProjectile(player);
+                    }
+                }
+            } else if (this.archetype === 'aerial') {
+                if (dist > 1.7) {
+                    this.x += Math.sign(dx) * this.speed * dt;
+                    this.action = 'walk';
+                } else {
+                    this.action = 'attack';
+                    if (this.attackCooldown <= 0) {
+                        this.attackCooldown = 1.4 + Math.random() * 0.7;
+                        this.swoopTimer = 0.55;
+                        this.performAttack(player);
+                    }
                 }
             } else {
-                // Attaque Smash au corps à corps
-                this.action = 'attack';
-                if (this.attackCooldown <= 0) {
-                    this.attackCooldown = 1.1 + Math.random() * 0.8;
-                    this.performAttack(player);
+                // Swarmer / Armored / Brawler
+                if (dist > 1.45) {
+                    this.x += Math.sign(dx) * this.speed * dt;
+                    this.action = 'walk';
+                } else {
+                    this.action = 'attack';
+                    if (this.attackCooldown <= 0) {
+                        this.attackCooldown = (this.archetype === 'swarmer' ? 0.85 : 1.15) + Math.random() * 0.6;
+                        this.performAttack(player);
+                    }
                 }
             }
         }
 
-        // Animations spécifiques continues pour créatures cambriennes
         const now = performance.now();
+        if (this.legs && this.legs.length > 0 && this.action === 'walk') {
+            this.legs.forEach((l, idx) => {
+                l.rotation.x = Math.sin(now * 0.016 + idx * 0.5) * 0.45;
+            });
+        }
+        if (this.wings && this.wings.length > 0) {
+            this.wings.forEach(w => {
+                w.pivot.rotation.x = Math.sin(now * 0.022 + w.idx) * 0.55 * w.side;
+            });
+        }
+        if (this.segments && this.segments.length > 0) {
+            this.segments.forEach((seg, idx) => {
+                seg.position.z = Math.sin(now * 0.01 + idx * 0.6) * 0.16;
+            });
+        }
         if (this.antennules && this.antennules.length > 0) {
             const twitch = Math.sin(now * 0.007) * 0.16;
             this.antennules.forEach((a, i) => {
@@ -1038,18 +854,32 @@ class EraMinion3D {
         this.syncPosition();
     }
 
+    fireProjectile(player) {
+        if (!player || player.isDead) return;
+        const dir = player.x >= this.x ? 1 : -1;
+        this.facing = dir;
+        if (typeof sfx !== 'undefined' && sfx.playWhoosh) sfx.playWhoosh();
+        const proj = new CampaignProjectile3D(
+            this.x + dir * 0.9,
+            this.y + 0.85,
+            dir * 10.5,
+            0,
+            this.def.color || 0x22d3ee,
+            38
+        );
+        campaignActiveProjectiles.push(proj);
+    }
+
     performAttack(player) {
-        // Lunge rapide
         this.vx = this.facing * 4.5;
         if (typeof sfx !== 'undefined' && sfx.playWhoosh) {
             sfx.playWhoosh();
         }
-        // Vérifier si le coup touche le joueur
         setTimeout(() => {
             if (this.isDead || !player || player.isDead) return;
             const dist = Math.abs(player.x - this.x);
-            if (dist < 1.6 && Math.abs(player.y - this.y) < 1.8) {
-                const dmg = 45 + Math.random() * 25;
+            if (dist < 1.8 && Math.abs(player.y - this.y) < 2.2) {
+                const dmg = (this.archetype === 'armored' ? 58 : 42) + Math.random() * 20;
                 applyDamageToPlayer(player, dmg, this.facing * 3.5, 3.0);
                 if (typeof sfx !== 'undefined' && sfx.playHit) {
                     sfx.playHit(false);
@@ -1059,6 +889,161 @@ class EraMinion3D {
                 }
             }
         }, 140);
+    }
+}
+
+// 4B. PROJECTILES & DANGERS D'ARÈNE 3D (DIVERSITÉ DE GAMEPLAY)
+class CampaignProjectile3D {
+    constructor(x, y, vx, vy, color = 0x22d3ee, damage = 35, radius = 0.35) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.damage = damage;
+        this.radius = radius;
+        this.life = 2.8;
+        this.isExpired = false;
+
+        this.root = new THREE.Group();
+        const orb = new THREE.Mesh(
+            new THREE.SphereGeometry(radius, 8, 8),
+            new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.7,
+                roughness: 0.2
+            })
+        );
+        this.root.add(orb);
+        this.root.position.set(x, y, 0);
+        if (battleScene) battleScene.add(this.root);
+    }
+
+    update(dt, player) {
+        if (this.isExpired) return;
+        this.life -= dt;
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.root.position.set(this.x, this.y, 0);
+
+        if (player && !player.isDead) {
+            if (Math.abs(player.x - this.x) < (0.85 + this.radius) && Math.abs((player.y + 0.9) - this.y) < 1.4) {
+                applyDamageToPlayer(player, this.damage, Math.sign(this.vx || 1) * 4.0, 2.5);
+                if (typeof spawnFloatingPopup === 'function') {
+                    spawnFloatingPopup(player.x, `💥 -${Math.round(this.damage)}`, '#f59e0b');
+                }
+                this.destroy();
+                return;
+            }
+        }
+
+        const bounds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: -20, right: 20 };
+        if (this.life <= 0 || this.x < bounds.left - 2 || this.x > bounds.right + 2 || this.y < -1) {
+            this.destroy();
+        }
+    }
+
+    destroy() {
+        this.isExpired = true;
+        if (this.root && battleScene) battleScene.remove(this.root);
+    }
+}
+
+class CampaignHazardObject3D {
+    constructor(x, kind = 'meteor') {
+        this.x = x;
+        this.kind = kind; // 'meteor', 'boulder', 'lightning', 'icicle', 'acid'
+        this.telegraphTimer = 0.85;
+        this.y = kind === 'lightning' ? 0 : 12.0;
+        this.vy = kind === 'lightning' ? 0 : -16.5;
+        this.isExpired = false;
+        this.hasStruck = false;
+
+        this.root = new THREE.Group();
+        const colorMap = {
+            meteor: 0xf97316,
+            boulder: 0x78716c,
+            lightning: 0xfacc15,
+            icicle: 0x38bdf8,
+            acid: 0x22c55e
+        };
+        const c = colorMap[kind] || 0xef4444;
+
+        // Anneau télégraphe au sol
+        const groundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, x, 0) : 0;
+        this.groundTargetY = groundY;
+        this.marker = new THREE.Mesh(
+            new THREE.TorusGeometry(0.95, 0.08, 6, 16),
+            new THREE.MeshBasicMaterial({ color: c })
+        );
+        this.marker.rotation.x = Math.PI / 2;
+        this.marker.position.set(x, groundY + 0.1, 0);
+        this.root.add(this.marker);
+
+        if (kind === 'lightning') {
+            this.bolt = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.28, 0.28, 14, 6),
+                new THREE.MeshBasicMaterial({ color: 0xfef08a })
+            );
+            this.bolt.position.set(x, groundY + 7, 0);
+            this.bolt.visible = false;
+            this.root.add(this.bolt);
+        } else {
+            this.projectile = new THREE.Mesh(
+                kind === 'icicle' ? new THREE.ConeGeometry(0.45, 1.5, 6) : new THREE.SphereGeometry(0.55, 8, 8),
+                new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.45, roughness: 0.4 })
+            );
+            if (kind === 'icicle') this.projectile.rotation.z = Math.PI;
+            this.projectile.position.set(x, this.y, 0);
+            this.root.add(this.projectile);
+        }
+
+        if (battleScene) battleScene.add(this.root);
+    }
+
+    update(dt, player) {
+        if (this.isExpired) return;
+        if (this.telegraphTimer > 0) {
+            this.telegraphTimer -= dt;
+            if (this.marker) {
+                const pulse = 1.0 + Math.sin(performance.now() * 0.025) * 0.2;
+                this.marker.scale.set(pulse, pulse, pulse);
+            }
+            return;
+        }
+
+        if (this.kind === 'lightning') {
+            if (!this.hasStruck) {
+                this.hasStruck = true;
+                if (this.bolt) this.bolt.visible = true;
+                if (player && !player.isDead && Math.abs(player.x - this.x) < 1.55) {
+                    applyDamageToPlayer(player, 55, (player.x >= this.x ? 1 : -1) * 5.0, 5.5);
+                    if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(player.x, '⚡ FOUDRE ! -55', '#facc15');
+                }
+                setTimeout(() => this.destroy(), 220);
+            }
+            return;
+        }
+
+        this.y += this.vy * dt;
+        if (this.projectile) {
+            this.projectile.position.set(this.x, this.y, 0);
+        }
+        if (player && !player.isDead && Math.abs(player.x - this.x) < 1.25 && Math.abs((player.y + 1.0) - this.y) < 1.4) {
+            applyDamageToPlayer(player, 50, (player.x >= this.x ? 1 : -1) * 4.5, 4.0);
+            if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(player.x, '☄️ IMPACT ! -50', '#f97316');
+            this.destroy();
+            return;
+        }
+        if (this.y <= this.groundTargetY + 0.3) {
+            if (typeof spawnHitSparks3D === 'function') spawnHitSparks3D(this.x, this.groundTargetY + 0.3, false);
+            this.destroy();
+        }
+    }
+
+    destroy() {
+        this.isExpired = true;
+        if (this.root && battleScene) battleScene.remove(this.root);
     }
 }
 
@@ -1182,6 +1167,21 @@ function spawnPrehistoricPickup(x, y, type) {
     campaignActivePickups.push(p);
 }
 
+function cleanupCampaignTransientEntities() {
+    campaignActiveMinions.forEach(m => m.destroy());
+    campaignActiveMinions = [];
+    campaignActivePickups.forEach(p => p.destroy());
+    campaignActivePickups = [];
+    campaignActiveProjectiles.forEach(pr => pr.destroy());
+    campaignActiveProjectiles = [];
+    campaignActiveHazards.forEach(hz => hz.destroy());
+    campaignActiveHazards = [];
+    if (campaignSunbeamMesh && battleScene) {
+        battleScene.remove(campaignSunbeamMesh);
+    }
+    campaignSunbeamMesh = null;
+}
+
 // 6. INITIALISATION ET DÉROULEMENT D'UN NIVEAU D'ÈRE SMASH MELEE
 function startCampaignEraLevel(era) {
     activeCampaignEra = era;
@@ -1189,10 +1189,13 @@ function startCampaignEraLevel(era) {
     campaignPlayerStocks = 3;
     campaignLevelScore = 0;
     campaignComboCount = 0;
-    campaignActiveMinions.forEach(m => m.destroy());
-    campaignActiveMinions = [];
-    campaignActivePickups.forEach(p => p.destroy());
-    campaignActivePickups = [];
+    campaignBossPhase = 1;
+    campaignHazardTimer = 4.0;
+    campaignHazardActiveDir = 0;
+    campaignHazardActiveTimer = 0;
+    campaignHazardTickTimer = 0;
+    campaignCurrentTideHigh = false;
+    cleanupCampaignTransientEntities();
 
     // Définir le mode campagne et l'arène thématique
     gameMode = 'campaign';
@@ -1215,9 +1218,20 @@ function startCampaignEraLevel(era) {
     fighter1.y = 0;
     fighter1.groundY = 0;
     fighter1.facing = 1;
+    fighter1.gravityScale = (era.hazard && era.hazard.id === 'low_gravity') ? 0.78 : 1.0;
+
+    // Zone visuelle de rayon solaire pour le Permien
+    if (era.hazard && era.hazard.id === 'sunbeams' && battleScene) {
+        const beamGeo = new THREE.CylinderGeometry(1.8, 2.2, 12, 12);
+        const beamMat = new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.22 });
+        campaignSunbeamMesh = new THREE.Mesh(beamGeo, beamMat);
+        campaignSunbeamMesh.position.set(0, 6, 0);
+        battleScene.add(campaignSunbeamMesh);
+    }
 
     // Pas de fighter2 classique durant les vagues de minions
     fighter2 = null;
+    campaignBossFighter = null;
 
     // Masquer les autres menus et basculer sur l'écran de combat
     matchState = 'campaign_level';
@@ -1256,25 +1270,58 @@ function startCampaignEraLevel(era) {
     startCampaignWave(0);
 }
 
+function spawnMinionFromWaveDef(def, spawnX, groundY) {
+    const minionGroundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, spawnX, 0) : groundY;
+    const minion = new EraMinion3D(def, spawnX, minionGroundY);
+    campaignActiveMinions.push(minion);
+    return minion;
+}
+
 function startCampaignWave(waveIdx) {
     if (!activeCampaignEra) return;
     currentCampaignWaveIdx = waveIdx;
     const wave = activeCampaignEra.waves[waveIdx];
     if (!wave) return;
 
-    // Nettoyer les précédents minions résiduels
+    // Nettoyer les précédents minions & projectiles résiduels
     campaignActiveMinions.forEach(m => m.destroy());
     campaignActiveMinions = [];
+    campaignActiveProjectiles.forEach(pr => pr.destroy());
+    campaignActiveProjectiles = [];
+
+    campaignWaveObjective = wave.objective || 'clear';
+    campaignWaveDuration = wave.duration || 0;
+    campaignWaveTimer = wave.duration || 0;
+    campaignSurviveRespawnTimer = 0;
+    campaignTimeAttackBonusAwarded = false;
 
     // Annonce Smash Melee de début de vague
     campaignWaveBannerTimer = 3.2;
     campaignWaveAnnounceTitle = `VAGUE ${wave.waveNum} / 3 : ${wave.name}`;
-    campaignWaveAnnounceSub = wave.isBoss ? `ALERTE : BOSS APEX ${wave.bossName}` : `ÉLIMINEZ LES MINIONS DE L'ÈRE !`;
+    if (wave.isBoss) {
+        campaignWaveAnnounceSub = `ALERTE : BOSS APEX ${wave.bossName}`;
+    } else if (campaignWaveObjective === 'survive') {
+        campaignWaveAnnounceSub = `OBJECTIF : SURVIVEZ PENDANT ${campaignWaveDuration} SECONDES !`;
+    } else if (campaignWaveObjective === 'time_attack') {
+        campaignWaveAnnounceSub = `OBJECTIF CHRONO : ÉLIMINEZ AVANT ${campaignWaveDuration}s POUR BONUS !`;
+    } else if (wave.members) {
+        campaignWaveAnnounceSub = `ALERTE : DUO TAG-TEAM COORDONNÉ !`;
+    } else {
+        campaignWaveAnnounceSub = `ÉLIMINEZ LES ADVERSAIRES DE L'ÈRE !`;
+    }
     sfx.playGong();
 
     if (wave.isBoss) {
         // VAGUE 3 : APEX BOSS MONSTER !
+        campaignBossPhase = 1;
         spawnEraBossMonster(wave);
+    } else if (Array.isArray(wave.members) && wave.members.length > 0) {
+        // VAGUE DUO / MIXTE (Tag-Team)
+        const groundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, 0, 0) : 0;
+        wave.members.forEach((memberDef, i) => {
+            const spawnX = i % 2 === 0 ? (3.5 + i * 2.0) : -(3.5 + i * 2.0);
+            spawnMinionFromWaveDef(memberDef, spawnX, groundY);
+        });
     } else {
         // VAGUES 1 & 2 : ESSAIMS DE MINIONS
         const count = wave.count || 3;
@@ -1284,16 +1331,14 @@ function startCampaignWave(waveIdx) {
             let spawnX = 2.5 + i * 2.8;
             if (isCambrianStage) {
                 if (wave.waveNum === 1) {
-                    const cW1 = [-16.0, 3.5, 17.0];
+                    const cW1 = [-16.0, 3.5, 17.0, 9.5];
                     spawnX = cW1[i % cW1.length];
                 } else {
                     const cW2 = [-13.5, 13.5];
                     spawnX = cW2[i % cW2.length];
                 }
             }
-            const minionGroundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, spawnX, 0) : groundY;
-            const minion = new EraMinion3D(wave, spawnX, minionGroundY);
-            campaignActiveMinions.push(minion);
+            spawnMinionFromWaveDef(wave, spawnX, groundY);
         }
     }
 
@@ -1658,11 +1703,12 @@ function spawnEraBossMonster(bossWave) {
     showBossHealthBarUI(bossWave);
 }
 
-// 7. GESTION DU HUD SMASH MELEE (STOCKS, VAGUES, BARRE DE BOSS)
+// 7. GESTION DU HUD SMASH MELEE (STOCKS, VAGUES, MÉCANIQUE, BARRE DE BOSS)
 function mountCampaignSmashHUD(era) {
     let existing = document.getElementById('campaignSmashHUD');
     if (existing) existing.remove();
 
+    const hazardName = era.hazard ? era.hazard.name : 'Combat Standard';
     const hudHtml = `
         <div id="campaignSmashHUD" class="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between p-3 select-none">
             <!-- Top Container (Era info + Banner + Stocks + Boss Bar) -->
@@ -1674,7 +1720,11 @@ function mountCampaignSmashHUD(era) {
                         <img src="${era.logo}" alt="${era.name}" class="w-12 h-12 object-contain filter drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
                         <div class="flex flex-col">
                             <span class="font-cinzel font-black text-amber-200 text-sm tracking-wider leading-tight">${era.name}</span>
-                            <span id="smashHudWaveIndicator" class="font-chakra font-bold text-xs text-amber-400/90 tracking-widest uppercase">VAGUE 1 / 3</span>
+                            <div class="flex items-center gap-2">
+                                <span id="smashHudWaveIndicator" class="font-chakra font-bold text-xs text-amber-400/90 tracking-widest uppercase">VAGUE 1 / 3</span>
+                                <span id="smashHudObjectiveTimer" class="hidden font-chakra font-black text-xs text-cyan-300 bg-cyan-950/80 border border-cyan-500/60 px-2 py-0.5 rounded uppercase"></span>
+                            </div>
+                            <span id="smashHudHazardBadge" class="font-chakra font-bold text-[10px] text-stone-300 tracking-wide">⚡ ${hazardName}</span>
                         </div>
                     </div>
 
@@ -1744,6 +1794,18 @@ function updateCampaignSmashHUD() {
         waveInd.textContent = `VAGUE ${currentCampaignWaveIdx + 1} / 3`;
     }
 
+    // Chronomètre d'objectif (Survie / Time Attack)
+    const objTimerEl = document.getElementById('smashHudObjectiveTimer');
+    if (objTimerEl) {
+        if ((campaignWaveObjective === 'survive' || campaignWaveObjective === 'time_attack') && currentCampaignWaveIdx < 2) {
+            if (objTimerEl.classList) objTimerEl.classList.remove('hidden');
+            const sec = Math.max(0, Math.ceil(campaignWaveTimer));
+            objTimerEl.textContent = campaignWaveObjective === 'survive' ? `⏱️ SURVIE : ${sec}s` : `⚡ CHRONO : ${sec}s`;
+        } else {
+            if (objTimerEl.classList) objTimerEl.classList.add('hidden');
+        }
+    }
+
     // Stocks
     const stockContainer = document.getElementById('smashHudStockIcons');
     if (stockContainer) {
@@ -1770,6 +1832,142 @@ function updateCampaignSmashHUD() {
     }
 }
 
+function updateCampaignHazard(dt, nowSec) {
+    if (!activeCampaignEra || !activeCampaignEra.hazard || !fighter1 || fighter1.isDead) return;
+    let hazardId = activeCampaignEra.hazard.id;
+
+    // Faille Temporelle (Ère 13) : change dynamiquement selon la phase de Drak'Zul
+    if (hazardId === 'reality_rift') {
+        if (campaignBossPhase === 2) hazardId = 'blizzard';
+        else if (campaignBossPhase >= 3) hazardId = 'meteor_rain';
+        else hazardId = 'meteor_rain';
+    }
+
+    // Gravité adaptative (Cambrien / Marée Silurienne)
+    if (hazardId === 'low_gravity') {
+        fighter1.gravityScale = 0.78;
+    } else if (hazardId === 'tidal_surge') {
+        campaignHazardTimer -= dt;
+        if (campaignHazardTimer <= 0) {
+            campaignHazardTimer = 16.0;
+            campaignCurrentTideHigh = !campaignCurrentTideHigh;
+            fighter1.gravityScale = campaignCurrentTideHigh ? 0.72 : 1.0;
+            if (typeof spawnFloatingPopup === 'function') {
+                spawnFloatingPopup(fighter1.x, campaignCurrentTideHigh ? '🌊 MARÉE HAUTE !' : '🏖️ MARÉE BASSE !', '#2dd4bf');
+            }
+        }
+    } else if (hazardId === 'deep_pressure') {
+        fighter1.gravityScale = fighter1.y < 1.0 ? 1.15 : 0.92;
+    } else {
+        fighter1.gravityScale = 1.0;
+    }
+
+    // Courants Abyssaux / Rafales / Crue / Blizzard (poussées horizontales périodiques)
+    if (hazardId === 'abyssal_currents' || hazardId === 'wind_gusts' || hazardId === 'flash_flood') {
+        if (campaignHazardActiveTimer > 0) {
+            campaignHazardActiveTimer -= dt;
+            const force = hazardId === 'flash_flood' && fighter1.y > 1.2 ? 0 : 6.8;
+            fighter1.x += campaignHazardActiveDir * force * dt;
+        } else {
+            campaignHazardTimer -= dt;
+            if (campaignHazardTimer <= 0) {
+                campaignHazardTimer = 10.5;
+                campaignHazardActiveTimer = 2.4;
+                campaignHazardActiveDir = Math.random() < 0.5 ? -1 : 1;
+                const label = hazardId === 'abyssal_currents' ? '🌊 COURANT ABYSSAL !' : (hazardId === 'flash_flood' ? '🌊 CRUE SUBITE !' : '💨 RAFALE TROPICALE !');
+                if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(fighter1.x, label, '#38bdf8');
+            }
+        }
+    }
+
+    // Brume Toxique & Hyper-Oxygène (Carbonifère)
+    if (hazardId === 'toxic_mist') {
+        fighter1.rage = Math.min(100, (fighter1.rage || 0) + 4.5 * dt);
+        if (fighter1.y < 0.35) {
+            campaignHazardTickTimer += dt;
+            if (campaignHazardTickTimer >= 2.8) {
+                campaignHazardTickTimer = 0;
+                applyDamageToPlayer(fighter1, 16, 0, 0);
+                if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(fighter1.x, '☠️ BRUME TOXIQUE -16', '#a855f7');
+            }
+        }
+    }
+
+    // Rayons Solaires (Permien)
+    if (hazardId === 'sunbeams') {
+        campaignSunbeamX = Math.sin(nowSec * 0.45) * 7.5;
+        if (campaignSunbeamMesh) campaignSunbeamMesh.position.x = campaignSunbeamX;
+        if (Math.abs(fighter1.x - campaignSunbeamX) < 2.2) {
+            fighter1.rage = Math.min(100, (fighter1.rage || 0) + 6.0 * dt);
+        }
+    }
+
+    // Dangers tombants / Foudre télégraphiés (Trias, Jurassique, Crétacé, Quaternaire, Extinction)
+    if (hazardId === 'lightning' || hazardId === 'falling_boulders' || hazardId === 'meteor_rain' || hazardId === 'blizzard') {
+        campaignHazardTimer -= dt;
+        if (campaignHazardTimer <= 0) {
+            const baseInterval = (campaignBossPhase >= 2) ? 4.2 : 6.5;
+            campaignHazardTimer = baseInterval;
+            const kindMap = {
+                lightning: 'lightning',
+                falling_boulders: 'boulder',
+                meteor_rain: 'meteor',
+                blizzard: 'icicle'
+            };
+            const targetX = fighter1.x + (Math.random() - 0.5) * 3.5;
+            campaignActiveHazards.push(new CampaignHazardObject3D(targetX, kindMap[hazardId]));
+        }
+        if (hazardId === 'blizzard') {
+            fighter1.vx *= 1.015; // Glisse légère sur glace
+        }
+    }
+}
+
+function updateCampaignBossPhases(boss, era) {
+    if (!boss || boss.isDead || !era) return;
+    const hpRatio = boss.hp / Math.max(1, boss.maxHp);
+
+    if (era.slug === 'extinction') {
+        if (campaignBossPhase === 1 && hpRatio <= 0.66) {
+            campaignBossPhase = 2;
+            boss.speed = (boss.speed || 8.0) * 1.12;
+            campaignWaveBannerTimer = 2.6;
+            campaignWaveAnnounceTitle = '❄️ PHASE 2 : FAILLE GLACIAIRE !';
+            campaignWaveAnnounceSub = 'Drak\'Zul déchaîne les stalactites du Blizzard !';
+            if (typeof sfx !== 'undefined' && sfx.playRoar) sfx.playRoar();
+            if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(boss.x, '❄️ PHASE 2 : GLACE !', '#38bdf8');
+        } else if (campaignBossPhase === 2 && hpRatio <= 0.33) {
+            campaignBossPhase = 3;
+            boss.speed = (boss.speed || 8.0) * 1.15;
+            campaignWaveBannerTimer = 2.8;
+            campaignWaveAnnounceTitle = '🌌 PHASE 3 : CATACLYSME DU NÉANT !';
+            campaignWaveAnnounceSub = 'Drak\'Zul entre en surrégime cosmique !';
+            if (typeof sfx !== 'undefined' && sfx.playGong) sfx.playGong();
+            if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(boss.x, '🌌 PHASE 3 : NÉANT !', '#e879f9');
+        }
+    } else if (campaignBossPhase === 1 && hpRatio <= 0.50) {
+        campaignBossPhase = 2;
+        boss.speed = (boss.speed || 7.0) * 1.18;
+        const bossWave = era.waves[2];
+        campaignWaveBannerTimer = 2.5;
+        campaignWaveAnnounceTitle = `🔥 PHASE 2 : ${bossWave.bossName} ENRAGÉ !`;
+        campaignWaveAnnounceSub = bossWave.phase2Desc || 'Le Boss déchaîne sa pleine puissance !';
+        if (typeof sfx !== 'undefined' && sfx.playRoar) sfx.playRoar();
+        if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(boss.x, '🔥 ENRAGE PHASE 2 !', '#f97316');
+
+        // Anomalocaris appelle 2 Trilobites en renfort
+        if (bossWave.bossId === 'boss_anomalocaris') {
+            const groundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, 0, 0) : 0;
+            spawnMinionFromWaveDef(era.waves[0], boss.x - 4.0, groundY);
+            spawnMinionFromWaveDef(era.waves[0], boss.x + 4.0, groundY);
+        } else {
+            // Onde d'énergie à distance en entrant en Phase 2
+            const dir = fighter1 && fighter1.x >= boss.x ? 1 : -1;
+            campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.5, boss.y + 1.2, dir * 11.5, 0, bossWave.accentColor || 0xf59e0b, 55, 0.55));
+        }
+    }
+}
+
 // 8. BOUCLE DE MISE À JOUR DU NIVEAU CAMPAGNE (APPELÉE DANS MATCH.JS)
 function updateCampaignLevelEngine(dt, nowSec) {
     if (matchState !== 'campaign_level') return;
@@ -1790,6 +1988,9 @@ function updateCampaignLevelEngine(dt, nowSec) {
         if (banner) banner.classList.add('hidden');
     }
 
+    // Dangers d'arène thématiques
+    updateCampaignHazard(dt, nowSec || (performance.now() * 0.001));
+
     // Mise à jour des minions actifs
     for (let i = campaignActiveMinions.length - 1; i >= 0; i--) {
         const minion = campaignActiveMinions[i];
@@ -1799,6 +2000,24 @@ function updateCampaignLevelEngine(dt, nowSec) {
             updateCampaignSmashHUD();
         } else {
             minion.update(dt, fighter1);
+        }
+    }
+
+    // Mise à jour des projectiles & dangers 3D
+    for (let i = campaignActiveProjectiles.length - 1; i >= 0; i--) {
+        const proj = campaignActiveProjectiles[i];
+        if (proj.isExpired) {
+            campaignActiveProjectiles.splice(i, 1);
+        } else {
+            proj.update(dt, fighter1);
+        }
+    }
+    for (let i = campaignActiveHazards.length - 1; i >= 0; i--) {
+        const hz = campaignActiveHazards[i];
+        if (hz.isExpired) {
+            campaignActiveHazards.splice(i, 1);
+        } else {
+            hz.update(dt, fighter1);
         }
     }
 
@@ -1815,18 +2034,63 @@ function updateCampaignLevelEngine(dt, nowSec) {
     // Vérification des collisions d'attaques du joueur contre les minions
     checkPlayerAttacksAgainstMinions();
 
-    // Vague terminée si tous les minions sont morts (Vagues 1 & 2)
-    if (currentCampaignWaveIdx < 2 && campaignActiveMinions.length === 0 && campaignWaveBannerTimer <= 0) {
-        if (typeof sfx !== 'undefined' && sfx.playGong) sfx.playGong();
-        startCampaignWave(currentCampaignWaveIdx + 1);
-        return;
+    // Gestion des vagues 1 & 2 (Clear, Survive, Time Attack)
+    if (currentCampaignWaveIdx < 2) {
+        const wave = activeCampaignEra ? activeCampaignEra.waves[currentCampaignWaveIdx] : null;
+        if (campaignWaveObjective === 'survive') {
+            if (campaignWaveTimer > 0) {
+                campaignWaveTimer -= dt;
+                // Maintenir des swarmers jusqu'à la fin du chrono
+                if (wave && campaignActiveMinions.length < (wave.count || 3)) {
+                    campaignSurviveRespawnTimer += dt;
+                    if (campaignSurviveRespawnTimer >= 1.2) {
+                        campaignSurviveRespawnTimer = 0;
+                        const spawnX = (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 6);
+                        const groundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, spawnX, 0) : 0;
+                        spawnMinionFromWaveDef(wave, spawnX, groundY);
+                    }
+                }
+                updateCampaignSmashHUD();
+            } else {
+                // Survie réussie !
+                campaignActiveMinions.forEach(m => m.destroy());
+                campaignActiveMinions = [];
+                campaignLevelScore += 1000;
+                if (typeof spawnFloatingPopup === 'function' && fighter1) {
+                    spawnFloatingPopup(fighter1.x, '🛡️ SURVIE RÉUSSIE ! +1000', '#22c55e');
+                }
+                if (typeof sfx !== 'undefined' && sfx.playGong) sfx.playGong();
+                startCampaignWave(currentCampaignWaveIdx + 1);
+                return;
+            }
+        } else {
+            if (campaignWaveObjective === 'time_attack' && campaignWaveTimer > 0) {
+                campaignWaveTimer = Math.max(0, campaignWaveTimer - dt);
+                updateCampaignSmashHUD();
+            }
+            if (campaignActiveMinions.length === 0 && campaignWaveBannerTimer <= 0) {
+                if (campaignWaveObjective === 'time_attack' && campaignWaveTimer > 0 && !campaignTimeAttackBonusAwarded && fighter1) {
+                    campaignTimeAttackBonusAwarded = true;
+                    campaignLevelScore += 1000;
+                    fighter1.hp = Math.min(fighter1.maxHp, fighter1.hp + 250);
+                    fighter1.rage = 100;
+                    if (typeof spawnFloatingPopup === 'function') {
+                        spawnFloatingPopup(fighter1.x, '⚡ BONUS CHRONO ! +250 PV & RAGE MAX', '#facc15');
+                    }
+                }
+                if (typeof sfx !== 'undefined' && sfx.playGong) sfx.playGong();
+                startCampaignWave(currentCampaignWaveIdx + 1);
+                return;
+            }
+        }
     }
 
-    // Vague 3 (Boss) : Surveillance du Boss & Animation Anomalocaris Titan
+    // Vague 3 (Boss) : Surveillance du Boss, Phases & Animation Anomalocaris Titan
     if (currentCampaignWaveIdx === 2 && campaignBossFighter) {
         if (campaignBossFighter._isAnomalocaris) {
             updateAnomalocarisBossAnimations(campaignBossFighter, dt, nowSec);
         }
+        updateCampaignBossPhases(campaignBossFighter, activeCampaignEra);
         updateCampaignSmashHUD();
 
         // Mort du Boss = VICTOIRE DE L'ÈRE !
@@ -1866,14 +2130,20 @@ function checkPlayerAttacksAgainstMinions() {
         range = 3.8;
     }
 
+    // Bonus Rayon Solaire du Permien
+    if (activeCampaignEra && activeCampaignEra.hazard && activeCampaignEra.hazard.id === 'sunbeams' && Math.abs(fighter1.x - campaignSunbeamX) < 2.2) {
+        dmg = Math.round(dmg * 1.35);
+    }
+
     let hitAny = false;
     campaignActiveMinions.forEach(minion => {
         if (minion.isDead) return;
         const dx = minion.x - fighter1.x;
         const dist = Math.abs(dx);
         const inFront = (dx * fighter1.facing) >= -0.6;
-        if (dist <= range && inFront && Math.abs(minion.y - fighter1.y) < 2.5) {
-            minion.takeDamage(dmg, knockX, knockY);
+        const verticalReach = minion.archetype === 'aerial' ? 3.8 : 2.5;
+        if (dist <= range && inFront && Math.abs(minion.y - fighter1.y) < verticalReach) {
+            minion.takeDamage(dmg, knockX, knockY, a);
             hitAny = true;
         }
     });
@@ -1921,6 +2191,7 @@ function handlePlayerStockLoss() {
 // 9. VICTOIRE DE L'ÈRE : DÉBLOCAGE COMBATTANT & ARÈNE ET MODALE DE CÉLÉBRATION
 function finishCampaignEraVictory() {
     matchState = 'campaign_victory';
+    cleanupCampaignTransientEntities();
     sfx.playGong();
     showAnnouncer('👑 ÈRE CONQUISE !', `${activeCampaignEra.name} A ÉTÉ TERRASSÉE !`);
 
@@ -1938,6 +2209,10 @@ function showEraVictoryRewardsModal(era) {
     if (existing) existing.remove();
 
     const r = era.reward;
+    const isNewFighterUnlock = typeof UNLOCKABLE_FIGHTER_ERAS !== 'undefined' && UNLOCKABLE_FIGHTER_ERAS[r.fighterId] === era.id;
+    const isNewArenaUnlock = typeof UNLOCKABLE_ARENA_ERAS !== 'undefined' && UNLOCKABLE_ARENA_ERAS[r.arenaId] === era.id;
+    const fighterBadge = isNewFighterUnlock ? '🦖 NOUVEAU COMBATTANT DÉBLOQUÉ' : '🏆 MAÎTRE DE L\'ÈRE';
+    const arenaBadge = isNewArenaUnlock ? '🌋 NOUVELLE ARÈNE DÉBLOQUÉE' : '🗺️ THÉÂTRE DE VICTOIRE';
     const modalHtml = `
         <div id="eraVictoryModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 select-none animate-fade-in">
             <div class="w-full max-w-2xl bg-gradient-to-b from-stone-900 to-stone-950 border-2 border-amber-500 rounded-3xl p-6 sm:p-8 shadow-[0_0_60px_rgba(245,158,11,0.5)] flex flex-col items-center text-center relative overflow-hidden">
@@ -1956,7 +2231,7 @@ function showEraVictoryRewardsModal(era) {
                 <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                     <!-- Reward 1: Unlocked Fighter -->
                     <div class="flex flex-col items-center bg-stone-900/90 border border-amber-500/60 rounded-2xl p-4 shadow-lg">
-                        <span class="font-chakra font-black text-[11px] text-amber-400 uppercase tracking-widest mb-2">🦖 NOUVEAU COMBATTANT DÉBLOQUÉ</span>
+                        <span class="font-chakra font-black text-[11px] text-amber-400 uppercase tracking-widest mb-2">${fighterBadge}</span>
                         <div class="w-24 h-24 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-md bg-stone-950 mb-2">
                             <img src="${r.fighterPortrait}" alt="${r.fighterName}" class="w-full h-full object-cover">
                         </div>
@@ -1966,7 +2241,7 @@ function showEraVictoryRewardsModal(era) {
 
                     <!-- Reward 2: Unlocked Arena -->
                     <div class="flex flex-col items-center bg-stone-900/90 border border-amber-500/60 rounded-2xl p-4 shadow-lg">
-                        <span class="font-chakra font-black text-[11px] text-amber-400 uppercase tracking-widest mb-2">🌋 NOUVELLE ARÈNE DÉBLOQUÉE</span>
+                        <span class="font-chakra font-black text-[11px] text-amber-400 uppercase tracking-widest mb-2">${arenaBadge}</span>
                         <div class="w-24 h-24 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-md bg-stone-950 mb-2 flex items-center justify-center">
                             <img src="${era.logo}" alt="${r.arenaName}" class="w-16 h-16 object-contain filter contrast-125">
                         </div>

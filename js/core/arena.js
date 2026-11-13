@@ -242,14 +242,43 @@ function buildArenaPlatforms3D(arena, group, accentColor) {
     return meshes;
 }
 
+function disposeArenaGroup(group) {
+    if (!group) return;
+    const cachedTextures = new Set();
+    Object.values(_cachedArenaStageMaps).forEach(entry => {
+        if (entry && entry.colorMap) cachedTextures.add(entry.colorMap);
+        if (entry && entry.bumpMap) cachedTextures.add(entry.bumpMap);
+    });
+    const disposeMat = (mat) => {
+        if (!mat) return;
+        ['map', 'bumpMap', 'normalMap', 'roughnessMap', 'emissiveMap'].forEach(prop => {
+            if (mat[prop] && !cachedTextures.has(mat[prop]) && typeof mat[prop].dispose === 'function') {
+                mat[prop].dispose();
+            }
+        });
+        if (typeof mat.dispose === 'function') mat.dispose();
+    };
+    group.traverse(obj => {
+        if (obj.geometry && typeof obj.geometry.dispose === 'function') {
+            obj.geometry.dispose();
+        }
+        if (Array.isArray(obj.material)) {
+            obj.material.forEach(disposeMat);
+        } else if (obj.material) {
+            disposeMat(obj.material);
+        }
+    });
+    while (group.children.length > 0) {
+        group.remove(group.children[0]);
+    }
+}
+
 function buildArena3D(arenaType, customGroup = null, customScene = null) {
     const group = customGroup || arenaGroup;
     const scene = customScene || battleScene;
     if (!group || !scene) return;
 
-    while (group.children.length > 0) {
-        group.remove(group.children[0]);
-    }
+    disposeArenaGroup(group);
 
     const arena = ARENAS[arenaType] || ARENAS['volcano'];
     let skyColor = 0x180505;

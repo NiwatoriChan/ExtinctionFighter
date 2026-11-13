@@ -426,10 +426,48 @@ function updateGamepadHelperHUD() {
 
 
 // 4. ANALYSEURS D'ENTRÉES MANETTE (Répétition & Déclenchement sur front)
+function getEffectiveStickDeadzone() {
+    const raw = (typeof window !== 'undefined' && typeof window.stickDeadzone === 'number') ? window.stickDeadzone : 0.15;
+    return Math.max(0.05, Math.min(0.45, raw));
+}
+
+function getEffectiveStickSensitivity() {
+    const raw = (typeof window !== 'undefined' && typeof window.stickSensitivity === 'number') ? window.stickSensitivity : 0.75;
+    return Math.max(0.25, Math.min(1.8, 0.4 + raw * 1.1));
+}
+
+function applyStickResponse(rawVal) {
+    const dz = getEffectiveStickDeadzone();
+    if (Math.abs(rawVal) <= dz) return 0;
+    const sign = Math.sign(rawVal);
+    const normalized = (Math.abs(rawVal) - dz) / Math.max(0.01, 1 - dz);
+    return sign * Math.min(1, normalized * getEffectiveStickSensitivity());
+}
+
+function triggerGamepadRumble(playerIdx = 0, weak = 0.4, strong = 0.7, durationMs = 150) {
+    if (typeof window !== 'undefined' && window.controllerRumbleEnabled === false) return;
+    if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') return;
+    try {
+        const pads = navigator.getGamepads();
+        const pad = pads && pads[playerIdx];
+        if (pad && pad.vibrationActuator && typeof pad.vibrationActuator.playEffect === 'function') {
+            pad.vibrationActuator.playEffect('dual-rumble', {
+                startDelay: 0,
+                duration: Math.max(40, Math.min(600, durationMs)),
+                weakMagnitude: Math.max(0, Math.min(1, weak)),
+                strongMagnitude: Math.max(0, Math.min(1, strong))
+            }).catch(() => {});
+        }
+    } catch (_) {}
+}
+if (typeof window !== 'undefined') {
+    window.triggerGamepadRumble = triggerGamepadRumble;
+}
+
 function getNavDirection(pad) {
     if (!pad) return null;
-    const axX = pad.axes[0] || 0;
-    const axY = pad.axes[1] || 0;
+    const axX = applyStickResponse(pad.axes[0] || 0);
+    const axY = applyStickResponse(pad.axes[1] || 0);
     const dpadUp = pad.buttons[12]?.pressed;
     const dpadDown = pad.buttons[13]?.pressed;
     const dpadLeft = pad.buttons[14]?.pressed;
@@ -594,7 +632,9 @@ function handleGamepadSettingsModal(pad, dt) {
     if (slider) {
         const sliderId = slider.dataset.sliderId;
         let curVal = 50;
-        if (sliderId === 'masterVol') curVal = settingsMasterVolSignal.value;
+        if (typeof SETTINGS_SLIDERS !== 'undefined' && SETTINGS_SLIDERS[sliderId]) {
+            curVal = SETTINGS_SLIDERS[sliderId].signal.value;
+        } else if (sliderId === 'masterVol') curVal = settingsMasterVolSignal.value;
         else if (sliderId === 'sfxVol') curVal = settingsSfxVolSignal.value;
         else if (sliderId === 'screenShake') curVal = settingsScreenShakeSignal.value;
         else if (sliderId === 'musicVol') curVal = settingsMusicVolSignal.value;
@@ -652,7 +692,9 @@ function handleGamepadSettingsModal(pad, dt) {
 }
 
 function applySliderValue(sliderId, val) {
-    if (sliderId === 'masterVol') {
+    if (typeof applySettingValue === 'function') {
+        applySettingValue(sliderId, val, true);
+    } else if (sliderId === 'masterVol') {
         settingsMasterVolSignal.value = val;
         if (typeof sfx !== 'undefined' && typeof sfx.setMasterVolume === 'function') sfx.setMasterVolume(val / 100);
     } else if (sliderId === 'sfxVol') {
@@ -663,6 +705,7 @@ function applySliderValue(sliderId, val) {
         window.screenShakeMultiplier = val / 100;
     } else if (sliderId === 'musicVol') {
         settingsMusicVolSignal.value = val;
+        if (typeof sfx !== 'undefined' && typeof sfx.setMusicVolume === 'function') sfx.setMusicVolume(val / 100);
     }
     if (typeof sfx !== 'undefined' && typeof sfx.playSliderTick === 'function') {
         sfx.playSliderTick();
@@ -1071,8 +1114,8 @@ function handleGamepadBattle(pad, pad2, dt) {
 
     // Rotation de la caméra 3D avec le stick droit (R-Stick)
     if (pad && pad.axes) {
-        const rX = Math.abs(pad.axes[2]) > 0.15 ? pad.axes[2] : 0;
-        const rY = Math.abs(pad.axes[3]) > 0.15 ? pad.axes[3] : 0;
+        const rX = applyStickResponse(pad.axes[2] || 0);
+        const rY = applyStickResponse(pad.axes[3] || 0);
         if (rX !== 0) {
             camOrbit.yaw = Math.max(-0.85, Math.min(0.85, camOrbit.yaw - rX * 1.5 * dt));
         }
@@ -1087,8 +1130,8 @@ function handleGamepadBattle(pad, pad2, dt) {
 
     // CONTRÔLES JOUEUR 1 (Manette 1)
     if (pad && fighter1 && fighter2) {
-        const axX = pad.axes[0] || 0;
-        const axY = pad.axes[1] || 0;
+        const axX = applyStickResponse(pad.axes[0] || 0);
+        const axY = applyStickResponse(pad.axes[1] || 0);
         touchState.left = axX < -0.28 || !!(pad.buttons[14]?.pressed);
         touchState.right = axX > 0.28 || !!(pad.buttons[15]?.pressed);
         touchState.up = axY < -0.28 || !!(pad.buttons[12]?.pressed);
@@ -1158,8 +1201,8 @@ function handleGamepadBattle(pad, pad2, dt) {
 
     // CONTRÔLES JOUEUR 2 (Manette 2 en mode PvP)
     if (pad2 && gameMode === 'pvp' && fighter2 && fighter1) {
-        const axX2 = pad2.axes[0] || 0;
-        const axY2 = pad2.axes[1] || 0;
+        const axX2 = applyStickResponse(pad2.axes[0] || 0);
+        const axY2 = applyStickResponse(pad2.axes[1] || 0);
         p2TouchState.left = axX2 < -0.28 || !!(pad2.buttons[14]?.pressed);
         p2TouchState.right = axX2 > 0.28 || !!(pad2.buttons[15]?.pressed);
         p2TouchState.up = axY2 < -0.28 || !!(pad2.buttons[12]?.pressed);

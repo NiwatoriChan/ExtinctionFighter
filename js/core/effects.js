@@ -69,6 +69,7 @@ function pushParticle3D(pt) {
 
 function spawn3DBloodAndBones(x, y, count = 16, includeBones = false) {
     if (typeof fxGroup === 'undefined' || !fxGroup) return;
+    const goreEnabled = (typeof window === 'undefined' || window.goreAndBloodEnabled !== false);
     const cache = getFxCache();
     // Adapter automatiquement le nombre de particules selon la qualité graphique
     const qualityMult = (typeof graphicsQuality !== 'undefined' && graphicsQuality === 'low')
@@ -77,9 +78,16 @@ function spawn3DBloodAndBones(x, y, count = 16, includeBones = false) {
     const cappedCount = Math.min(36, Math.max(3, Math.round(count * qualityMult)));
 
     for (let i = 0; i < cappedCount; i++) {
-        const isBone = includeBones && i % 4 === 0;
-        const geo = isBone ? cache.geo.bone : cache.geo.blood;
-        const mat = isBone ? cache.mat.bone : (i % 3 === 0 ? cache.mat.bloodDark : cache.mat.bloodBright);
+        let geo, mat;
+        if (goreEnabled) {
+            const isBone = includeBones && i % 4 === 0;
+            geo = isBone ? cache.geo.bone : cache.geo.blood;
+            mat = isBone ? cache.mat.bone : (i % 3 === 0 ? cache.mat.bloodDark : cache.mat.bloodBright);
+        } else {
+            // Mode sans gore : étincelles d'impact et éclats minéraux
+            geo = i % 2 === 0 ? cache.geo.spark : cache.geo.rock;
+            mat = i % 2 === 0 ? cache.mat.sparkGold : cache.mat.rockGrey;
+        }
         const mesh = new THREE.Mesh(geo, mat);
         mesh.position.set(x, y, (Math.random() - 0.5) * 1.2);
         fxGroup.add(mesh);

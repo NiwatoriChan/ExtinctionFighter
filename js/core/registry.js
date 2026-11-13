@@ -19,24 +19,27 @@ function registerFighterAnimation(id, animObj) {
 }
 window.registerFighterAnimation = registerFighterAnimation;
 
-// Association de chaque combattant déblocable à son Ère de Campagne
+// Association de chaque combattant déblocable à son Ère de Campagne (13 Ères)
 const UNLOCKABLE_FIGHTER_ERAS = {
     'anomalocaris': 1,    // Débloqué à l'Ère 1 (Cambrien - Boss jouable !)
-    'postosuchus': 2,      // Débloqué à l'Ère 2 (Trias)
-    'apato': 3,            // Débloqué à l'Ère 3 (Jurassique)
-    'therizino': 4,        // Débloqué à l'Ère 4 (Crétacé)
-    'smilodon': 5,         // Débloqué à l'Ère 5 (Cénozoïque)
-    'dragon': 6            // Débloqué à l'Ère 6 (Extinction Apex - Boss jouable !)
+    'pulmonoscorpius': 5, // Débloqué à l'Ère 5 (Carbonifère)
+    'postosuchus': 7,     // Débloqué à l'Ère 7 (Trias)
+    'apato': 8,           // Débloqué à l'Ère 8 (Jurassique)
+    'therizino': 9,       // Débloqué à l'Ère 9 (Crétacé)
+    'terabird': 10,       // Débloqué à l'Ère 10 (Cénozoïque : Paléogène)
+    'giantsloth': 11,     // Débloqué à l'Ère 11 (Cénozoïque : Néogène)
+    'smilodon': 12,       // Débloqué à l'Ère 12 (Cénozoïque : Quaternaire)
+    'dragon': 13          // Débloqué à l'Ère 13 (Apogée de l'Extinction - Boss jouable !)
 };
 
 // Association de chaque arène déblocable à son Ère de Campagne
 const UNLOCKABLE_ARENA_ERAS = {
     'cambrian': 1,    // Récif Abyssal du Cambrien (Ère 1)
-    'storm': 2,       // Canyon de l'Orage Primordial (Ère 2)
-    'jungle': 3,      // Vallée d'Émeraude (Ère 3)
-    'volcano': 4,     // Cratère du Chicxulub (Ère 4)
-    'iceage': 5,      // Glacier de l'Ère Glaciaire (Ère 5)
-    'dragonlair': 6   // L'Antre Infernale de Drak'Zul (Ère 6)
+    'swamp': 5,       // Marais du Carbonifère (Ère 5)
+    'storm': 7,       // Canyon de l'Orage Primordial (Ère 7)
+    'jungle': 8,      // Vallée d'Émeraude (Ère 8)
+    'iceage': 12,     // Glacier de l'Ère Glaciaire (Ère 12)
+    'dragonlair': 13  // L'Antre Infernale de Drak'Zul (Ère 13)
 };
 
 // Système de déblocage de combattants (persistance localStorage)
@@ -117,6 +120,24 @@ const ARENAS = {};
 function registerArena(def) {
     ARENA_LIST.push(def);
     ARENAS[def.id] = def;
+}
+
+// Chaque niveau de campagne (Ère / Sous-Ère) est déclaré dans js/campaign/*.js via registerCampaignEra().
+const CAMPAIGN_ERAS = [];
+
+function registerCampaignEra(eraDef) {
+    if (!eraDef || !eraDef.id) return;
+    const existingIdx = CAMPAIGN_ERAS.findIndex(e => e.id === eraDef.id || e.slug === eraDef.slug);
+    if (existingIdx >= 0) {
+        CAMPAIGN_ERAS[existingIdx] = eraDef;
+    } else {
+        CAMPAIGN_ERAS.push(eraDef);
+    }
+    CAMPAIGN_ERAS.sort((a, b) => a.id - b.id);
+}
+if (typeof window !== 'undefined') {
+    window.CAMPAIGN_ERAS = CAMPAIGN_ERAS;
+    window.registerCampaignEra = registerCampaignEra;
 }
 
 // Association thématique de chaque combattant à son arène naturelle pour le mode campagne

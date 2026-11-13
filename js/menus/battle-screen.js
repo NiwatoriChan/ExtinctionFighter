@@ -977,8 +977,10 @@ function hideComboHUD() {
 }
 
 function showAnnouncer(mainText, subText = '') {
+    const showSubs = (typeof window === 'undefined' || window.subtitlesEnabled !== false);
+    const effectiveSub = showSubs ? subText : '';
     announcerMainSignal.value = mainText;
-    announcerSubSignal.value = subText;
+    announcerSubSignal.value = effectiveSub;
     const mainEl = document.getElementById('announcerMain');
     const subEl = document.getElementById('announcerSub');
     if (mainEl) {
@@ -988,7 +990,7 @@ function showAnnouncer(mainText, subText = '') {
             if (mainEl) mainEl.style.transform = 'scale(1)';
         }, 180);
     }
-    if (subEl) subEl.textContent = subText;
+    if (subEl) subEl.textContent = effectiveSub;
 }
 
 function clearAnnouncer() {

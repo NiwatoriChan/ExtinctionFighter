@@ -1,4 +1,5 @@
 // 3. ÉTAT GLOBAL DE L'APPLICATION
+var GAME_VERSION = 'v0.2.1';
 var gameMode = 'cpu'; // 'campaign', 'cpu', 'pvp', 'practice'
 var aiDifficulty = 'normal';
 var currentArena = 'volcano';
@@ -30,9 +31,13 @@ var fighter2 = null;
 var roundNumber = 1;
 var roundTimer = 99;
 var roundTimerAccum = 0;
+var roundIntroAnnounced = false;
 var projectiles3D = [];
 var particles3D = [];
 var xrayCinematicTimer = 0;
+var xrayElapsed = 0;
+var xrayPhaseApplied = 0;
+var xrayContext = null;
 var xrayStage = 0;
 var xrayLockPositions = null;
 var fatalityFocusFighter = null;

@@ -595,7 +595,7 @@ const selectScreenRoot = new UIKit.Fullscreen({
                         }),
                         new UIKit.Badge({
                             className: 'px-2 py-0.5 rounded bg-stone-900 border border-amber-600/60 text-amber-300 font-black text-[10px] tracking-wider',
-                            text: 'v0.2'
+                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.2.1'
                         })
                     ]
                 }),
@@ -1229,27 +1229,59 @@ function goToSelectScreen() {
     }
 }
 
+let selectScreenEmbersAnimId = null;
+let selectScreenEmbersRunning = false;
+
 function returnToSelect() {
+    if (typeof teardownActiveBattle === 'function') {
+        teardownActiveBattle();
+    }
     goToSelectScreen();
 }
 
+function stopSelectScreenEmberCanvas() {
+    selectScreenEmbersRunning = false;
+    if (selectScreenEmbersAnimId) {
+        cancelAnimationFrame(selectScreenEmbersAnimId);
+        selectScreenEmbersAnimId = null;
+    }
+    const canvas = document.getElementById('selectScreenCanvas');
+    if (canvas && typeof canvas.getContext === 'function') {
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
 function startSelectScreenEmberCanvas() {
+    if (typeof window !== 'undefined' && window.volcanicEmbersEnabled === false) {
+        stopSelectScreenEmberCanvas();
+        return;
+    }
+    if (selectScreenEmbersRunning) return;
     const container = document.getElementById('selectScreenCanvasContainer');
-    if (!container || document.getElementById('selectScreenCanvas')) return;
+    if (!container) return;
 
-    const canvas = document.createElement('canvas');
-    canvas.id = 'selectScreenCanvas';
-    canvas.className = 'absolute inset-0 pointer-events-none z-10 w-full h-full';
-    container.appendChild(canvas);
+    let canvas = document.getElementById('selectScreenCanvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = 'selectScreenCanvas';
+        canvas.className = 'absolute inset-0 pointer-events-none z-10 w-full h-full';
+        container.appendChild(canvas);
+    }
 
+    selectScreenEmbersRunning = true;
     const ctx = canvas.getContext('2d');
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
-    window.addEventListener('resize', () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    });
+    if (!canvas._resizeBound) {
+        canvas._resizeBound = true;
+        window.addEventListener('resize', () => {
+            if (!selectScreenEmbersRunning) return;
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+    }
 
     const PARTICLE_COUNT = 35;
     const particles = [];
@@ -1277,8 +1309,10 @@ function startSelectScreenEmberCanvas() {
 
     function renderTorchEmbers(time) {
         const sec = document.getElementById('selectScreen');
-        if (!sec || sec.classList.contains('hidden')) {
-            requestAnimationFrame(renderTorchEmbers);
+        if (!selectScreenEmbersRunning || !sec || sec.classList.contains('hidden') || (typeof window !== 'undefined' && window.volcanicEmbersEnabled === false)) {
+            selectScreenEmbersRunning = false;
+            selectScreenEmbersAnimId = null;
+            ctx.clearRect(0, 0, width, height);
             return;
         }
 
@@ -1312,10 +1346,10 @@ function startSelectScreenEmberCanvas() {
             ctx.fill();
         }
 
-        requestAnimationFrame(renderTorchEmbers);
+        selectScreenEmbersAnimId = requestAnimationFrame(renderTorchEmbers);
     }
 
-    requestAnimationFrame(renderTorchEmbers);
+    selectScreenEmbersAnimId = requestAnimationFrame(renderTorchEmbers);
 }
 
 function initSelectScreenMenu() {

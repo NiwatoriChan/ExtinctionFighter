@@ -5,8 +5,15 @@ class SoundEngine {
         this.enabled = true;
         this.masterVolume = 0.8;
         this.sfxVolume = 0.7;
+        this.musicVolume = 0.6;
+        this.roarIntensity = 0.85;
+        this.boneCrunchEnabled = true;
         this.masterGain = null;
         this.sfxGain = null;
+        this.musicGain = null;
+        this._musicInterval = null;
+        this._musicStep = 0;
+        this._musicMode = 'menu';
     }
     init() {
         if (!this.ctx) {
@@ -21,6 +28,10 @@ class SoundEngine {
             this.sfxGain = this.ctx.createGain();
             this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
             this.sfxGain.connect(this.masterGain);
+
+            this.musicGain = this.ctx.createGain();
+            this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+            this.musicGain.connect(this.masterGain);
         }
         if (this.ctx && this.ctx.state === 'suspended') {
             this.ctx.resume();
@@ -42,10 +53,83 @@ class SoundEngine {
             this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
         }
     }
+    setMusicVolume(val) {
+        this.musicVolume = Math.max(0, Math.min(1, Number(val)));
+        if (this.musicGain && this.ctx) {
+            this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+        }
+    }
+    setRoarIntensity(val) {
+        this.roarIntensity = Math.max(0, Math.min(1, Number(val)));
+    }
+    setBoneCrunchEnabled(enabled) {
+        this.boneCrunchEnabled = Boolean(enabled);
+    }
     setEnabled(enabled) {
         this.enabled = Boolean(enabled);
         if (this.masterGain && this.ctx) {
             this.masterGain.gain.setValueAtTime(this.enabled ? this.masterVolume : 0, this.ctx.currentTime);
+        }
+        if (!this.enabled) {
+            this.stopMusicLoop();
+        }
+    }
+    startMusicLoop(mode = 'menu') {
+        this._musicMode = mode;
+        if (!this.enabled || this._musicInterval) return;
+        this.init();
+        if (!this.ctx || !this.musicGain) return;
+
+        const playStep = () => {
+            if (!this.enabled || !this.ctx || !this.musicGain || this.musicVolume <= 0.01) return;
+            if (this.ctx.state === 'suspended') return;
+            const now = this.ctx.currentTime;
+            const step = this._musicStep % 8;
+            this._musicStep++;
+
+            const isBattle = this._musicMode === 'battle';
+            // Battement de tambour tribal grave sur les temps forts
+            if (step === 0 || step === 4 || (isBattle && (step === 3 || step === 6))) {
+                const drumOsc = this.ctx.createOscillator();
+                const drumGain = this.ctx.createGain();
+                drumOsc.type = 'sine';
+                const baseFreq = step === 0 ? 78 : (isBattle ? 64 : 56);
+                drumOsc.frequency.setValueAtTime(baseFreq, now);
+                drumOsc.frequency.exponentialRampToValueAtTime(32, now + 0.24);
+                const amp = (step === 0 ? 0.20 : 0.12) * (isBattle ? 1.0 : 0.65);
+                drumGain.gain.setValueAtTime(amp, now);
+                drumGain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+                drumOsc.connect(drumGain);
+                drumGain.connect(this.musicGain);
+                drumOsc.start(now);
+                drumOsc.stop(now + 0.27);
+            }
+            // Bourdon atmosphérique primitif (toutes les 4 pulsations)
+            if (step === 0) {
+                const droneOsc = this.ctx.createOscillator();
+                const droneFilter = this.ctx.createBiquadFilter();
+                const droneGain = this.ctx.createGain();
+                droneOsc.type = 'triangle';
+                droneOsc.frequency.setValueAtTime(isBattle ? 55 : 49, now);
+                droneFilter.type = 'lowpass';
+                droneFilter.frequency.setValueAtTime(180, now);
+                droneGain.gain.setValueAtTime(0.001, now);
+                droneGain.gain.linearRampToValueAtTime(isBattle ? 0.07 : 0.05, now + 0.4);
+                droneGain.gain.exponentialRampToValueAtTime(0.001, now + 1.85);
+                droneOsc.connect(droneFilter);
+                droneFilter.connect(droneGain);
+                droneGain.connect(this.musicGain);
+                droneOsc.start(now);
+                droneOsc.stop(now + 1.9);
+            }
+        };
+
+        this._musicInterval = setInterval(playStep, 480);
+    }
+    stopMusicLoop() {
+        if (this._musicInterval) {
+            clearInterval(this._musicInterval);
+            this._musicInterval = null;
         }
     }
     playHit(heavy = false) {
@@ -125,6 +209,10 @@ class SoundEngine {
     }
     playRoar(pitch = 95, duration = 0.45) {
         if (!this.enabled) return;
+        const roarScale = (typeof window !== 'undefined' && typeof window.roarIntensity === 'number')
+            ? window.roarIntensity
+            : this.roarIntensity;
+        if (roarScale <= 0.01) return;
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
@@ -142,7 +230,7 @@ class SoundEngine {
         lfo.connect(lfoGain);
         lfoGain.connect(osc.frequency);
 
-        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.setValueAtTime(0.35 * roarScale, now);
         gain.gain.exponentialRampToValueAtTime(0.005, now + duration);
 
         osc.connect(gain);
@@ -207,7 +295,10 @@ class SoundEngine {
         });
     }
     playBoneCrack() {
-        if (!this.enabled) return;
+        const boneAllowed = (typeof window !== 'undefined' && typeof window.boneCrunchEnabled === 'boolean')
+            ? window.boneCrunchEnabled
+            : this.boneCrunchEnabled;
+        if (!this.enabled || !boneAllowed) return;
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;

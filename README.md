@@ -13,12 +13,12 @@
 
 ## 🌟 Points Forts du Jeu
 
-* **🦖 16 Combattants Préhistoriques (13 Légendes + 3 Déblocables)** :
-  * 13 colosses de base méticuleusement reconstitués selon les archives fossiles.
-  * **3 Combattants Déblocables d'exception** : le redoutable **Smilodon** (Tigre à dents de sabre), le super-prédateur radiodonte **Anomalocaris** (Boss marin du Cambrien modélisé en haute fidélité), et le dragon titanesque **Drak'Zul** (Boss suprême Apex de l'Extinction, jouable une fois terrassé).
-  * Rigs 3D articulés haute fidélité (nouveau modèle biomécanique pour le T-Rex, envergure aérienne pour le Quetzalcoatlus, appendices raptoriaux articulés pour l'Anomalocaris).
+* **🦖 16 Combattants Préhistoriques (7 de base + 9 Déblocables)** :
+  * **7 colosses disponibles dès le départ** (*T-Rex*, *Pachyrhinosaure*, *Ankylosaure*, *Maiasaura*, *Spinosaure*, *Stégosaure*, *Quetzalcoatlus*).
+  * **9 Combattants Déblocables en Campagne** à travers les ères géologiques : **Anomalocaris** (Ère 1), **Pulmonoscorpius** (Ère 5), **Postosuchus** (Ère 7), **Apatosaure** (Ère 8), **Thérizinosaure** (Ère 9), **Oiseau de Terreur** (Ère 10), **Mégathérium** (Ère 11), **Smilodon** (Ère 12) et le dragon titanesque **Drak'Zul** (Ère 13, jouable une fois terrassé).
+  * Rigs 3D articulés haute fidélité (modèle biomécanique pour le T-Rex, envergure aérienne pour le Quetzalcoatlus, appendices raptoriaux articulés pour l'Anomalocaris).
 * **🗺️ Nouveau Mode Campagne — *L'Odyssée des Ères*** :
-  * **Carte du Monde Pangaea Interactive** : Une carte géologique avec route temporelle reliant 6 Grandes Ères, chacune dotée de son propre blason sculpté et de sa propre identité visuelle.
+  * **Carte du Monde Pangaea Interactive** : Une frise géologique complète reliant **13 Ères** (du Cambrien à l'Apogée de l'Extinction), chacune dotée de son propre blason et de dangers environnementaux dédiés.
   * **Niveaux d'Ère par Vagues (Style Beat'em up / Melee)** : Chaque ère est un niveau complet avec essaims d'ennemis de l'époque (Trilobites, Archosaures, Raptors de cendre, Loups du blizzard), plateformes aériennes 3D et geysers hydrothermaux servant de tremplins verticaux de projection.
   * **Boss Titans Colossaux** : À l'apogée de chaque ère, affrontez un titan colossal sur mesure doté d'une gigantesque barre de vie, d'attaques de zone dévastatrices (jets d'acide, foudre sismique, météores, stalagmites) et d'un mode *Enrage* déclenché sous la barre des 40% de PV !
   * **Système de Récompenses & Déblocages Permanents** : Chaque victoire d'ère débloque de nouveaux combattants et de nouvelles arènes thématiques (sauvegarde persistante en `localStorage`).
@@ -65,25 +65,27 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 
 | Action | Touche(s) Clavier |
 | :--- | :--- |
-| **Déplacement Gauche / Droite** | <kbd>Q</kbd> / <kbd>D</kbd> ou <kbd>A</kbd> / <kbd>D</kbd> |
-| **Saut** | <kbd>Z</kbd> ou <kbd>W</kbd> |
-| **Garde / Accroupi** | <kbd>S</kbd> (réduit les dégâts reçus de 78%) |
-| **Dash Rapide (Gauche / Droite)** | <kbd>E</kbd> (avec Gauche/Droite) ou Double-pression directionnelle (<kbd>A</kbd><kbd>A</kbd> / <kbd>D</kbd><kbd>D</kbd>) |
-| **Attaque Légère** | <kbd>F</kbd> ou <kbd>J</kbd> |
-| **Attaque Lourde** | <kbd>G</kbd> ou <kbd>K</kbd> |
-| **Attaque Spéciale 1** | <kbd>H</kbd> ou <kbd>L</kbd> |
-| **Attaque Spéciale 2 (Ultra)** | <kbd>T</kbd> ou <kbd>U</kbd> |
-| **X-Ray / Fatalité** | <kbd>R</kbd> ou <kbd>Espace</kbd> (X-Ray à 100% de Rage / Fatalité immédiate lors de *"Achevez-le !"*) |
-| **Pause / Menu Options en Match** | <kbd>Échap</kbd> (Escape) ou <kbd>P</kbd> |
+| **Déplacement Gauche / Droite** | <kbd>Q</kbd> / <kbd>D</kbd> ou <kbd>A</kbd> / <kbd>D</kbd> (et <kbd>⬅</kbd> / <kbd>➡</kbd> en mode 1P) |
+| **Visée Haute / Basse (Modificateur)** | Maintenir <kbd>Z</kbd> / <kbd>W</kbd> (Haut) ou <kbd>S</kbd> (Bas), ou <kbd>⬆</kbd> / <kbd>⬇</kbd> en 1P |
+| **Saut** | <kbd>Espace</kbd> |
+| **Garde / Parade** | <kbd>Shift Gauche</kbd> ou <kbd>S</kbd> |
+| **Dash Rapide (Gauche / Droite)** | <kbd>E</kbd> (dans la direction) ou Double-pression (<kbd>A</kbd><kbd>A</kbd> / <kbd>Q</kbd><kbd>Q</kbd> / <kbd>D</kbd><kbd>D</kbd>) |
+| **Attaque Directionnelle (Normale / Haute / Basse)** | <kbd>F</kbd> ou <kbd>J</kbd> (+ Haut/Bas pour varier la frappe) |
+| **Attaque Spéciale** | <kbd>H</kbd> ou <kbd>L</kbd> |
+| **X-Ray / Fatalité** | <kbd>R</kbd> (X-Ray à 100% de Rage / Fatalité lors de *"Achevez-le !"*) |
+| **Pause / Menu Options en Match** | <kbd>Échap</kbd> (Escape) |
 
 ### Joueur 2 (1 vs 1 Local)
 
 | Action | Touche(s) Clavier |
 | :--- | :--- |
-| **Déplacement / Saut / Garde** | Flèches directionnelles <kbd>⬅</kbd> <kbd>⬆</kbd> <kbd>⬇</kbd> <kbd>➡</kbd> |
-| **Dash Rapide (Gauche / Droite)** | Pavé numérique <kbd>6</kbd> (avec Flèches) ou Double-pression <kbd>⬅</kbd><kbd>⬅</kbd> / <kbd>➡</kbd><kbd>➡</kbd> |
-| **Attaques (Léger / Lourd / Spéciaux)** | Pavé numérique <kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>, <kbd>4</kbd> ou <kbd>I</kbd>, <kbd>O</kbd>, <kbd>P</kbd>, <kbd>[</kbd> |
-| **X-Ray / Fatalité** | Pavé numérique <kbd>5</kbd> ou <kbd>Entrée</kbd> |
+| **Déplacement Gauche / Droite** | <kbd>⬅</kbd> / <kbd>➡</kbd> |
+| **Saut** | Pavé numérique <kbd>8</kbd> |
+| **Garde** | Pavé numérique <kbd>5</kbd> ou <kbd>K</kbd> |
+| **Dash Rapide** | Pavé numérique <kbd>6</kbd> ou Double-pression <kbd>⬅</kbd><kbd>⬅</kbd> / <kbd>➡</kbd><kbd>➡</kbd> |
+| **Attaque** | Pavé numérique <kbd>1</kbd> ou <kbd>I</kbd> |
+| **Attaque Spéciale** | Pavé numérique <kbd>2</kbd> ou <kbd>O</kbd> |
+| **X-Ray / Fatalité** | Pavé numérique <kbd>0</kbd> ou <kbd>M</kbd> |
 
 ### Navigation dans le Menu Pause
 
@@ -102,32 +104,32 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 | 1 | **T-Rex** | De base | Apex Carnivore | Morsure Sismique • Rugissement Magma | *Dévoration Royale* |
 | 2 | **Pachyrhinosaure** | De base | Bélier Blindé | Charge Boréale • Cornes Sismiques | *Impact Crânien Polaire* |
 | 3 | **Ankylosaure** | De base | Forteresse Vivante | Marteau d'Os • Bouclier d'Écailles | *Brise-Fossile* |
-| 4 | **Apatosaure** | Ère 3 | Titan Sismique | Écrasement Colossal • Coup de Fouet Caudal | *Onde d'Extinction* |
+| 4 | **Apatosaure** | Ère 8 | Titan Sismique | Écrasement Colossal • Coup de Fouet Caudal | *Onde d'Extinction* |
 | 5 | **Maiasaura** | De base | Protectrice Féroce | Ruade Maternelle • Balayage Protecteur | *Furie du Nid* |
-| 6 | **Oiseau de Terreur** | De base | Faucheur Véloce | Piqué Mortel • Griffes Tranchantes | *Assaut Aviaire* |
-| 7 | **Postosuchus** | Ère 2 | Archosaurien Carnassier | Morsure Basse • Charge Reptilienne | *Déchirement des Marais* |
+| 6 | **Oiseau de Terreur** | Ère 10 | Faucheur Véloce | Piqué Mortel • Griffes Tranchantes | *Assaut Aviaire* |
+| 7 | **Postosuchus** | Ère 7 | Archosaurien Carnassier | Morsure Basse • Charge Reptilienne | *Déchirement des Marais* |
 | 8 | **Spinosaure** | De base | Léviathan du Crétacé | Lame Dorsale • Geyser Aquatique | *Tranchant Abyssal* |
-| 9 | **Thérizinosaure** | Ère 4 | Faucheuse Préhistorique | Faucilles Acérées • Valse Sanglante | *Moisson Funeste* |
-| 10 | **Pulmonoscorpius** | De base | Scorpion Primordial | Dard Empoisonné • Étreinte Venimeuse | *Piqûre Neurotoxique* |
+| 9 | **Thérizinosaure** | Ère 9 | Faucheuse Préhistorique | Faucilles Acérées • Valse Sanglante | *Moisson Funeste* |
+| 10 | **Pulmonoscorpius** | Ère 5 | Scorpion Primordial | Dard Empoisonné • Étreinte Venimeuse | *Piqûre Neurotoxique* |
 | 11 | **Stégosaure** | De base | Sentinelle à Plaques | Thagomizer • Balayage d'Épines | *Empalement Dorsal* |
 | 12 | **Quetzalcoatlus** | De base | Monarque Céleste | Piqué Supersonique • Rafale de Tempête | *Chute Céleste* |
-| 13 | **Mégathérium** | De base | Colosse Paresseux | Coup de Griffe Brutal • Écrasement Tellurique | *Pilonnage Géant* |
+| 13 | **Mégathérium** | Ère 11 | Colosse Paresseux | Coup de Griffe Brutal • Écrasement Tellurique | *Pilonnage Géant* |
 | 14 | **Anomalocaris** | Ère 1 | Super-Prédateur Radiodonte | Vortex Hydro-Sismique • Broyeur Raptorial | *Broyage Abyssal de Peytoia* |
-| 15 | **Smilodon** | Ère 5 | Tigre à Dents de Sabre | Bond Prédateur • Morsure Mortelle | *Égorgement Fatal* |
-| 16 | **Drak'Zul** | Ère 6 | Boss Suprême / Dragon Titan | Souffle Infernal • Cataclysme Éruptif | *Incinération Suprême* |
+| 15 | **Smilodon** | Ère 12 | Tigre à Dents de Sabre | Bond Prédateur • Morsure Mortelle | *Égorgement Fatal* |
+| 16 | **Drak'Zul** | Ère 13 | Boss Suprême / Dragon Titan | Souffle Infernal • Cataclysme Éruptif | *Incinération Suprême* |
 
 ---
 
 ## 🏟️ Arènes 3D Disponibles (8 Décors)
 
-1. **🌊 Récif Abyssal du Cambrien** *(Ère 1 — Cambrien)* : Fonds marins primordiaux aux coraux bioluminescents, plateformes rocheuses surélevées et geysers hydrothermaux propulsant les combattants dans les airs.
-2. **⚡ Canyon de l'Orage Primordial** *(Ère 2 — Trias)* : Colonnes basaltiques monumentales, pluie torrentielle et tempêtes d'éclairs foudroyants.
-3. **🌿 Vallée d'Émeraude** *(Ère 3 — Jurassique)* : Jungle luxuriante dense avec fougères colossales, cascades et canopée préhistorique.
-4. **🌋 Cratère du Chicxulub** *(Ère 4 — Crétacé)* : Lave en fusion, météores incandescents et sol sismique instable prêt à s'effondrer.
-5. **❄️ Glacier de l'Ère Glaciaire** *(Ère 5 — Cénozoïque)* : Blizzard de flocons en 3D, pics de glace cristallins, ossements de mammouths et aurore boréale polaire.
-6. **🐲 L'Antre Infernale de Drak'Zul** *(Ère 6 — Extinction Apex)* : Caldera volcanique apocalyptique sous un ciel incandescent, arène ultime de l'épreuve de survie.
-7. **🏛️ Citadelle Céleste d'Os** : Arches thoraciques gigantesques de titanaures et aurores astrales mystiques.
-8. **🍄 Abysse Fongique Toxique** : Champignons géants bioluminescents et vapeurs suffocantes d'acide primordial.
+1. **🌋 Cratère du Chicxulub** *(De base)* : Lave en fusion, météores incandescents et sol sismique instable.
+2. **🏛️ Citadelle Céleste d'Os** *(De base)* : Arches thoraciques gigantesques de titanosaures et aurores astrales mystiques.
+3. **🌊 Récif Abyssal du Cambrien** *(Déblocable — Ère 1)* : Fonds marins primordiaux aux coraux bioluminescents, plateformes rocheuses surélevées et geysers hydrothermaux.
+4. **🍄 Abysse Fongique Toxique** *(Déblocable — Ère 5)* : Champignons géants bioluminescents et vapeurs d'acide primordial.
+5. **⚡ Canyon de l'Orage Primordial** *(Déblocable — Ère 7)* : Colonnes basaltiques monumentales, pluie torrentielle et tempêtes d'éclairs foudroyants.
+6. **🌿 Vallée d'Émeraude** *(Déblocable — Ère 8)* : Jungle luxuriante dense avec fougères colossales, cascades et canopée jurassique.
+7. **❄️ Glacier de l'Ère Glaciaire** *(Déblocable — Ère 12)* : Blizzard de flocons en 3D, pics de glace cristallins, ossements et aurore boréale polaire.
+8. **🐲 L'Antre de Drak'Zul** *(Déblocable — Ère 13)* : Caldera volcanique apocalyptique sous un ciel incandescent, arène ultime de l'Extinction.
 
 ---
 
@@ -211,7 +213,7 @@ ExtinctionFighter/
     ├── menus/                 # Composants d'interface utilisateur (UI)
     │   ├── header.js          # Barre d'en-tête & Menu Pause complet en bas-relief sculpté
     │   ├── main-menu.js       # Écran d'accueil principal (1P Campagne / IA, 2P 1v1)
-    │   ├── campaign-map.js    # Carte de Campagne interactive Pangaea à travers les 6 ères
+    │   ├── campaign-map.js    # Carte de Campagne interactive Pangaea à travers les 13 ères
     │   ├── select-screen.js   # Écran de sélection des combattants avec aperçus 3D tournants
     │   ├── arena-chooser.js   # Écran de choix d'arène avec vue 3D dynamique
     │   ├── settings-modal.js  # Stèle néolithique des réglages (Vidéo, Audio, Gameplay, Contrôles)

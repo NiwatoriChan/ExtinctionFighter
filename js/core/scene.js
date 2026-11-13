@@ -20,25 +20,32 @@ window.addEventListener('resize', () => {
 // Gestion des paramètres graphiques (Faible / Moyen / Élevé / Ultra)
 function applyGraphicsSettings(quality) {
     graphicsQuality = quality;
-    localStorage.setItem('ek3d_graphics_quality', quality);
+    try { localStorage.setItem('ek3d_graphics_quality', quality); } catch (_) {}
+
+    const scaleMult = (typeof window !== 'undefined' && typeof window.renderScaleMultiplier === 'number')
+        ? Math.max(0.5, Math.min(1.0, window.renderScaleMultiplier))
+        : 1.0;
+    const shadowsAllowed = (typeof window === 'undefined' || window.shadowMapsEnabled !== false);
+    const bloomAllowed = (typeof window === 'undefined' || window.bloomGlowEnabled !== false);
 
     if (battleRenderer) {
         if (quality === 'low') {
-            battleRenderer.setPixelRatio(1);
+            battleRenderer.setPixelRatio(Math.max(0.5, 1 * scaleMult));
             battleRenderer.shadowMap.enabled = false;
         } else if (quality === 'medium') {
-            battleRenderer.setPixelRatio(1.25);
-            battleRenderer.shadowMap.enabled = true;
+            battleRenderer.setPixelRatio(Math.max(0.5, 1.25 * scaleMult));
+            battleRenderer.shadowMap.enabled = shadowsAllowed;
             battleRenderer.shadowMap.type = THREE.BasicShadowMap;
         } else if (quality === 'high') {
-            battleRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-            battleRenderer.shadowMap.enabled = true;
+            battleRenderer.setPixelRatio(Math.max(0.5, Math.min(window.devicePixelRatio || 1, 1.75) * scaleMult));
+            battleRenderer.shadowMap.enabled = shadowsAllowed;
             battleRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
         } else if (quality === 'ultra') {
-            battleRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
-            battleRenderer.shadowMap.enabled = true;
+            battleRenderer.setPixelRatio(Math.max(0.5, Math.min(window.devicePixelRatio || 1, 2.0) * scaleMult));
+            battleRenderer.shadowMap.enabled = shadowsAllowed;
             battleRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
         }
+        battleRenderer.toneMappingExposure = bloomAllowed ? 1.12 : 0.92;
         battleRenderer.shadowMap.needsUpdate = true;
     }
 }
@@ -250,8 +257,11 @@ function renderBattle3D(now) {
         focusY = 2.1 + midY * 0.75;
     }
 
-    const shakeX = (Math.random() - 0.5) * screenShake;
-    const shakeY = (Math.random() - 0.5) * screenShake;
+    const shakeMult = (typeof window !== 'undefined' && typeof window.screenShakeMultiplier === 'number')
+        ? Math.max(0, window.screenShakeMultiplier)
+        : 1.0;
+    const shakeX = (Math.random() - 0.5) * screenShake * shakeMult;
+    const shakeY = (Math.random() - 0.5) * screenShake * shakeMult;
 
     const camX = focusX + Math.sin(camOrbit.yaw) * targetDist + shakeX;
     const camZ = Math.cos(camOrbit.yaw) * targetDist;

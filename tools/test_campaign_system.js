@@ -58,22 +58,25 @@ global.sfx = {
     playCooldownWarning: () => {}
 };
 
+const vm = require('vm');
 global.window = global;
-global.unlockFighter = (id) => { localStorage.setItem('ek3d_unlocked_' + id, 'true'); };
-global.unlockArena = (id) => { localStorage.setItem('ek3d_unlocked_arena_' + id, 'true'); };
 
-// Load campaign-level.js
-const campaignLevelCode = fs.readFileSync(path.join(__dirname, '../js/core/campaign-level.js'), 'utf8');
-eval(campaignLevelCode);
+// Load registry.js, all js/campaign/*.js level files, and campaign-level.js
+vm.runInThisContext(fs.readFileSync(path.join(__dirname, '../js/core/registry.js'), 'utf8'));
+const campaignDir = path.join(__dirname, '../js/campaign');
+fs.readdirSync(campaignDir).filter(f => f.endsWith('.js')).sort().forEach(file => {
+    vm.runInThisContext(fs.readFileSync(path.join(campaignDir, file), 'utf8'));
+});
+vm.runInThisContext(fs.readFileSync(path.join(__dirname, '../js/core/campaign-level.js'), 'utf8'));
 
 // 3. Verify CAMPAIGN_ERAS
-if (!CAMPAIGN_ERAS || CAMPAIGN_ERAS.length !== 6) {
-    throw new Error(`Expected 6 CAMPAIGN_ERAS, found ${CAMPAIGN_ERAS ? CAMPAIGN_ERAS.length : 0}`);
+if (!CAMPAIGN_ERAS || CAMPAIGN_ERAS.length !== 13) {
+    throw new Error(`Expected 13 CAMPAIGN_ERAS, found ${CAMPAIGN_ERAS ? CAMPAIGN_ERAS.length : 0}`);
 }
-console.log(`[PASS] Verified 6 Campaign Eras in CAMPAIGN_ERAS array.`);
+console.log(`[PASS] Verified 13 Campaign Eras & Sub-Eras in CAMPAIGN_ERAS array.`);
 
 CAMPAIGN_ERAS.forEach(era => {
-    if (!era.id || !era.name || !era.logo || !era.reward || !era.waves) {
+    if (!era.id || !era.name || !era.logo || !era.reward || !era.waves || !era.hazard) {
         throw new Error(`Incomplete era data for era ${era.id}`);
     }
     if (era.waves.length !== 3) {
@@ -83,7 +86,7 @@ CAMPAIGN_ERAS.forEach(era => {
     if (!bossWave.isBoss || !bossWave.bossName || !bossWave.bossTitle) {
         throw new Error(`Invalid boss wave definition in era ${era.id}`);
     }
-    console.log(`[PASS] Era ${era.id} (${era.name}): Wave 1 (${era.waves[0].name}), Wave 2 (${era.waves[1].name}), Boss (${bossWave.bossName} - ${bossWave.bossTitle})`);
+    console.log(`[PASS] Era ${era.id} (${era.name}): Wave 1 (${era.waves[0].name}), Wave 2 (${era.waves[1].name}), Boss (${bossWave.bossName}) | Hazard: ${era.hazard.id}`);
     console.log(`       Reward: Fighter [${era.reward.fighterName}], Arena [${era.reward.arenaName}]`);
 });
 
@@ -95,35 +98,30 @@ if (isEraUnlocked(2)) throw new Error("Era 2 should be locked initially");
 if (isEraCleared(1)) throw new Error("Era 1 should not be cleared initially");
 console.log("[PASS] Initial state: Era 1 unlocked, Era 2 locked.");
 
-// Clear Era 1
-clearEraProgress(1);
-if (!isEraCleared(1)) throw new Error("Era 1 should be marked cleared");
-if (!isEraUnlocked(2)) throw new Error("Era 2 should be unlocked after clearing Era 1");
+// Clear Eras 1 to 13
+for (let id = 1; id <= 13; id++) {
+    clearEraProgress(id);
+    if (!isEraCleared(id)) throw new Error(`Era ${id} should be marked cleared`);
+    if (id < 13 && !isEraUnlocked(id + 1)) throw new Error(`Era ${id + 1} should be unlocked after clearing Era ${id}`);
+}
 if (localStorage.getItem('ek3d_unlocked_anomalocaris') !== 'true') {
     throw new Error("Anomalocaris should be unlocked after Era 1");
 }
-if (localStorage.getItem('ek3d_unlocked_arena_cambrian') !== 'true') {
-    throw new Error("Cambrian arena should be unlocked after Era 1");
+if (localStorage.getItem('ek3d_unlocked_pulmonoscorpius') !== 'true') {
+    throw new Error("Pulmonoscorpius should be unlocked after Era 5 (Carboniferous)");
 }
-console.log("[PASS] Era 1 cleared: Unlocked Era 2 + Anomalocaris Boss Character + Cambrian Abyss Arena!");
-
-// Clear Era 2
-clearEraProgress(2);
-if (!isEraUnlocked(3)) throw new Error("Era 3 should be unlocked after clearing Era 2");
-if (localStorage.getItem('ek3d_unlocked_postosuchus') !== 'true') {
-    throw new Error("Postosuchus should be unlocked after Era 2");
+if (localStorage.getItem('ek3d_unlocked_terabird') !== 'true') {
+    throw new Error("Terror Bird should be unlocked after Era 10 (Paleogene)");
 }
-console.log("[PASS] Era 2 cleared: Unlocked Era 3 + Postosuchus + Storm Arena!");
-
-// Clear remaining eras
-clearEraProgress(3);
-clearEraProgress(4);
-clearEraProgress(5);
-clearEraProgress(6);
-if (!isEraCleared(6)) throw new Error("Era 6 should be marked cleared");
+if (localStorage.getItem('ek3d_unlocked_giantsloth') !== 'true') {
+    throw new Error("Megatherium should be unlocked after Era 11 (Neogene)");
+}
+if (localStorage.getItem('ek3d_unlocked_smilodon') !== 'true') {
+    throw new Error("Smilodon should be unlocked after Era 12 (Quaternary)");
+}
 if (localStorage.getItem('ek3d_unlocked_dragon') !== 'true') {
-    throw new Error("Dragon should be unlocked after Era 6");
+    throw new Error("Dragon should be unlocked after Era 13");
 }
-console.log("[PASS] All 6 Eras cleared successfully! Drak'Zul playable dragon unlocked!");
+console.log("[PASS] All 13 Eras & Sub-Eras cleared successfully! All champions & arenas unlocked!");
 
 console.log("\n=== ALL TEST CHECKS PASSED PERFECTLY! ===");
