@@ -111,36 +111,22 @@ registerFighter({
 }, {
     animBaseHipsY: 1.25,
 
-    onSpecial1(attacker, defender, dist, basePow) {
+    onSpecial(attacker, defender, dist, basePow) {
         if (typeof sfx !== 'undefined' && sfx.playWhoosh) sfx.playWhoosh();
         if (typeof spawn3DProjectile === 'function') {
-            const facing = attacker.facing || 1;
-            spawn3DProjectile({
-                owner: attacker,
-                x: attacker.x + facing * 1.5,
-                y: (attacker.y || 0) + 1.2,
-                vx: facing * 15.0,
-                vy: 0,
-                damage: basePow * 1.25,
-                hitRadius: 1.2,
-                color: '#22d3ee',
-                type: 'hydro',
-                maxDist: 22.0
-            });
+            spawn3DProjectile(attacker, 'hydro');
         }
     },
 
     onSpecial2(attacker, defender, dist, basePow) {
-        if (dist < 2.6) {
+        if (defender && dist < 2.8 && (typeof isWithinVerticalHitBand !== 'function' || isWithinVerticalHitBand(attacker, defender, 2.2, 1.8))) {
             if (typeof sfx !== 'undefined' && sfx.playHit) sfx.playHit(true);
             if (typeof spawnHitSparks3D === 'function') {
                 spawnHitSparks3D(defender.x, (defender.y || 0) + 1.2, true);
             }
-            if (typeof spawnFloatingPopup === 'function') {
-                spawnFloatingPopup(defender.x, '🦞 ÉTREINTE RAPTORIALE !', '#22d3ee');
-            }
-            defender.takeDamage(basePow * 1.45, (attacker.facing || 1) * 6.5, 4.5);
-            defender.hitStun = 0.55;
+            applyDamage(attacker, defender, Math.round(basePow * 1.25), true, '🦞 ÉTREINTE RAPTORIALE !');
+        } else {
+            attacker.vx = (attacker.facing || 1) * 16;
         }
     },
 
@@ -405,15 +391,6 @@ registerFighter({
         rig.specialParts.eyeStalks = eyeStalks;
         rig.specialParts.raptorialClaws = raptorialClaws;
         rig.specialParts.mouthGroup = mouthGroup;
-    },
-
-    buildGeometry(rig, primaryColor, secondaryColor, accentColor) {
-        return this.buildRig({
-            hips: rig.hips,
-            rig,
-            skin: { primary: primaryColor, secondary: secondaryColor, accent: accentColor },
-            skinMeshes: rig.skinMeshes
-        });
     },
 
     animateIdle(ctx) {

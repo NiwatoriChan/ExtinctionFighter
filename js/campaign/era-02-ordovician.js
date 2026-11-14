@@ -9,7 +9,7 @@ registerCampaignEra({
     subtitle: 'LE RÈGNE DES CÉPHALOPODES GÉANTS',
     periodYears: '485 - 444 Ma',
     logo: 'assets/ui/era_logos/era_1_paleozoic.png',
-    arenaId: 'cambrian',
+    arenaId: 'swamp',
     themeColor: '#0284c7',
     mapX: 16,
     mapY: 46,
@@ -24,9 +24,9 @@ registerCampaignEra({
         fighterName: 'Maiasaura (Maîtrise Abyssale)',
         fighterRole: 'Championne des Récifs Anciens',
         fighterPortrait: 'assets/portraits/maiasaura.png',
-        arenaId: 'cambrian',
-        arenaName: 'Fosse de l\'Ordovicien',
-        arenaDesc: 'Récifs profonds balayés par de violents courants marins'
+        arenaId: 'swamp',
+        arenaName: 'Lagune Abyssale de l\'Ordovicien',
+        arenaDesc: 'Eaux troubles balayées par de violents courants marins'
     },
     waves: [
         {
@@ -41,7 +41,7 @@ registerCampaignEra({
             speed: 6.4,
             scale: 0.62,
             color: 0x0ea5e9,
-            baseDino: 'anomalocaris'
+            baseDino: 'postosuchus'
         },
         {
             waveNum: 2,
@@ -51,7 +51,7 @@ registerCampaignEra({
             count: 2,
             enemyType: 'eurypterid',
             enemyDisplayName: 'Megalograptus Blindé',
-            hp: 400,
+            hp: 360,
             speed: 6.5,
             scale: 0.85,
             color: 0x0369a1,
@@ -69,7 +69,7 @@ registerCampaignEra({
             scale: 1.48,
             color: 0x1e3a8a,
             accentColor: 0x38bdf8,
-            baseDino: 'anomalocaris',
+            baseDino: 'spinosaurus',
             signatureMove: 'Propulsion d\'Encre & Étreinte Tentaculaire',
             phase2Desc: 'À 50% PV : salves d\'encre noire et courants accélérés !',
             specialMoves: ['ink_barrage', 'tentacle_sweep', 'jet_ram']

@@ -1,4 +1,4 @@
-// Automated Gameplay Playtest Simulation for all 6 Extinction Kombat 3D Eras
+// Automated Gameplay Playtest Simulation for all 13 Extinction Kombat 3D Eras
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -41,7 +41,15 @@ const mockElements = {
 };
 
 global.document = {
-    getElementById: (id) => mockElements[id] || { classList: { add: () => {}, remove: () => {} }, style: {}, innerHTML: '', textContent: '', remove: () => {}, addEventListener: () => {} },
+    getElementById: (id) => mockElements[id] || { classList: { add: () => {}, remove: () => {} }, style: {}, innerHTML: '', textContent: '', appendChild: () => {}, remove: () => {}, addEventListener: () => {} },
+    createElement: () => ({
+        className: '',
+        style: {},
+        innerHTML: '',
+        isConnected: true,
+        querySelector: () => ({ style: {}, textContent: '' }),
+        remove: () => {}
+    }),
     body: { insertAdjacentHTML: () => {} }
 };
 

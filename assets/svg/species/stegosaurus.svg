@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_stegosaurus" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#114b29"/>
+      <stop offset="45%" stop-color="#22b357"/>
+      <stop offset="100%" stop-color="#9cf4bc"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_stegosaurus" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ff5400"/>
+      <stop offset="100%" stop-color="#1a6838"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Stegosaurus stenops -->
+  <g id="layer-body-side">
+    <path d="M 270,340 C 310,190 470,135 615,175 C 725,205 780,275 825,295 C 855,310 855,355 815,375 C 715,405 445,420 295,380 Z" fill="url(#bodyGrad_stegosaurus)" stroke="#114b29" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 820,295 C 865,280 925,295 955,320 C 962,334 948,348 915,350 L 825,342 Z" fill="#22b357" stroke="#114b29" stroke-width="4"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 275,335 C 205,325 135,295 62,285 L 55,315 C 128,332 200,362 285,375 Z" fill="#1a6838" stroke="#114b29" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <path d="M 340,245 L 325,145 L 385,120 L 415,215 Z" fill="#ff5400" fill-opacity="0.82" stroke="#114b29" stroke-width="3"/>
+    <path d="M 425,205 L 415,75 L 488,52 L 512,185 Z" fill="#ff5400" fill-opacity="0.82" stroke="#114b29" stroke-width="3"/>
+    <path d="M 520,185 L 522,50 L 598,42 L 608,185 Z" fill="#ff5400" fill-opacity="0.82" stroke="#114b29" stroke-width="3"/>
+    <path d="M 615,192 L 635,78 L 702,88 L 692,215 Z" fill="#ff5400" fill-opacity="0.82" stroke="#114b29" stroke-width="3"/>
+    <path d="M 702,225 L 732,145 L 778,162 L 758,248 Z" fill="#ff5400" fill-opacity="0.82" stroke="#114b29" stroke-width="3"/>
+    <path d="M 85,290 L 22,225 L 112,285 Z" fill="#ff5400" fill-opacity="0.82" stroke="#114b29" stroke-width="3"/>
+    <path d="M 118,302 L 62,235 L 146,298 Z" fill="#ff5400" fill-opacity="0.82" stroke="#114b29" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 265,500 C 325,385 480,355 625,385 C 735,412 795,455 820,500 C 795,545 735,588 625,615 C 480,645 325,615 265,500 Z" fill="#22b357" fill-opacity="0.28" stroke="#ff5400" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

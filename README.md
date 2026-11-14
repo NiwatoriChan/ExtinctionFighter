@@ -13,10 +13,10 @@
 
 ## 🌟 Points Forts du Jeu
 
-* **🦖 16 Combattants Préhistoriques (7 de base + 9 Déblocables)** :
-  * **7 colosses disponibles dès le départ** (*T-Rex*, *Pachyrhinosaure*, *Ankylosaure*, *Maiasaura*, *Spinosaure*, *Stégosaure*, *Quetzalcoatlus*).
-  * **9 Combattants Déblocables en Campagne** à travers les ères géologiques : **Anomalocaris** (Ère 1), **Pulmonoscorpius** (Ère 5), **Postosuchus** (Ère 7), **Apatosaure** (Ère 8), **Thérizinosaure** (Ère 9), **Oiseau de Terreur** (Ère 10), **Mégathérium** (Ère 11), **Smilodon** (Ère 12) et le dragon titanesque **Drak'Zul** (Ère 13, jouable une fois terrassé).
-  * Rigs 3D articulés haute fidélité (modèle biomécanique pour le T-Rex, envergure aérienne pour le Quetzalcoatlus, appendices raptoriaux articulés pour l'Anomalocaris).
+* **🦖 16 Combattants Préhistoriques (3 de base + 13 Déblocables — v0.3.0)** :
+  * **3 colosses disponibles dès le départ** (*T-Rex*, *Stégosaure*, *Quetzalcoatlus*).
+  * **13 Combattants Déblocables en Campagne** à travers les ères géologiques : **Anomalocaris** (Ère 1), **Maiasaura** (Ère 2), **Ankylosaure** (Ère 3), **Spinosaure** (Ère 4), **Pulmonoscorpius** (Ère 5), **Pachyrhinosaure** (Ère 6), **Postosuchus** (Ère 7), **Apatosaure** (Ère 8), **Thérizinosaure** (Ère 9), **Oiseau de Terreur** (Ère 10), **Mégathérium** (Ère 11), **Smilodon** (Ère 12) et le dragon titanesque **Drak'Zul** (Ère 13, jouable une fois terrassé).
+  * **Pipeline 3D Blender & PBR (v0.3.0)** : Modèles 3D `.glb` dédiés générés sous Blender (`assets/models/fighters/`) avec textures PBR albedo/bump (`assets/textures/fighters/`), plans vectoriels SVG (`assets/svg/`), et fallback procédural Three.js haute fidélité.
 * **🗺️ Nouveau Mode Campagne — *L'Odyssée des Ères*** :
   * **Carte du Monde Pangaea Interactive** : Une frise géologique complète reliant **13 Ères** (du Cambrien à l'Apogée de l'Extinction), chacune dotée de son propre blason et de dangers environnementaux dédiés.
   * **Niveaux d'Ère par Vagues (Style Beat'em up / Melee)** : Chaque ère est un niveau complet avec essaims d'ennemis de l'époque (Trilobites, Archosaures, Raptors de cendre, Loups du blizzard), plateformes aériennes 3D et geysers hydrothermaux servant de tremplins verticaux de projection.
@@ -32,7 +32,7 @@
   * **Nouveau Menu des Paramètres (Settings)** : Stèle monolithique en pierre sculptée sur fond préhistorique thématique avec 4 onglets dédiés (*Vidéo*, *Audio*, *Gameplay*, *Contrôles*), curseurs en os sculpté avec crânes de raptors lumineux, sélecteur Plein Écran / Fenêtré, ajustement précis du mixage sonore (Master, SFX, Musique) et interrupteurs bascule pour le Gore/Sang, les secousses d'écran et les vibrations.
   * **Nouveau Menu Pause Cinématographique** : Plaque de titre sculptée en pierre néolithique, fond assombri avec particules de braises incandescentes flottantes, commandes rapides en match et prise en charge intégrale du clavier (<kbd>Échap</kbd> / <kbd>P</kbd>) et des manettes.
 * **🎮 Modes de Jeu Polyvalents** :
-  * **1 Joueur** : Campagne d'Extinction (L'Odyssée des Ères), Joueur vs IA (Novice, Normal, Brutal), et Mode Entraînement.
+  * **1 Joueur** : Campagne d'Extinction (L'Odyssée des Ères), Joueur vs IA (Facile, Normal, Difficile, Très Dur), et Mode Entraînement.
   * **2 Joueurs** : 1 vs 1 Local sur le même clavier ou à la manette USB/Bluetooth.
 
 ---
@@ -102,13 +102,13 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 | # | Combattant | Déblocage | Rôle | Attaques Spéciales | Fatalité 3D |
 | :-: | :--- | :---: | :--- | :--- | :--- |
 | 1 | **T-Rex** | De base | Apex Carnivore | Morsure Sismique • Rugissement Magma | *Dévoration Royale* |
-| 2 | **Pachyrhinosaure** | De base | Bélier Blindé | Charge Boréale • Cornes Sismiques | *Impact Crânien Polaire* |
-| 3 | **Ankylosaure** | De base | Forteresse Vivante | Marteau d'Os • Bouclier d'Écailles | *Brise-Fossile* |
+| 2 | **Pachyrhinosaure** | Ère 6 | Bélier Blindé | Charge Boréale • Cornes Sismiques | *Impact Crânien Polaire* |
+| 3 | **Ankylosaure** | Ère 3 | Forteresse Vivante | Marteau d'Os • Bouclier d'Écailles | *Brise-Fossile* |
 | 4 | **Apatosaure** | Ère 8 | Titan Sismique | Écrasement Colossal • Coup de Fouet Caudal | *Onde d'Extinction* |
-| 5 | **Maiasaura** | De base | Protectrice Féroce | Ruade Maternelle • Balayage Protecteur | *Furie du Nid* |
+| 5 | **Maiasaura** | Ère 2 | Protectrice Féroce | Ruade Maternelle • Balayage Protecteur | *Furie du Nid* |
 | 6 | **Oiseau de Terreur** | Ère 10 | Faucheur Véloce | Piqué Mortel • Griffes Tranchantes | *Assaut Aviaire* |
 | 7 | **Postosuchus** | Ère 7 | Archosaurien Carnassier | Morsure Basse • Charge Reptilienne | *Déchirement des Marais* |
-| 8 | **Spinosaure** | De base | Léviathan du Crétacé | Lame Dorsale • Geyser Aquatique | *Tranchant Abyssal* |
+| 8 | **Spinosaure** | Ère 4 | Léviathan du Crétacé | Lame Dorsale • Geyser Aquatique | *Tranchant Abyssal* |
 | 9 | **Thérizinosaure** | Ère 9 | Faucheuse Préhistorique | Faucilles Acérées • Valse Sanglante | *Moisson Funeste* |
 | 10 | **Pulmonoscorpius** | Ère 5 | Scorpion Primordial | Dard Empoisonné • Étreinte Venimeuse | *Piqûre Neurotoxique* |
 | 11 | **Stégosaure** | De base | Sentinelle à Plaques | Thagomizer • Balayage d'Épines | *Empalement Dorsal* |
@@ -125,9 +125,9 @@ Le jeu supporte le **clavier**, les **boutons tactiles arcade à l'écran**, et 
 1. **🌋 Cratère du Chicxulub** *(De base)* : Lave en fusion, météores incandescents et sol sismique instable.
 2. **🏛️ Citadelle Céleste d'Os** *(De base)* : Arches thoraciques gigantesques de titanosaures et aurores astrales mystiques.
 3. **🌊 Récif Abyssal du Cambrien** *(Déblocable — Ère 1)* : Fonds marins primordiaux aux coraux bioluminescents, plateformes rocheuses surélevées et geysers hydrothermaux.
-4. **🍄 Abysse Fongique Toxique** *(Déblocable — Ère 5)* : Champignons géants bioluminescents et vapeurs d'acide primordial.
-5. **⚡ Canyon de l'Orage Primordial** *(Déblocable — Ère 7)* : Colonnes basaltiques monumentales, pluie torrentielle et tempêtes d'éclairs foudroyants.
-6. **🌿 Vallée d'Émeraude** *(Déblocable — Ère 8)* : Jungle luxuriante dense avec fougères colossales, cascades et canopée jurassique.
+4. **🍄 Abysse Fongique Toxique** *(Déblocable — Ère 2)* : Champignons géants bioluminescents et vapeurs d'acide primordial.
+5. **⚡ Canyon de l'Orage Primordial** *(Déblocable — Ère 3)* : Colonnes basaltiques monumentales, pluie torrentielle et tempêtes d'éclairs foudroyants.
+6. **🌿 Vallée d'Émeraude** *(Déblocable — Ère 5)* : Jungle luxuriante dense avec fougères colossales, cascades et canopée jurassique.
 7. **❄️ Glacier de l'Ère Glaciaire** *(Déblocable — Ère 12)* : Blizzard de flocons en 3D, pics de glace cristallins, ossements et aurore boréale polaire.
 8. **🐲 L'Antre de Drak'Zul** *(Déblocable — Ère 13)* : Caldera volcanique apocalyptique sous un ciel incandescent, arène ultime de l'Extinction.
 
@@ -140,18 +140,31 @@ Le jeu est découpé de manière modulaire (animations par combattant, modules d
 ```text
 ExtinctionFighter/
 ├── index.html                 # Point d'entrée HTML5
+├── start.sh                   # Lanceur serveur HTTP local sans cache (WebGL & GLB)
 ├── README.md                  # Documentation complète du jeu
 ├── css/
 │   └── style.css              # Styles arcade, animations CSS & thèmes de pierre
 ├── assets/                    # Ressources graphiques & 3D
-│   ├── mockups/               # Décors de fond HD (carte de campagne, settings)
-│   ├── models/                # Modèles 3D GLTF / GLB (créatures cambriennes Blender)
+│   ├── mockups/               # Décors de fond HD (menus, carte de campagne, settings)
+│   ├── models/fighters/       # Modèles 3D GLB exportés depuis Blender (13 combattants)
 │   ├── portraits/             # Portraits haute résolution de chaque créature
+│   ├── svg/                   # Plans anatomiques, emblèmes et textures vectorielles SVG
+│   ├── textures/fighters/     # Cartes PBR albedo & bump 1024x1024 par espèce
 │   └── ui/                    # Éléments d'interface sculptés (plaques, dalles de pierre, stèles)
 ├── screenshots/               # Captures d'écran et galerie visuelle
+├── tools/                     # Pipeline Blender/SVG & suites de tests automatisés
+│   ├── blender/               # Générateurs de modèles 3D .glb par batch sous Blender
+│   ├── generate_species_svgs.py # Générateur SVG & textures PBR
+│   ├── test_glb_models.js     # Vérification des modèles .glb et de leurs os
+│   ├── test_coherence_overhaul.js # Tests unitaires moteur/UI/IA
+│   ├── test_campaign_system.js # Validation des 13 ères de campagne
+│   ├── play_campaign_levels.js # Simulation complète des niveaux de campagne
+│   ├── test_pause_functionality.js # Tests du menu Pause
+│   └── test_visual_overhaul.py # Tests visuels WebGL headless Firefox
 └── js/
     ├── libs/                  # Bibliothèques 3D, UI & IA embarquées (zéro bundler)
     │   ├── three.min.js               # Moteur WebGL 3D Three.js
+    │   ├── GLTFLoader.js              # Chargeur de modèles 3D .glb/.gltf
     │   ├── pmndrs-uikit.min.js        # Système UI 3D/Spatial & Flexbox réactif (@pmndrs/uikit + @preact/signals-core)
     │   ├── yuka.min.js                # Moteur IA Yuka (Steering, Vision, Memory, Flocking, SyncManager)
     │   ├── kompute-tactical.js        # Analyse spatiale tactique Kompute (Sweet-spot, esquive projectiles)
@@ -161,7 +174,8 @@ ExtinctionFighter/
     ├── core/                  # Moteur principal du jeu
     │   ├── registry.js        # Registre global des combattants, boss, arènes et déblocages
     │   ├── state.js           # Variables d'état, flags de progression et configuration
-    │   ├── rig.js             # Moteur de génération des squelettes 3D articulés
+    │   ├── model-loader.js    # Préchargeur GLB, cache et hydratation des rigs Blender
+    │   ├── rig.js             # Moteur de génération et hydratation des squelettes 3D articulés
     │   ├── animation.js       # Système cinématique et chargement des animations modulaires
     │   ├── scene.js           # Gestionnaire de scène 3D, caméra dynamique et rendu graphique
     │   ├── arena.js           # Constructeur d'arènes, décors 3D et extraction NavMesh
@@ -220,7 +234,6 @@ ExtinctionFighter/
     │   ├── battle-screen.js   # HUD de match, jauges de vie sculptées et barres de Rage
     │   ├── post-match.js      # Écran de fin de match et attribution des récompenses
     │   └── moves-modal.js     # Grimoire interactif des coups spéciaux et fatalités
-    ├── tools/                 # Scripts Python / Blender pour génération de modèles 3D & tests
     └── main.js                # Boucle principale (requestAnimationFrame) et cycle de vie
 ```
 
@@ -228,10 +241,13 @@ ExtinctionFighter/
 
 ## 🚀 Comment Lancer le Jeu
 
-1. **Directement dans le navigateur** :
-   Ouvrez simplement le fichier `index.html` dans n'importe quel navigateur moderne (Firefox, Chrome, Edge, Safari).
+1. **Via le script lanceur inclus** *(recommandé pour le chargement des modèles 3D `.glb` sans cache)* :
+   ```bash
+   ./start.sh
+   ```
+   *(Options utiles : `./start.sh --unlock-all` pour débloquer immédiatement les 16 combattants sur l'écran de sélection.)*
 
-2. **Via un serveur local HTTP** (recommandé pour le chargement des textures et modèles 3D GLTF) :
+2. **Via un serveur local HTTP** :
    ```bash
    # Avec Python 3
    python3 -m http.server 8080
@@ -241,12 +257,15 @@ ExtinctionFighter/
    ```
    Rendez-vous ensuite sur `http://localhost:8080`.
 
+3. **Directement dans le navigateur** :
+   Ouvrez le fichier `index.html` dans un navigateur moderne (utilise le fallback procédural Three.js si ouvert en `file://`).
+
 ---
 
 ## 📜 Technologies Utilisées
 
-* **Moteur 3D WebGL** : [Three.js](https://threejs.org/)
-* **Modélisation & Pipeline 3D** : Blender + Python pour la modélisation squelettique et export GLTF / GLB (`assets/models/cambrian_creatures_blender.glb`)
+* **Moteur 3D WebGL** : [Three.js](https://threejs.org/) (`three.min.js` + `GLTFLoader.js`)
+* **Modélisation & Pipeline 3D** : Blender + Python (`tools/blender/` & `tools/generate_species_svgs.py`) pour la génération de textures PBR, plans SVG, rigging squelettique et export `.glb` (`assets/models/fighters/`)
 * **Système UI & Composants Spatiaux** : [`@pmndrs/uikit`](https://pmndrs.github.io/uikit/) avec signaux réactifs `@preact/signals-core` et layout Flexbox Yoga-compatible
 * **Pipeline d'Intelligence Artificielle en 4 Étapes** :
   * Étape 1 : **Three-Pathfinding** (`three-pathfinding`) et **Kompute Tactical** (analyse spatiale, sweet-spotting et esquive de projectiles)

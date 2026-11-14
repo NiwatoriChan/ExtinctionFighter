@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_giantsloth" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="55%" stop-color="#a35e2c"/>
+      <stop offset="100%" stop-color="#6b3b1a"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 272,355 L 118,415 L 142,445 L 302,405 Z" fill="#6b3b1a"/>
+    <path d="M 265,375 C 285,225 415,155 555,175 C 655,195 705,275 685,375 C 625,445 355,455 265,375 Z" fill="url(#emblem_giantsloth)"/>
+    <path d="M 675,185 C 718,155 795,165 835,205 C 845,228 828,255 785,258 L 685,248 Z" fill="#a35e2c"/>
+    <path d="M 665,335 C 725,355 775,395 805,455 C 762,430 715,392 655,365 Z" fill="#fbbf24"/>
+    <path d="M 665,358 C 718,382 762,422 788,478 C 748,452 708,415 652,388 Z" fill="#fbbf24"/>
+  </g>
+</svg>

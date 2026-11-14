@@ -134,10 +134,42 @@ function executeXRayMove(attacker, defender) {
     if (xrayCinematicTimer > 0) return;
     attacker.rage = 0;
 
+    if (!defender) {
+        attacker.action = 'xray';
+        attacker.actionTimer = 0;
+        attacker.actionDuration = 0.75;
+        screenShake = 0.65;
+        sfx.playBoneCrack();
+        if (typeof spawn3DGroundShockwave === 'function') {
+            spawn3DGroundShockwave(attacker.x + attacker.facing * 1.5, 0xfef08a, 5.5, true);
+        }
+        spawn3DProjectile(attacker, 'xray_wave');
+        if (matchState === 'campaign_level' && typeof campaignActiveMinions !== 'undefined') {
+            const waveDmg = Math.round((attacker.dino.stats.pow || 150) * 2.25);
+            let hitCount = 0;
+            campaignActiveMinions.forEach(minion => {
+                if (!minion || minion.isDead) return;
+                if (Math.abs(minion.x - attacker.x) <= 9.0 && Math.abs(minion.y - attacker.y) <= 3.6) {
+                    minion.takeDamage(waveDmg, (minion.x >= attacker.x ? 1 : -1) * 14.0, 9.0, 'xray');
+                    hitCount++;
+                }
+            });
+            if (hitCount > 0 && typeof updateCampaignSmashHUD === 'function') {
+                updateCampaignSmashHUD();
+            }
+            if (typeof spawnFloatingPopup === 'function') {
+                spawnFloatingPopup(attacker.x, '☢ X-RAY : ONDE PRIMORDIALE !', '#fde047');
+            }
+        }
+        return;
+    }
+
+    const bounds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: STAGE_LEFT_3D, right: STAGE_RIGHT_3D };
     const dist = Math.abs(attacker.x - defender.x);
-    if (dist < 10.5) {
+    const sameFloor = Math.abs(attacker.y - defender.y) <= 3.2;
+    if (dist < 10.5 && sameFloor) {
         // Verrouillage complet des 2 dinosaures face à face pour toute la durée du X-Ray
-        const lockDefX = Math.max(STAGE_LEFT_3D + 3.0, Math.min(STAGE_RIGHT_3D - 3.0, defender.x));
+        const lockDefX = Math.max(bounds.left + 3.0, Math.min(bounds.right - 3.0, defender.x));
         const lockAttX = lockDefX - attacker.facing * 2.25;
         const attGroundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, lockAttX, 0) : 0;
         const defGroundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, lockDefX, 0) : 0;
@@ -242,7 +274,30 @@ function executeUnique3DFatality(winner, loser) {
     if (fighterImpl && fighterImpl.executeFatality) fighterImpl.executeFatality(winner, loser);
 }
 
+/**
+ * Vérifie si l'attaquant et le défenseur se trouvent dans la même bande verticale
+ * afin d'empêcher les coups de toucher à travers deux étages / plateformes distinctes.
+ */
+function isWithinVerticalHitBand(attacker, defender, maxAbove = 2.0, maxBelow = 1.6, allowCrossFloor = false) {
+    if (!attacker || !defender) return false;
+    const dy = (defender.y || 0) - (attacker.y || 0);
+    if (dy > maxAbove || dy < -maxBelow) return false;
+
+    if (!allowCrossFloor) {
+        const attGround = attacker.groundY !== undefined ? attacker.groundY : 0;
+        const defGround = defender.groundY !== undefined ? defender.groundY : 0;
+        const attAir = Math.abs((attacker.y || 0) - attGround);
+        const defAir = Math.abs((defender.y || 0) - defGround);
+        if (Math.abs(attGround - defGround) >= 2.1 && Math.abs((attacker.y || 0) - (defender.y || 0)) >= 1.9 && attAir <= 0.45 && defAir <= 0.45) {
+            return false;
+        }
+    }
+    return true;
+}
+window.isWithinVerticalHitBand = isWithinVerticalHitBand;
+
 function checkAttackCollision3D(attacker, defender) {
+    if (!attacker || !defender) return;
     // Invulnérabilité pendant la séquence de relevé (Wake_Up_Stand) ou Grounded_Idle
     if (defender.combatController && defender.combatController.state === CombatState.WAKE_UP_STAND) {
         spawnFloatingPopup(defender.x, '🛡️ INVULNÉRABLE (RELEVÉ) !', '#38bdf8');
@@ -259,7 +314,7 @@ function checkAttackCollision3D(attacker, defender) {
             return;
         }
         attacker.vx = attacker.facing * 22;
-        if (dist < 4.6) {
+        if (dist < 4.6 && isWithinVerticalHitBand(attacker, defender, 2.2, 1.8)) {
             applyDamage(attacker, defender, Math.round(basePow * 1.1), true, attacker.dino.special1Name.replace(' (H)', ''));
         }
         return;
@@ -293,13 +348,12 @@ function checkAttackCollision3D(attacker, defender) {
         box3Hit = boxResult.intersected;
     }
 
-    const yDiff = Math.abs(attacker.y - defender.y);
     const defAirH = defender.y - (defender.groundY || 0);
-    const inRange = (dist <= reach) || box3Hit;
+    const inRange = (dist <= reach) || (box3Hit && dist <= reach + 1.2);
 
     if (act === 'up_light') {
-        // Direction HAUT ⬆️ : Uppercut / Morsure haute ascendante (Zone HIGH)
-        if (inRange && (defAirH > 0.25 || defender.y > attacker.y + 0.35 || yDiff < 2.9)) {
+        // Direction HAUT ⬆️ : Uppercut / Morsure haute ascendante (plafond vertical strict pour ne pas traverser d'étage)
+        if (inRange && isWithinVerticalHitBand(attacker, defender, 2.9, 1.2, defAirH > 0.25)) {
             applyDamage(attacker, defender, Math.round(basePow * 0.52), false, '👆 UPPERCUT HAUT !', false, 'high');
             defender.vy = Math.max(defender.vy, 4.6);
             defender.onPlatform = null;
@@ -308,8 +362,8 @@ function checkAttackCollision3D(attacker, defender) {
     }
 
     if (act === 'anti_air') {
-        // Direction HAUT/ARRIÈRE ⬆️ : Launcher céleste (Zone HIGH)
-        if (inRange && (defAirH > 0.35 || defender.y > attacker.y + 0.35 || dist < 2.6 || box3Hit)) {
+        // Direction HAUT/ARRIÈRE ⬆️ : Launcher céleste avec portée verticale bornée
+        if (inRange && isWithinVerticalHitBand(attacker, defender, 3.2, 1.0, defAirH > 0.35)) {
             applyDamage(attacker, defender, Math.round(basePow * 0.84), true, '🚀 LAUNCHER CÉLESTE !', false, 'antiair');
             defender.onPlatform = null;
         }
@@ -318,7 +372,7 @@ function checkAttackCollision3D(attacker, defender) {
 
     if (act === 'low_light') {
         // Direction BAS ⬇️ : Balayage bas des chevilles au ras du sol (Zone LOW)
-        if (inRange && yDiff < 1.6) {
+        if (inRange && isWithinVerticalHitBand(attacker, defender, 1.4, 1.2)) {
             applyDamage(attacker, defender, Math.round(basePow * 0.46), false, '🦶 BALAYAGE BAS !', false, 'low');
         }
         return;
@@ -326,7 +380,7 @@ function checkAttackCollision3D(attacker, defender) {
 
     if (act === 'low_heavy') {
         // Direction BAS LOURD ⬇️ : Écrasement pilonnage lourd au ras du sol (Zone LOW)
-        if (inRange && yDiff < 1.7) {
+        if (inRange && isWithinVerticalHitBand(attacker, defender, 1.5, 1.3)) {
             applyDamage(attacker, defender, Math.round(basePow * 0.86), true, '💥 ÉCRASEMENT BAS !', false, 'low');
         }
         return;
@@ -334,7 +388,7 @@ function checkAttackCollision3D(attacker, defender) {
 
     if (act === 'back_light') {
         // Direction ARRIÈRE ⬅️ : Coup défensif en recul (Zone MID)
-        if (inRange && yDiff < 2.2) {
+        if (inRange && isWithinVerticalHitBand(attacker, defender, 1.9, 1.5)) {
             applyDamage(attacker, defender, Math.round(basePow * 0.44), false, '🛡️ CONTRE ARRIÈRE !', false, 'mid');
         }
         return;
@@ -342,7 +396,7 @@ function checkAttackCollision3D(attacker, defender) {
 
     if (act === 'air_light' || act === 'air_heavy') {
         // Attaque sautée plongeante : coup Overhead (Zone HIGH)
-        if (inRange && yDiff < 2.9) {
+        if (inRange && isWithinVerticalHitBand(attacker, defender, 2.2, 2.5, true)) {
             const isH = act === 'air_heavy';
             applyDamage(attacker, defender, Math.round(basePow * (isH ? 0.92 : 0.52)), isH, isH ? '🦅 DIVE HEAVY !' : '🦅 DIVE KICK !', false, 'overhead');
         }
@@ -350,7 +404,7 @@ function checkAttackCollision3D(attacker, defender) {
     }
 
     // Coups standards et frappes avancées au sol (Zone MID)
-    if (inRange && yDiff < 2.5) {
+    if (inRange && isWithinVerticalHitBand(attacker, defender, 2.0, 1.5)) {
         if (act === 'light') {
             applyDamage(attacker, defender, Math.round(basePow * 0.48), false, '', false, 'mid');
         } else if (act === 'light2') {
@@ -370,12 +424,21 @@ function special2SeismicQuake(attacker, defender, dist, basePow) {
     screenShake = 0.65;
     if (typeof spawn3DGroundShockwave === 'function') {
         spawn3DGroundShockwave(attacker.x + attacker.facing * 2.0, 0xf59e0b, 4.2, true);
-        spawn3DGroundShockwave(defender.x, 0xef4444, 3.0, true);
+        if (defender) {
+            spawn3DGroundShockwave(defender.x, 0xef4444, 3.0, true);
+        }
     }
+    if (!defender) return;
+
     spawn3DBloodAndBones(defender.x, defender.y + 0.3, 18, true);
     if (dist < 8.5) {
+        const floorDiff = Math.abs((attacker.groundY || 0) - (defender.groundY || 0));
         const defAirH = defender.y - (defender.groundY || 0);
-        // Si l'adversaire saute ou est en vol, il évite l'onde sismique !
+        // L'onde sismique se propage uniquement sur le même étage / niveau de sol !
+        if (floorDiff > 1.4 || Math.abs(attacker.y - defender.y) > 2.6) {
+            return;
+        }
+        // Si l'adversaire saute ou est en vol sur ce même étage, il évite l'onde sismique !
         if (defAirH > 0.25) {
             spawnFloatingPopup(defender.x, '🕊️ SÉISME ÉVITÉ EN VOL / SAUT !', '#38bdf8');
         } else {

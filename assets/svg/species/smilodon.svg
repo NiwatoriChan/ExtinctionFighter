@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_smilodon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#703a12"/>
+      <stop offset="45%" stop-color="#e69635"/>
+      <stop offset="100%" stop-color="#faf0dc"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_smilodon" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5c26b"/>
+      <stop offset="100%" stop-color="#b86420"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Smilodon fatalis -->
+  <g id="layer-body-side">
+    <path d="M 265,320 C 325,245 495,215 645,232 C 715,242 745,295 735,352 C 665,388 375,385 275,355 Z" fill="url(#bodyGrad_smilodon)" stroke="#703a12" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 735,218 C 778,188 848,195 888,232 C 898,255 888,288 848,292 L 745,282 Z" fill="#e69635" stroke="#703a12" stroke-width="4"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 268,318 C 215,310 185,325 162,348 L 178,364 C 205,345 232,338 272,345 Z" fill="#b86420" stroke="#703a12" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <path d="M 848,278 C 858,325 848,378 825,412 C 818,372 824,322 828,278 Z" fill="#f5c26b" fill-opacity="0.82" stroke="#703a12" stroke-width="3"/>
+    <path d="M 862,276 C 872,322 862,372 840,404 C 834,366 840,318 844,276 Z" fill="#f5c26b" fill-opacity="0.82" stroke="#703a12" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 265,500 C 335,405 505,380 655,405 C 718,422 748,462 748,500 C 748,538 718,578 655,595 C 505,620 335,595 265,500 Z" fill="#e69635" fill-opacity="0.28" stroke="#f5c26b" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

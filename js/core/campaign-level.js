@@ -614,6 +614,7 @@ class EraMinion3D {
         if (!this.root) return;
         this.root.position.set(this.x, this.y, 0);
         this.root.rotation.y = this.facing > 0 ? Math.PI / 2 : -Math.PI / 2;
+        this.updateHpBarScreenPos();
     }
 
     takeDamage(damage, knockbackX = 0, knockbackY = 0, attackAction = '') {
@@ -624,8 +625,8 @@ class EraMinion3D {
             const hitFromFront = ((fighter1.x - this.x) * this.facing) > 0;
             const isSpecialOrAir = (attackAction && (attackAction.includes('special') || attackAction === 'anti_air')) || (fighter1.y - this.y > 0.8);
             if (hitFromFront && !isSpecialOrAir) {
-                finalDmg = Math.max(15, Math.round(damage * 0.45));
-                knockbackX *= 0.4;
+                finalDmg = Math.max(15, Math.round(damage * 0.55));
+                knockbackX *= 0.45;
                 if (typeof spawnFloatingPopup === 'function') {
                     spawnFloatingPopup(this.x, '🛡️ BLINDAGE FRONTAL !', '#60a5fa');
                 }
@@ -644,13 +645,22 @@ class EraMinion3D {
         this.action = 'hit';
         this.actionTimer = 0.35;
 
-        if (this.bodyMesh && this.bodyMesh.material) {
-            this.bodyMesh.material.emissive.setHex(0xffffff);
-            setTimeout(() => {
-                if (this.bodyMesh && this.bodyMesh.material) {
-                    this.bodyMesh.material.emissive.setHex(0x000000);
+        // Flash blanc sur l'ensemble du maillage du minion (même si bodyMesh est un THREE.Group)
+        if (this.root) {
+            const flashed = [];
+            this.root.traverse(child => {
+                if (child.isMesh && child.material && child.material.emissive) {
+                    flashed.push({ mat: child.material, prev: child.material.emissive.getHex() });
+                    child.material.emissive.setHex(0xffffff);
                 }
-            }, 80);
+            });
+            if (flashed.length > 0) {
+                setTimeout(() => {
+                    flashed.forEach(entry => {
+                        if (entry.mat && entry.mat.emissive) entry.mat.emissive.setHex(entry.prev);
+                    });
+                }, 90);
+            }
         }
 
         if (typeof spawnFloatingPopup === 'function') {
@@ -659,16 +669,80 @@ class EraMinion3D {
         if (typeof spawn3DBloodAndBones === 'function') {
             spawn3DBloodAndBones(this.x, this.y + 1.0, 5, false);
         }
+        this.updateHpBarScreenPos();
 
         if (this.hp <= 0) {
             this.die();
         }
     }
 
+    ensureHpBarEl() {
+        if (this.hpBarEl && this.hpBarEl.isConnected) return this.hpBarEl;
+        const layer = document.getElementById('campaignMinionHpLayer');
+        if (!layer) return null;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'campaign-minion-hp-bar absolute -translate-x-1/2 -translate-y-full pointer-events-none flex flex-col items-center gap-0.5';
+        wrapper.style.left = '-999px';
+        wrapper.style.top = '-999px';
+        wrapper.innerHTML = `
+            <span class="minion-hp-name text-[9px] font-chakra font-black text-amber-200 uppercase tracking-wider bg-black/75 px-1.5 py-0.2 rounded border border-amber-500/40 whitespace-nowrap shadow"></span>
+            <div class="w-16 h-2 bg-stone-950/90 border border-stone-600 rounded-full overflow-hidden shadow">
+                <div class="minion-hp-fill h-full bg-gradient-to-r from-red-600 via-amber-500 to-emerald-400 transition-all duration-100" style="width:100%"></div>
+            </div>
+            <span class="minion-hp-val text-[8px] font-chakra font-bold text-stone-200 drop-shadow"></span>
+        `;
+        const nameEl = wrapper.querySelector('.minion-hp-name');
+        if (nameEl) nameEl.textContent = (this.def && this.def.name) ? this.def.name : 'ENNEMI';
+        layer.appendChild(wrapper);
+        this.hpBarEl = wrapper;
+        return wrapper;
+    }
+
+    updateHpBarScreenPos() {
+        if (this.isDead || !this.root) {
+            if (this.hpBarEl) {
+                this.hpBarEl.remove();
+                this.hpBarEl = null;
+            }
+            return;
+        }
+        const el = this.ensureHpBarEl();
+        if (!el || typeof battleCamera === 'undefined' || !battleCamera) return;
+        const container = document.getElementById('battleScreen');
+        const w = container ? container.clientWidth : window.innerWidth;
+        const h = container ? container.clientHeight : window.innerHeight;
+        if (!w || !h) return;
+
+        const headHeight = ((this.def && this.def.scale) || 0.75) * 1.9 + (this.archetype === 'aerial' ? 0.5 : 0.6);
+        const worldPos = new THREE.Vector3(this.x, (this.y || 0) + headHeight, 0);
+        worldPos.project(battleCamera);
+
+        if (worldPos.z > 1) {
+            el.style.display = 'none';
+            return;
+        }
+        el.style.display = 'flex';
+        const sx = (worldPos.x * 0.5 + 0.5) * w;
+        const sy = (-worldPos.y * 0.5 + 0.5) * h;
+        el.style.left = `${sx.toFixed(1)}px`;
+        el.style.top = `${sy.toFixed(1)}px`;
+
+        const pct = Math.max(0, Math.min(100, (this.hp / Math.max(1, this.maxHp)) * 100));
+        const fill = el.querySelector('.minion-hp-fill');
+        const val = el.querySelector('.minion-hp-val');
+        if (fill) fill.style.width = `${pct.toFixed(1)}%`;
+        if (val) val.textContent = `${Math.ceil(this.hp)} / ${this.maxHp}`;
+    }
+
     die() {
         if (this.isDead) return;
         this.isDead = true;
         this.hp = 0;
+        if (this.hpBarEl) {
+            this.hpBarEl.remove();
+            this.hpBarEl = null;
+        }
 
         sfx.playHit(true);
         if (typeof spawnHitSparks3D === 'function') {
@@ -691,6 +765,10 @@ class EraMinion3D {
     }
 
     destroy() {
+        if (this.hpBarEl) {
+            this.hpBarEl.remove();
+            this.hpBarEl = null;
+        }
         if (this.root && battleScene) {
             battleScene.remove(this.root);
         }
@@ -761,13 +839,42 @@ class EraMinion3D {
         if (this.attackCooldown > 0) this.attackCooldown -= dt;
         if (this.rangedCooldown > 0) this.rangedCooldown -= dt;
 
-        // IA spécialisée par archétype
+        // IA spécialisée par archétype (avec poursuite sur plateformes)
         if (player && !player.isDead) {
             const dx = player.x - this.x;
+            const dy = player.y - this.y;
             const dist = Math.abs(dx);
             this.facing = dx >= 0 ? 1 : -1;
 
-            if (this.archetype === 'zoning') {
+            // Poursuite verticale : sauter ou chercher le geyser / plateforme la plus proche si le joueur est en hauteur
+            if (dy > 1.75 && !this.isAirborne && this.archetype !== 'aerial') {
+                let targetJumpX = player.x;
+                let bestScore = Infinity;
+                for (const p of plats) {
+                    if (p.isJumpPad) {
+                        const s = Math.abs(p.x - this.x);
+                        if (s < bestScore) {
+                            bestScore = s;
+                            targetJumpX = p.x;
+                        }
+                    } else if (p.y > this.y + 0.4 && p.y <= this.y + 5.8) {
+                        const cx = (p.xMin + p.xMax) * 0.5;
+                        const s = Math.abs(cx - this.x) + 1.5;
+                        if (s < bestScore) {
+                            bestScore = s;
+                            targetJumpX = cx;
+                        }
+                    }
+                }
+                const jdx = targetJumpX - this.x;
+                if (Math.abs(jdx) > 0.7) {
+                    this.x += Math.sign(jdx) * this.speed * 1.1 * dt;
+                    this.action = 'walk';
+                } else {
+                    this.vy = 14.5;
+                    this.vx = Math.sign(dx || this.facing) * this.speed * 0.9;
+                }
+            } else if (this.archetype === 'zoning') {
                 // Garde ses distances et tire un projectile
                 if (dist > 6.8) {
                     this.x += Math.sign(dx) * this.speed * dt;
@@ -878,7 +985,9 @@ class EraMinion3D {
         setTimeout(() => {
             if (this.isDead || !player || player.isDead) return;
             const dist = Math.abs(player.x - this.x);
-            if (dist < 1.8 && Math.abs(player.y - this.y) < 2.2) {
+            const floorDiff = Math.abs((player.groundY || 0) - (this.groundY || 0));
+            const sameHeightBand = Math.abs(player.y - this.y) < 1.65 && (this.archetype === 'aerial' || floorDiff < 2.1);
+            if (dist < 1.85 && sameHeightBand) {
                 const dmg = (this.archetype === 'armored' ? 58 : 42) + Math.random() * 20;
                 applyDamageToPlayer(player, dmg, this.facing * 3.5, 3.0);
                 if (typeof sfx !== 'undefined' && sfx.playHit) {
@@ -1180,10 +1289,12 @@ function cleanupCampaignTransientEntities() {
         battleScene.remove(campaignSunbeamMesh);
     }
     campaignSunbeamMesh = null;
+    const hpLayer = document.getElementById('campaignMinionHpLayer');
+    if (hpLayer) hpLayer.innerHTML = '';
 }
 
 // 6. INITIALISATION ET DÉROULEMENT D'UN NIVEAU D'ÈRE SMASH MELEE
-function startCampaignEraLevel(era) {
+function startCampaignEraLevel(era, customP1Dino = null) {
     activeCampaignEra = era;
     currentCampaignWaveIdx = 0;
     campaignPlayerStocks = 3;
@@ -1209,7 +1320,7 @@ function startCampaignEraLevel(era) {
     buildArena3D(currentArena);
 
     // Initialiser le combattant du joueur (P1)
-    const p1Dino = DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0];
+    const p1Dino = customP1Dino || DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0];
     if (fighter1) fighter1.destroy();
     if (fighter2) fighter2.destroy();
 
@@ -1672,11 +1783,12 @@ function spawnEraBossMonster(bossWave) {
         baseDino = DRAGON_BOSS;
     }
 
-    // Créer une copie personnalisée du boss avec les stats épiques
+    // Créer une copie personnalisée du boss avec des PV équilibrés et épiques
+    const scaledMaxHp = Math.max(1250, Math.round((bossWave.hp || 2400) * 0.65));
     const customBossDino = Object.assign({}, baseDino, {
         name: bossWave.bossName,
         fullName: bossWave.bossTitle,
-        maxHp: bossWave.hp || 2500,
+        maxHp: scaledMaxHp,
         isBoss: true,
         primaryColor: bossWave.color,
         accentColor: bossWave.accentColor || 0xf59e0b
@@ -1692,39 +1804,92 @@ function spawnEraBossMonster(bossWave) {
         fighter2.rig.root.scale.set(fighter2.scale, fighter2.scale, fighter2.scale);
     }
 
-    // Construction du modèle 3D sur-mesure pour Anomalocaris Titan
+    // Construction / différenciation visuelle des Boss d'Ères
     if (bossWave.bossId === 'boss_anomalocaris') {
         buildAnomalocarisBossModel(fighter2, bossWave);
+    } else if (fighter2.rig && fighter2.rig.hips && bossWave.bossId !== 'boss_drakzul') {
+        const armorColor = bossWave.color || 0xf59e0b;
+        const accentMat = new THREE.MeshStandardMaterial({
+            color: armorColor,
+            emissive: bossWave.accentColor || armorColor,
+            emissiveIntensity: 0.25,
+            roughness: 0.38,
+            metalness: 0.35
+        });
+        if (bossWave.bossId === 'boss_cameroceras') {
+            const shell = new THREE.Mesh(new THREE.ConeGeometry(0.65, 2.8, 10), accentMat);
+            shell.rotation.z = Math.PI / 2;
+            shell.position.set(-1.35, 0.55, 0);
+            fighter2.rig.hips.add(shell);
+        } else if (bossWave.bossId === 'boss_dimetrodon') {
+            for (let s = -2; s <= 2; s++) {
+                const spine = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.35 - Math.abs(s) * 0.16, 0.08), accentMat);
+                spine.position.set(s * 0.35, 1.15, 0);
+                fighter2.rig.hips.add(spine);
+            }
+        } else if (bossWave.bossId === 'boss_jaekelopterus' || bossWave.bossId === 'boss_dunkleosteus') {
+            const crest = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55, 0), accentMat);
+            crest.scale.set(1.6, 0.7, 1.1);
+            crest.position.set(0.4, 0.9, 0);
+            fighter2.rig.hips.add(crest);
+        }
     }
 
     campaignBossFighter = fighter2;
 
     // Afficher la Colossale barre de vie du Boss
     showBossHealthBarUI(bossWave);
+    updateCampaignSmashHUD();
 }
 
-// 7. GESTION DU HUD SMASH MELEE (STOCKS, VAGUES, MÉCANIQUE, BARRE DE BOSS)
+// 7. GESTION DU HUD SMASH MELEE (STOCKS, VAGUES, PV JOUEUR, MINIONS, BARRE DE BOSS)
 function mountCampaignSmashHUD(era) {
     let existing = document.getElementById('campaignSmashHUD');
     if (existing) existing.remove();
 
     const hazardName = era.hazard ? era.hazard.name : 'Combat Standard';
+    const p1Name = (fighter1 && fighter1.dino) ? fighter1.dino.name : 'COMBATTANT';
+    const p1MaxHp = (fighter1 && fighter1.maxHp) ? fighter1.maxHp : 1050;
+
     const hudHtml = `
         <div id="campaignSmashHUD" class="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between p-3 select-none">
-            <!-- Top Container (Era info + Banner + Stocks + Boss Bar) -->
-            <div class="w-full flex flex-col items-center gap-2">
+            <!-- Couche des barres de PV flottantes des ennemis / minions -->
+            <div id="campaignMinionHpLayer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
+
+            <!-- Top Container (Player HP + Era info + Banner + Stocks + Boss Bar) -->
+            <div class="w-full flex flex-col items-center gap-2 relative z-30">
                 <!-- Top Smash Era Bar -->
-                <div class="w-full flex items-center justify-between">
-                    <!-- Left: Era Logo & Title -->
-                    <div class="flex items-center gap-3 bg-stone-950/85 border border-amber-500/60 rounded-2xl p-2 px-4 shadow-2xl backdrop-blur-sm">
-                        <img src="${era.logo}" alt="${era.name}" class="w-12 h-12 object-contain filter drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
-                        <div class="flex flex-col">
-                            <span class="font-cinzel font-black text-amber-200 text-sm tracking-wider leading-tight">${era.name}</span>
-                            <div class="flex items-center gap-2">
-                                <span id="smashHudWaveIndicator" class="font-chakra font-bold text-xs text-amber-400/90 tracking-widest uppercase">VAGUE 1 / 3</span>
-                                <span id="smashHudObjectiveTimer" class="hidden font-chakra font-black text-xs text-cyan-300 bg-cyan-950/80 border border-cyan-500/60 px-2 py-0.5 rounded uppercase"></span>
+                <div class="w-full flex items-start justify-between gap-2">
+                    <!-- Left: Player HP Bar & Era Info -->
+                    <div class="flex flex-col gap-1.5">
+                        <!-- P1 Player Health & Rage Card -->
+                        <div class="flex flex-col gap-1 bg-stone-950/90 border-2 border-sky-500/75 rounded-2xl p-2 px-3.5 shadow-2xl backdrop-blur-sm min-w-[230px] sm:min-w-[290px]">
+                            <div class="flex items-center justify-between gap-2">
+                                <span id="smashP1Name" class="font-cinzel font-black text-sky-300 text-xs sm:text-sm uppercase tracking-wider">${p1Name}</span>
+                                <span id="smashP1HpText" class="font-chakra font-black text-xs text-emerald-300">${p1MaxHp} / ${p1MaxHp} PV</span>
                             </div>
-                            <span id="smashHudHazardBadge" class="font-chakra font-bold text-[10px] text-stone-300 tracking-wide">⚡ ${hazardName}</span>
+                            <div class="w-full h-3.5 bg-stone-900 rounded-full border border-stone-700 overflow-hidden relative">
+                                <div id="smashP1HpBar" class="h-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-lime-300 rounded-full transition-all duration-150" style="width: 100%;"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex-1 h-1.5 bg-stone-900 rounded-full overflow-hidden border border-stone-800">
+                                    <div id="smashP1RageBar" class="h-full bg-gradient-to-r from-cyan-500 via-amber-400 to-red-500 transition-all duration-150" style="width: 0%;"></div>
+                                </div>
+                                <span id="smashP1RageBadge" class="font-chakra font-black text-[9px] text-cyan-300 uppercase">RAGE 0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Era Badge -->
+                        <div class="flex items-center gap-2.5 bg-stone-950/85 border border-amber-500/60 rounded-2xl p-1.5 px-3 shadow-xl backdrop-blur-sm">
+                            <img src="${era.logo}" alt="${era.name}" class="w-9 h-9 object-contain filter drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
+                            <div class="flex flex-col">
+                                <span class="font-cinzel font-black text-amber-200 text-xs tracking-wider leading-tight">${era.name}</span>
+                                <div class="flex items-center gap-2">
+                                    <span id="smashHudWaveIndicator" class="font-chakra font-bold text-[11px] text-amber-400/90 tracking-widest uppercase">VAGUE 1 / 3</span>
+                                    <span id="smashHudObjectiveTimer" class="hidden font-chakra font-black text-[11px] text-cyan-300 bg-cyan-950/80 border border-cyan-500/60 px-1.5 py-0.2 rounded uppercase"></span>
+                                </div>
+                                <span id="smashHudHazardBadge" class="font-chakra font-bold text-[10px] text-stone-300 tracking-wide">⚡ ${hazardName}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -1775,6 +1940,7 @@ function mountCampaignSmashHUD(era) {
     if (btScreen) {
         btScreen.insertAdjacentHTML('beforeend', hudHtml);
     }
+    updateCampaignSmashHUD();
 }
 
 function showBossHealthBarUI(bossWave) {
@@ -1788,6 +1954,32 @@ function showBossHealthBarUI(bossWave) {
 }
 
 function updateCampaignSmashHUD() {
+    // PV et Rage du joueur (visibles dès la Vague 1)
+    if (typeof fighter1 !== 'undefined' && fighter1) {
+        const hpEl = document.getElementById('smashP1HpBar');
+        const hpTxt = document.getElementById('smashP1HpText');
+        const rageBar = document.getElementById('smashP1RageBar');
+        const rageBadge = document.getElementById('smashP1RageBadge');
+        const p1Pct = Math.max(0, Math.min(100, (fighter1.hp / Math.max(1, fighter1.maxHp)) * 100));
+        if (hpEl) {
+            hpEl.style.width = `${p1Pct.toFixed(1)}%`;
+            hpEl.className = p1Pct > 45
+                ? 'h-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-lime-300 rounded-full transition-all duration-150'
+                : (p1Pct > 22
+                    ? 'h-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 rounded-full transition-all duration-150'
+                    : 'h-full bg-gradient-to-r from-red-700 via-red-500 to-orange-400 rounded-full transition-all duration-150 animate-pulse');
+        }
+        if (hpTxt) hpTxt.textContent = `${Math.max(0, Math.round(fighter1.hp))} / ${fighter1.maxHp} PV`;
+        const rageVal = Math.max(0, Math.min(100, fighter1.rage || 0));
+        if (rageBar) rageBar.style.width = `${rageVal.toFixed(1)}%`;
+        if (rageBadge) {
+            rageBadge.textContent = rageVal >= 100 ? '💀 X-RAY PRÊT !' : `RAGE ${Math.floor(rageVal)}%`;
+            rageBadge.className = rageVal >= 100
+                ? 'font-chakra font-black text-[9px] text-amber-300 uppercase animate-pulse'
+                : 'font-chakra font-black text-[9px] text-cyan-300 uppercase';
+        }
+    }
+
     // Vague
     const waveInd = document.getElementById('smashHudWaveIndicator');
     if (waveInd && activeCampaignEra) {
@@ -1826,9 +2018,9 @@ function updateCampaignSmashHUD() {
     if (campaignBossFighter && !campaignBossFighter.isDead) {
         const fill = document.getElementById('bossBarFill');
         const text = document.getElementById('bossBarHpText');
-        const pct = Math.max(0, Math.min(100, (campaignBossFighter.hp / campaignBossFighter.maxHp) * 100));
+        const pct = Math.max(0, Math.min(100, (campaignBossFighter.hp / Math.max(1, campaignBossFighter.maxHp)) * 100));
         if (fill) fill.style.width = `${pct}%`;
-        if (text) text.textContent = `${Math.round(campaignBossFighter.hp)} / ${campaignBossFighter.maxHp} HP`;
+        if (text) text.textContent = `${Math.max(0, Math.round(campaignBossFighter.hp))} / ${campaignBossFighter.maxHp} HP`;
     }
 }
 
@@ -2107,27 +2299,49 @@ function updateCampaignLevelEngine(dt, nowSec) {
 }
 
 function checkPlayerAttacksAgainstMinions() {
-    if (!fighter1 || fighter1.isDead) return;
+    if (!fighter1 || fighter1.isDead || fighter1.actionDuration <= 0) return;
     const a = fighter1.action;
     const isAttacking = a.includes('light') || a.includes('heavy') || a.includes('special') || a === 'anti_air' || a === 'dash_attack' || a.startsWith('attack_') || a === 'strike';
     if (!isAttacking || fighter1.hasHitCurrentAttack) return;
 
-    // Définir la portée et dégâts de l'attaque en cours
-    let dmg = 85;
+    const progress = fighter1.actionTimer / Math.max(0.01, fighter1.actionDuration);
+    if (progress < 0.12) return;
+
+    // Déclencher aussi les effets spéciaux propres au combattant (projectiles, dash, séisme) contre les vagues de minions
+    const impl = typeof FIGHTER_IMPLS !== 'undefined' ? FIGHTER_IMPLS[fighter1.dino.id] : null;
+    if ((a === 'special' || a === 'special2') && !fighter1._minionSpecialTriggered) {
+        fighter1._minionSpecialTriggered = true;
+        if (a === 'special2') {
+            if (impl && impl.onSpecial2) {
+                impl.onSpecial2(fighter1, null, 0, fighter1.dino.stats.pow);
+            } else if (typeof spawn3DProjectile === 'function') {
+                spawn3DProjectile(fighter1, 'boulder');
+            }
+        } else if (a === 'special') {
+            if (impl && impl.onSpecial && (fighter1.dino.id === 'dragon' || fighter1.dino.id === 'anomalocaris')) {
+                impl.onSpecial(fighter1, null, 0, fighter1.dino.stats.pow);
+            } else {
+                fighter1.vx = fighter1.facing * 20;
+            }
+        }
+    }
+
+    const basePow = (fighter1.dino && fighter1.dino.stats && fighter1.dino.stats.pow) || 140;
+    let dmg = Math.max(95, Math.round(basePow * 0.78));
     let knockX = fighter1.facing * 6.5;
     let knockY = 4.5;
-    let range = 2.8;
+    let range = ((impl && impl.attackReach) || 3.2);
 
     if (a.includes('heavy') || a === 'anti_air') {
-        dmg = 160;
-        knockX = fighter1.facing * 10.0;
+        dmg = Math.max(165, Math.round(basePow * 1.25));
+        knockX = fighter1.facing * 10.5;
         knockY = 6.5;
-        range = 3.2;
+        range += 0.55;
     } else if (a.includes('special')) {
-        dmg = 240;
+        dmg = Math.max(220, Math.round(basePow * 1.60));
         knockX = fighter1.facing * 13.5;
         knockY = 8.5;
-        range = 3.8;
+        range += 0.95;
     }
 
     // Bonus Rayon Solaire du Permien
@@ -2137,12 +2351,15 @@ function checkPlayerAttacksAgainstMinions() {
 
     let hitAny = false;
     campaignActiveMinions.forEach(minion => {
-        if (minion.isDead) return;
+        if (!minion || minion.isDead) return;
         const dx = minion.x - fighter1.x;
         const dist = Math.abs(dx);
-        const inFront = (dx * fighter1.facing) >= -0.6;
-        const verticalReach = minion.archetype === 'aerial' ? 3.8 : 2.5;
-        if (dist <= range && inFront && Math.abs(minion.y - fighter1.y) < verticalReach) {
+        const effRange = range + (minion.radius || 0.75);
+        const inFront = (dx * fighter1.facing) >= -0.9;
+        const verticalReach = (minion.archetype === 'aerial' || a === 'up_light' || a === 'anti_air' || a.includes('air')) ? 3.8 : 2.3;
+        const floorDiff = Math.abs((fighter1.groundY || 0) - (minion.groundY || 0));
+        const sameBand = Math.abs(minion.y - fighter1.y) <= verticalReach && (floorDiff < 2.2 || minion.archetype === 'aerial' || Math.abs(fighter1.y - minion.y) <= 2.4);
+        if (dist <= effRange && inFront && sameBand) {
             minion.takeDamage(dmg, knockX, knockY, a);
             hitAny = true;
         }
@@ -2151,7 +2368,8 @@ function checkPlayerAttacksAgainstMinions() {
     if (hitAny) {
         fighter1.hasHitCurrentAttack = true;
         fighter1.hasHitConfirmed = true;
-        sfx.playHit(false);
+        fighter1.rage = Math.min(100, (fighter1.rage || 0) + (a.includes('heavy') ? 9 : 6));
+        sfx.playHit(a.includes('heavy') || a.includes('special'));
         campaignComboCount++;
         campaignLevelScore += dmg * 2;
         updateCampaignSmashHUD();

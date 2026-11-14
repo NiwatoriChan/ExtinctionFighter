@@ -177,8 +177,11 @@ registerBoss({
 
     onSpecial2(attacker, defender, dist, basePow) {
         screenShake = 0.35;
-        spawn3DBloodAndBones(defender.x, 0.3, 10, true);
-        if (dist < 4.2) {
+        if (typeof spawn3DGroundShockwave === 'function') {
+            spawn3DGroundShockwave(attacker.x + attacker.facing * 1.8, 0xf97316, 4.2, true);
+        }
+        if (defender && dist < 4.2 && (typeof isWithinVerticalHitBand !== 'function' || isWithinVerticalHitBand(attacker, defender, 2.4, 2.0))) {
+            spawn3DBloodAndBones(defender.x, defender.y + 0.3, 10, true);
             applyDamage(attacker, defender, Math.round(basePow * 0.8), true, 'CATACLYSME DRACONIQUE !');
         }
     },

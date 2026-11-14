@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_anomalocaris" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="55%" stop-color="#26a9be"/>
+      <stop offset="100%" stop-color="#167a8e"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 218,325 L 95,255 L 75,285 L 185,345 L 88,368 L 105,392 L 222,348 Z" fill="#167a8e"/>
+    <path d="M 215,325 C 315,278 525,275 715,295 C 775,305 815,332 795,362 C 715,388 385,392 215,348 Z" fill="url(#emblem_anomalocaris)"/>
+    <path d="M 765,295 C 815,275 885,285 915,318 C 918,338 892,358 845,362 L 775,355 Z" fill="#26a9be"/>
+    <path d="M 865,335 C 915,338 955,368 965,415 C 942,402 925,382 905,372 L 885,405 L 875,368 L 855,395 Z" fill="#f59e0b"/>
+    <path d="M 815,282 C 825,245 848,225 872,225 C 885,228 892,248 878,262 C 862,272 842,272 828,288 Z" fill="#f59e0b"/>
+  </g>
+</svg>

@@ -495,11 +495,16 @@ function closeCampaignMap() {
 function enterSelectedEra(era) {
     sfx.playGong();
     closeCampaignMap();
-    if (typeof startCampaignEraLevel === 'function') {
+    gameMode = 'campaign';
+    if (typeof activeSelectSlot !== 'undefined') activeSelectSlot = 1;
+    if (typeof pendingCampaignEra !== 'undefined') pendingCampaignEra = era;
+
+    // Ouvrir l'écran de sélection de personnage avant de lancer le combat de l'Ère
+    if (typeof goToSelectScreen === 'function') {
+        goToSelectScreen();
+    } else if (typeof startCampaignEraLevel === 'function') {
         startCampaignEraLevel(era);
     } else {
-        // Secours
-        gameMode = 'campaign';
         currentArena = era.arenaId;
         startMatch();
     }

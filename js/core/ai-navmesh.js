@@ -13,6 +13,23 @@ const ArenaNavSystem = {
     lastPathWaypoints: [],
     lastSweetSpot: null,
 
+    getLiveStageBounds() {
+        if (typeof getStageBounds3D === 'function') {
+            return getStageBounds3D();
+        }
+        return {
+            left: typeof STAGE_LEFT_3D !== 'undefined' ? STAGE_LEFT_3D : -11.0,
+            right: typeof STAGE_RIGHT_3D !== 'undefined' ? STAGE_RIGHT_3D : 11.0
+        };
+    },
+
+    syncTacticalBounds() {
+        if (!this.tacticalAnalyzer) return;
+        const bnds = this.getLiveStageBounds();
+        this.tacticalAnalyzer.stageLeft = bnds.left;
+        this.tacticalAnalyzer.stageRight = bnds.right;
+    },
+
     init() {
         if (!this.pathfinder && typeof ThreePathfinding !== 'undefined') {
             this.pathfinder = new ThreePathfinding.Pathfinding();
@@ -22,12 +39,14 @@ const ArenaNavSystem = {
             this.yukaNavMesh = new YUKA.NavMesh();
         }
         if (!this.tacticalAnalyzer && typeof Kompute !== 'undefined') {
+            const bnds = this.getLiveStageBounds();
             this.tacticalAnalyzer = new Kompute.TacticalAnalyzer({
-                stageLeft: typeof STAGE_LEFT_3D !== 'undefined' ? STAGE_LEFT_3D : -11.0,
-                stageRight: typeof STAGE_RIGHT_3D !== 'undefined' ? STAGE_RIGHT_3D : 11.0,
+                stageLeft: bnds.left,
+                stageRight: bnds.right,
                 cornerThreshold: 2.35
             });
         }
+        this.syncTacticalBounds();
     },
 
     /**
@@ -38,6 +57,8 @@ const ArenaNavSystem = {
         this.init();
         const zoneId = arenaType || (typeof currentArena !== 'undefined' ? currentArena : 'volcano');
         this.activeZoneId = zoneId;
+        this.syncTacticalBounds();
+        const bnds = this.getLiveStageBounds();
 
         const heightFn = (x, z = 0) => (
             typeof getArenaGroundHeight === 'function'
@@ -51,7 +72,7 @@ const ArenaNavSystem = {
         }
 
         if (this.yukaNavMesh) {
-            this.yukaNavMesh.fromTerrainFunction(-14.0, 14.0, 0.5, heightFn);
+            this.yukaNavMesh.fromTerrainFunction(bnds.left - 2.0, bnds.right + 2.0, 0.5, heightFn);
         }
 
         if (this.crowdSimulator) {
@@ -65,9 +86,11 @@ const ArenaNavSystem = {
      */
     computeTacticalNavigation(aiFighter, targetFighter, projectiles = []) {
         this.init();
-        const zoneId = this.activeZoneId || (typeof currentArena !== 'undefined' ? currentArena : 'volcano');
-        if (!this.pathfinder || !this.pathfinder.zones[zoneId]) {
+        const zoneId = (typeof currentArena !== 'undefined' ? currentArena : this.activeZoneId) || 'volcano';
+        if (this.activeZoneId !== zoneId || !this.pathfinder || !this.pathfinder.zones[zoneId]) {
             this.buildArenaNavMesh(zoneId, null);
+        } else {
+            this.syncTacticalBounds();
         }
 
         const heightFn = (x, z = 0) => (

@@ -304,7 +304,12 @@ const AICombatBehaviorTree = {
                         nodes: [
                             new Condition({
                                 name: 'InStrikeRangeAndReady',
-                                check: (bb) => bb.aiActionIdle && bb.canDecideOffense && bb.dist <= bb.myReach + 0.45
+                                check: (bb) => (
+                                    bb.aiActionIdle &&
+                                    bb.canDecideOffense &&
+                                    bb.dist <= bb.myReach + 0.45 &&
+                                    Math.abs((bb.ai.y || 0) - (bb.target.y || 0)) <= 2.35
+                                )
                             }),
                             new Action({
                                 name: 'ExecuteTacticalStrikeOrMixup',
@@ -395,11 +400,25 @@ const AICombatBehaviorTree = {
                                 }
                             }
 
+                            // Poursuite verticale : sauter pour monter vers le joueur si celui-ci est sur une plateforme au-dessus
+                            const vertGap = (target.y || 0) - (ai.y || 0);
+                            if (vertGap > 1.75 && !ai.isAirborne(0.12)) {
+                                if (bb.dist < 5.8 || Math.abs(ai.vx || 0) < 0.8) {
+                                    ai.vy = (ai.jumpVy || 11.8) * 1.12;
+                                    ai.vx = Math.sign(target.x - ai.x || ai.facing) * ((ai.dino && ai.dino.walkSpeed) || 7.5) * 0.95;
+                                    ai.action = 'jump';
+                                    bb.decisionIntent = 'PLATFORM JUMP CHASE';
+                                    return Status.SUCCESS;
+                                }
+                            }
+
                             // Apply Yuka Steering Velocity to Fighter3D locomotion
                             const steerVx = bb.steering ? bb.steering.vx : (ai.facing * (ai.dino.walkSpeed || 7.5));
-                            const targetDx = bb.steering && bb.steering.desiredTargetX !== undefined
-                                ? (bb.steering.desiredTargetX - ai.x)
-                                : (target.x - ai.x);
+                            const targetDx = vertGap > 1.75
+                                ? (target.x - ai.x)
+                                : ((bb.steering && bb.steering.desiredTargetX !== undefined)
+                                    ? (bb.steering.desiredTargetX - ai.x)
+                                    : (target.x - ai.x));
                             const needsMove = Math.abs(targetDx) > 0.35;
 
                             if (Math.abs(steerVx) > 0.02 || needsMove) {

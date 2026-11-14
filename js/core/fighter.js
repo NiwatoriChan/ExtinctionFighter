@@ -327,6 +327,7 @@ class Fighter3D extends AnimalPrototype {
         this.hasHitCurrentAttack = false;
         this.hasSpawnedAttackFx = false;
         this.hasHitConfirmed = false;
+        this._minionSpecialTriggered = false;
         this.actionTimer = 0;
         this.bufferedAction = null;
 

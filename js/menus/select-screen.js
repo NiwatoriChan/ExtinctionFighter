@@ -576,10 +576,7 @@ const selectScreenRoot = new UIKit.Fullscreen({
                             children: [
                                 new UIKit.Text({ tag: 'span', className: 'text-red-400 font-bold', text: 'P2' }),
                                 new UIKit.Badge({ className: 'px-1.5 py-0.5 rounded bg-blue-600 text-white font-black text-xs shadow-[0_0_8px_#3b82f6]', text: '[X]' }),
-                                new UIKit.Text({ tag: 'span', className: 'text-stone-300 font-bold', text: 'RANDOM' }),
-                                new UIKit.Text({ tag: 'span', className: 'text-stone-500 font-normal', text: '|' }),
-                                new UIKit.Badge({ className: 'px-1.5 py-0.5 rounded bg-amber-600 text-white font-black text-xs shadow-[0_0_8px_#f59e0b]', text: '[Y]' }),
-                                new UIKit.Text({ tag: 'span', className: 'text-stone-300 font-bold', text: 'SKINS' })
+                                new UIKit.Text({ tag: 'span', className: 'text-stone-300 font-bold', text: 'RANDOM' })
                             ]
                         })
                     ]
@@ -595,7 +592,7 @@ const selectScreenRoot = new UIKit.Fullscreen({
                         }),
                         new UIKit.Badge({
                             className: 'px-2 py-0.5 rounded bg-stone-900 border border-amber-600/60 text-amber-300 font-black text-[10px] tracking-wider',
-                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.2.1'
+                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.0'
                         })
                     ]
                 }),
@@ -612,6 +609,13 @@ selectScreenRoot.mount(document.getElementById('appMain'));
 
 // Générateur d'aperçus 3D réels pour chaque combattant du roster (modèle entier)
 const DINO_3D_THUMBNAILS = {};
+if (typeof onFighterGLBLoaded === 'function') {
+    onFighterGLBLoaded((fighterId) => {
+        Object.keys(DINO_3D_THUMBNAILS).forEach((k) => {
+            if (k.startsWith(fighterId + '_')) delete DINO_3D_THUMBNAILS[k];
+        });
+    });
+}
 let offscreen3DRenderer = null;
 let offscreen3DScene = null;
 let offscreen3DCamera = null;
@@ -807,6 +811,22 @@ function setupPreviewScene(previewObj, canvasId, isP1 = true) {
 
 function getP2EffectiveDino() {
     if (gameMode === 'campaign') {
+        if (typeof pendingCampaignEra !== 'undefined' && pendingCampaignEra && pendingCampaignEra.waves && pendingCampaignEra.waves[2]) {
+            const bossWave = pendingCampaignEra.waves[2];
+            if (bossWave.baseDino === 'dragon' && typeof DRAGON_BOSS !== 'undefined' && DRAGON_BOSS) {
+                return DRAGON_BOSS;
+            }
+            const found = DINO_ROSTER.find(d => d.id === bossWave.baseDino);
+            if (found) {
+                return Object.assign({}, found, {
+                    name: bossWave.bossName || found.name,
+                    fullName: bossWave.bossTitle || found.fullName,
+                    role: pendingCampaignEra.shortLabel || 'BOSS D\'ÈRE',
+                    special1Name: bossWave.signatureMove || found.special1Name,
+                    accentColor: bossWave.accentColor || found.accentColor
+                });
+            }
+        }
         if (campaignStage === 6 && typeof DRAGON_BOSS !== 'undefined' && DRAGON_BOSS) {
             return DRAGON_BOSS;
         }
@@ -898,6 +918,16 @@ function updatePreviewModels(time) {
 
 let _rosterUIIsBuilt = false;
 
+function launchCampaignFromSelectScreen() {
+    if (typeof pendingCampaignEra !== 'undefined' && pendingCampaignEra && typeof startCampaignEraLevel === 'function') {
+        const eraToLaunch = pendingCampaignEra;
+        pendingCampaignEra = null;
+        startCampaignEraLevel(eraToLaunch, DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0]);
+    } else {
+        startMatch();
+    }
+}
+
 function initRosterUI(forceRebuild = false) {
     const gridNode = UIKit.getElementById('rosterGrid');
     if (!gridNode) return;
@@ -960,7 +990,7 @@ function initRosterUI(forceRebuild = false) {
                     sfx.playHit(false);
                     if (gameMode === 'campaign') {
                         if (p1ChoiceIndex === idx) {
-                            startMatch();
+                            launchCampaignFromSelectScreen();
                             return;
                         }
                         p1ChoiceIndex = idx;
@@ -986,7 +1016,7 @@ function initRosterUI(forceRebuild = false) {
                 onDblClick: () => {
                     if (gameMode === 'campaign') {
                         p1ChoiceIndex = idx;
-                        startMatch();
+                        launchCampaignFromSelectScreen();
                     } else {
                         if (activeSelectSlot === 1) {
                             p1ChoiceIndex = idx;
@@ -1039,7 +1069,7 @@ function initRosterUI(forceRebuild = false) {
         className: 'beast-card opacity-90 border border-red-500/60 shadow-[0_0_14px_rgba(220,38,38,0.4)] cursor-pointer',
         onClick: () => {
             sfx.playCooldownWarning();
-            spawnFloatingPopup(0, "🔥 BOSS ANCESTRAL ! Terrassez les 5 étapes de la Campagne pour affronter Drak'Zul !", '#ef4444');
+            spawnFloatingPopup(0, "🔥 BOSS FINAL ! Conquérez l'Ère 13 de la Campagne pour débloquer Drak'Zul !", '#ef4444');
         },
         children: [
             new UIKit.Container({
@@ -1099,11 +1129,17 @@ function initRosterUI(forceRebuild = false) {
 }
 
 function updateSelectScreenUI() {
+    const unlockedIndices = DINO_ROSTER
+        .map((d, i) => (!d.isUnlockable || isFighterUnlocked(d.id)) ? i : -1)
+        .filter(i => i !== -1);
+    const fallbackP1 = unlockedIndices.length > 0 ? unlockedIndices[0] : 0;
+    const fallbackP2 = unlockedIndices.length > 1 ? unlockedIndices[1] : fallbackP1;
+
     if (DINO_ROSTER[p1ChoiceIndex] && DINO_ROSTER[p1ChoiceIndex].isUnlockable && !isFighterUnlocked(DINO_ROSTER[p1ChoiceIndex].id)) {
-        p1ChoiceIndex = 0;
+        p1ChoiceIndex = fallbackP1;
     }
     if (DINO_ROSTER[p2ChoiceIndex] && DINO_ROSTER[p2ChoiceIndex].isUnlockable && !isFighterUnlocked(DINO_ROSTER[p2ChoiceIndex].id)) {
-        p2ChoiceIndex = 1;
+        p2ChoiceIndex = fallbackP2;
     }
 
     const p1 = DINO_ROSTER[p1ChoiceIndex] || DINO_ROSTER[0];
@@ -1112,17 +1148,25 @@ function updateSelectScreenUI() {
     const modeBadge = document.getElementById('selectScreenModeBadge');
     const slot1Btn = document.getElementById('btnSelectSlotP1');
     const slot2Btn = document.getElementById('btnSelectSlotP2');
+    const isEraPending = gameMode === 'campaign' && typeof pendingCampaignEra !== 'undefined' && pendingCampaignEra;
 
     if (gameMode === 'campaign') {
         if (modeBadge) {
-            modeBadge.innerHTML = `<span class="text-amber-400">🏆 CAMPAGNE : ÉTAPE ${campaignStage} / ${CAMPAIGN_TOTAL_STAGES}</span>`;
+            modeBadge.innerHTML = isEraPending
+                ? `<span class="text-amber-400">🗺️ CAMPAGNE : ${pendingCampaignEra.shortLabel.toUpperCase()}</span>`
+                : `<span class="text-amber-400">🏆 CAMPAGNE : ÉTAPE ${campaignStage} / ${CAMPAIGN_TOTAL_STAGES}</span>`;
             modeBadge.style.cursor = 'default';
         }
         if (slot1Btn) slot1Btn.classList.add('hidden');
         if (slot2Btn) slot2Btn.classList.add('hidden');
         const toggleVsModeBtn = document.getElementById('btnToggleVsMode');
         if (toggleVsModeBtn) toggleVsModeBtn.classList.add('hidden');
-        p2HeaderLabelSignal.value = campaignStage === 6 ? "DRAK'ZUL" : `ÉTAPE ${campaignStage}`;
+        if (isEraPending) {
+            const bossWave = pendingCampaignEra.waves && pendingCampaignEra.waves[2];
+            p2HeaderLabelSignal.value = bossWave && bossWave.bossName ? bossWave.bossName : 'BOSS D\'ÈRE';
+        } else {
+            p2HeaderLabelSignal.value = campaignStage === 6 ? "DRAK'ZUL" : `ÉTAPE ${campaignStage}`;
+        }
     } else {
         if (slot1Btn) slot1Btn.classList.remove('hidden');
         if (slot2Btn) {
@@ -1134,16 +1178,18 @@ function updateSelectScreenUI() {
         if (toggleVsModeBtn) {
             toggleVsModeBtn.classList.remove('hidden');
             if (toggleVsModeText) {
-                toggleVsModeText.textContent = gameMode === 'cpu' ? '🤖 ADVERSAIRE: IA' : (gameMode === 'practice' ? '🥋 ENTRAÎNEMENT' : '👥 ADVERSAIRE: J2');
+                toggleVsModeText.textContent = gameMode === 'cpu'
+                    ? '🤖 P2 : CONTRÔLÉ PAR L\'IA'
+                    : (gameMode === 'practice' ? '🥋 P2 : MANNEQUIN' : '🎮 P2 : JOUEUR 2 (LOCAL)');
             }
         }
         if (modeBadge) {
             modeBadge.style.cursor = 'pointer';
             modeBadge.innerHTML = gameMode === 'pvp'
-                ? `<span>👥 2 JOUEURS (1 VS 1) ⇋</span>`
-                : (gameMode === 'practice' ? `<span>🥋 ENTRAÎNEMENT</span>` : `<span>🤖 JOUEUR VS IA ⇋</span>`);
+                ? `<span>🎮 VERSUS LOCAL : 2 JOUEURS (CLIQUEZ POUR IA) ⇋</span>`
+                : (gameMode === 'practice' ? `<span>🥋 ENTRAÎNEMENT</span>` : `<span>🤖 SOLO VS IA (CLIQUEZ POUR 2J) ⇋</span>`);
         }
-        p2HeaderLabelSignal.value = gameMode === 'pvp' ? 'PLAYER 2' : (gameMode === 'practice' ? 'MANNEQUIN' : 'PLAYER 2 (IA)');
+        p2HeaderLabelSignal.value = gameMode === 'pvp' ? 'PLAYER 2 (HUMAIN)' : (gameMode === 'practice' ? 'MANNEQUIN' : 'PLAYER 2 (IA)');
     }
 
     p1SkinIndex = 0;
@@ -1169,12 +1215,17 @@ function updateSelectScreenUI() {
     const btnGoToArena = document.getElementById('btnGoToArena');
     if (btnGoToArena) {
         if (gameMode === 'campaign') {
-            const themedArenaId = typeof getThemedArenaForFighter === 'function' ? getThemedArenaForFighter(p2.id) : 'volcano';
-            const arenaObj = typeof ARENAS !== 'undefined' && ARENAS[themedArenaId];
-            const arenaLabel = arenaObj ? arenaObj.label.split('(')[0].trim() : themedArenaId;
-            btnGoToArena.innerHTML = campaignStage === 6
-                ? `🔥 DÉFIER LE BOSS DRAK'ZUL ➔`
-                : `⚔️ DÉFIER L'ÉTAPE ${campaignStage} • ${p2.name} (${arenaLabel}) ➔`;
+            if (isEraPending) {
+                const arenaLabel = (pendingCampaignEra.reward && pendingCampaignEra.reward.arenaName) || pendingCampaignEra.arenaId || 'ARÈNE';
+                btnGoToArena.innerHTML = `⚔️ LANCER ${pendingCampaignEra.shortLabel.toUpperCase()} AVEC ${p1.name} (${arenaLabel}) ➔`;
+            } else {
+                const themedArenaId = typeof getThemedArenaForFighter === 'function' ? getThemedArenaForFighter(p2.id) : 'volcano';
+                const arenaObj = typeof ARENAS !== 'undefined' && ARENAS[themedArenaId];
+                const arenaLabel = arenaObj ? arenaObj.label.split('(')[0].trim() : themedArenaId;
+                btnGoToArena.innerHTML = campaignStage === 6
+                    ? `🔥 DÉFIER LE BOSS DRAK'ZUL ➔`
+                    : `⚔️ DÉFIER L'ÉTAPE ${campaignStage} • ${p2.name} (${arenaLabel}) ➔`;
+            }
             btnGoToArena.className = 'w-full py-2 sm:py-2.5 px-4 rounded-xl bg-gradient-to-r from-red-700 via-amber-600 to-red-700 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-lg border border-amber-300 finish-pulse transition';
         } else {
             btnGoToArena.innerHTML = `CHOISIR L'ARÈNE DE KOMBAT ➔`;
@@ -1184,7 +1235,7 @@ function updateSelectScreenUI() {
 
     document.querySelectorAll('#rosterGrid .beast-card').forEach((card, i) => {
         const isP1 = i === p1ChoiceIndex;
-        const isP2 = (gameMode === 'campaign' && campaignStage < 6)
+        const isP2 = (gameMode === 'campaign' && !isEraPending && campaignStage < 6)
             ? (campaignOpponents && i === campaignOpponents[campaignStage - 1])
             : (gameMode !== 'campaign' && i === p2ChoiceIndex);
 
@@ -1222,7 +1273,7 @@ function goToSelectScreen() {
     const pmm = document.getElementById('postMatchMenu');
     if (pmm) pmm.classList.add('hidden');
 
-    initRosterUI();
+    initRosterUI(true);
     updateSelectScreenUI();
     if (typeof updateGamepadHelperHUD === 'function') {
         updateGamepadHelperHUD();
@@ -1358,7 +1409,12 @@ function initSelectScreenMenu() {
     if (btnBackMain) {
         btnBackMain.addEventListener('click', () => {
             sfx.playHit(false);
-            goToMainMenu();
+            if (gameMode === 'campaign' && typeof pendingCampaignEra !== 'undefined' && pendingCampaignEra && typeof openCampaignMap === 'function') {
+                pendingCampaignEra = null;
+                openCampaignMap();
+            } else {
+                goToMainMenu();
+            }
         });
     }
 
@@ -1409,7 +1465,7 @@ function initSelectScreenMenu() {
         btnGoToArena.addEventListener('click', () => {
             sfx.playHit(false);
             if (gameMode === 'campaign') {
-                startMatch();
+                launchCampaignFromSelectScreen();
             } else {
                 openArenaChooser();
             }
@@ -1424,10 +1480,12 @@ function showFighterUnlockedModal(fighterId = 'smilodon') {
     sfx.playGong();
     sfx.playRoar(70, 0.7);
 
-    const dino = DINO_ROSTER.find(d => d.id === fighterId) || DINO_ROSTER[DINO_ROSTER.length - 1];
+    const dino = DINO_ROSTER.find(d => d.id === fighterId)
+        || (fighterId === 'dragon' && typeof DRAGON_BOSS !== 'undefined' && DRAGON_BOSS ? DRAGON_BOSS : null)
+        || DINO_ROSTER[DINO_ROSTER.length - 1];
     const portraitUrl = getFighterPortraitUrl(dino.id);
 
-    const smiloIdx = DINO_ROSTER.findIndex(d => d.id === fighterId);
+    const unlockedIdx = DINO_ROSTER.findIndex(d => d.id === dino.id);
 
     const unlockedModalNode = new UIKit.Dialog({
         id: 'unlockedFighterModal',
@@ -1459,7 +1517,7 @@ function showFighterUnlockedModal(fighterId = 'smilodon') {
                     new UIKit.Container({
                         tag: 'p',
                         className: 'text-xs text-zinc-300 max-w-md mb-4 leading-relaxed',
-                        innerHTML: `Vous avez terrassé le Dragon Primordial à l'Étape 6 de la Campagne d'Extinction ! Le redoutable <strong>${dino.fullName} aux canines sabres</strong> rejoint définitivement votre Roster !`
+                        innerHTML: `Victoire en Campagne ! Le redoutable <strong>${dino.fullName}</strong> rejoint définitivement votre Roster !`
                     }),
                     new UIKit.Container({
                         className: 'grid grid-cols-3 gap-2 w-full max-w-xs mb-5 text-center',
@@ -1493,14 +1551,14 @@ function showFighterUnlockedModal(fighterId = 'smilodon') {
                             new UIKit.Button({
                                 id: 'btnPlayWithUnlocked',
                                 className: 'flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-400 hover:from-amber-500 hover:to-yellow-300 text-zinc-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg transition',
-                                text: '🐯 Choisir Smilodon !',
+                                text: `🦖 Choisir ${dino.name} !`,
                                 onClick: () => {
                                     unlockedModalNode.dispose();
                                     const m = document.getElementById('unlockedFighterModal');
                                     if (m) m.remove();
                                     sfx.playHit(false);
-                                    if (smiloIdx >= 0) {
-                                        p1ChoiceIndex = smiloIdx;
+                                    if (unlockedIdx >= 0) {
+                                        p1ChoiceIndex = unlockedIdx;
                                         activeSelectSlot = 1;
                                     }
                                     returnToSelect();

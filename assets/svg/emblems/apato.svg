@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_apato" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="55%" stop-color="#58569c"/>
+      <stop offset="100%" stop-color="#3b386b"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 285,330 C 195,315 110,330 22,290 C 12,295 16,308 32,315 C 115,355 200,362 292,372 Z" fill="#3b386b"/>
+    <path d="M 280,335 C 330,190 485,155 615,195 C 690,220 725,285 715,365 C 635,415 395,420 295,380 Z" fill="url(#emblem_apato)"/>
+    <path d="M 865,125 C 898,114 942,126 955,148 C 958,162 935,172 902,168 L 868,158 Z" fill="#58569c"/>
+    <path d="M 665,235 C 735,195 805,150 875,132 L 882,165 C 815,195 755,255 705,315 Z" fill="#a78bfa"/>
+  </g>
+</svg>

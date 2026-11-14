@@ -56,8 +56,7 @@ function updatePostMatchMenuUI(winner) {
                 postMatchNextLabelSignal.value = `🏆 Étape Suivante (${campaignStage + 1} / 6) ➔`;
                 postMatchRematchLabelSignal.value = `🔄 Rejouer l'Étape ${campaignStage}`;
             } else {
-                const hasSmilodon = typeof isFighterUnlocked === 'function' && isFighterUnlocked('smilodon');
-                postMatchNextLabelSignal.value = hasSmilodon ? `🐯 Jouer avec Smilodon ➔` : `🗺️ Ouvrir la Campagne des Ères ➔`;
+                postMatchNextLabelSignal.value = `🗺️ Ouvrir la Campagne des Ères ➔`;
                 postMatchRematchLabelSignal.value = `🔄 Rejouer contre Drak'Zul`;
             }
         } else {
@@ -104,21 +103,11 @@ function initPostMatchMenu() {
             if (campaignStage < 6) {
                 campaignStage++;
                 startMatch();
+            } else if (typeof openCampaignMap === 'function') {
+                if (typeof teardownActiveBattle === 'function') teardownActiveBattle();
+                openCampaignMap();
             } else {
-                const hasSmilodon = typeof isFighterUnlocked === 'function' && isFighterUnlocked('smilodon');
-                if (hasSmilodon) {
-                    const smiloIdx = DINO_ROSTER.findIndex(d => d.id === 'smilodon');
-                    if (smiloIdx >= 0) {
-                        p1ChoiceIndex = smiloIdx;
-                        activeSelectSlot = 1;
-                    }
-                    returnToSelect();
-                } else if (typeof openCampaignMap === 'function') {
-                    if (typeof teardownActiveBattle === 'function') teardownActiveBattle();
-                    openCampaignMap();
-                } else {
-                    returnToSelect();
-                }
+                returnToSelect();
             }
         } else {
             const unlocked = DINO_ROSTER.map((d, i) => (!d.isUnlockable || isFighterUnlocked(d.id)) ? i : -1).filter(i => i !== -1);

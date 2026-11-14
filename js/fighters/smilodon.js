@@ -189,19 +189,19 @@ registerFighter({
     onSpecial(attacker, defender, dist, basePow) {
         sfx.playRoar(110, 0.4);
         attacker.vx = attacker.facing * 22;
-        if (dist < 4.8) {
+        if (defender && dist < 4.8 && (typeof isWithinVerticalHitBand !== 'function' || isWithinVerticalHitBand(attacker, defender, 2.2, 1.8))) {
             applyDamage(attacker, defender, Math.round(basePow * 1.05), true, 'BOND PRÉDATEUR !');
-            spawn3DBloodAndBones(defender.x, 1.8, 18, false);
+            spawn3DBloodAndBones(defender.x, defender.y + 1.8, 18, false);
             screenShake = 0.4;
         }
     },
 
     onSpecial2(attacker, defender, dist, basePow) {
         sfx.playRoar(90, 0.5);
-        if (dist < 3.9) {
+        if (defender && dist < 3.9 && (typeof isWithinVerticalHitBand !== 'function' || isWithinVerticalHitBand(attacker, defender, 2.2, 1.8))) {
             sfx.playBoneCrack();
             applyDamage(attacker, defender, Math.round(basePow * 1.25), true, 'CROCS SABRES !');
-            spawn3DBloodAndBones(defender.x, 2.0, 32, true);
+            spawn3DBloodAndBones(defender.x, defender.y + 2.0, 32, true);
             screenShake = 0.65;
         } else {
             attacker.vx = attacker.facing * 18;

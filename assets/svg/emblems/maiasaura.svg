@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_maiasaura" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="55%" stop-color="#26b37d"/>
+      <stop offset="100%" stop-color="#12684d"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 280,330 L 65,305 L 48,328 L 285,372 Z" fill="#12684d"/>
+    <path d="M 275,335 C 335,215 495,195 645,235 C 725,258 765,315 760,370 C 680,415 415,420 285,375 Z" fill="url(#emblem_maiasaura)"/>
+    <path d="M 755,220 C 795,192 875,205 928,238 C 942,252 932,272 895,274 L 772,268 Z" fill="#26b37d"/>
+    <path d="M 805,202 L 828,176 L 855,205 Z" fill="#f97316"/>
+  </g>
+</svg>

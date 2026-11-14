@@ -139,7 +139,10 @@ function startMatch() {
         btScreen.classList.add('flex');
     }
     const duelHud = document.getElementById('duelTopHudOverlay');
-    if (duelHud) duelHud.classList.remove('hidden');
+    if (duelHud) {
+        duelHud.classList.remove('hidden');
+        duelHud.style.display = '';
+    }
     const smashHud = document.getElementById('campaignSmashHUD');
     if (smashHud) smashHud.remove();
     const btnBack = document.getElementById('btnBackToSelect');
@@ -609,6 +612,11 @@ function resolveFighterBodyBlocker(f1, f2) {
         (Math.max(f1Air, f2Air) >= 2.2 && Math.abs(f1.y - f2.y) >= 1.35)
     );
 
+    if (Math.abs(f1.x - f2.x) > minSep * 2.2) {
+        f1._lockedSide = f1.x <= f2.x ? -1 : 1;
+        return;
+    }
+
     if (f1._lockedSide === undefined) {
         f1._lockedSide = f1.x <= f2.x ? -1 : 1;
     }
@@ -963,7 +971,20 @@ function updateBattle3D(dt, nowSec) {
             return;
         }
 
-        const otherX = other ? other.x : (typeof campaignActiveMinions !== 'undefined' && campaignActiveMinions && campaignActiveMinions[0] ? campaignActiveMinions[0].x : f.x + (f.facing || 1));
+        let otherX = f.x + (f.facing || 1);
+        if (other) {
+            otherX = other.x;
+        } else if (typeof campaignActiveMinions !== 'undefined' && campaignActiveMinions && campaignActiveMinions.length > 0) {
+            let bestDist = Infinity;
+            for (const m of campaignActiveMinions) {
+                if (!m || m.isDead) continue;
+                const d = Math.abs(m.x - f.x);
+                if (d < bestDist) {
+                    bestDist = d;
+                    otherX = m.x;
+                }
+            }
+        }
         if (!f.isDead && f.action !== 'special' && f.action !== 'fatality' && f.dashTimer <= 0) {
             f.facing = f.x <= otherX ? 1 : -1;
         }
@@ -1108,11 +1129,14 @@ function updateBattle3D(dt, nowSec) {
                 }
             }
 
-            if (f.action !== 'fatality' && f.action !== 'xray' && !f.hasHitCurrentAttack && progress >= 0.32 && progress <= 0.70) {
-                f.hasHitCurrentAttack = true;
+            if (f.action !== 'fatality' && f.action !== 'xray' && !f.hasHitCurrentAttack && progress >= 0.16 && progress <= 0.78) {
                 if (other) {
-                    checkAttackCollision3D(f, other);
+                    if (progress >= 0.32 && progress <= 0.70) {
+                        f.hasHitCurrentAttack = true;
+                        checkAttackCollision3D(f, other);
+                    }
                 } else if (matchState === 'campaign_level' && typeof checkPlayerAttacksAgainstMinions === 'function') {
+                    // En campagne vagues 1 & 2, laisser checkPlayerAttacksAgainstMinions poser hasHitCurrentAttack quand un ennemi est touché
                     checkPlayerAttacksAgainstMinions();
                 }
             }
@@ -1190,6 +1214,30 @@ function updateBattle3D(dt, nowSec) {
         p.mesh.rotation.z += 8 * dt;
         p.life -= dt;
         const target = p.owner === fighter1 ? fighter2 : fighter1;
+        let hitHandled = false;
+
+        // En mode Campagne Vagues 1 & 2 : collisions des projectiles du joueur contre les minions
+        if (matchState === 'campaign_level' && p.owner === fighter1 && typeof campaignActiveMinions !== 'undefined') {
+            for (let mIdx = 0; mIdx < campaignActiveMinions.length; mIdx++) {
+                const minion = campaignActiveMinions[mIdx];
+                if (!minion || minion.isDead) continue;
+                const hitRadius = (minion.radius || 0.75) + 0.95;
+                if (Math.abs(p.mesh.position.x - minion.x) < hitRadius && Math.abs(p.mesh.position.y - (minion.y + 0.8)) < 2.2) {
+                    const powBonus = fighter1 && fighter1.dino ? Math.round(fighter1.dino.stats.pow * 1.15) : p.damage;
+                    const projDmg = Math.max(p.damage || 85, powBonus);
+                    minion.takeDamage(projDmg, (p.vx >= 0 ? 1 : -1) * 9.5, 5.5, 'projectile');
+                    if (typeof spawnHitSparks3D === 'function') {
+                        spawnHitSparks3D(minion.x, minion.y + 0.9, true);
+                    }
+                    if (typeof updateCampaignSmashHUD === 'function') updateCampaignSmashHUD();
+                    fxGroup.remove(p.mesh);
+                    projectiles3D.splice(i, 1);
+                    hitHandled = true;
+                    break;
+                }
+            }
+            if (hitHandled) continue;
+        }
 
         // Renvoi de projectile si l'Ankylosaure tournoie ou possède l'hyper-armure
         if (target && target.dino && target.dino.id === 'ankylosaurus' && (target.action === 'special' || target.hasHyperArmor) && Math.abs(p.mesh.position.x - target.x) < 2.6 && Math.abs(p.mesh.position.y - (target.y + 1.8)) < 2.2) {
@@ -1201,7 +1249,8 @@ function updateBattle3D(dt, nowSec) {
             continue;
         }
 
-        if (Math.abs(p.mesh.position.x - target.x) < 1.55 && Math.abs(p.mesh.position.y - (target.y + 1.8)) < 2.1 && matchState === 'fight') {
+        if (target && !target.isDead && (matchState === 'fight' || matchState === 'campaign_level') &&
+            Math.abs(p.mesh.position.x - target.x) < 1.75 && Math.abs(p.mesh.position.y - (target.y + 1.8)) < 2.2) {
             applyDamage(p.owner, target, p.damage, true, '🔥 IMPACT SPÉCIAL !');
             fxGroup.remove(p.mesh);
             projectiles3D.splice(i, 1);

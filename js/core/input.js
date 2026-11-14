@@ -1129,8 +1129,8 @@ function handleGamepadBattle(pad, pad2, dt) {
         }
     }
 
-    // CONTRÔLES JOUEUR 1 (Manette 1)
-    if (pad && fighter1 && fighter2) {
+    // CONTRÔLES JOUEUR 1 (Manette 1) — actifs même en vague Campagne (fighter2 === null)
+    if (pad && fighter1 && (fighter2 || matchState === 'campaign_level')) {
         const axX = applyStickResponse(pad.axes[0] || 0);
         const axY = applyStickResponse(pad.axes[1] || 0);
         touchState.left = axX < -0.28 || !!(pad.buttons[14]?.pressed);

@@ -9,7 +9,7 @@ registerCampaignEra({
     subtitle: 'L\'ESSOR DES SCORPIONS DES MERS & MARÉES',
     periodYears: '444 - 419 Ma',
     logo: 'assets/ui/era_logos/era_1_paleozoic.png',
-    arenaId: 'swamp',
+    arenaId: 'storm',
     themeColor: '#0d9488',
     mapX: 23,
     mapY: 25,
@@ -24,9 +24,9 @@ registerCampaignEra({
         fighterName: 'Ankylosaure (Égide Côtière)',
         fighterRole: 'Forteresse Cuirassée',
         fighterPortrait: 'assets/portraits/ankylo.png',
-        arenaId: 'swamp',
-        arenaName: 'Lagune Côtière du Silurien',
-        arenaDesc: 'Estuaire à marées changeantes et bancs de vase'
+        arenaId: 'storm',
+        arenaName: 'Estuaire Orageux du Silurien',
+        arenaDesc: 'Côtes battues par les vents et marées changeantes'
     },
     waves: [
         {

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_postosuchus" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#471e17"/>
+      <stop offset="45%" stop-color="#c74432"/>
+      <stop offset="100%" stop-color="#f5cbb8"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_postosuchus" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#6b2b20"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Postosuchus kirkpatricki -->
+  <g id="layer-body-side">
+    <path d="M 275,335 C 345,250 515,245 665,272 C 735,288 765,335 745,375 C 660,405 395,405 285,372 Z" fill="url(#bodyGrad_postosuchus)" stroke="#471e17" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 745,262 C 805,238 895,248 948,278 C 958,298 942,322 895,326 L 758,318 Z" fill="#c74432" stroke="#471e17" stroke-width="4"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 280,332 L 45,325 L 40,348 L 285,368 Z" fill="#6b2b20" stroke="#471e17" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <path d="M 325,262 L 340,242 L 358,260 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#471e17" stroke-width="3"/>
+    <path d="M 415,252 L 430,232 L 448,250 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#471e17" stroke-width="3"/>
+    <path d="M 505,250 L 520,230 L 538,248 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#471e17" stroke-width="3"/>
+    <path d="M 595,256 L 610,236 L 628,255 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#471e17" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 275,500 C 350,415 515,405 665,435 C 730,452 758,478 758,500 C 758,522 730,548 665,565 C 515,595 350,585 275,500 Z" fill="#c74432" fill-opacity="0.28" stroke="#f59e0b" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

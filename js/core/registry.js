@@ -1,5 +1,5 @@
 /* ============================================================================
- * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS COMPLET (13 COMBATTANTS, BOSS DRAGON & ARÈNES)
+ * EXTINCTION KOMBAT 3D - MOTEUR THREE.JS COMPLET (16 COMBATTANTS, BOSS DRAGON & ARÈNES)
  * ============================================================================ */
 
 // 1. BASE DE DONNÉES DES COMBATTANTS AVEC ANIMATIONS & FATALITÉS 3D DISTINCTES
@@ -20,24 +20,29 @@ function registerFighterAnimation(id, animObj) {
 window.registerFighterAnimation = registerFighterAnimation;
 
 // Association de chaque combattant déblocable à son Ère de Campagne (13 Ères)
+// Combattants de départ : T-Rex ('trex'), Stégosaure ('stegosaurus'), Quetzalcoatlus ('quetzal')
 const UNLOCKABLE_FIGHTER_ERAS = {
-    'anomalocaris': 1,    // Débloqué à l'Ère 1 (Cambrien - Boss jouable !)
+    'anomalocaris': 1,    // Débloqué à l'Ère 1 (Cambrien)
+    'maiasaura': 2,       // Débloqué à l'Ère 2 (Ordovicien)
+    'ankylo': 3,          // Débloqué à l'Ère 3 (Silurien)
+    'spinosaurus': 4,     // Débloqué à l'Ère 4 (Dévonien)
     'pulmonoscorpius': 5, // Débloqué à l'Ère 5 (Carbonifère)
+    'pachyrhino': 6,      // Débloqué à l'Ère 6 (Permien)
     'postosuchus': 7,     // Débloqué à l'Ère 7 (Trias)
     'apato': 8,           // Débloqué à l'Ère 8 (Jurassique)
     'therizino': 9,       // Débloqué à l'Ère 9 (Crétacé)
-    'terabird': 10,       // Débloqué à l'Ère 10 (Cénozoïque : Paléogène)
-    'giantsloth': 11,     // Débloqué à l'Ère 11 (Cénozoïque : Néogène)
-    'smilodon': 12,       // Débloqué à l'Ère 12 (Cénozoïque : Quaternaire)
+    'terabird': 10,       // Débloqué à l'Ère 10 (Paléogène)
+    'giantsloth': 11,     // Débloqué à l'Ère 11 (Néogène)
+    'smilodon': 12,       // Débloqué à l'Ère 12 (Quaternaire)
     'dragon': 13          // Débloqué à l'Ère 13 (Apogée de l'Extinction - Boss jouable !)
 };
 
 // Association de chaque arène déblocable à son Ère de Campagne
 const UNLOCKABLE_ARENA_ERAS = {
     'cambrian': 1,    // Récif Abyssal du Cambrien (Ère 1)
-    'swamp': 5,       // Marais du Carbonifère (Ère 5)
-    'storm': 7,       // Canyon de l'Orage Primordial (Ère 7)
-    'jungle': 8,      // Vallée d'Émeraude (Ère 8)
+    'swamp': 2,       // Lagune / Marais (Ère 2)
+    'storm': 3,       // Tempête Côtière (Ère 3)
+    'jungle': 5,      // Forêt Luxuriante (Ère 5)
     'iceage': 12,     // Glacier de l'Ère Glaciaire (Ère 12)
     'dragonlair': 13  // L'Antre Infernale de Drak'Zul (Ère 13)
 };

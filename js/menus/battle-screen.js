@@ -1024,7 +1024,7 @@ function getHudPortrait(dino, skinIndex = 0) {
 }
 
 function updateHudPortraits() {
-    if (!fighter1 || !fighter2) return;
+    if (!fighter1) return;
     const p1El = document.getElementById('hudP1PortraitImg');
     const p2El = document.getElementById('hudP2PortraitImg');
 
@@ -1037,7 +1037,7 @@ function updateHudPortraits() {
         }
     }
 
-    if (p2El) {
+    if (p2El && fighter2) {
         const p2Art = getHudPortrait(fighter2.dino, fighter2.skinIndex);
         if (p2Art.startsWith('<svg') || p2Art.startsWith('<div')) {
             p2El.innerHTML = p2Art;
@@ -1092,15 +1092,15 @@ function renderFighterStatusBadges(fighter) {
 }
 
 function updateBattleHUD() {
-    if (!fighter1 || !fighter2) return;
+    if (!fighter1) return;
     const p1Pct = Math.max(0, Math.round((fighter1.hp / fighter1.maxHp) * 100));
-    const p2Pct = Math.max(0, Math.round((fighter2.hp / fighter2.maxHp) * 100));
+    const p2Pct = fighter2 ? Math.max(0, Math.round((fighter2.hp / fighter2.maxHp) * 100)) : 0;
 
     UIKit.batch(() => {
         hudP1HpPctSignal.value = p1Pct;
         hudP2HpPctSignal.value = p2Pct;
         hudP1RageSignal.value = fighter1.rage;
-        hudP2RageSignal.value = fighter2.rage;
+        hudP2RageSignal.value = fighter2 ? fighter2.rage : 0;
     });
 
     const p1HealthEl = document.getElementById('hudP1HealthBar');
@@ -1128,16 +1128,16 @@ function updateBattleHUD() {
     }
 
     const p2RageEl = document.getElementById('hudP2RageBar');
-    if (p2RageEl) p2RageEl.style.width = fighter2.rage + '%';
+    if (p2RageEl && fighter2) p2RageEl.style.width = fighter2.rage + '%';
     const r2Badge = document.getElementById('hudP2RageBadge');
-    if (r2Badge) {
+    if (r2Badge && fighter2) {
         r2Badge.textContent = fighter2.rage >= 100 ? '💀 X-RAY PRÊT' : `RAGE ${Math.floor(fighter2.rage)}%`;
     }
 
     const p1RoundsEl = document.getElementById('hudP1Rounds');
     if (p1RoundsEl) p1RoundsEl.innerHTML = '💀'.repeat(fighter1.roundsWon);
     const p2RoundsEl = document.getElementById('hudP2Rounds');
-    if (p2RoundsEl) p2RoundsEl.innerHTML = '💀'.repeat(fighter2.roundsWon);
+    if (p2RoundsEl && fighter2) p2RoundsEl.innerHTML = '💀'.repeat(fighter2.roundsWon);
 
     const frenzyCorona = document.getElementById('hudFrenzyCorona');
     const frenzyText = document.getElementById('hudFrenzyText');
@@ -1156,6 +1156,9 @@ function updateBattleHUD() {
     }
 
     updateBattleHUDCooldowns();
+    if (matchState === 'campaign_level' && typeof updateCampaignSmashHUD === 'function') {
+        updateCampaignSmashHUD();
+    }
 }
 
 function updateBattleHUDCooldowns() {
@@ -1230,7 +1233,7 @@ function initBattleScreenMenu() {
     const frenzyGauge = document.getElementById('hudFrenzyGauge');
     if (frenzyGauge) {
         frenzyGauge.addEventListener('click', () => {
-            if (fighter1 && fighter2 && matchState === 'fight') {
+            if (fighter1 && (fighter2 && matchState === 'fight' || matchState === 'campaign_level')) {
                 triggerPlayerAction(fighter1, fighter2, 'xray');
             }
         });
@@ -1245,12 +1248,12 @@ function initBattleScreenMenu() {
             btn.classList.add('active-press');
             const now = performance.now();
             if (dir === 'left') {
-                if (now - lastTouchDirTap.left < 300 && fighter1 && (matchState === 'fight' || matchState === 'finish_him')) {
+                if (now - lastTouchDirTap.left < 300 && fighter1 && (matchState === 'fight' || matchState === 'finish_him' || matchState === 'campaign_level')) {
                     fighter1.startDash(-1);
                 }
                 lastTouchDirTap.left = now;
             } else if (dir === 'right') {
-                if (now - lastTouchDirTap.right < 300 && fighter1 && (matchState === 'fight' || matchState === 'finish_him')) {
+                if (now - lastTouchDirTap.right < 300 && fighter1 && (matchState === 'fight' || matchState === 'finish_him' || matchState === 'campaign_level')) {
                     fighter1.startDash(1);
                 }
                 lastTouchDirTap.right = now;
@@ -1268,7 +1271,7 @@ function initBattleScreenMenu() {
         const act = btn.dataset.action;
         const trigger = (e) => {
             e.preventDefault();
-            if (fighter1 && fighter2) {
+            if (fighter1 && (fighter2 || matchState === 'campaign_level')) {
                 triggerPlayerAction(fighter1, fighter2, act);
             }
         };

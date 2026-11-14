@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_spinosaurus" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#143d59"/>
+      <stop offset="45%" stop-color="#2678b8"/>
+      <stop offset="100%" stop-color="#9ae2fa"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_spinosaurus" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#12c9df"/>
+      <stop offset="100%" stop-color="#164d75"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Spinosaurus aegyptiacus -->
+  <g id="layer-body-side">
+    <path d="M 290,340 C 365,245 545,235 685,275 C 745,295 795,285 835,275 L 820,365 C 725,405 465,415 305,375 Z" fill="url(#bodyGrad_spinosaurus)" stroke="#143d59" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 815,272 C 865,255 935,262 978,282 C 988,295 982,314 955,318 L 835,326 Z" fill="#2678b8" stroke="#143d59" stroke-width="4"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 295,335 C 215,310 135,265 45,270 C 20,295 25,355 55,380 C 140,390 220,378 302,372 Z" fill="#164d75" stroke="#143d59" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <path d="M 345,285 C 365,120 445,75 545,78 C 635,82 690,145 710,278 Z" fill="#12c9df" fill-opacity="0.82" stroke="#143d59" stroke-width="3"/>
+    <path d="M 865,264 L 885,238 L 912,262 Z" fill="#12c9df" fill-opacity="0.82" stroke="#143d59" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 295,500 C 375,405 545,390 695,425 C 770,445 815,475 835,500 C 815,525 770,555 695,575 C 545,610 375,595 295,500 Z" fill="#2678b8" fill-opacity="0.28" stroke="#12c9df" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

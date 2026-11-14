@@ -1,5 +1,5 @@
 // 3. ÉTAT GLOBAL DE L'APPLICATION
-var GAME_VERSION = 'v0.2.1';
+var GAME_VERSION = 'v0.3.0';
 var gameMode = 'cpu'; // 'campaign', 'cpu', 'pvp', 'practice'
 var aiDifficulty = 'normal';
 var currentArena = 'volcano';
@@ -9,7 +9,8 @@ var p2ChoiceIndex = 1; // Pachyrhinosaure
 var p1SkinIndex = 0;
 var p2SkinIndex = 0;
 
-// Mode Campagne (5 adversaires aléatoires + Boss Dragon final)
+// Mode Campagne (13 Ères + transition par l'écran de sélection)
+var pendingCampaignEra = null;
 var campaignStage = 1;
 var campaignOpponents = [];
 var CAMPAIGN_TOTAL_STAGES = 6;

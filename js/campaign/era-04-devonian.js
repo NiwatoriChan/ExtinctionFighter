@@ -9,7 +9,7 @@ registerCampaignEra({
     subtitle: 'L\'ÂGE DES POISSONS CUIRASSÉS',
     periodYears: '419 - 359 Ma',
     logo: 'assets/ui/era_logos/era_1_paleozoic.png',
-    arenaId: 'cambrian',
+    arenaId: 'boneyard',
     themeColor: '#2563eb',
     mapX: 30,
     mapY: 50,
@@ -24,9 +24,9 @@ registerCampaignEra({
         fighterName: 'Spinosaure (Chasseur Marin)',
         fighterRole: 'Prédateur Aquatique',
         fighterPortrait: 'assets/portraits/spinosaurus.png',
-        arenaId: 'cambrian',
-        arenaName: 'Mer Dévonienne des Placodermes',
-        arenaDesc: 'Eaux profondes où rôdent requins anciens et cuirassés'
+        arenaId: 'boneyard',
+        arenaName: 'Fosse Fossile du Dévonien',
+        arenaDesc: 'Récifs osseux anciens où rôdent requins et cuirassés'
     },
     waves: [
         {

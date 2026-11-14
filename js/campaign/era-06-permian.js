@@ -9,7 +9,7 @@ registerCampaignEra({
     subtitle: 'L\'AUBE DES SYNAPSIDES & LA GRANDE EXTINCTION',
     periodYears: '299 - 252 Ma',
     logo: 'assets/ui/era_logos/era_2_triassic.png',
-    arenaId: 'boneyard',
+    arenaId: 'volcano',
     themeColor: '#ea580c',
     mapX: 44,
     mapY: 44,
@@ -24,9 +24,9 @@ registerCampaignEra({
         fighterName: 'Pachyrhinosaure (Garde Permienne)',
         fighterRole: 'Bélier Blindé de la Pangée',
         fighterPortrait: 'assets/portraits/pachyrhino.png',
-        arenaId: 'boneyard',
-        arenaName: 'Cimetière Aride du Permien',
-        arenaDesc: 'Désert d\'ossements sous un soleil ardent'
+        arenaId: 'volcano',
+        arenaName: 'Caldeira Aride du Permien',
+        arenaDesc: 'Cratères brûlants et terres volcaniques sous un soleil ardent'
     },
     waves: [
         {

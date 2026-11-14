@@ -9,7 +9,7 @@ registerCampaignEra({
     subtitle: 'SOUS-ÈRE • OISEAUX DE TERREUR & SERPENTS GÉANTS',
     periodYears: '66 - 23 Ma',
     logo: 'assets/ui/era_logos/era_5_cenozoic.png',
-    arenaId: 'jungle',
+    arenaId: 'swamp',
     themeColor: '#10b981',
     mapX: 73,
     mapY: 66,
@@ -24,9 +24,9 @@ registerCampaignEra({
         fighterName: 'Oiseau de Terreur (Kelenken)',
         fighterRole: 'Prédateur Aviaire Foudroyant',
         fighterPortrait: 'assets/portraits/terabird.png',
-        arenaId: 'jungle',
-        arenaName: 'Forêt Chaude du Paléogène',
-        arenaDesc: 'Canopée dense balayée par des vents violents'
+        arenaId: 'swamp',
+        arenaName: 'Marais Tropical du Paléogène',
+        arenaDesc: 'Marécages humides balayés par des vents violents'
     },
     waves: [
         {

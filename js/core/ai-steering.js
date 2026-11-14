@@ -219,11 +219,37 @@ const AIVehicleSystem = {
                 arrive.target.set(sweetSpot.x, sweetSpot.y || 0, 0);
             }
         } else {
-            // ARRIVE_SWEET_SPOT + NavMesh Waypoint Following
+            // ARRIVE_SWEET_SPOT + NavMesh Waypoint Following (avec gestion multi-étages)
+            let destX = (navData && navData.nextWaypoint) ? navData.nextWaypoint.x : sweetSpot.x;
+            let destY = (navData && navData.nextWaypoint && navData.nextWaypoint.y !== undefined) ? navData.nextWaypoint.y : (sweetSpot.y || 0);
+
+            // Si l'adversaire est sur un étage supérieur, viser le geyser ou bord de plateforme le plus proche
+            if ((targetFighter.y || 0) - (aiFighter.y || 0) > 1.8 && typeof getArenaPlatforms === 'function') {
+                const plats = getArenaPlatforms(currentArena);
+                let bestApproachX = targetFighter.x;
+                let bestScore = Infinity;
+                for (const p of plats) {
+                    if (p.isJumpPad) {
+                        const score = Math.abs(p.x - aiFighter.x) * 0.7 + Math.abs(p.x - targetFighter.x) * 0.3;
+                        if (score < bestScore) {
+                            bestScore = score;
+                            bestApproachX = p.x;
+                        }
+                    } else if (p.y > (aiFighter.y || 0) + 0.5 && p.y <= (aiFighter.y || 0) + 5.8) {
+                        const centerX = (p.xMin + p.xMax) * 0.5;
+                        const score = Math.abs(centerX - aiFighter.x) + Math.abs(centerX - targetFighter.x) * 0.5;
+                        if (score < bestScore) {
+                            bestScore = score;
+                            bestApproachX = centerX;
+                        }
+                    }
+                }
+                destX = bestApproachX;
+            }
+
             arrive.active = true;
             arrive.weight = 1.0;
-            const wp = (navData && navData.nextWaypoint) ? navData.nextWaypoint : sweetSpot;
-            arrive.target.set(wp.x, wp.y || 0, 0);
+            arrive.target.set(destX, destY, 0);
         }
 
         this.entityManager.update(dt);

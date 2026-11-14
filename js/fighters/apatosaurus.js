@@ -120,7 +120,7 @@ registerFighter({
     attackReach: 4.3,
 
     onSpecial(attacker, defender, dist, basePow) {
-        if (dist < 6.4) {
+        if (defender && dist < 6.4 && (typeof isWithinVerticalHitBand !== 'function' || isWithinVerticalHitBand(attacker, defender, 2.4, 1.8))) {
             applyDamage(attacker, defender, Math.round(basePow * 1.15), true, 'FOUET SUPERSONIQUE !');
         }
     },

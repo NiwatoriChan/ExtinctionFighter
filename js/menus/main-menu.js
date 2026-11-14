@@ -42,8 +42,8 @@ const FEMUR_BONE_SVG = `
 
 const MAIN_MENU_SLAB_DEFS = [
     { id: 'btnMenuCampaign', label: 'CAMPAGNE', isDefaultActive: true },
-    { id: 'btnMenuVsAI', label: 'DUEL VS IA' },
-    { id: 'btnMenuVersus', label: 'DUEL 2 JOUEURS' },
+    { id: 'btnMenuVsAI', label: 'DUEL SOLO (VS IA)' },
+    { id: 'btnMenuVersus', label: 'VERSUS LOCAL (2 JOUEURS)' },
     { id: 'btnMenuTraining', label: 'ENTRAÎNEMENT' },
     { id: 'btnMenuRoster', label: 'ROSTER & GRIMOIRE' },
     { id: 'btnMenuSettings', label: 'PARAMÈTRES' },
@@ -142,7 +142,7 @@ const mainMenuRoot = new UIKit.Fullscreen({
                         new UIKit.Text({
                             tag: 'span',
                             className: 'text-stone-400 font-chakra text-xs font-bold tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]',
-                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.2.1'
+                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.0'
                         })
                     ]
                 })
@@ -325,6 +325,7 @@ function initMainMenu() {
         btnVsAI.addEventListener('click', () => {
             selectMainMenuSlab(btnVsAI);
             sfx.playHit(false);
+            if (typeof pendingCampaignEra !== 'undefined') pendingCampaignEra = null;
             gameMode = 'cpu';
             goToSelectScreen();
         });
@@ -336,6 +337,7 @@ function initMainMenu() {
         btnVersus.addEventListener('click', () => {
             selectMainMenuSlab(btnVersus);
             sfx.playHit(false);
+            if (typeof pendingCampaignEra !== 'undefined') pendingCampaignEra = null;
             gameMode = 'pvp';
             goToSelectScreen();
         });
@@ -347,6 +349,7 @@ function initMainMenu() {
         btnTrain.addEventListener('click', () => {
             selectMainMenuSlab(btnTrain);
             sfx.playHit(false);
+            if (typeof pendingCampaignEra !== 'undefined') pendingCampaignEra = null;
             gameMode = 'practice';
             goToSelectScreen();
         });
@@ -358,6 +361,7 @@ function initMainMenu() {
         btnRoster.addEventListener('click', () => {
             selectMainMenuSlab(btnRoster);
             sfx.playHit(false);
+            if (typeof pendingCampaignEra !== 'undefined') pendingCampaignEra = null;
             gameMode = 'cpu';
             goToSelectScreen();
         });
@@ -416,6 +420,7 @@ function startCampaignMode() {
 }
 
 function goToMainMenu() {
+    if (typeof pendingCampaignEra !== 'undefined') pendingCampaignEra = null;
     if (typeof teardownActiveBattle === 'function') {
         teardownActiveBattle();
     }

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_postosuchus" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="55%" stop-color="#c74432"/>
+      <stop offset="100%" stop-color="#6b2b20"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 280,332 L 45,325 L 40,348 L 285,368 Z" fill="#6b2b20"/>
+    <path d="M 275,335 C 345,250 515,245 665,272 C 735,288 765,335 745,375 C 660,405 395,405 285,372 Z" fill="url(#emblem_postosuchus)"/>
+    <path d="M 745,262 C 805,238 895,248 948,278 C 958,298 942,322 895,326 L 758,318 Z" fill="#c74432"/>
+    <path d="M 325,262 L 340,242 L 358,260 Z" fill="#f59e0b"/>
+    <path d="M 415,252 L 430,232 L 448,250 Z" fill="#f59e0b"/>
+    <path d="M 505,250 L 520,230 L 538,248 Z" fill="#f59e0b"/>
+    <path d="M 595,256 L 610,236 L 628,255 Z" fill="#f59e0b"/>
+  </g>
+</svg>

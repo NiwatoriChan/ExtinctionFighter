@@ -49,6 +49,11 @@ function bootGame() {
         initGamepadSystem();
     }
 
+    // Préchargement asynchrone des modèles 3D Blender (.glb)
+    if (typeof preloadAllFighterGLBs === 'function') {
+        preloadAllFighterGLBs();
+    }
+
     // Appliquer les paramètres graphiques initiaux (par défaut "high")
     if (typeof applyGraphicsSettings === 'function') {
         applyGraphicsSettings(graphicsQuality || 'high');
