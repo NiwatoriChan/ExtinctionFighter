@@ -18,7 +18,7 @@ registerCampaignEra({
         name: 'Crue Subite',
         desc: 'Des vagues de crue balaient le sol bas toutes les 18 secondes.'
     },
-    description: 'Les plaines du Néogène voient régner les condors géants Argentavis et les colosses herbivores. Repoussez les assauts aériens et abattez le Mégathérium Primordial.',
+    description: 'Les plaines du Néogène voient régner les condors géants Argentavis et les chiens-ours Amphicyon. Repoussez les assauts aériens et abattez le Mégathérium.',
     reward: {
         fighterId: 'giantsloth',
         fighterName: 'Mégathérium',
@@ -31,12 +31,12 @@ registerCampaignEra({
     waves: [
         {
             waveNum: 1,
-            name: 'RAID AÉRIEN D\'ARGENTAVIS',
+            name: 'RAID AÉRIEN D\'ARGENTAVIS MAGNIFICENS',
             objective: 'clear',
             archetype: 'aerial',
             count: 3,
             enemyType: 'bird_pterosaur',
-            enemyDisplayName: 'Condor Argentavis',
+            enemyDisplayName: 'Argentavis Magnificens',
             hp: 265,
             speed: 7.5,
             scale: 0.72,
@@ -45,15 +45,15 @@ registerCampaignEra({
         },
         {
             waveNum: 2,
-            name: 'COLOSSES PARACERATHERIUM',
+            name: 'MEUTE D\'AMPHICYON & BARBOUROFELIS',
             objective: 'clear',
             archetype: 'armored',
             count: 2,
             enemyType: 'mammal',
-            enemyDisplayName: 'Paraceratherium Blindé',
+            enemyDisplayName: 'Amphicyon Ingens (Chien-Ours Géant)',
             hp: 580,
-            speed: 6.0,
-            scale: 0.96,
+            speed: 6.4,
+            scale: 0.94,
             color: 0xa16207,
             baseDino: 'apato'
         },
@@ -62,7 +62,7 @@ registerCampaignEra({
             isBoss: true,
             name: 'LE TITAN DU NÉOGÈNE',
             bossId: 'boss_megatherium',
-            bossName: 'MEGATHERIUM COLOSSUS',
+            bossName: 'MEGATHERIUM AMERICANUM TITAN',
             bossTitle: 'GÉANT AUX GRIFFES SISMIQUES',
             hp: 3050,
             speed: 7.1,

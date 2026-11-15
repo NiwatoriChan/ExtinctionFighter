@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_jaekelopterus" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#042f2e"/>
+      <stop offset="45%" stop-color="#0d9488"/>
+      <stop offset="100%" stop-color="#5eead4"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_jaekelopterus" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#115e59"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Jaekelopterus rhenaniae -->
+  <g id="layer-body-side">
+    <path d="M 295,310 C 395,268 565,265 715,288 C 765,298 785,335 765,375 C 685,398 445,395 295,358 Z" fill="url(#bodyGrad_jaekelopterus)" stroke="#042f2e" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 735,285 C 785,278 835,292 845,328 C 845,362 795,378 738,372 Z" fill="#0d9488" stroke="#042f2e" stroke-width="4"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 295,322 C 215,320 135,326 62,315 L 35,338 L 95,358 C 165,352 228,350 295,352 Z" fill="#115e59" stroke="#042f2e" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <path d="M 825,305 C 885,262 948,255 985,272 C 950,295 905,302 848,318 C 905,322 952,332 978,352 C 928,355 868,342 825,332 Z" fill="#2dd4bf" fill-opacity="0.82" stroke="#042f2e" stroke-width="3"/>
+    <path d="M 665,372 C 625,422 575,442 545,422 C 578,402 615,382 642,368 Z" fill="#2dd4bf" fill-opacity="0.82" stroke="#042f2e" stroke-width="3"/>
+    <path d="M 595,375 L 555,445 L 575,448 L 615,378 Z" fill="#2dd4bf" fill-opacity="0.82" stroke="#042f2e" stroke-width="3"/>
+    <path d="M 525,372 L 485,438 L 502,442 L 542,374 Z" fill="#2dd4bf" fill-opacity="0.82" stroke="#042f2e" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 285,500 C 365,375 565,365 745,425 C 795,452 815,482 815,500 C 815,518 795,548 745,575 C 565,635 365,625 285,500 Z" fill="#0d9488" fill-opacity="0.28" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_dimetrodon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#451a03"/>
+      <stop offset="45%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#fed7aa"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_dimetrodon" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Dimetrodon grandis -->
+  <g id="layer-body-side">
+    <path d="M 275,342 C 365,295 575,288 715,318 C 755,335 765,382 725,408 C 585,428 385,425 275,385 Z" fill="url(#bodyGrad_dimetrodon)" stroke="#451a03" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 705,315 C 755,278 845,275 908,308 C 918,332 895,368 835,378 L 712,375 Z" fill="#b45309" stroke="#451a03" stroke-width="4"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 278,342 C 185,345 102,368 28,395 C 102,388 188,378 278,382 Z" fill="#78350f" stroke="#451a03" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <path d="M 345,318 C 355,165 445,105 545,102 C 625,105 685,175 685,315 Z" fill="#f97316" fill-opacity="0.82" stroke="#451a03" stroke-width="3"/>
+    <path d="M 645,398 L 622,468 L 655,472 L 678,395 Z" fill="#f97316" fill-opacity="0.82" stroke="#451a03" stroke-width="3"/>
+    <path d="M 365,385 L 338,462 L 372,466 L 398,385 Z" fill="#f97316" fill-opacity="0.82" stroke="#451a03" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 275,500 C 375,418 575,408 735,445 C 815,465 865,482 865,500 C 865,518 815,535 735,555 C 575,592 375,582 275,500 Z" fill="#b45309" fill-opacity="0.28" stroke="#f97316" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

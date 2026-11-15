@@ -149,6 +149,9 @@ function preloadAllFighterGLBs() {
     GLB_FIGHTER_IDS.forEach((id) => {
         promises.push(loadFighterGLB(id));
     });
+    ['boss_cameroceras', 'boss_jaekelopterus', 'boss_dunkleosteus', 'boss_dimetrodon'].forEach((bossId) => {
+        promises.push(loadCampaignGLB(bossId));
+    });
     return Promise.all(promises);
 }
 

@@ -2,6 +2,18 @@
 
 All notable changes to **Extinction Kombat 3D** (*ExtinctionFighter*) are documented in this file.
 
+## [v0.3.4] - 2026-11-15
+
+### Added
+- **Playable Paleozoic Titans (Eras 2, 3, 4 & 6)**: Added `js/fighters/paleozoic-titans.js` (loaded in `index.html`) introducing **Cameroceras**, **Jaekelopterus**, **Dunkleosteus**, and **Dimetrodon** as full playable roster fighters backed by preloaded boss `.glb` rigs (`js/core/model-loader.js`), shared `animBaseId` rig animations (`js/core/animation.js`, `js/core/registry.js`), portraits (`assets/portraits/`), and SVG emblems/species icons (`assets/svg/emblems/`, `assets/svg/species/`).
+- **Ankylosaurus Sculpt & PBR Overhaul**: Rebuilt `assets/models/fighters/ankylo.glb` using a dedicated Blender sculptor (`tools/blender/ankylo_sculptor.py`) and PBR texture generator (`tools/blender/generate_ankylo_pbr_textures.py`) with dedicated albedo, normal, and bump maps (`ankylo_*.png`) for body, beak, cranium, horn, iris, and scutes. Removed the legacy `ankylo` builder from `tools/blender/build_batch1_herbivores.py`.
+- **Campaign Progression, Stars & Modals**: Added star ratings (`getEraStars`), high scores (`getEraHighScore`, `saveEraPerformance`), Phase 2 boss behavior (`updateCampaignBossPhase2Behavior`), and victory/game-over modals (`showEraVictoryRewardsModal`, `showCampaignGameOverModal`) in `js/core/campaign-level.js`.
+
+### Changed
+- **Campaign Era Balancing & Rewards**: Updated campaign eras (`js/campaign/era-02-ordovician.js` – `era-13-extinction.js`), unlock mappings (`UNLOCKABLE_FIGHTER_ERAS`, `UNLOCKABLE_ARENA_ERAS` in `js/core/registry.js`), and `js/menus/campaign-map.js` to display star counts, high scores, and wave species composition.
+- **Character Select Roster**: Updated `js/menus/select-screen.js` with Paleozoic titan SVG emblems and the 20-slot roster layout (removing placeholder secret slots and placing Drak'Zul at slot 20).
+- **Tests & Versioning**: Updated `tools/test_campaign_system.js`, `tools/play_campaign_levels.js`, `tools/test_coherence_overhaul.js`, `README.md`, and bumped `GAME_VERSION` to `v0.3.4` across `js/core/state.js` and menus.
+
 ## [v0.3.3] - 2026-11-15
 
 ### Changed

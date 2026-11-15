@@ -1,10 +1,10 @@
 /* ============================================================================
  * MENU : ÉCRAN DE SÉLECTION DES COMBATTANTS — PORTED TO @pmndrs/uikit
- * Design actuel avec piédestaux 3D, grille de 20 emplacements (14 bêtes + Boss
- * Drak'Zul + 5 secrets), jauges de statistiques en basalte et plinthe fossile.
+ * Design actuel avec piédestaux 3D, grille de 20 emplacements (19 bêtes
+ * préhistoriques + Boss Drak'Zul), jauges de statistiques en basalte.
  * ============================================================================ */
 
-// Portraits haute définition créés avec Nano Banana (Google DeepMind)
+// Portraits haute définition
 const FIGHTER_PORTRAIT_IMAGES = {
     trex: 'assets/portraits/trex.png',
     pachyrhino: 'assets/portraits/pachyrhino.png',
@@ -21,7 +21,11 @@ const FIGHTER_PORTRAIT_IMAGES = {
     giantsloth: 'assets/portraits/giantsloth.png',
     smilodon: 'assets/portraits/smilodon.png',
     dragon: 'assets/portraits/dragon.png',
-    anomalocaris: 'assets/portraits/anomalocaris.png'
+    anomalocaris: 'assets/portraits/anomalocaris.png',
+    cameroceras: 'assets/portraits/cameroceras.png',
+    jaekelopterus: 'assets/portraits/jaekelopterus.png',
+    dunkleosteus: 'assets/portraits/dunkleosteus.png',
+    dimetrodon: 'assets/portraits/dimetrodon.png'
 };
 
 function getFighterPortraitUrl(fighterId) {
@@ -272,6 +276,38 @@ const FIGHTER_PORTRAITS = {
             <path d="M40 36 C42 46 38 53 35 57 C37 50 39 44 38 36 Z" fill="#fef08a" stroke="#d97706" stroke-width="0.8"/>
             <path d="M44 36 C46 47 42 54 39 58 C41 51 43 45 42 36 Z" fill="#ffffff" stroke="#d97706" stroke-width="0.8"/>
             <path d="M30 40 L38 42 L34 47 L28 43 Z" fill="#92400e"/>
+        </svg>
+    `,
+    cameroceras: `
+        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+            <circle cx="32" cy="32" r="30" fill="#0c4a6e" stroke="#38bdf8" stroke-width="1.5"/>
+            <polygon points="10,20 38,24 38,40 10,44" fill="#0369a1" stroke="#7dd3fc" stroke-width="1"/>
+            <path d="M38 25 C48 23 55 26 56 30 M38 30 C49 30 55 32 56 35 M38 35 C48 37 54 40 53 44" stroke="#38bdf8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="36" cy="28" r="2.3" fill="#fef08a"/>
+        </svg>
+    `,
+    jaekelopterus: `
+        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+            <circle cx="32" cy="32" r="30" fill="#134e4a" stroke="#2dd4bf" stroke-width="1.5"/>
+            <ellipse cx="32" cy="34" rx="12" ry="16" fill="#0f766e" stroke="#5eead4" stroke-width="1"/>
+            <path d="M24 22 C16 14 18 8 25 14 M40 22 C48 14 46 8 39 14" stroke="#2dd4bf" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <circle cx="28" cy="26" r="2" fill="#facc15"/><circle cx="36" cy="26" r="2" fill="#facc15"/>
+        </svg>
+    `,
+    dunkleosteus: `
+        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+            <circle cx="32" cy="32" r="30" fill="#0f172a" stroke="#60a5fa" stroke-width="1.5"/>
+            <path d="M12 36 Q20 18 38 18 L50 28 L34 32 L48 40 L20 44 Z" fill="#1d4ed8" stroke="#93c5fd" stroke-width="1.2"/>
+            <polygon points="36,30 40,34 44,30" fill="#f8fafc"/><polygon points="38,38 42,34 46,38" fill="#f8fafc"/>
+            <circle cx="34" cy="24" r="2.2" fill="#facc15"/>
+        </svg>
+    `,
+    dimetrodon: `
+        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+            <circle cx="32" cy="32" r="30" fill="#451a03" stroke="#f97316" stroke-width="1.5"/>
+            <path d="M18 36 C18 14 42 12 46 34 Z" fill="#ea580c" stroke="#fdba74" stroke-width="1.2"/>
+            <path d="M14 40 Q30 32 48 34 L52 42 L20 44 Z" fill="#9a3412" stroke="#fed7aa" stroke-width="1"/>
+            <circle cx="44" cy="36" r="2" fill="#fef08a"/>
         </svg>
     `
 };
@@ -592,7 +628,7 @@ const selectScreenRoot = new UIKit.Fullscreen({
                         }),
                         new UIKit.Badge({
                             className: 'px-2 py-0.5 rounded bg-stone-900 border border-amber-600/60 text-amber-300 font-black text-[10px] tracking-wider',
-                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.3'
+                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.4'
                         })
                     ]
                 }),
@@ -1072,66 +1108,38 @@ function initRosterUI(forceRebuild = false) {
         }
     });
 
-    // Slot 15: Boss Drak'Zul (Complète la rangée 3 de 5 cartes)
-    const bossCard = new UIKit.Card({
-        className: 'beast-card opacity-90 border border-red-500/60 shadow-[0_0_14px_rgba(220,38,38,0.4)] cursor-pointer',
-        onClick: () => {
-            sfx.playCooldownWarning();
-            spawnFloatingPopup(0, "🔥 BOSS FINAL ! Conquérez l'Ère 13 de la Campagne pour débloquer Drak'Zul !", '#ef4444');
-        },
-        children: [
-            new UIKit.Container({
-                className: 'w-full flex-1 relative overflow-hidden bg-red-950/40 flex items-center justify-center',
-                children: [
-                    new UIKit.Image({
-                        src: getFighterPortraitUrl('dragon'),
-                        alt: "Drak'Zul",
-                        className: 'w-full h-full object-cover object-center filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]'
-                    }),
-                    new UIKit.Badge({
-                        className: 'absolute top-0 right-0 bg-red-600 text-white font-chakra font-black text-[9px] px-1.5 py-0.5 rounded-bl shadow',
-                        text: 'BOSS'
-                    })
-                ]
-            }),
-            new UIKit.Text({
-                tag: 'div',
-                className: 'beast-name-plaque text-red-400 font-black',
-                text: "DRAK'ZUL"
-            })
-        ]
-    });
-    gridNode.add(bossCard);
-
-    // Rangée 4 (Slots 16 à 20): 5 emplacements verrouillés secrets avec cadenas
-    const secretTitles = ['ANCESTRAL', 'TITAN', 'COLOSSE', 'LÉGENDE', 'PRIMAL'];
-    secretTitles.forEach((secName) => {
-        const secretCard = new UIKit.Card({
-            className: 'beast-card opacity-65 border-stone-800 bg-stone-950/80 cursor-pointer',
+    // Emplacement 20 : Boss Drak'Zul (verrouillé tant que l'Ère 13 n'est pas conquise)
+    if (!DINO_ROSTER.some(d => d.id === 'dragon')) {
+        const bossCard = new UIKit.Card({
+            className: 'beast-card opacity-90 border border-red-500/60 shadow-[0_0_14px_rgba(220,38,38,0.4)] cursor-pointer',
             onClick: () => {
                 sfx.playCooldownWarning();
-                spawnFloatingPopup(0, `🔒 COMBATTANT ${secName} VERROUILLÉ ! Complétez les défis secrets de l'Extinction !`, '#f59e0b');
+                spawnFloatingPopup(0, "🔥 BOSS FINAL ! Conquérez l'Ère 13 de la Campagne pour débloquer Drak'Zul !", '#ef4444');
             },
             children: [
                 new UIKit.Container({
-                    className: 'w-full flex-1 flex flex-col items-center justify-center relative p-1 bg-black/40',
+                    className: 'w-full flex-1 relative overflow-hidden bg-red-950/40 flex items-center justify-center',
                     children: [
-                        new UIKit.Text({
-                            tag: 'span',
-                            className: 'text-xl sm:text-2xl opacity-75 filter drop-shadow',
-                            text: '🔒'
+                        new UIKit.Image({
+                            src: getFighterPortraitUrl('dragon'),
+                            alt: "Drak'Zul",
+                            className: 'w-full h-full object-cover object-center filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]'
+                        }),
+                        new UIKit.Badge({
+                            className: 'absolute top-0 right-0 bg-red-600 text-white font-chakra font-black text-[9px] px-1.5 py-0.5 rounded-bl shadow',
+                            text: 'BOSS'
                         })
                     ]
                 }),
                 new UIKit.Text({
                     tag: 'div',
-                    className: 'beast-name-plaque text-stone-500',
-                    text: secName
+                    className: 'beast-name-plaque text-red-400 font-black',
+                    text: "DRAK'ZUL"
                 })
             ]
         });
-        gridNode.add(secretCard);
-    });
+        gridNode.add(bossCard);
+    }
 
     updateSelectScreenUI();
 }

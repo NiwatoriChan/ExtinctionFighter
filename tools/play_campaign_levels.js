@@ -160,6 +160,10 @@ vm.runInThisContext(fs.readFileSync(path.join(__dirname, '../js/core/registry.js
 const allFighters = [
     { id: 'trex', name: 'T-REX', maxHp: 1050, stats: { pow: 52 }, walkSpeed: 7.5 },
     { id: 'anomalocaris', name: 'ANOMALOCARIS', maxHp: 1000, stats: { pow: 50 }, walkSpeed: 7.8 },
+    { id: 'cameroceras', name: 'CAMEROCERAS', maxHp: 1180, stats: { pow: 94 }, walkSpeed: 7.4, bossGlbId: 'boss_cameroceras' },
+    { id: 'jaekelopterus', name: 'JAEKELOPTERUS', maxHp: 1080, stats: { pow: 92 }, walkSpeed: 8.3, bossGlbId: 'boss_jaekelopterus' },
+    { id: 'dunkleosteus', name: 'DUNKLEOSTEUS', maxHp: 1240, stats: { pow: 98 }, walkSpeed: 7.2, bossGlbId: 'boss_dunkleosteus' },
+    { id: 'dimetrodon', name: 'DIMETRODON', maxHp: 1140, stats: { pow: 95 }, walkSpeed: 7.6, bossGlbId: 'boss_dimetrodon' },
     { id: 'pachyrhino', name: 'PACHYRHINOSAURE', maxHp: 1100, stats: { pow: 48 }, walkSpeed: 7.0 },
     { id: 'ankylo', name: 'ANKYLOSAURE', maxHp: 1250, stats: { pow: 55 }, walkSpeed: 6.2 },
     { id: 'apato', name: 'APATOSAURE', maxHp: 1400, stats: { pow: 58 }, walkSpeed: 5.8 },

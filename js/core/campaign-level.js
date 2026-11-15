@@ -30,15 +30,50 @@ function isEraCleared(eraId) {
     }
 }
 
+function getEraStars(eraId) {
+    try {
+        const stored = parseInt(localStorage.getItem('ek3d_stars_era_' + eraId) || '0', 10);
+        if (stored > 0) return Math.min(3, stored);
+        return isEraCleared(eraId) ? 3 : 0;
+    } catch (e) {
+        return 0;
+    }
+}
+
+function getEraHighScore(eraId) {
+    try {
+        return parseInt(localStorage.getItem('ek3d_highscore_era_' + eraId) || '0', 10) || 0;
+    } catch (e) {
+        return 0;
+    }
+}
+
+function saveEraPerformance(eraId, stars, score) {
+    try {
+        const clampedStars = Math.max(1, Math.min(3, Math.round(stars || 1)));
+        const prevStars = parseInt(localStorage.getItem('ek3d_stars_era_' + eraId) || '0', 10) || 0;
+        if (clampedStars > prevStars) {
+            localStorage.setItem('ek3d_stars_era_' + eraId, String(clampedStars));
+        }
+        const cleanScore = Math.max(0, Math.round(score || 0));
+        const prevScore = parseInt(localStorage.getItem('ek3d_highscore_era_' + eraId) || '0', 10) || 0;
+        if (cleanScore > prevScore) {
+            localStorage.setItem('ek3d_highscore_era_' + eraId, String(cleanScore));
+        }
+    } catch (e) {
+        console.warn("Could not save era performance:", e);
+    }
+}
+
 function clearEraProgress(eraId) {
     try {
         localStorage.setItem('ek3d_cleared_era_' + eraId, 'true');
         const nextId = eraId + 1;
-        if (nextId <= CAMPAIGN_ERAS.length) {
+        if (typeof CAMPAIGN_ERAS !== 'undefined' && nextId <= CAMPAIGN_ERAS.length) {
             localStorage.setItem('ek3d_unlocked_era_' + nextId, 'true');
         }
         // Débloquer la récompense de combattant et d'arène
-        const era = CAMPAIGN_ERAS.find(e => e.id === eraId);
+        const era = typeof CAMPAIGN_ERAS !== 'undefined' ? CAMPAIGN_ERAS.find(e => e.id === eraId) : null;
         if (era && era.reward) {
             if (typeof unlockFighter === 'function') unlockFighter(era.reward.fighterId);
             if (typeof unlockArena === 'function') unlockArena(era.reward.arenaId);
@@ -273,7 +308,7 @@ class EraMinion3D {
             <span class="minion-hp-val text-[8px] font-chakra font-bold text-stone-200 drop-shadow"></span>
         `;
         const nameEl = wrapper.querySelector('.minion-hp-name');
-        if (nameEl) nameEl.textContent = (this.def && this.def.name) ? this.def.name : 'ENNEMI';
+        if (nameEl) nameEl.textContent = (this.def && (this.def.enemyDisplayName || this.def.name)) ? (this.def.enemyDisplayName || this.def.name) : 'ENNEMI';
         layer.appendChild(wrapper);
         this.hpBarEl = wrapper;
         return wrapper;
@@ -703,7 +738,13 @@ class CampaignHazardObject3D {
             const propGlbId = propIdMap[kind];
             const propScale = kind === 'icicle' ? 1.0 : 0.92;
 
-            if (propGlbId && typeof THREE.GLTFLoader !== 'undefined' && typeof hydrateCampaignPropFromGLB === 'function') {
+            if (kind === 'acid') {
+                const orb = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.45, 12, 10),
+                    new THREE.MeshBasicMaterial({ color: 0x4ade80 })
+                );
+                this.projectile.add(orb);
+            } else if (propGlbId && typeof THREE.GLTFLoader !== 'undefined' && typeof hydrateCampaignPropFromGLB === 'function') {
                 if (typeof CAMPAIGN_GLB_CACHE !== 'undefined' && CAMPAIGN_GLB_CACHE[propGlbId]) {
                     hydrateCampaignPropFromGLB(this.projectile, CAMPAIGN_GLB_CACHE[propGlbId], propScale);
                 } else if (typeof loadCampaignGLB === 'function') {
@@ -1419,6 +1460,7 @@ function updateCampaignBossPhases(boss, era) {
     } else if (campaignBossPhase === 1 && hpRatio <= 0.50) {
         campaignBossPhase = 2;
         boss.speed = (boss.speed || 7.0) * 1.18;
+        boss._phase2Cooldown = 1.6;
         const bossWave = era.waves[2];
         campaignWaveBannerTimer = 2.5;
         campaignWaveAnnounceTitle = `🔥 PHASE 2 : ${bossWave.bossName} ENRAGÉ !`;
@@ -1426,16 +1468,94 @@ function updateCampaignBossPhases(boss, era) {
         if (typeof sfx !== 'undefined' && sfx.playRoar) sfx.playRoar();
         if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(boss.x, '🔥 ENRAGE PHASE 2 !', '#f97316');
 
-        // Anomalocaris appelle 2 Trilobites en renfort
+        const groundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, 0, 0) : 0;
+        const dir = fighter1 && fighter1.x >= boss.x ? 1 : -1;
+
+        // Caisse de survie : dépose une viande préhistorique lors de l'enrage Phase 2
+        if (typeof spawnPrehistoricPickup === 'function') {
+            const pickupX = fighter1 ? (boss.x + fighter1.x) * 0.5 : boss.x;
+            spawnPrehistoricPickup(pickupX, groundY + 1.0, 'meat');
+        }
+
+        // Mécanique dédiée à chaque Boss d'Ère lors de l'entrée en Phase 2
         if (bossWave.bossId === 'boss_anomalocaris') {
-            const groundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, 0, 0) : 0;
             spawnMinionFromWaveDef(era.waves[0], boss.x - 4.0, groundY);
             spawnMinionFromWaveDef(era.waves[0], boss.x + 4.0, groundY);
+        } else if (
+            (bossWave.bossId === 'boss_cameroceras' || bossWave.bossId === 'boss_jaekelopterus' || bossWave.bossId === 'boss_kelenken') &&
+            campaignActiveMinions.length < 2 &&
+            era.waves[0] &&
+            !era.waves[0].members
+        ) {
+            const supportDef = Object.assign({}, era.waves[0], {
+                hp: Math.round((era.waves[0].hp || 200) * 0.75)
+            });
+            spawnMinionFromWaveDef(supportDef, boss.x - dir * 3.8, groundY);
+            campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.5, boss.y + 1.2, dir * 11.5, 0, bossWave.accentColor || 0x38bdf8, 45, 0.55));
         } else {
-            // Onde d'énergie à distance en entrant en Phase 2
-            const dir = fighter1 && fighter1.x >= boss.x ? 1 : -1;
-            campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.5, boss.y + 1.2, dir * 11.5, 0, bossWave.accentColor || 0xf59e0b, 55, 0.55));
+            // Double salve d'énergie ou danger environnemental immédiat
+            campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.5, boss.y + 1.2, dir * 11.5, 0, bossWave.accentColor || 0xf59e0b, 48, 0.55));
+            const targetX = fighter1 ? fighter1.x : 0;
+            const hazardMap = {
+                boss_pulmonoscorpius: 'acid',
+                boss_dimetrodon: 'meteor',
+                boss_fasolasuchus: 'lightning',
+                boss_brontotitan: 'boulder',
+                boss_pyroclast: 'meteor',
+                boss_megatherium: 'boulder',
+                boss_wendigo: 'icicle'
+            };
+            const hzKind = hazardMap[bossWave.bossId];
+            if (hzKind && typeof CampaignHazardObject3D === 'function') {
+                campaignActiveHazards.push(new CampaignHazardObject3D(targetX, hzKind));
+            }
         }
+    }
+}
+
+function updateCampaignBossPhase2Behavior(boss, era, dt) {
+    if (!boss || boss.isDead || !era || !era.waves || !era.waves[2]) return;
+    if (campaignBossPhase < 2 || !fighter1 || fighter1.isDead) return;
+
+    const bossWave = era.waves[2];
+    boss._phase2Cooldown = (boss._phase2Cooldown || 2.2) - dt;
+    if (boss._phase2Cooldown > 0) return;
+
+    boss._phase2Cooldown = Math.max(1.9, 3.1 - (era.id || 1) * 0.08);
+    const dir = fighter1.x >= boss.x ? 1 : -1;
+    const dist = Math.abs(fighter1.x - boss.x);
+    const color = bossWave.accentColor || 0xf59e0b;
+
+    if (bossWave.bossId === 'boss_pyroclast' || bossWave.bossId === 'boss_dimetrodon' || bossWave.bossId === 'boss_drakzul') {
+        if (typeof CampaignHazardObject3D === 'function' && campaignActiveHazards.length < 3) {
+            campaignActiveHazards.push(new CampaignHazardObject3D(fighter1.x, 'meteor'));
+        }
+        campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.4, boss.y + 1.3, dir * 10.5, 0.8, color, 42, 0.5));
+    } else if (bossWave.bossId === 'boss_wendigo') {
+        if (typeof CampaignHazardObject3D === 'function' && campaignActiveHazards.length < 3) {
+            campaignActiveHazards.push(new CampaignHazardObject3D(fighter1.x, 'icicle'));
+        }
+        campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.4, boss.y + 1.2, dir * 10.0, 0, color, 42, 0.5));
+    } else if (bossWave.bossId === 'boss_fasolasuchus' || bossWave.bossId === 'boss_kelenken') {
+        if (typeof CampaignHazardObject3D === 'function' && campaignActiveHazards.length < 2) {
+            campaignActiveHazards.push(new CampaignHazardObject3D(fighter1.x, 'lightning'));
+        }
+        campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.4, boss.y + 1.2, dir * 12.0, 0, color, 40, 0.48));
+    } else if (bossWave.bossId === 'boss_brontotitan' || bossWave.bossId === 'boss_megatherium') {
+        if (typeof CampaignHazardObject3D === 'function' && campaignActiveHazards.length < 2) {
+            campaignActiveHazards.push(new CampaignHazardObject3D(fighter1.x, 'boulder'));
+        }
+        if (dist > 2.5) {
+            campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.5, boss.y + 1.1, dir * 9.5, 2.2, color, 42, 0.55));
+        }
+    } else if (bossWave.bossId === 'boss_pulmonoscorpius' || bossWave.bossId === 'boss_cameroceras') {
+        if (typeof CampaignHazardObject3D === 'function' && campaignActiveHazards.length < 2) {
+            campaignActiveHazards.push(new CampaignHazardObject3D(fighter1.x, 'acid'));
+        }
+        campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.4, boss.y + 1.2, dir * 10.5, 0.4, color, 38, 0.5));
+    } else {
+        // Jaekelopterus, Dunkleosteus, Anomalocaris : barrage aquatique / vortex
+        campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.4, boss.y + 1.2, dir * 11.2, 0, color, 38, 0.5));
     }
 }
 
@@ -1562,6 +1682,7 @@ function updateCampaignLevelEngine(dt, nowSec) {
             updateAnomalocarisBossAnimations(campaignBossFighter, dt, nowSec);
         }
         updateCampaignBossPhases(campaignBossFighter, activeCampaignEra);
+        updateCampaignBossPhase2Behavior(campaignBossFighter, activeCampaignEra, dt);
         updateCampaignSmashHUD();
 
         // Mort du Boss = VICTOIRE DE L'ÈRE !
@@ -1597,7 +1718,7 @@ function checkPlayerAttacksAgainstMinions() {
                 spawn3DProjectile(fighter1, 'boulder');
             }
         } else if (a === 'special') {
-            if (impl && impl.onSpecial && (fighter1.dino.id === 'dragon' || fighter1.dino.id === 'anomalocaris')) {
+            if (impl && impl.onSpecial && ['dragon', 'anomalocaris', 'cameroceras', 'jaekelopterus', 'dunkleosteus', 'dimetrodon'].includes(fighter1.dino.id)) {
                 impl.onSpecial(fighter1, null, 0, fighter1.dino.stats.pow);
             } else {
                 fighter1.vx = fighter1.facing * 20;
@@ -1675,9 +1796,10 @@ function handlePlayerStockLoss() {
         fighter1.isDead = true;
         sfx.playGong();
         showAnnouncer('DÉFAITE DU NIVEAU', 'Toutes vos vies ont été épuisées...');
+        const failedEra = activeCampaignEra;
         setTimeout(() => {
             if (typeof showCampaignGameOverModal === 'function') {
-                showCampaignGameOverModal();
+                showCampaignGameOverModal(failedEra);
             } else {
                 openCampaignMap();
             }
@@ -1692,16 +1814,112 @@ function finishCampaignEraVictory() {
     sfx.playGong();
     showAnnouncer('👑 ÈRE CONQUISE !', `${activeCampaignEra.name} A ÉTÉ TERRASSÉE !`);
 
-    // Sauvegarder la complétion et débloquer combattant + arène
-    clearEraProgress(activeCampaignEra.id);
+    // Calcul des étoiles (basé sur les vies restantes) & bonus de score
+    const remainingStocks = Math.max(0, typeof campaignPlayerStocks === 'number' ? campaignPlayerStocks : 3);
+    const earnedStars = remainingStocks >= 3 ? 3 : (remainingStocks === 2 ? 2 : 1);
+    campaignLevelScore += remainingStocks * 500;
+    updateCampaignSmashHUD();
 
-    // Ouvrir la modale festive des récompenses débloquées
+    // Sauvegarder la complétion, les étoiles, le record de score et débloquer combattant + arène
+    clearEraProgress(activeCampaignEra.id);
+    saveEraPerformance(activeCampaignEra.id, earnedStars, campaignLevelScore);
+
+    const conqueredEra = activeCampaignEra;
     setTimeout(() => {
-        showEraVictoryRewardsModal(activeCampaignEra);
+        showEraVictoryRewardsModal(conqueredEra, {
+            stars: earnedStars,
+            score: campaignLevelScore,
+            stocks: remainingStocks
+        });
     }, 2400);
 }
 
-function showEraVictoryRewardsModal(era) {
+function showCampaignGameOverModal(era) {
+    const targetEra = era || activeCampaignEra;
+    const existing = document.getElementById('campaignGameOverModal');
+    if (existing) existing.remove();
+    const eraTitle = targetEra ? `${targetEra.name} • ${targetEra.subtitle || ''}` : 'NIVEAU CAMPAGNE';
+    const reachedWave = Math.min(3, (typeof currentCampaignWaveIdx === 'number' ? currentCampaignWaveIdx : 0) + 1);
+    const scoreReached = typeof campaignLevelScore === 'number' ? campaignLevelScore : 0;
+
+    const modalHtml = `
+        <div id="campaignGameOverModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 select-none animate-fade-in">
+            <div class="w-full max-w-lg bg-gradient-to-b from-stone-900 to-stone-950 border-2 border-red-600/80 rounded-3xl p-6 sm:p-8 shadow-[0_0_60px_rgba(220,38,38,0.45)] flex flex-col items-center text-center relative overflow-hidden">
+                <span class="text-4xl filter drop-shadow">💀</span>
+                <h2 class="font-cinzel font-black text-2xl sm:text-3xl text-red-400 uppercase tracking-widest mt-1 drop-shadow">
+                    EXTINCTION !
+                </h2>
+                <div class="font-chakra font-bold text-xs sm:text-sm text-stone-300 tracking-wider uppercase mt-1">
+                    ${eraTitle}
+                </div>
+                <div class="w-full grid grid-cols-2 gap-3 mt-5 bg-stone-950/80 border border-stone-800 rounded-2xl p-3">
+                    <div class="flex flex-col">
+                        <span class="font-chakra text-[10px] text-stone-400 uppercase font-bold">Vague Atteinte</span>
+                        <span class="font-cinzel text-lg font-black text-amber-300">${reachedWave} / 3</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-chakra text-[10px] text-stone-400 uppercase font-bold">Score Obtenu</span>
+                        <span class="font-cinzel text-lg font-black text-stone-100">${scoreReached.toLocaleString()}</span>
+                    </div>
+                </div>
+                <div class="w-full flex flex-col sm:flex-row gap-3 mt-6">
+                    <button id="btnCampaignGameOverRetry" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-cinzel font-black text-xs sm:text-sm uppercase tracking-wider border border-amber-200 cursor-pointer">
+                        🔄 RÉESSAYER L'ÈRE
+                    </button>
+                    <button id="btnCampaignGameOverChangeFighter" class="flex-1 py-3 px-4 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-200 font-cinzel font-black text-xs sm:text-sm uppercase tracking-wider border border-amber-500/40 cursor-pointer">
+                        🦖 COMBATTANT
+                    </button>
+                </div>
+                <button id="btnCampaignGameOverMap" class="mt-3 w-full py-2.5 px-4 rounded-xl bg-stone-950 hover:bg-stone-900 text-stone-300 font-chakra font-bold text-xs uppercase tracking-widest border border-stone-700 cursor-pointer">
+                    🗺️ RETOUR À LA CARTE DE CAMPAGNE
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const closeAll = () => {
+        const m = document.getElementById('campaignGameOverModal');
+        if (m) m.remove();
+        const hud = document.getElementById('campaignSmashHUD');
+        if (hud) hud.remove();
+    };
+
+    const retryBtn = document.getElementById('btnCampaignGameOverRetry');
+    if (retryBtn) {
+        retryBtn.addEventListener('click', () => {
+            closeAll();
+            if (targetEra && typeof startCampaignEraLevel === 'function') {
+                const currentDino = (typeof fighter1 !== 'undefined' && fighter1 && fighter1.dino) ? fighter1.dino : null;
+                startCampaignEraLevel(targetEra, currentDino);
+            } else if (typeof openCampaignMap === 'function') {
+                openCampaignMap();
+            }
+        });
+    }
+
+    const changeBtn = document.getElementById('btnCampaignGameOverChangeFighter');
+    if (changeBtn) {
+        changeBtn.addEventListener('click', () => {
+            closeAll();
+            if (targetEra && typeof enterSelectedEra === 'function') {
+                enterSelectedEra(targetEra);
+            } else if (typeof openCampaignMap === 'function') {
+                openCampaignMap();
+            }
+        });
+    }
+
+    const mapBtn = document.getElementById('btnCampaignGameOverMap');
+    if (mapBtn) {
+        mapBtn.addEventListener('click', () => {
+            closeAll();
+            if (typeof openCampaignMap === 'function') openCampaignMap();
+        });
+    }
+}
+
+function showEraVictoryRewardsModal(era, summary = null) {
     const existing = document.getElementById('eraVictoryModal');
     if (existing) existing.remove();
 
@@ -1710,6 +1928,21 @@ function showEraVictoryRewardsModal(era) {
     const isNewArenaUnlock = typeof UNLOCKABLE_ARENA_ERAS !== 'undefined' && UNLOCKABLE_ARENA_ERAS[r.arenaId] === era.id;
     const fighterBadge = isNewFighterUnlock ? '🦖 NOUVEAU COMBATTANT DÉBLOQUÉ' : '🏆 MAÎTRE DE L\'ÈRE';
     const arenaBadge = isNewArenaUnlock ? '🌋 NOUVELLE ARÈNE DÉBLOQUÉE' : '🗺️ THÉÂTRE DE VICTOIRE';
+    const earnedStars = summary && typeof summary.stars === 'number'
+        ? summary.stars
+        : (typeof getEraStars === 'function' ? Math.max(1, getEraStars(era.id)) : 3);
+    const finalScore = summary && typeof summary.score === 'number'
+        ? summary.score
+        : (typeof campaignLevelScore === 'number' ? campaignLevelScore : 0);
+    const stocksLeft = summary && typeof summary.stocks === 'number'
+        ? summary.stocks
+        : (typeof campaignPlayerStocks === 'number' ? campaignPlayerStocks : 3);
+    const starsDisplay = '⭐'.repeat(earnedStars) + '☆'.repeat(Math.max(0, 3 - earnedStars));
+    const nextEra = (typeof CAMPAIGN_ERAS !== 'undefined' && Array.isArray(CAMPAIGN_ERAS))
+        ? CAMPAIGN_ERAS.find(e => e.id === era.id + 1)
+        : null;
+    const canLaunchNext = !!(nextEra && (typeof isEraUnlocked !== 'function' || isEraUnlocked(nextEra.id)));
+
     const modalHtml = `
         <div id="eraVictoryModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 select-none animate-fade-in">
             <div class="w-full max-w-2xl bg-gradient-to-b from-stone-900 to-stone-950 border-2 border-amber-500 rounded-3xl p-6 sm:p-8 shadow-[0_0_60px_rgba(245,158,11,0.5)] flex flex-col items-center text-center relative overflow-hidden">
@@ -1724,8 +1957,24 @@ function showEraVictoryRewardsModal(era) {
                     ${era.name} • ${era.subtitle}
                 </div>
 
+                <!-- Performance Bar (Stars / Score / Stocks) -->
+                <div class="w-full grid grid-cols-3 gap-2 mt-4 bg-stone-950/85 border border-amber-500/40 rounded-2xl p-3">
+                    <div class="flex flex-col items-center">
+                        <span class="font-chakra text-[10px] text-stone-400 uppercase font-bold">Évaluation</span>
+                        <span class="text-lg sm:text-xl tracking-widest mt-0.5">${starsDisplay}</span>
+                    </div>
+                    <div class="flex flex-col items-center border-x border-stone-800">
+                        <span class="font-chakra text-[10px] text-stone-400 uppercase font-bold">Score Final</span>
+                        <span class="font-cinzel text-base sm:text-lg font-black text-amber-300 mt-0.5">${finalScore.toLocaleString()}</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span class="font-chakra text-[10px] text-stone-400 uppercase font-bold">Vies Restantes</span>
+                        <span class="font-cinzel text-base sm:text-lg font-black text-emerald-300 mt-0.5">${stocksLeft} / 3 🦖</span>
+                    </div>
+                </div>
+
                 <!-- Rewards Grid (Character & Arena) -->
-                <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
                     <!-- Reward 1: Unlocked Fighter -->
                     <div class="flex flex-col items-center bg-stone-900/90 border border-amber-500/60 rounded-2xl p-4 shadow-lg">
                         <span class="font-chakra font-black text-[11px] text-amber-400 uppercase tracking-widest mb-2">${fighterBadge}</span>
@@ -1747,15 +1996,37 @@ function showEraVictoryRewardsModal(era) {
                     </div>
                 </div>
 
-                <!-- Continue Button -->
-                <button id="btnEraVictoryContinue" class="mt-8 py-3 px-8 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-cinzel font-black text-sm uppercase tracking-widest border border-amber-200 shadow-2xl cursor-pointer">
-                    CONTINUER SUR LA CARTE DE CAMPAGNE ➔
-                </button>
+                <!-- Action Buttons -->
+                <div class="mt-6 flex flex-col sm:flex-row gap-3 w-full justify-center">
+                    ${canLaunchNext ? `
+                    <button id="btnEraVictoryNext" class="py-3 px-6 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-stone-950 font-cinzel font-black text-sm uppercase tracking-wider border border-emerald-200 shadow-2xl cursor-pointer">
+                        ⚔️ ÈRE SUIVANTE (${nextEra.shortLabel || nextEra.name}) ➔
+                    </button>` : ''}
+                    <button id="btnEraVictoryContinue" class="py-3 px-8 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-cinzel font-black text-sm uppercase tracking-widest border border-amber-200 shadow-2xl cursor-pointer">
+                        CONTINUER SUR LA CARTE DE CAMPAGNE ➔
+                    </button>
+                </div>
             </div>
         </div>
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const nextBtn = document.getElementById('btnEraVictoryNext');
+    if (nextBtn && nextEra) {
+        nextBtn.addEventListener('click', () => {
+            const m = document.getElementById('eraVictoryModal');
+            if (m) m.remove();
+            const hud = document.getElementById('campaignSmashHUD');
+            if (hud) hud.remove();
+            if (typeof startCampaignEraLevel === 'function') {
+                const currentDino = (typeof fighter1 !== 'undefined' && fighter1 && fighter1.dino) ? fighter1.dino : null;
+                startCampaignEraLevel(nextEra, currentDino);
+            } else if (typeof openCampaignMap === 'function') {
+                openCampaignMap();
+            }
+        });
+    }
 
     const btn = document.getElementById('btnEraVictoryContinue');
     if (btn) {
@@ -1774,7 +2045,14 @@ if (typeof window !== 'undefined') {
     window.CAMPAIGN_ERAS = CAMPAIGN_ERAS;
     window.isEraUnlocked = isEraUnlocked;
     window.isEraCleared = isEraCleared;
+    window.getEraStars = getEraStars;
+    window.getEraHighScore = getEraHighScore;
+    window.saveEraPerformance = saveEraPerformance;
     window.clearEraProgress = clearEraProgress;
     window.startCampaignEraLevel = startCampaignEraLevel;
     window.updateCampaignLevelEngine = updateCampaignLevelEngine;
+    window.updateCampaignBossPhases = updateCampaignBossPhases;
+    window.updateCampaignBossPhase2Behavior = updateCampaignBossPhase2Behavior;
+    window.showCampaignGameOverModal = showCampaignGameOverModal;
+    window.showEraVictoryRewardsModal = showEraVictoryRewardsModal;
 }

@@ -86,9 +86,22 @@ CAMPAIGN_ERAS.forEach(era => {
     if (!bossWave.isBoss || !bossWave.bossName || !bossWave.bossTitle) {
         throw new Error(`Invalid boss wave definition in era ${era.id}`);
     }
+    if (UNLOCKABLE_FIGHTER_ERAS[era.reward.fighterId] !== era.id) {
+        throw new Error(`Expected UNLOCKABLE_FIGHTER_ERAS[${era.reward.fighterId}] === ${era.id}, got ${UNLOCKABLE_FIGHTER_ERAS[era.reward.fighterId]}`);
+    }
+    const portraitAbs = path.join(__dirname, '..', era.reward.fighterPortrait);
+    if (!fs.existsSync(portraitAbs)) {
+        throw new Error(`Missing portrait asset for era ${era.id}: ${era.reward.fighterPortrait}`);
+    }
     console.log(`[PASS] Era ${era.id} (${era.name}): Wave 1 (${era.waves[0].name}), Wave 2 (${era.waves[1].name}), Boss (${bossWave.bossName}) | Hazard: ${era.hazard.id}`);
     console.log(`       Reward: Fighter [${era.reward.fighterName}], Arena [${era.reward.arenaName}]`);
 });
+
+const rewardFighterIds = new Set(CAMPAIGN_ERAS.map(e => e.reward.fighterId));
+if (rewardFighterIds.size !== 13) {
+    throw new Error(`Expected 13 unique reward fighterIds across campaign, found ${rewardFighterIds.size}`);
+}
+console.log(`[PASS] Verified 13 distinct unlockable fighter champions across all 13 eras.`);
 
 // 4. Test Progression Logic
 console.log("\n--- Testing Progression & Unlocks ---");
@@ -96,32 +109,31 @@ console.log("\n--- Testing Progression & Unlocks ---");
 if (!isEraUnlocked(1)) throw new Error("Era 1 should be unlocked by default");
 if (isEraUnlocked(2)) throw new Error("Era 2 should be locked initially");
 if (isEraCleared(1)) throw new Error("Era 1 should not be cleared initially");
-console.log("[PASS] Initial state: Era 1 unlocked, Era 2 locked.");
+if (getEraStars(1) !== 0 || getEraHighScore(1) !== 0) throw new Error("Era 1 should start with 0 stars & 0 high score");
+console.log("[PASS] Initial state: Era 1 unlocked, Era 2 locked, 0 stars.");
 
-// Clear Eras 1 to 13
+// Clear Eras 1 to 13 & test star/highscore persistence
 for (let id = 1; id <= 13; id++) {
     clearEraProgress(id);
+    saveEraPerformance(id, id % 3 === 0 ? 2 : 3, 2500 + id * 100);
     if (!isEraCleared(id)) throw new Error(`Era ${id} should be marked cleared`);
     if (id < 13 && !isEraUnlocked(id + 1)) throw new Error(`Era ${id + 1} should be unlocked after clearing Era ${id}`);
+    if (getEraStars(id) < 2) throw new Error(`Era ${id} star rating not saved`);
+    if (getEraHighScore(id) !== 2500 + id * 100) throw new Error(`Era ${id} high score mismatch`);
 }
-if (localStorage.getItem('ek3d_unlocked_anomalocaris') !== 'true') {
-    throw new Error("Anomalocaris should be unlocked after Era 1");
+['anomalocaris', 'cameroceras', 'jaekelopterus', 'dunkleosteus', 'pulmonoscorpius', 'dimetrodon', 'postosuchus', 'apato', 'therizino', 'terabird', 'giantsloth', 'smilodon', 'dragon'].forEach(fid => {
+    if (localStorage.getItem('ek3d_unlocked_' + fid) !== 'true') {
+        throw new Error(`Expected fighter '${fid}' to be unlocked after full campaign clear`);
+    }
+});
+['cambrian', 'swamp', 'storm', 'jungle', 'iceage', 'dragonlair'].forEach(aid => {
+    if (localStorage.getItem('ek3d_unlocked_arena_' + aid) !== 'true') {
+        throw new Error(`Expected arena '${aid}' to be unlocked after full campaign clear`);
+    }
+});
+if (typeof showCampaignGameOverModal !== 'function' || typeof showEraVictoryRewardsModal !== 'function') {
+    throw new Error("Expected campaign modal helpers to be defined");
 }
-if (localStorage.getItem('ek3d_unlocked_pulmonoscorpius') !== 'true') {
-    throw new Error("Pulmonoscorpius should be unlocked after Era 5 (Carboniferous)");
-}
-if (localStorage.getItem('ek3d_unlocked_terabird') !== 'true') {
-    throw new Error("Terror Bird should be unlocked after Era 10 (Paleogene)");
-}
-if (localStorage.getItem('ek3d_unlocked_giantsloth') !== 'true') {
-    throw new Error("Megatherium should be unlocked after Era 11 (Neogene)");
-}
-if (localStorage.getItem('ek3d_unlocked_smilodon') !== 'true') {
-    throw new Error("Smilodon should be unlocked after Era 12 (Quaternary)");
-}
-if (localStorage.getItem('ek3d_unlocked_dragon') !== 'true') {
-    throw new Error("Dragon should be unlocked after Era 13");
-}
-console.log("[PASS] All 13 Eras & Sub-Eras cleared successfully! All champions & arenas unlocked!");
+console.log("[PASS] All 13 Eras & Sub-Eras cleared successfully! All 13 champions, 6 arenas & stars/scores verified!");
 
 console.log("\n=== ALL TEST CHECKS PASSED PERFECTLY! ===");

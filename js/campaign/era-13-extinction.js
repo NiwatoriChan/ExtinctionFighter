@@ -18,7 +18,7 @@ registerCampaignEra({
         name: 'Faille Temporelle (Feu → Glace → Néant)',
         desc: 'Les dangers changent à chaque phase de Drak\'Zul (66% et 33% PV).'
     },
-    description: 'La faille temporelle ultime. Survivez aux ombres ailées du Néant, au duo corrompu Spinosaure + T-Rex, puis affrontez Drak\'Zul à travers 3 phases cataclysmiques !',
+    description: 'La faille temporelle ultime. Survivez aux Quetzalcoatlus des Cendres, au duo corrompu Tyrannosaure + Tricératops, puis affrontez Drak\'Zul à travers 3 phases cataclysmiques !',
     reward: {
         fighterId: 'dragon',
         fighterName: 'Drak\'Zul le Dragon',
@@ -36,7 +36,7 @@ registerCampaignEra({
             archetype: 'aerial',
             count: 3,
             enemyType: 'bird_pterosaur',
-            enemyDisplayName: 'Quetzal du Néant',
+            enemyDisplayName: 'Quetzalcoatlus des Cendres',
             hp: 300,
             speed: 7.8,
             scale: 0.72,
@@ -45,12 +45,12 @@ registerCampaignEra({
         },
         {
             waveNum: 2,
-            name: 'DUO CORROMPU : SPINO & T-REX',
+            name: 'GARDE DU CRATÈRE : TYRANNOSAURE & TRICÉRATOPS CORROMPUS',
             objective: 'clear',
             members: [
                 {
                     enemyType: 'raptor',
-                    enemyDisplayName: 'T-Rex du Néant',
+                    enemyDisplayName: 'Tyrannosaure des Cendres',
                     archetype: 'brawler',
                     hp: 600,
                     speed: 7.7,
@@ -58,8 +58,8 @@ registerCampaignEra({
                     color: 0x6b21a8
                 },
                 {
-                    enemyType: 'shark_placoderm',
-                    enemyDisplayName: 'Spinosaure Abyssal',
+                    enemyType: 'magma_ceratopsian',
+                    enemyDisplayName: 'Tricératops Pyroclastique',
                     archetype: 'armored',
                     hp: 620,
                     speed: 7.4,
@@ -67,7 +67,7 @@ registerCampaignEra({
                     color: 0x4c1d95
                 }
             ],
-            baseDino: 'spinosaurus'
+            baseDino: 'trex'
         },
         {
             waveNum: 3,

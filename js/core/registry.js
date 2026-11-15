@@ -16,18 +16,25 @@ function registerFighterAnimation(id, animObj) {
     if (FIGHTER_IMPLS[id]) {
         Object.assign(FIGHTER_IMPLS[id], animObj || {});
     }
+    // Propager aussi les animations aux combattants qui partagent ce squelette via animBaseId
+    DINO_ROSTER.forEach(d => {
+        if (d && d.animBaseId === id) {
+            const curImpl = FIGHTER_IMPLS[d.id] || {};
+            FIGHTER_IMPLS[d.id] = Object.assign({}, animObj || {}, curImpl);
+        }
+    });
 }
 window.registerFighterAnimation = registerFighterAnimation;
 
 // Association de chaque combattant déblocable à son Ère de Campagne (13 Ères)
-// Combattants de départ : T-Rex ('trex'), Stégosaure ('stegosaurus'), Quetzalcoatlus ('quetzal')
+// Combattants de départ : T-Rex, Spinosaure, Maiasaura, Pachyrhinosaure, Ankylosaure, Stégosaure, Quetzalcoatlus
 const UNLOCKABLE_FIGHTER_ERAS = {
     'anomalocaris': 1,    // Débloqué à l'Ère 1 (Cambrien)
-    'maiasaura': 2,       // Débloqué à l'Ère 2 (Ordovicien)
-    'ankylo': 3,          // Débloqué à l'Ère 3 (Silurien)
-    'spinosaurus': 4,     // Débloqué à l'Ère 4 (Dévonien)
+    'cameroceras': 2,     // Débloqué à l'Ère 2 (Ordovicien)
+    'jaekelopterus': 3,   // Débloqué à l'Ère 3 (Silurien)
+    'dunkleosteus': 4,    // Débloqué à l'Ère 4 (Dévonien)
     'pulmonoscorpius': 5, // Débloqué à l'Ère 5 (Carbonifère)
-    'pachyrhino': 6,      // Débloqué à l'Ère 6 (Permien)
+    'dimetrodon': 6,      // Débloqué à l'Ère 6 (Permien)
     'postosuchus': 7,     // Débloqué à l'Ère 7 (Trias)
     'apato': 8,           // Débloqué à l'Ère 8 (Jurassique)
     'therizino': 9,       // Débloqué à l'Ère 9 (Crétacé)
@@ -40,9 +47,9 @@ const UNLOCKABLE_FIGHTER_ERAS = {
 // Association de chaque arène déblocable à son Ère de Campagne
 const UNLOCKABLE_ARENA_ERAS = {
     'cambrian': 1,    // Récif Abyssal du Cambrien (Ère 1)
-    'swamp': 2,       // Lagune / Marais (Ère 2)
-    'storm': 3,       // Tempête Côtière (Ère 3)
-    'jungle': 5,      // Forêt Luxuriante (Ère 5)
+    'swamp': 5,       // Marais Houiller du Carbonifère (Ère 5)
+    'storm': 8,       // Tempête / Canyon Orageux du Jurassique (Ère 8)
+    'jungle': 10,     // Forêt Tropicale du Paléogène (Ère 10)
     'iceage': 12,     // Glacier de l'Ère Glaciaire (Ère 12)
     'dragonlair': 13  // L'Antre Infernale de Drak'Zul (Ère 13)
 };
@@ -103,8 +110,9 @@ function registerFighter(data, impl) {
         }
         DINO_ROSTER.push(data);
     }
+    const baseAnims = (data.animBaseId && FIGHTER_ANIMATIONS[data.animBaseId]) ? FIGHTER_ANIMATIONS[data.animBaseId] : {};
     const existingAnims = FIGHTER_ANIMATIONS[data.id] || {};
-    FIGHTER_IMPLS[data.id] = Object.assign({}, existingAnims, impl || {});
+    FIGHTER_IMPLS[data.id] = Object.assign({}, baseAnims, existingAnims, impl || {});
 }
 
 function registerBoss(data, impl) {
@@ -114,8 +122,9 @@ function registerBoss(data, impl) {
     if (isFighterUnlocked('dragon') && !DINO_ROSTER.some(d => d.id === 'dragon')) {
         DINO_ROSTER.push(data);
     }
+    const baseAnims = (data.animBaseId && FIGHTER_ANIMATIONS[data.animBaseId]) ? FIGHTER_ANIMATIONS[data.animBaseId] : {};
     const existingAnims = FIGHTER_ANIMATIONS[data.id] || {};
-    FIGHTER_IMPLS[data.id] = Object.assign({}, existingAnims, impl || {});
+    FIGHTER_IMPLS[data.id] = Object.assign({}, baseAnims, existingAnims, impl || {});
 }
 
 // Chaque arène est déclarée dans son propre fichier (js/arenas/*.js) via registerArena().
@@ -162,7 +171,11 @@ const FIGHTER_THEMED_ARENAS = {
     ankylo: 'boneyard',
     apato: 'jungle',
     therizino: 'boneyard',
-    anomalocaris: 'cambrian'
+    anomalocaris: 'cambrian',
+    cameroceras: 'cambrian',
+    jaekelopterus: 'cambrian',
+    dunkleosteus: 'cambrian',
+    dimetrodon: 'boneyard'
 };
 
 function getThemedArenaForFighter(fighterId) {

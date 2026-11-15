@@ -125,7 +125,7 @@ function testStateAndHtml() {
 
     const ctx = vm.createContext({ window: {}, localStorage: makeStorage(), console, Math });
     loadIntoContext(ctx, 'js/core/state.js');
-    assert.strictEqual(ctx.GAME_VERSION, 'v0.3.3', 'GAME_VERSION should be v0.3.3');
+    assert.strictEqual(ctx.GAME_VERSION, 'v0.3.4', 'GAME_VERSION should be v0.3.4');
     assert.strictEqual(ctx.xrayElapsed, 0, 'xrayElapsed should initialize to 0');
     assert.strictEqual(ctx.xrayPhaseApplied, 0, 'xrayPhaseApplied should initialize to 0');
     assert.strictEqual(ctx.xrayContext, null, 'xrayContext should initialize to null');

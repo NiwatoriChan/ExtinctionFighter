@@ -18,7 +18,7 @@ registerCampaignEra({
         name: 'Pluie de Météores Chicxulub',
         desc: 'Des météores enflammés télégraphiés s\'abattent sur le cratère.'
     },
-    description: 'La Terre brûle sous l\'impact du Chicxulub. Affrontez les Vélociraptors, percez le duo blindé Ankylosaure + Tricératops, puis défiez le Tyran de Magma.',
+    description: 'La Terre brûle sous l\'impact du Chicxulub. Affrontez les Dakotaraptors, percez le duo blindé Ankylosaure + Tricératops, puis défiez le Tyrannosaure Pyroclaste.',
     reward: {
         fighterId: 'therizino',
         fighterName: 'Thérizinosaure',
@@ -31,12 +31,12 @@ registerCampaignEra({
     waves: [
         {
             waveNum: 1,
-            name: 'BLITZ DE VÉLOCIRAPTORS',
+            name: 'BLITZ DE DAKOTARAPTORS',
             objective: 'clear',
             archetype: 'swarmer',
             count: 4,
             enemyType: 'raptor',
-            enemyDisplayName: 'Vélociraptor Igné',
+            enemyDisplayName: 'Dakotaraptor Steini',
             hp: 235,
             speed: 8.0,
             scale: 0.62,
@@ -45,12 +45,12 @@ registerCampaignEra({
         },
         {
             waveNum: 2,
-            name: 'DUO FORTERESSE : ANKYLO & TRICÉRATOPS',
+            name: 'DUO FORTERESSE : ANKYLOSAURUS & TRICERATOPS',
             objective: 'clear',
             members: [
                 {
                     enemyType: 'dino_tank',
-                    enemyDisplayName: 'Ankylosaure Cuirassé',
+                    enemyDisplayName: 'Ankylosaurus Magniventris',
                     archetype: 'armored',
                     hp: 540,
                     speed: 5.8,
@@ -59,7 +59,7 @@ registerCampaignEra({
                 },
                 {
                     enemyType: 'magma_ceratopsian',
-                    enemyDisplayName: 'Tricératops Volcanique',
+                    enemyDisplayName: 'Triceratops Horridus',
                     archetype: 'brawler',
                     hp: 500,
                     speed: 7.2,
@@ -74,8 +74,8 @@ registerCampaignEra({
             isBoss: true,
             name: 'LE TYRAN DE MAGMA',
             bossId: 'boss_pyroclast',
-            bossName: 'PYROCLAST REX-CERATOPS',
-            bossTitle: 'JUGGERNAUT DU FEU & DU CHICXULUB',
+            bossName: 'TYRANNOSAURUS REX PYROCLAST',
+            bossTitle: 'EMPEREUR THÉROPODE DU CRATÈRE DE CHICXULUB',
             hp: 2850,
             speed: 7.3,
             scale: 1.55,

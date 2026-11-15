@@ -9,7 +9,7 @@ registerCampaignEra({
     subtitle: 'LE RÈGNE DES GÉANTS & DUOS TACTIQUES',
     periodYears: '201 - 145 Ma',
     logo: 'assets/ui/era_logos/era_3_jurassic.png',
-    arenaId: 'jungle',
+    arenaId: 'storm',
     themeColor: '#22c55e',
     mapX: 58,
     mapY: 54,
@@ -18,15 +18,15 @@ registerCampaignEra({
         name: 'Chutes de Rochers',
         desc: 'Les secousses sismiques font tomber des rochers depuis la canopée.'
     },
-    description: 'La canopée luxuriante abrite cracheurs de venin, duos coordonnés d\'Allosaures et Stégosaures, et le colossal titan tellurique.',
+    description: 'Sous les cieux orageux du Jurassique, affrontez les Dilophosaures, le duo Allosaurus + Stegosaurus, et terrassez le colossal Apatosaure.',
     reward: {
         fighterId: 'apato',
         fighterName: 'Apatosaure',
         fighterRole: 'Titan Sauropode Sismique',
         fighterPortrait: 'assets/portraits/apato.png',
-        arenaId: 'jungle',
-        arenaName: 'Vallée d\'Émeraude',
-        arenaDesc: 'Jungle tropicale luxuriante et cascades primordiales'
+        arenaId: 'storm',
+        arenaName: 'Plaines Orageuses de Morrison',
+        arenaDesc: 'Plaines jurassiques battues par des orages sismiques'
     },
     waves: [
         {
@@ -45,12 +45,12 @@ registerCampaignEra({
         },
         {
             waveNum: 2,
-            name: 'DUO TAG-TEAM : ALLOSAURE & STÉGOSAURE',
+            name: 'DUO TAG-TEAM : ALLOSAURUS & STEGOSAURUS',
             objective: 'clear',
             members: [
                 {
                     enemyType: 'raptor',
-                    enemyDisplayName: 'Allosaurus Chasseur',
+                    enemyDisplayName: 'Allosaurus Fragilis',
                     archetype: 'swarmer',
                     hp: 460,
                     speed: 7.6,
@@ -59,7 +59,7 @@ registerCampaignEra({
                 },
                 {
                     enemyType: 'dino_tank',
-                    enemyDisplayName: 'Sentinelle Thagomizer',
+                    enemyDisplayName: 'Stegosaurus Stenops',
                     archetype: 'armored',
                     hp: 520,
                     speed: 6.0,
@@ -74,8 +74,8 @@ registerCampaignEra({
             isBoss: true,
             name: 'L\'ÉCRASEUR TELLURIQUE',
             bossId: 'boss_brontotitan',
-            bossName: 'TITANO-COLOSSUS BRONTOR',
-            bossTitle: 'L\'ÉCRASEUR TELLURIQUE DU JURASSIQUE',
+            bossName: 'APATOSAURUS AJAX TITAN',
+            bossTitle: 'COLOSSE SAUROPODE DE LA FORMATION DE MORRISON',
             hp: 2700,
             speed: 6.6,
             scale: 1.55,

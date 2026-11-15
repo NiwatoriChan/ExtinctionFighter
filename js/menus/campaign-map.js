@@ -36,11 +36,15 @@ function buildCampaignMapUIKit() {
                         className: 'font-chakra font-black text-xs sm:text-sm text-amber-300 tracking-[0.2em] uppercase',
                         text: UIKit.computed(() => {
                             let cleared = 0;
+                            let stars = 0;
                             const total = typeof CAMPAIGN_ERAS !== 'undefined' ? CAMPAIGN_ERAS.length : 13;
                             if (typeof CAMPAIGN_ERAS !== 'undefined') {
-                                CAMPAIGN_ERAS.forEach(e => { if (isEraCleared(e.id)) cleared++; });
+                                CAMPAIGN_ERAS.forEach(e => {
+                                    if (isEraCleared(e.id)) cleared++;
+                                    if (typeof getEraStars === 'function') stars += getEraStars(e.id);
+                                });
                             }
-                            return `SÉLECTIONNEZ UNE ÈRE • ${cleared} / ${total} ÈRES CONQUISES`;
+                            return `SÉLECTIONNEZ UNE ÈRE • ${cleared} / ${total} ÈRES CONQUISES • ⭐ ${stars} / ${total * 3}`;
                         })
                     }),
                     new UIKit.Container({ className: 'w-16 sm:w-32 h-0.5 bg-gradient-to-l from-transparent to-amber-500' })
@@ -75,7 +79,11 @@ function buildCampaignMapUIKit() {
                                 }),
                                 text: UIKit.computed(() => {
                                     const era = CAMPAIGN_ERAS[selectedEraIndexSignal.value];
-                                    if (isEraCleared(era.id)) return '👑 CONQUIS (3/3 ⭐)';
+                                    if (isEraCleared(era.id)) {
+                                        const st = typeof getEraStars === 'function' ? getEraStars(era.id) : 3;
+                                        const hs = typeof getEraHighScore === 'function' ? getEraHighScore(era.id) : 0;
+                                        return hs > 0 ? `👑 CONQUIS (${st}/3 ⭐ • ${hs.toLocaleString()} PTS)` : `👑 CONQUIS (${st}/3 ⭐)`;
+                                    }
                                     if (isEraUnlocked(era.id)) return '⚔️ DISPONIBLE';
                                     return '🔒 VERROUILLÉ';
                                 })
@@ -140,12 +148,20 @@ function buildCampaignMapUIKit() {
                             new UIKit.Text({
                                 tag: 'div',
                                 className: 'font-chakra text-xs text-stone-200 font-bold flex items-center gap-1.5',
-                                text: UIKit.computed(() => `⚔️ Vague 1 : ${CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves[0].name}`)
+                                text: UIKit.computed(() => {
+                                    const w1 = CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves[0];
+                                    const sp = w1.members ? w1.members.map(m => m.enemyDisplayName).join(' + ') : w1.enemyDisplayName;
+                                    return `⚔️ Vague 1 : ${w1.name}${sp ? ` (${sp})` : ''}`;
+                                })
                             }),
                             new UIKit.Text({
                                 tag: 'div',
                                 className: 'font-chakra text-xs text-amber-300 font-bold flex items-center gap-1.5',
-                                text: UIKit.computed(() => `💀 Vague 2 : ${CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves[1].name}`)
+                                text: UIKit.computed(() => {
+                                    const w2 = CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves[1];
+                                    const sp = w2.members ? w2.members.map(m => m.enemyDisplayName).join(' & ') : w2.enemyDisplayName;
+                                    return `💀 Vague 2 : ${w2.name}${sp ? ` (${sp})` : ''}`;
+                                })
                             }),
                             new UIKit.Text({
                                 tag: 'div',
@@ -371,7 +387,10 @@ function buildCampaignMapUIKit() {
                                                 tag: 'span',
                                                 className: 'text-[10px] filter drop-shadow',
                                                 text: UIKit.computed(() => {
-                                                    if (isEraCleared(era.id)) return '👑';
+                                                    if (isEraCleared(era.id)) {
+                                                        const st = typeof getEraStars === 'function' ? getEraStars(era.id) : 3;
+                                                        return '👑' + '⭐'.repeat(st);
+                                                    }
                                                     if (!isEraUnlocked(era.id)) return '🔒';
                                                     return '⚔️';
                                                 })

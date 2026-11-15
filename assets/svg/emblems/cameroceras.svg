@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_cameroceras" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="55%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0c4a6e"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 55,335 L 18,326 L 22,344 Z" fill="#0c4a6e"/>
+    <path d="M 55,335 C 195,285 455,245 735,235 C 765,235 785,285 775,355 C 765,410 730,430 695,435 C 455,418 195,382 55,335 Z" fill="url(#emblem_cameroceras)"/>
+    <path d="M 755,248 C 805,245 845,275 848,325 C 845,385 795,422 735,420 L 735,248 Z" fill="#0284c7"/>
+    <path d="M 835,285 C 895,268 955,285 988,312 C 945,305 895,302 842,308 Z" fill="#38bdf8"/>
+    <path d="M 840,322 C 908,318 968,332 998,358 C 948,348 898,342 842,342 Z" fill="#38bdf8"/>
+    <path d="M 835,355 C 895,365 955,395 978,430 C 928,408 885,388 832,378 Z" fill="#38bdf8"/>
+    <path d="M 230,295 L 230,378 M 320,278 L 320,395 M 420,262 L 420,408 M 520,250 L 520,418 M 620,242 L 620,425" fill="#38bdf8"/>
+  </g>
+</svg>

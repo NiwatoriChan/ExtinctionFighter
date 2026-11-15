@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_dunkleosteus" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="55%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 248,328 C 175,315 112,265 48,225 C 78,285 95,332 72,412 C 125,385 182,368 248,365 Z" fill="#1e3a8a"/>
+    <path d="M 245,325 C 345,235 545,215 705,245 C 755,260 775,318 755,382 C 645,418 395,418 245,365 Z" fill="url(#emblem_dunkleosteus)"/>
+    <path d="M 695,242 C 775,222 865,248 915,295 C 932,322 905,372 835,385 L 705,382 Z" fill="#1d4ed8"/>
+    <path d="M 845,345 L 915,315 L 892,358 L 925,382 L 835,375 Z" fill="#60a5fa"/>
+    <path d="M 495,238 L 435,175 L 405,252 Z" fill="#60a5fa"/>
+    <path d="M 595,392 L 525,468 L 575,455 L 635,388 Z" fill="#60a5fa"/>
+  </g>
+</svg>

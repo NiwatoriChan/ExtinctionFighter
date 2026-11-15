@@ -10,7 +10,8 @@ function animateDino3DRig(fighter, time, dt) {
     const act = fighter.action;
     const prog = fighter.actionDuration > 0 ? Math.min(1, fighter.actionTimer / fighter.actionDuration) : 0;
 
-    const fighterImpl = FIGHTER_IMPLS[id] || FIGHTER_ANIMATIONS[id] || {};
+    const baseId = (fighter.dino && fighter.dino.animBaseId) || id;
+    const fighterImpl = FIGHTER_IMPLS[id] || FIGHTER_ANIMATIONS[id] || FIGHTER_IMPLS[baseId] || FIGHTER_ANIMATIONS[baseId] || {};
     const baseHipsY = fighterImpl.animBaseHipsY !== undefined ? fighterImpl.animBaseHipsY : 2.1;
 
     // 1. RÉINITIALISATION COMPLÈTE À LA POSE DE REPOS (REST POSE) À CHAQUE FRAME

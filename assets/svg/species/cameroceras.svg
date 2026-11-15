@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_cameroceras" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#082f49"/>
+      <stop offset="45%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#7dd3fc"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_cameroceras" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0c4a6e"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Cameroceras trentonense -->
+  <g id="layer-body-side">
+    <path d="M 55,335 C 195,285 455,245 735,235 C 765,235 785,285 775,355 C 765,410 730,430 695,435 C 455,418 195,382 55,335 Z" fill="url(#bodyGrad_cameroceras)" stroke="#082f49" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 755,248 C 805,245 845,275 848,325 C 845,385 795,422 735,420 L 735,248 Z" fill="#0284c7" stroke="#082f49" stroke-width="4"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 55,335 L 18,326 L 22,344 Z" fill="#0c4a6e" stroke="#082f49" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <path d="M 835,285 C 895,268 955,285 988,312 C 945,305 895,302 842,308 Z" fill="#38bdf8" fill-opacity="0.82" stroke="#082f49" stroke-width="3"/>
+    <path d="M 840,322 C 908,318 968,332 998,358 C 948,348 898,342 842,342 Z" fill="#38bdf8" fill-opacity="0.82" stroke="#082f49" stroke-width="3"/>
+    <path d="M 835,355 C 895,365 955,395 978,430 C 928,408 885,388 832,378 Z" fill="#38bdf8" fill-opacity="0.82" stroke="#082f49" stroke-width="3"/>
+    <path d="M 230,295 L 230,378 M 320,278 L 320,395 M 420,262 L 420,408 M 520,250 L 520,418 M 620,242 L 620,425" fill="#38bdf8" fill-opacity="0.82" stroke="#082f49" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 55,500 C 215,435 465,395 755,385 C 815,420 835,465 835,500 C 835,535 815,580 755,615 C 465,605 215,565 55,500 Z" fill="#0284c7" fill-opacity="0.28" stroke="#38bdf8" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

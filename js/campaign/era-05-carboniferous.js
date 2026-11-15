@@ -9,7 +9,7 @@ registerCampaignEra({
     subtitle: 'FORÊTS GÉANTES & ARTHROPODES MONSTRUEUX',
     periodYears: '359 - 299 Ma',
     logo: 'assets/ui/era_logos/era_1_paleozoic.png',
-    arenaId: 'jungle',
+    arenaId: 'swamp',
     themeColor: '#7c3aed',
     mapX: 37,
     mapY: 74,
@@ -24,9 +24,9 @@ registerCampaignEra({
         fighterName: 'Pulmonoscorpius',
         fighterRole: 'Scorpion Géant Venimeux',
         fighterPortrait: 'assets/portraits/pulmonoscorpius.png',
-        arenaId: 'jungle',
-        arenaName: 'Forêt Houillère du Carbonifère',
-        arenaDesc: 'Jungle primitive saturée d\'oxygène et de brumes toxiques'
+        arenaId: 'swamp',
+        arenaName: 'Marécage Houiller du Carbonifère',
+        arenaDesc: 'Marais carbonifères saturés d\'oxygène et de brumes toxiques'
     },
     waves: [
         {
