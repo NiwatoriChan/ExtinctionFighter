@@ -473,7 +473,8 @@ def generate_wing_patagium_maps():
                 for pts, is_ridge in fibrils
             ]
             + [d.line(seg, fill=(78, 36, 22, alpha), width=w) for seg, w, alpha in vessels]
-            + [d.polygon(pts, fill=(61, 34, 20, 232)) for pts in leading_bars]
+            + [d.polygon(pts, fill=(107, 73, 48, 108)) for pts in leading_bars]
+            + [d.ellipse(box, fill=(92, 62, 38, 86) if dark else (196, 174, 136, 78)) for box, dark in leading_specks]
         ),
     )
 
