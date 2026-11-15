@@ -378,7 +378,7 @@ function initHeaderMenu() {
                 if (typeof settingsSoundSignal !== 'undefined') {
                     settingsSoundSignal.value = nextEnabled;
                 }
-                try { localStorage.setItem('ek3d_sound_enabled', String(nextEnabled)); } catch (_) { }
+                try { localStorage.setItem('ek3d_sound_enabled', String(nextEnabled)); } catch (_) {}
                 updatePauseAudioUI();
                 if (sfx.enabled && typeof sfx.playHit === 'function') {
                     sfx.playHit(false);

@@ -39,7 +39,7 @@ function preloadRosterPortraits() {
                 PRELOADED_PORTRAIT_IMAGES[url] = img;
             }
         });
-    } catch (_) { }
+    } catch (_) {}
 }
 if (typeof window !== 'undefined') {
     if (document.readyState === 'complete') {
@@ -957,7 +957,7 @@ function initRosterUI(forceRebuild = false) {
                 onClick: () => {
                     sfx.playCooldownWarning();
                     const eraReq = (typeof UNLOCKABLE_FIGHTER_ERAS !== 'undefined' && UNLOCKABLE_FIGHTER_ERAS[dino.id]) ? UNLOCKABLE_FIGHTER_ERAS[dino.id] : null;
-                    const msg = eraReq
+                    const msg = eraReq 
                         ? `🔒 COMBATTANT VERROUILLÉ ! Conquérez l'Ère ${eraReq} en Campagne pour le débloquer !`
                         : `🔒 COMBATTANT VERROUILLÉ ! Terminez la Campagne pour le débloquer !`;
                     spawnFloatingPopup(0, msg, '#ef4444');

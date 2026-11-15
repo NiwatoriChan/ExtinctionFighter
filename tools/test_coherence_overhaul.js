@@ -37,7 +37,7 @@ function createMockElement(tag = 'div') {
             }
         },
         appendChild(child) { this.children.push(child); return child; },
-        remove() { },
+        remove() {},
         addEventListener(evt, fn) {
             this._listeners[evt] = this._listeners[evt] || [];
             this._listeners[evt].push(fn);
@@ -68,16 +68,16 @@ function makeThreeStub() {
         }
         add(c) { this.children.push(c); }
         remove(c) { this.children = this.children.filter(x => x !== c); }
-        lookAt() { }
+        lookAt() {}
         traverse(fn) { fn(this); this.children.forEach(c => c.traverse && c.traverse(fn)); }
     }
-    class Geometry { dispose() { } }
+    class Geometry { dispose() {} }
     class Material {
         constructor(opts = {}) {
             Object.assign(this, opts);
             this.opacity = opts.opacity ?? 1;
         }
-        dispose() { }
+        dispose() {}
     }
     class Mesh extends Obj3D {
         constructor(geometry, material) {
@@ -141,21 +141,21 @@ function testSoundEngine() {
         currentTime: 0,
         sampleRate: 44100,
         destination: {},
-        resume() { },
+        resume() {},
         createGain() {
             return {
-                gain: { value: 1, setValueAtTime() { }, exponentialRampToValueAtTime() { }, linearRampToValueAtTime() { } },
-                connect() { }
+                gain: { value: 1, setValueAtTime() {}, exponentialRampToValueAtTime() {}, linearRampToValueAtTime() {} },
+                connect() {}
             };
         },
         createOscillator() {
             oscCount++;
             return {
                 type: 'sine',
-                frequency: { value: 440, setValueAtTime() { }, exponentialRampToValueAtTime() { }, linearRampToValueAtTime() { } },
-                connect() { },
-                start() { },
-                stop() { }
+                frequency: { value: 440, setValueAtTime() {}, exponentialRampToValueAtTime() {}, linearRampToValueAtTime() {} },
+                connect() {},
+                start() {},
+                stop() {}
             };
         },
         createBuffer(ch, len) {
@@ -163,10 +163,10 @@ function testSoundEngine() {
         },
         createBufferSource() {
             bufCount++;
-            return { buffer: null, connect() { }, start() { }, stop() { } };
+            return { buffer: null, connect() {}, start() {}, stop() {} };
         },
         createBiquadFilter() {
-            return { type: 'lowpass', frequency: { value: 1000, setValueAtTime() { } }, Q: { value: 1 }, connect() { } };
+            return { type: 'lowpass', frequency: { value: 1000, setValueAtTime() {} }, Q: { value: 1 }, connect() {} };
         }
     };
 
@@ -175,7 +175,7 @@ function testSoundEngine() {
         console,
         Math,
         setInterval: () => 42,
-        clearInterval: () => { }
+        clearInterval: () => {}
     });
     loadIntoContext(ctx, 'js/core/sound.js');
 
@@ -225,7 +225,7 @@ function testEffectsAndXRayAndTeardown() {
     const addedToScene = [];
     const scene = {
         add(obj) { addedToScene.push(obj); },
-        remove() { }
+        remove() {}
     };
     const bodyEl = createMockElement('body');
     const document = {
@@ -249,32 +249,32 @@ function testEffectsAndXRayAndTeardown() {
         particles3D: [],
         STAGE_LEFT_3D: -18,
         STAGE_RIGHT_3D: 18,
-        camera3D: { position: { set() { } }, lookAt() { } },
+        camera3D: { position: { set() {} }, lookAt() {} },
         scene3D: scene,
         renderer3D: null,
         sfx: {
             enabled: true,
-            playHit() { },
-            playBoneCrack() { },
-            playRoar() { },
-            playKO() { },
-            startMusicLoop() { },
-            stopMusicLoop() { }
+            playHit() {},
+            playBoneCrack() {},
+            playRoar() {},
+            playKO() {},
+            startMusicLoop() {},
+            stopMusicLoop() {}
         },
-        showAnnouncer() { },
-        spawnFloatingPopup() { },
-        triggerHitstop() { },
-        triggerGamepadRumble() { },
-        triggerXRaySkeletonFlash() { },
-        applyFighterTextures() { },
-        updateFighterHudDOM() { },
-        updateHealthBars() { },
-        updateBattleHUD() { },
-        animateDino3DRig() { },
+        showAnnouncer() {},
+        spawnFloatingPopup() {},
+        triggerHitstop() {},
+        triggerGamepadRumble() {},
+        triggerXRaySkeletonFlash() {},
+        applyFighterTextures() {},
+        updateFighterHudDOM() {},
+        updateHealthBars() {},
+        updateBattleHUD() {},
+        animateDino3DRig() {},
         performance: { now: () => 1000 },
         setTimeout: () => { throw new Error('executeXRayMove must not rely on setTimeout'); },
-        clearTimeout: () => { },
-        clearInterval: () => { }
+        clearTimeout: () => {},
+        clearInterval: () => {}
     });
 
     loadIntoContext(ctx, 'js/core/state.js');
@@ -314,13 +314,13 @@ function testEffectsAndXRayAndTeardown() {
         group: new THREE.Group(),
         rig: { root: new THREE.Group() },
         dino: { name: 'T-REX', fullName: 'Tyrannosaurus Rex', fatality: 'MORSURE', xrayTarget: 'CRÂNE', color: '#ef4444', stats: { pow: 100, speed: 60 } },
-        update() { },
-        triggerFlash() { },
-        takeHit() { },
-        takeDamage(dmg) { },
+        update() {},
+        triggerFlash() {},
+        takeHit() {},
+        takeDamage(dmg) {},
         destroy() { f1Destroyed = true; },
-        enterPose() { }, setScale() { },
-        setAction() { }
+        enterPose() {}, setScale() {},
+        setAction() {}
     };
     const f2 = {
         x: 0.5, y: 0, facing: -1, rage: 0, hp: 1000, maxHp: 1000, isDead: false,
@@ -330,13 +330,13 @@ function testEffectsAndXRayAndTeardown() {
         group: new THREE.Group(),
         rig: { root: new THREE.Group() },
         dino: { name: 'SPINOSAURE', fullName: 'Spinosaurus Aegyptiacus', color: '#38bdf8', stats: { pow: 95, speed: 65 } },
-        update() { },
-        triggerFlash() { },
+        update() {},
+        triggerFlash() {},
         takeHit(dmg) { takeHitCalls++; damageDealt += dmg; this.hp = Math.max(0, this.hp - dmg); },
         takeDamage(dmg) { takeHitCalls++; damageDealt += dmg; this.hp = Math.max(0, this.hp - dmg); },
         destroy() { f2Destroyed = true; },
-        enterPose() { },
-        setAction() { }
+        enterPose() {},
+        setAction() {}
     };
     ctx.fighter1 = f1;
     ctx.fighter2 = f2;
@@ -399,8 +399,8 @@ function testMovesModalAndVictoryModal() {
         computed: (fn) => ({ get value() { return fn(); } }),
         effect: (fn) => fn(),
         getElementById: (id) => (id === 'modalRosterMoves' ? modalListNode : null),
-        Dialog: class { constructor(o = {}) { Object.assign(this, o); } add(c) { (this.children = this.children || []).push(c); } mount() { } },
-        Container: class { constructor(o = {}) { Object.assign(this, o); } add(c) { (this.children = this.children || []).push(c); } mount() { } clear() { } },
+        Dialog: class { constructor(o = {}) { Object.assign(this, o); } add(c) { (this.children = this.children || []).push(c); } mount() {} },
+        Container: class { constructor(o = {}) { Object.assign(this, o); } add(c) { (this.children = this.children || []).push(c); } mount() {} clear() {} },
         Card: class { constructor(o = {}) { Object.assign(this, o); renderedCards.push(o); } add(c) { (this.children = this.children || []).push(c); } },
         Text: class { constructor(o = {}) { Object.assign(this, o); } },
         Image: class { constructor(o = {}) { Object.assign(this, o); } },
@@ -447,7 +447,7 @@ function testMovesModalAndVictoryModal() {
             { id: 12, name: 'XII. CÉNOZOÏQUE : QUATERNAIRE' }
         ],
         isFighterUnlocked: (id) => id === 'trex',
-        playUISound() { }
+        playUISound() {}
     });
     loadIntoContext(ctxMoves, 'js/menus/moves-modal.js');
     ctxMoves.openMovesModal();
@@ -536,7 +536,7 @@ function testAiDifficultyTiers() {
             })
         },
         AIVehicleSystem: {
-            aiVehicle: { position: { set() { } }, velocity: { set() { } } },
+            aiVehicle: { position: { set() {} }, velocity: { set() {} } },
             computeSteeringStep: () => ({ vx: 0, steeringMode: 'ARRIVE' })
         },
         AIMacroStatechart: { evaluate: () => 'ALERT_FOOTSIES' },
@@ -592,26 +592,26 @@ function testAiDifficultyTiers() {
         aiDifficulty: 'normal',
         YUKA: {
             GoalEvaluator,
-            EntityManager: class { add() { } },
+            EntityManager: class { add() {} },
             Vehicle: class {
                 constructor() {
-                    this.position = { set() { } };
-                    this.velocity = { set() { } };
-                    this.forward = { set() { } };
-                    this.steering = { add() { } };
+                    this.position = { set() {} };
+                    this.velocity = { set() {} };
+                    this.forward = { set() {} };
+                    this.steering = { add() {} };
                 }
             },
-            Vector3: class { copy() { } },
-            Path: class { },
-            SeekBehavior: class { },
-            ArriveBehavior: class { },
-            PursueBehavior: class { },
-            EvadeBehavior: class { },
-            FleeBehavior: class { },
-            FollowPathBehavior: class { },
+            Vector3: class { copy() {} },
+            Path: class {},
+            SeekBehavior: class {},
+            ArriveBehavior: class {},
+            PursueBehavior: class {},
+            EvadeBehavior: class {},
+            FleeBehavior: class {},
+            FollowPathBehavior: class {},
             Vision: class { visible() { return true; } },
-            MemorySystem: class { createRecord() { } getRecord() { return {}; } },
-            Think: class { addEvaluator() { } execute() { } },
+            MemorySystem: class { createRecord() {} getRecord() { return {}; } },
+            Think: class { addEvaluator() {} execute() {} },
             Time: class { update() { return { getDelta: () => 0.016 }; } }
         }
     });
