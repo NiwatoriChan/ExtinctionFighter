@@ -54,7 +54,7 @@ def _draw_polygonal_scutes(color_img, b_draw, size, grid_cols, grid_rows, rng, p
             b_draw.polygon(pts, fill=b_lum, outline=30 if is_cranium else 44)
 
     def _paint(d):
-        outline_col = (16, 20, 24, 134 if is_cranium else 96)
+        outline_col = (42, 32, 24, 108 if is_cranium else 34)
         for fill_rgba, polys in buckets.values():
             for pts in polys:
                 d.polygon(pts, fill=fill_rgba, outline=outline_col)
@@ -329,10 +329,11 @@ def generate_crest_maps():
     rng = FastRNG(4919)
 
     stops = [
-        (0.00, "#094d63"),  # Crest apex deep cerulean-teal (v=1.0)
-        (0.42, "#147a94"),  # Mid-crest kingfisher teal-blue
-        (0.76, "#28a4bd"),  # Lower crest bright cerulean sheen
-        (1.00, "#4a4032"),  # Warm umber basal cranial transition (v=0.0)
+        (0.00, "#073d50"),  # Crest apex deep cerulean-teal (v=1.0)
+        (0.38, "#11647a"),  # Mid-crest kingfisher teal-blue
+        (0.70, "#2188a0"),  # Lower crest cerulean sheen
+        (0.85, "#326976"),  # Transition band
+        (1.00, "#3d3126"),  # Warm umber basal cranial transition (v=0.0)
     ]
     col_arr = _make_vertical_gradient(size, stops)
     color_img = Image.fromarray(col_arr, mode="RGB").convert("RGBA")
@@ -361,10 +362,10 @@ def generate_crest_maps():
 
     def draw_crest_patterns(d):
         for pts, is_major in ridge_lines:
-            col = (6, 28, 38, 96) if is_major else (92, 210, 232, 34)
+            col = (6, 28, 38, 68) if is_major else (92, 210, 232, 28)
             d.line(pts, fill=col, width=2 if is_major else 1, joint="curve")
         for box, dark in specks:
-            col = (5, 42, 56, 68) if dark else (68, 198, 224, 52)
+            col = (5, 42, 56, 52) if dark else (68, 198, 224, 38)
             d.ellipse(box, fill=col)
 
     color_img = _composite_layer(color_img, draw_crest_patterns)
@@ -383,8 +384,8 @@ def generate_wing_patagium_maps():
 
     # PIL y=0 -> UV v=1.0 (leading edge), y=size -> UV v=0.0 (trailing edge)
     stops = [
-        (0.00, "#dfd6c2"),  # Pale cream leading spar ground (overlaid with dark transverse bars)
-        (0.11, "#dfd6c2"),  # Edge of cream barred zone (v=0.88..1.00)
+        (0.00, "#8f7556"),  # Warm earthy buff-tan leading spar base (no loud white/black stripe contrast)
+        (0.11, "#9c8262"),  # Edge of textured limb spar zone (v=0.88..1.00)
         (0.16, "#5c2c18"),  # Rich russet-mahogany anterior muscle/patagium shading
         (0.42, "#9c8252"),  # Warm ochre-brown transition
         (0.66, "#bca470"),  # Buff-ochre mid patagium
@@ -416,22 +417,30 @@ def generate_wing_patagium_maps():
         b_draw.line(pts, fill=162 if is_ridge else 92, width=2 if is_ridge else 1)
         fibrils.append((pts, is_ridge))
 
-    # 3. Transverse dark brown barring (#3d2214) over cream along leading edge (v=0.88..1.00 -> y=0..0.12*size)
+    # 3. Subtle warm buff-ochre & weathered sepia limb mottling / faint broken scutes along leading edge (v=0.88..1.00)
     leading_bars = []
     bar_h = int(size * 0.122)
     x_cur = 6.0
     while x_cur < size - 6:
-        bw = 10.0 + rng.rand() * 14.0
-        gap = 12.0 + rng.rand() * 16.0
+        bw = 14.0 + rng.rand() * 22.0
+        gap = 10.0 + rng.rand() * 18.0
+        y0 = 4.0 + rng.rand() * (bar_h * 0.25)
+        y1 = min(float(bar_h) - 2.0, y0 + bar_h * (0.45 + rng.rand() * 0.35))
         pts = [
-            (x_cur, 0.0),
-            (x_cur + bw, 0.0),
-            (x_cur + bw * 0.92 + (rng.rand() - 0.5) * 3.0, float(bar_h)),
-            (x_cur + (rng.rand() - 0.5) * 3.0, float(bar_h)),
+            (x_cur, y0),
+            (x_cur + bw, y0 + (rng.rand() - 0.5) * 6.0),
+            (x_cur + bw * 0.85 + (rng.rand() - 0.5) * 6.0, y1),
+            (x_cur + (rng.rand() - 0.5) * 6.0, y1),
         ]
         leading_bars.append(pts)
-        b_draw.polygon(pts, fill=164)
+        b_draw.polygon(pts, fill=142)
         x_cur += bw + gap
+    leading_specks = []
+    for _ in range(180):
+        sx = rng.rand() * size
+        sy = rng.rand() * bar_h
+        sr = 3.0 + rng.rand() * 8.0
+        leading_specks.append(((sx - sr * 1.4, sy - sr * 0.5, sx + sr * 1.4, sy + sr * 0.5), rng.rand() > 0.45))
 
     # 4. Branching arterial/venous vessel network across the parchment membrane
     vessels = []
