@@ -74,7 +74,7 @@ const mainMenuRoot = new UIKit.Fullscreen({
     flexDirection: 'column',
     justifyContent: 'space-between',
     children: [
-// Prehistoric creeping vines & bones frame border overlay - omitted as the background already includes the frame
+        // Prehistoric creeping vines & bones frame border overlay - omitted as the background already includes the frame
 
         // Dynamic Interactive Canvas for Floating Volcanic Embers & Sparks
         new UIKit.Container({

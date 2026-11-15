@@ -48,3 +48,4 @@ All notable changes to **Extinction Kombat 3D** (*ExtinctionFighter*) are docume
 - Modularized Three.js / WebGL 3D fighting game architecture (`js/core/`, `js/fighters/`, `js/arenas/`, `js/menus/`, `js/animations/`).
 - 16 prehistoric fighters (3 unlocked by default + 13 campaign unlockables including Dragon Boss Drak'Zul).
 - 8 dynamic 3D arenas, X-Ray finishers, 3D Fatalities, local 1P/2P support, and 13-era Campaign Mode.
+

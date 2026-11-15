@@ -68,7 +68,7 @@ function applySettingValue(id, val, persist = true) {
         const meta = SETTINGS_SLIDERS[id];
         meta.signal.value = clamped;
         if (persist) {
-            try { localStorage.setItem(meta.key, String(clamped)); } catch (_) {}
+            try { localStorage.setItem(meta.key, String(clamped)); } catch (_) { }
         }
         if (id === 'masterVol' && typeof sfx !== 'undefined' && typeof sfx.setMasterVolume === 'function') {
             sfx.setMasterVolume(clamped / 100);
@@ -104,7 +104,7 @@ function applySettingValue(id, val, persist = true) {
         const meta = SETTINGS_TOGGLES[id];
         meta.signal.value = boolVal;
         if (persist) {
-            try { localStorage.setItem(meta.key, String(boolVal)); } catch (_) {}
+            try { localStorage.setItem(meta.key, String(boolVal)); } catch (_) { }
         }
         if (id === 'goreBlood') {
             window.goreAndBloodEnabled = boolVal;
@@ -180,7 +180,7 @@ try {
     if (savedMode === 'fullscreen' || savedMode === 'windowed') {
         settingsDisplayModeSignal.value = savedMode;
     }
-} catch (_) {}
+} catch (_) { }
 
 // Tabs definitions
 const SETTINGS_TABS = [
@@ -511,7 +511,7 @@ function resetSettingsToDefaults() {
         localStorage.setItem('ek3d_display_mode', 'fullscreen');
         localStorage.setItem('ek3d_graphics_quality', 'high');
         localStorage.setItem('ek3d_ai_difficulty', 'normal');
-    } catch (_) {}
+    } catch (_) { }
 
     updateSettingsUI();
 }
@@ -530,16 +530,16 @@ function toggleDisplayMode() {
     const wantFs = settingsDisplayModeSignal.value !== 'fullscreen';
     if (wantFs) {
         if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {});
+            document.documentElement.requestFullscreen().catch(() => { });
         }
         settingsDisplayModeSignal.value = 'fullscreen';
     } else {
         if (document.fullscreenElement && document.exitFullscreen) {
-            document.exitFullscreen().catch(() => {});
+            document.exitFullscreen().catch(() => { });
         }
         settingsDisplayModeSignal.value = 'windowed';
     }
-    try { localStorage.setItem('ek3d_display_mode', settingsDisplayModeSignal.value); } catch (_) {}
+    try { localStorage.setItem('ek3d_display_mode', settingsDisplayModeSignal.value); } catch (_) { }
     updateSettingsUI();
 }
 
@@ -701,7 +701,7 @@ function bindSettingsControls() {
             if (typeof applyGraphicsSettings === 'function') applyGraphicsSettings(q);
             if (typeof graphicsQuality !== 'undefined') graphicsQuality = q;
             settingsGraphicsSignal.value = q;
-            try { localStorage.setItem('ek3d_graphics_quality', q); } catch (_) {}
+            try { localStorage.setItem('ek3d_graphics_quality', q); } catch (_) { }
             updateSettingsUI();
         };
     });
@@ -717,7 +717,7 @@ function bindSettingsControls() {
             if (typeof sfx !== 'undefined') sfx.playHit(false);
             if (typeof aiDifficulty !== 'undefined') aiDifficulty = ai;
             settingsAiDiffSignal.value = ai;
-            try { localStorage.setItem('ek3d_ai_difficulty', ai); } catch (_) {}
+            try { localStorage.setItem('ek3d_ai_difficulty', ai); } catch (_) { }
             updateSettingsUI();
         };
     });
