@@ -12,12 +12,12 @@ registerFighterAnimation('quetzal', {
         rig.neck.rotation.z = -0.12;
         rig.headGroup.rotation.z = 0.08;
         if (sp && sp.leftWing && sp.rightWing) {
-            sp.leftWing.rotation.set(flap, 0.18, 0);
-            sp.rightWing.rotation.set(-flap, -0.18, 0);
+            sp.leftWing.rotation.set(1.42 + flap, 0.18, 0);
+            sp.rightWing.rotation.set(-1.42 - flap, -0.18, 0);
         }
         if (rig.arms.length >= 2) {
-            rig.arms[0].rotation.set(0, Math.cos(time * 5.6) * 0.12, 0);
-            rig.arms[1].rotation.set(0, -Math.cos(time * 5.6) * 0.12, 0);
+            rig.arms[0].rotation.set(0, Math.cos(time * 5.6) * 0.12, 2.68);
+            rig.arms[1].rotation.set(0, -Math.cos(time * 5.6) * 0.12, 2.68);
         }
         if (rig.legs.length >= 2) {
             rig.legs[0].rotation.z = -0.62;
@@ -51,12 +51,12 @@ registerFighterAnimation('quetzal', {
         rig.headGroup.rotation.z = isRising ? 0.14 : -0.06;
         rig.jaw.rotation.z = isRising ? -0.24 : -0.05;
         if (sp.leftWing && sp.rightWing) {
-            sp.leftWing.rotation.set(flap, 0.16, 0);
-            sp.rightWing.rotation.set(-flap, -0.16, 0);
+            sp.leftWing.rotation.set(1.42 + flap, 0.16, 0);
+            sp.rightWing.rotation.set(-1.42 - flap, -0.16, 0);
         }
         if (rig.arms.length >= 2) {
-            rig.arms[0].rotation.set(0, 0, 0);
-            rig.arms[1].rotation.set(0, 0, 0);
+            rig.arms[0].rotation.set(0, 0, 2.68);
+            rig.arms[1].rotation.set(0, 0, 2.68);
         }
         if (rig.legs.length >= 2) {
             rig.legs[0].rotation.z = isRising ? -0.68 : 0.34;

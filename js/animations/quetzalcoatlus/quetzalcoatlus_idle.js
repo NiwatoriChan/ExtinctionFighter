@@ -31,24 +31,24 @@ registerFighterAnimation('quetzal', {
 
         const breathe = Math.sin(time * 2.2);
         const crouch = Boolean(fighter && fighter.isCrouching);
-        rig.hips.position.y = crouch ? baseHipsY * 0.72 : (baseHipsY + breathe * 0.028);
-        rig.torso.rotation.z = crouch ? -0.18 : (-0.06 + breathe * 0.025);
-        rig.neck.rotation.z = crouch ? 0.10 : (0.14 - breathe * 0.02);
-        rig.headGroup.rotation.z = crouch ? -0.12 : (-0.18 + Math.sin(time * 1.4) * 0.04);
+        rig.hips.position.y = crouch ? baseHipsY * 0.80 : (baseHipsY + breathe * 0.018);
+        rig.torso.rotation.z = crouch ? -0.14 : (-0.02 + breathe * 0.015);
+        rig.neck.rotation.z = crouch ? 0.08 : (0.04 - breathe * 0.015);
+        rig.headGroup.rotation.z = crouch ? -0.10 : (-0.06 + Math.sin(time * 1.4) * 0.04);
         rig.headGroup.rotation.y = Math.sin(time * 1.1) * 0.09;
-        rig.jaw.rotation.z = -0.04 - Math.max(0, Math.sin(time * 1.8)) * 0.06;
+        rig.jaw.rotation.z = -0.02 - Math.max(0, Math.sin(time * 1.8)) * 0.04;
         if (sp.leftWing && sp.rightWing) {
-            const sway = breathe * 0.04;
-            sp.leftWing.rotation.set(-0.62 + sway, 0.16, 0.22);
-            sp.rightWing.rotation.set(0.62 - sway, -0.16, 0.22);
+            const sway = breathe * 0.02;
+            sp.leftWing.rotation.set(sway * 0.5, 0.0, crouch ? -0.12 : 0.0);
+            sp.rightWing.rotation.set(-sway * 0.5, 0.0, crouch ? -0.12 : 0.0);
         }
         if (rig.arms.length >= 2) {
-            rig.arms[0].rotation.set(1.38, 0.52, -0.28);
-            rig.arms[1].rotation.set(-1.38, -0.52, -0.28);
+            rig.arms[0].rotation.set(0.0, 0.0, 0.0);
+            rig.arms[1].rotation.set(0.0, 0.0, 0.0);
         }
         if (rig.legs.length >= 2) {
-            rig.legs[0].rotation.z = crouch ? 0.26 : 0;
-            rig.legs[1].rotation.z = crouch ? 0.26 : 0;
+            rig.legs[0].rotation.z = crouch ? 0.22 : 0;
+            rig.legs[1].rotation.z = crouch ? 0.22 : 0;
         }
     }
 });

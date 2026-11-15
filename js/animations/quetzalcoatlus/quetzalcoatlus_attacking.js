@@ -15,8 +15,8 @@ registerFighterAnimation('quetzal', {
         rig.hips.position.y = by;
 
         const setGlbWings = (spread01, sweep = 0, dihedral = 0) => {
-            const foldL = { x: -0.62, y: 0.16, z: 0.22 };
-            const openL = { x: dihedral, y: sweep, z: 0 };
+            const foldL = { x: 0.0, y: 0.0, z: 0.0 };
+            const openL = { x: 1.42 + dihedral, y: sweep, z: 0.0 };
             if (sp.leftWing && sp.rightWing) {
                 sp.leftWing.rotation.set(
                     THREE.MathUtils.lerp(foldL.x, openL.x, spread01),
@@ -31,14 +31,14 @@ registerFighterAnimation('quetzal', {
             }
             if (rig.arms.length >= 2) {
                 rig.arms[0].rotation.set(
-                    THREE.MathUtils.lerp(1.38, 0, spread01),
-                    THREE.MathUtils.lerp(0.52, sweep * 0.3, spread01),
-                    THREE.MathUtils.lerp(-0.28, 0, spread01)
+                    0.0,
+                    THREE.MathUtils.lerp(0.0, sweep * 0.3, spread01),
+                    THREE.MathUtils.lerp(0.0, 2.68, spread01)
                 );
                 rig.arms[1].rotation.set(
-                    THREE.MathUtils.lerp(-1.38, 0, spread01),
-                    THREE.MathUtils.lerp(-0.52, -sweep * 0.3, spread01),
-                    THREE.MathUtils.lerp(-0.28, 0, spread01)
+                    0.0,
+                    THREE.MathUtils.lerp(0.0, -sweep * 0.3, spread01),
+                    THREE.MathUtils.lerp(0.0, 2.68, spread01)
                 );
             }
         };
