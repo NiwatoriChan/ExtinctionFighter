@@ -384,8 +384,8 @@ def generate_wing_patagium_maps():
 
     # PIL y=0 -> UV v=1.0 (leading edge), y=size -> UV v=0.0 (trailing edge)
     stops = [
-        (0.00, "#8f7556"),  # Warm earthy buff-tan leading spar base (no loud white/black stripe contrast)
-        (0.11, "#9c8262"),  # Edge of textured limb spar zone (v=0.88..1.00)
+        (0.00, "#83694c"),  # Warm weathered buff-brown leading spar base
+        (0.11, "#9a8161"),  # Edge of textured limb spar zone (v=0.88..1.00)
         (0.16, "#5c2c18"),  # Rich russet-mahogany anterior muscle/patagium shading
         (0.42, "#9c8252"),  # Warm ochre-brown transition
         (0.66, "#bca470"),  # Buff-ochre mid patagium
@@ -417,30 +417,17 @@ def generate_wing_patagium_maps():
         b_draw.line(pts, fill=162 if is_ridge else 92, width=2 if is_ridge else 1)
         fibrils.append((pts, is_ridge))
 
-    # 3. Subtle warm buff-ochre & weathered sepia limb mottling / faint broken scutes along leading edge (v=0.88..1.00)
+    # 3. Soft weathered dappled scute mottling along leading spar zone (v=0.88..1.00 -> y=0..0.12*size)
     leading_bars = []
     bar_h = int(size * 0.122)
-    x_cur = 6.0
-    while x_cur < size - 6:
-        bw = 14.0 + rng.rand() * 22.0
-        gap = 10.0 + rng.rand() * 18.0
-        y0 = 4.0 + rng.rand() * (bar_h * 0.25)
-        y1 = min(float(bar_h) - 2.0, y0 + bar_h * (0.45 + rng.rand() * 0.35))
-        pts = [
-            (x_cur, y0),
-            (x_cur + bw, y0 + (rng.rand() - 0.5) * 6.0),
-            (x_cur + bw * 0.85 + (rng.rand() - 0.5) * 6.0, y1),
-            (x_cur + (rng.rand() - 0.5) * 6.0, y1),
-        ]
-        leading_bars.append(pts)
-        b_draw.polygon(pts, fill=142)
-        x_cur += bw + gap
     leading_specks = []
-    for _ in range(180):
+    for _ in range(360):
         sx = rng.rand() * size
-        sy = rng.rand() * bar_h
-        sr = 3.0 + rng.rand() * 8.0
-        leading_specks.append(((sx - sr * 1.4, sy - sr * 0.5, sx + sr * 1.4, sy + sr * 0.5), rng.rand() > 0.45))
+        sy = rng.rand() * (bar_h * 0.96)
+        rx = 6.0 + rng.rand() * 14.0
+        ry = 3.0 + rng.rand() * 6.0
+        leading_specks.append(((sx - rx, sy - ry, sx + rx, sy + ry), rng.rand() > 0.42))
+        b_draw.ellipse((sx - rx, sy - ry, sx + rx, sy + ry), fill=136)
 
     # 4. Branching arterial/venous vessel network across the parchment membrane
     vessels = []
@@ -473,8 +460,7 @@ def generate_wing_patagium_maps():
                 for pts, is_ridge in fibrils
             ]
             + [d.line(seg, fill=(78, 36, 22, alpha), width=w) for seg, w, alpha in vessels]
-            + [d.polygon(pts, fill=(107, 73, 48, 108)) for pts in leading_bars]
-            + [d.ellipse(box, fill=(92, 62, 38, 86) if dark else (196, 174, 136, 78)) for box, dark in leading_specks]
+            + [d.ellipse(box, fill=(84, 56, 36, 52) if dark else (188, 166, 130, 48)) for box, dark in leading_specks]
         ),
     )
 

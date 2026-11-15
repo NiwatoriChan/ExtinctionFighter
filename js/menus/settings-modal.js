@@ -378,7 +378,7 @@ const settingsModalRoot = new UIKit.Dialog({
                     </div>
                 </footer>
 
-                <span class="settings-version-tag">${typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.2'}</span>
+                <span class="settings-version-tag">${typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.3'}</span>
             </div>
 
             <!-- Compatibility elements for old callers/scripts -->

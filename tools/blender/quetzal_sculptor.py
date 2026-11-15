@@ -273,21 +273,28 @@ def _build_continuous_spine_segment(
                 ridge_arch = 1.0 - abs_sin / 0.22
                 z_vert += ridge_arch * 0.06 * rz * spine_env
 
-            # Deep muscular pectoral sternum keel & shaggy broad chest (t = 0.34..0.54)
-            if 0.34 < t < 0.54 and cos_t < -0.20:
-                keel_env = math.sin(((t - 0.34) / 0.20) * math.pi)
+            # Deep muscular pectoral sternum keel & shaggy broad chest (t = 0.34..0.52)
+            if 0.34 < t < 0.52 and cos_t < -0.20:
+                keel_env = math.sin(((t - 0.34) / 0.18) * math.pi)
                 keel_pinch = max(0.0, (-cos_t - 0.20) / 0.80) ** 1.35
-                z_vert -= keel_pinch * 0.16 * keel_env * cap_scale
-                y_lat *= (1.0 - 0.10 * keel_pinch * keel_env)
+                z_vert -= keel_pinch * 0.12 * keel_env * cap_scale
+                y_lat *= (1.0 - 0.08 * keel_pinch * keel_env)
             if 0.44 < t < 0.58 and abs_sin > 0.46:
                 sh_env = math.sin(((t - 0.44) / 0.14) * math.pi)
-                y_lat *= (1.0 + 0.09 * sh_env)
+                y_lat *= (1.0 + 0.07 * sh_env)
 
-            # Soft inset of anterior torso stump inside neck collar to prevent seam step
-            if t_joint_front is not None and t > t_joint_front:
+            # C1-smooth quadratic inset of overlapping socket tongues inside adjacent cavity
+            if t_joint_back is not None and t < t_joint_back:
+                span = max(1e-5, t_joint_back - t_start)
+                s = min(1.0, (t_joint_back - t) / span)
+                inset_b = 1.0 - 0.035 * (s * s)
+                y_lat *= inset_b
+                z_vert *= inset_b
+            elif t_joint_front is not None and t > t_joint_front:
                 inset = min(1.0, (t - t_joint_front) / max(1e-5, t_end - t_joint_front))
-                y_lat *= (1.0 - 0.06 * inset)
-                z_vert *= (1.0 - 0.06 * inset)
+                inset_f = 1.0 - 0.035 * (inset * inset)
+                y_lat *= inset_f
+                z_vert *= inset_f
 
             # Very gentle longitudinal sternocleidomastoid ridges & subtle throat rings on neck
             if 0.56 < t < 0.92:
@@ -361,16 +368,16 @@ def _add_pycnofiber_mane_and_scutes(torso_bone, neck_bone, mats):
             flute_amp=0.03,
         )
 
-    # Sculpted sternum carina keel plate
+    # Sculpted sternum carina keel plate (tucked softly into pectoral musculature)
     build_osteoderm_plate(
         "Quetzal_SternumKeel",
-        width=0.22,
-        height=0.46,
-        thickness=0.09,
+        width=0.18,
+        height=0.40,
+        thickness=0.06,
         mat=mats["hide"],
         parent=torso_bone,
-        local_pos=(0.38, 0.0, -0.04),
-        rot=(0.0, 0.52, 0.0),
+        local_pos=(0.34, 0.0, -0.02),
+        rot=(0.0, 0.48, 0.0),
         shape="diamond",
     )
 
@@ -387,14 +394,14 @@ def _build_sculpted_skull(head_bone, mats):
     """
     pitch_q = Euler((0.0, 0.02, 0.0), "XYZ").to_matrix().to_4x4()
 
-    # 1. Smooth Azhdarchid Cranial Capsule & Low Posterior Orbits (x = -0.18..0.44)
+    # 1. Smooth Azhdarchid Cranial Capsule & Low Posterior Orbits (x = -0.18..0.30)
     c_slices = [
         (-0.18, 0.085, -0.045, 0.002),  # Rounded occiput cap
         (-0.08, 0.148, -0.082, 0.142),  # Narrow muscular occipital region
         (0.06,  0.168, -0.086, 0.156),  # Orbit / squamosal region (low eyes)
-        (0.22,  0.172, -0.072, 0.136),  # Antorbital bar over nasoantorbital rear
-        (0.36,  0.145, -0.055, 0.095),  # Preorbital taper
-        (0.46,  0.095, -0.040, 0.002),  # Closed anterior cranium core inside beak root
+        (0.16,  0.166, -0.072, 0.136),  # Clean preorbital junction before beak sheath
+        (0.22,  0.146, -0.056, 0.096),  # Tucked squarely inside beak sheath
+        (0.29,  0.090, -0.040, 0.002),  # Closed anterior cranium core inside beak root
     ]
     c_top_sp = CatmullRomSpline3D([(s[0], s[3], s[1]) for s in c_slices])
     c_bot_sp = CatmullRomSpline3D([(s[0], s[3], s[2]) for s in c_slices])
@@ -421,7 +428,7 @@ def _build_sculpted_skull(head_bone, mats):
             abs_s = abs(sa)
             sign_s = 1.0 if sa >= 0.0 else -1.0
 
-            ly = sign_s * (abs_s ** 0.80) * hw
+            ly = sign_s * (abs_s ** 0.88) * hw
             mid_z = 0.5 * (top_z + bot_z)
             hh = max(0.008, 0.5 * (top_z - bot_z))
             if ca >= 0.0:
@@ -449,10 +456,11 @@ def _build_sculpted_skull(head_bone, mats):
     bm_cran = _build_grid_bmesh(c_rings_v, c_rings_uv, close_u=True, cap_start=True, cap_end=True, u_wrap_axis=0)
     attach_mesh_obj(bm_cran, "Quetzal_UpperCranium", mat=mats["cranium"], parent=head_bone)
 
-    # 2. Toothless Stork-Spear Upper Beak & Giant Triangular Nasoantorbital Fenestra (x = 0.16..2.38)
+    # 2. Toothless Stork-Spear Upper Beak & Giant Triangular Nasoantorbital Fenestra (x = 0.14..2.38)
     beak_slices = [
-        (0.16,  0.148, -0.052, 0.002),  # Closed posterior sheath inside cranium
-        (0.24,  0.172, -0.062, 0.118),  # Tall nasoantorbital cranial root
+        (0.14,  0.132, -0.048, 0.002),  # Closed posterior sheath inside cranium
+        (0.22,  0.168, -0.062, 0.122),  # Tall nasoantorbital cranial root enveloping c_slices cleanly
+        (0.28,  0.168, -0.062, 0.118),  # Smooth anterior continuation
         (0.62,  0.156, -0.056, 0.094),  # Long triangular fenestra middle
         (1.06,  0.122, -0.052, 0.068),  # Anterior fenestra taper
         (1.52,  0.078, -0.050, 0.042),  # Long toothless stork spear mid-blade
@@ -492,17 +500,17 @@ def _build_sculpted_skull(head_bone, mats):
                 rim = abs_s ** 1.45
                 lz = bot_z * rim + (bot_z + 0.018 * (1.0 - v)) * (1.0 - rim)
 
-            # Large sculpted triangular nasoantorbital fenestra (x = 0.28..0.88 -> v ~ 0.05..0.32)
-            fen_t = (v - 0.16) / 0.135
-            fen_w = (ca - 0.16) / 0.44
+            # Large sculpted triangular nasoantorbital fenestra (cleanly ahead of cranium seam)
+            fen_t = (v - 0.21) / 0.125
+            fen_w = (ca - 0.24) / 0.34
             fen_d2 = fen_t * fen_t + fen_w * fen_w
             if fen_d2 < 1.0:
                 f_depth = (1.0 - fen_d2) ** 1.25
-                ly *= (1.0 - 0.34 * f_depth)
-            elif 1.0 <= fen_d2 < 1.7:
-                hood = math.sin(((fen_d2 - 1.0) / 0.7) * math.pi)
-                ly += sign_s * 0.014 * hood
-                lz += 0.006 * hood * (1.0 if fen_w > 0 else -0.25)
+                ly *= (1.0 - 0.30 * f_depth)
+            elif 1.0 <= fen_d2 < 1.6 and fen_w > -0.3:
+                hood = math.sin(((fen_d2 - 1.0) / 0.6) * math.pi)
+                ly += sign_s * 0.005 * hood
+                lz += 0.004 * hood * max(0.0, fen_w)
 
             row_v.append(pitch_q @ Vector((bx, ly, lz)))
             row_uv.append((u, v))
@@ -512,22 +520,23 @@ def _build_sculpted_skull(head_bone, mats):
     bm_beak = _build_grid_bmesh(b_rings_v, b_rings_uv, close_u=True, cap_start=True, cap_end=True, u_wrap_axis=0)
     attach_mesh_obj(bm_beak, "Quetzal_UpperBeak", mat=mats["beak"], parent=head_bone)
 
-    # 3. Iconic Mid-Cranial Arched Sagittal Crest ON TOP OF SKULL (x = -0.06..0.84, z up to +0.50m)
+    # 3. Iconic Mid-Cranial Arched Sagittal Crest ON TOP OF SKULL (x = -0.15..0.78, z up to +0.47m)
     crest_bottom = CatmullRomSpline3D([
-        (-0.06, 0.0, 0.13, 0.003),
-        (0.14,  0.0, 0.15, 0.032),
-        (0.38,  0.0, 0.15, 0.038),
-        (0.62,  0.0, 0.14, 0.028),
-        (0.84,  0.0, 0.12, 0.003),
+        (-0.15, 0.0, 0.110, 0.002),
+        (0.04,  0.0, 0.150, 0.028),
+        (0.28,  0.0, 0.156, 0.034),
+        (0.54,  0.0, 0.144, 0.022),
+        (0.78,  0.0, 0.125, 0.002),
     ])
     crest_top = CatmullRomSpline3D([
-        (-0.06, 0.0, 0.24, 0.002),  # Rounded posterior rise above occiput
-        (0.14,  0.0, 0.45, 0.010),  # Steep anterior/dorsal fan rise
-        (0.38,  0.0, 0.50, 0.012),  # Broad arched peak above orbit/fenestra
-        (0.62,  0.0, 0.41, 0.010),  # Gently curved scalloped anterior crown
-        (0.84,  0.0, 0.14, 0.002),  # Steep drop onto dorsal culmen
+        (-0.15, 0.0, 0.116, 0.002),  # Swept seamlessly into occiput
+        (-0.06, 0.0, 0.305, 0.007),  # Graceful backward-swept posterior rim
+        (0.12,  0.0, 0.470, 0.011),  # High arched apex over orbit/antorbital bar
+        (0.34,  0.0, 0.435, 0.010),  # Smooth descending crown
+        (0.58,  0.0, 0.260, 0.006),  # Sleek anterior slope
+        (0.78,  0.0, 0.130, 0.002),  # Blends flush onto dorsal culmen
     ])
-    cr_u, cr_v = 44, 36
+    cr_u, cr_v = 72, 42
     bm_crest = bmesh.new()
     uv_crest = bm_crest.loops.layers.uv.new("UVMap")
     cr_rings, cr_uvs = [], []
@@ -536,8 +545,8 @@ def _build_sculpted_skull(head_bone, mats):
         v = iv / cr_v  # 0 = cranial base, 1 = upper arched cerulean rim
         pb, vb = crest_bottom.eval_at(v)
         pt_top, _ = crest_top.eval_at(v)
-        half_th = max(0.002, (0.038 * (1.0 - v * 0.72)) * math.sin(max(0.03, v) * math.pi * 0.85))
-        # Subtle fibrous scallop wave along crest top edge (v -> 1)
+        half_th = max(0.002, (0.036 * (1.0 - v * 0.72)) * math.sin(max(0.03, v) * math.pi * 0.85))
+        # Subtle fibrous micro-scallop along crest top edge (v -> 1)
         row_v, row_uv = [], []
         for iu in range(cr_u + 1):
             u = iu / cr_u
@@ -547,8 +556,8 @@ def _build_sculpted_skull(head_bone, mats):
             p_t_u, _ = crest_top.eval_at(t_len)
             pt_mid = p_b_u.lerp(p_t_u, v)
             sa = math.sin(ang)
-            flute = 1.0 + 0.10 * math.sin(t_len * math.pi * 9.0) * math.sin(v * math.pi)
-            scallop_z = (v ** 1.4) * 0.018 * abs(math.sin(t_len * math.pi * 4.5))
+            flute = 1.0 + 0.07 * math.sin(t_len * math.pi * 9.0) * math.sin(v * math.pi)
+            scallop_z = (v ** 1.6) * 0.004 * abs(math.sin(t_len * math.pi * 5.0))
             ly = math.copysign(1.0, sa) * (abs(sa) ** 0.78) * half_th * math.sin(max(0.03, t_len) * math.pi) * flute
             pt = pitch_q @ Vector((pt_mid.x, ly, pt_mid.z + scallop_z))
             row_v.append(bm_crest.verts.new(pt))
@@ -666,13 +675,13 @@ def _build_sculpted_jaw(jaw_bone, mats):
     """
     jaw_q = Euler((0.0, 0.018, 0.0), "XYZ").to_matrix().to_4x4()
 
-    # 1. Mandible Ramus Hinge (x = -0.08..0.28)
+    # 1. Mandible Ramus Hinge (x = -0.08..0.26, tapering cleanly inside LowerBeak)
     mr_slices = [
-        (-0.08, 0.015, -0.042, 0.002),
-        (0.02,  0.030, -0.072, 0.122),
-        (0.16,  0.025, -0.068, 0.104),
-        (0.28,  0.018, -0.056, 0.082),
-        (0.34,  0.010, -0.042, 0.002),
+        (-0.08, 0.014, -0.036, 0.002),
+        (0.02,  0.020, -0.062, 0.110),
+        (0.14,  0.018, -0.062, 0.094),
+        (0.21,  0.013, -0.050, 0.056),
+        (0.26,  0.008, -0.036, 0.002),
     ]
     mr_top_sp = CatmullRomSpline3D([(s[0], s[3], s[1]) for s in mr_slices])
     mr_bot_sp = CatmullRomSpline3D([(s[0], s[3], s[2]) for s in mr_slices])
@@ -702,11 +711,12 @@ def _build_sculpted_jaw(jaw_bone, mats):
     bm_ramus = _build_grid_bmesh(mr_rings_v, mr_rings_uv, close_u=True, cap_start=True, cap_end=True, u_wrap_axis=0)
     attach_mesh_obj(bm_ramus, "Quetzal_MandibleRamus", mat=mats["cranium"], parent=jaw_bone)
 
-    # 2. Toothless Keeled Lower Spear Beak (x = 0.16..2.22 -> world tip matches UpperBeak)
+    # 2. Toothless Keeled Lower Spear Beak (x = 0.10..2.22 -> world tip matches UpperBeak)
     lb_slices = [
-        (0.16,  0.016, -0.056, 0.002),
-        (0.24,  0.018, -0.068, 0.088),
-        (0.68,  0.014, -0.062, 0.064),
+        (0.10,  0.012, -0.044, 0.002),
+        (0.18,  0.018, -0.062, 0.090),
+        (0.28,  0.016, -0.062, 0.082),
+        (0.68,  0.014, -0.060, 0.064),
         (1.22,  0.006, -0.048, 0.038),
         (1.74,  0.002, -0.030, 0.018),
         (2.12, -0.002, -0.016, 0.006),
@@ -813,16 +823,16 @@ def _build_sculpted_jaw(jaw_bone, mats):
     attach_mesh_obj(bm_tongue, "Quetzal_Tongue", mat=mats["mucosa"], parent=jaw_bone)
 
     for side, s_tag in ((1, "L"), (-1, "R")):
-        p_lo = jaw_q @ Vector((0.06, side * 0.095, -0.01))
-        p_hi = Vector((0.02, side * 0.105, 0.07))
+        p_lo = jaw_q @ Vector((0.06, side * 0.056, -0.012))
+        p_hi = Vector((0.02, side * 0.062, 0.045))
         _build_muscular_limb_segment(
             f"Quetzal_JawAdductor_{s_tag}",
             p_lo,
             p_hi,
-            lambda t, ang: (0.020 * (0.85 + 0.25 * math.sin(t * math.pi)), 0.040 * (0.85 + 0.25 * math.sin(t * math.pi)), 0.0, 0.0),
+            lambda t, ang: (0.014 * (0.85 + 0.25 * math.sin(t * math.pi)), 0.024 * (0.85 + 0.25 * math.sin(t * math.pi)), 0.0, 0.0),
             mats["mucosa"],
             jaw_bone,
-            prox_overlap=0.22, dist_overlap=0.22, radial_segs=10, height_segs=8,
+            prox_overlap=0.18, dist_overlap=0.18, radial_segs=10, height_segs=8,
         )
 
 
@@ -842,31 +852,33 @@ def _build_wing(torso_bone, idx, wing_name, side, mats):
 
     # Local coords inside wing (world origin at shoulder (0.48, ±0.28, 2.20)):
     # Ground plane is local Z = -2.20
-    S = (0.0, -side * 0.06, 0.0)
+    S = (-0.02, -side * 0.12, -0.04)
     E = (-0.16, side * 0.14, -0.58)
     FA = (-0.02, side * 0.20, -1.32)
     W = (0.14, side * 0.22, -2.13)  # World Z = 0.07 (planted walking knuckle)
     Pter = (0.06, side * 0.21, -1.68)
 
-    # Shaggy russet upper humerus arm (Shoulder -> Elbow)
+    # Shaggy russet upper humerus arm (Shoulder -> Elbow, tucking smoothly inside elbow cap)
     _build_wing_spar_tube(
         f"Quetzal_HumerusArm_{s_tag}",
         [
-            (*S, 0.145, 0.135),
-            (-0.08, side * 0.04, -0.30, 0.125, 0.115),
-            (*E, 0.100, 0.095),
+            (*S, 0.132, 0.122),
+            (-0.08, side * 0.02, -0.28, 0.110, 0.102),
+            (-0.14, side * 0.12, -0.54, 0.078, 0.074),
+            (-0.14, side * 0.15, -0.62, 0.048, 0.046),
         ],
         mats["hide"],
         wing,
         radial_segs=20,
-        height_segs=20,
+        height_segs=22,
     )
 
-    # Cream & dark-brown barred forearm + elongated metacarpal IV walking column (Elbow -> Wrist)
+    # Warm buff & sepia mottled forearm + elongated metacarpal IV walking column (Elbow -> Wrist)
     _build_wing_spar_tube(
         f"Quetzal_InnerWingSpar_{s_tag}",
         [
-            (*E, 0.092, 0.088),
+            (-0.16, side * 0.13, -0.54, 0.068, 0.066),
+            (*E, 0.090, 0.086),
             (-0.09, side * 0.18, -0.95, 0.078, 0.075),
             (*FA, 0.072, 0.070),
             (0.06, side * 0.21, -1.72, 0.065, 0.062),
@@ -877,7 +889,7 @@ def _build_wing(torso_bone, idx, wing_name, side, mats):
         radial_segs=20,
         height_segs=30,
         uv_v_const=0.94,
-        uv_u_scale=1.6,
+        uv_u_scale=1.1,
     )
 
     # Pteroid strut supporting lower fore-wing membrane
@@ -942,16 +954,16 @@ def _build_wing(torso_bone, idx, wing_name, side, mats):
     )
 
     # Sweeping concave sandy-parchment Inner Brachiopatagium from forearm back to hip/thigh!
-    # World hip/thigh attachment ~ (-0.38, ±0.18, 1.68) -> in wing local: (-0.86, -side*0.10, -0.52)
-    Flank = (-0.86, -side * 0.10, -0.52)
-    W_trail = (-0.02, side * 0.21, -2.02)
+    # World hip/thigh attachment ~ (-0.40, ±0.18, 1.66) -> in wing local: (-0.88, -side*0.10, -0.54)
+    Flank = (-0.88, -side * 0.10, -0.54)
+    W_trail = (-0.12, side * 0.21, -2.06)
     _build_airfoil_membrane(
         f"Quetzal_InnerPatagium_{s_tag}",
         lead_ctrl=[S, E, FA, W],
         trail_ctrl=[
             Flank,
-            (-0.56, side * 0.04, -1.04),
-            (-0.28, side * 0.14, -1.52),
+            (-0.66, side * 0.02, -1.04),
+            (-0.42, side * 0.12, -1.56),
             W_trail,
         ],
         mat=mats["wing"],
@@ -990,26 +1002,26 @@ def _build_wing(torso_bone, idx, wing_name, side, mats):
         radial_segs=20,
         height_segs=34,
         uv_v_const=0.94,
-        uv_u_scale=1.8,
+        uv_u_scale=1.3,
     )
 
-    # Outer folded sail: trailing edge tucked behind upper humerus/flank, soaring up to F_tip
-    Trail_root = (-0.16, 0.0, 0.11)  # Just behind grounded wrist, zero ground poke!
+    # Outer folded sail: trailing edge tucked behind wrist & aligned with InnerPatagium in both standing & flight
+    Trail_root = (-0.22, side * 0.01, 0.08)  # Aligns seamlessly with W_trail when finger unfolds by (±pi, 0, 0.35)
     _build_airfoil_membrane(
         f"Quetzal_OuterPatagium_{s_tag}",
         lead_ctrl=[W_loc, F_p1, F_p2, F_p3, F_tip],
         trail_ctrl=[
             Trail_root,
-            (-0.56, side * 0.01, 0.66),
-            (-0.90, side * 0.02, 1.30),
-            (-1.02, side * 0.06, 2.06),
+            (-0.54, side * 0.01, 0.70),
+            (-0.92, side * 0.02, 1.38),
+            (-1.06, side * 0.06, 2.12),
             F_tip,
         ],
         mat=mats["wing"],
         parent=arm,
         u_steps=28,
         chord_steps=16,
-        camber_height=0.038,
+        camber_height=0.020,
         lead_half_thick=0.016,
         trail_half_thick=0.005,
         scallop_amp=-0.025,
@@ -1192,14 +1204,14 @@ def build_quetzal_high_definition():
 
     # Sloping Azhdarchid Spine: stub tail -> compact low pelvis -> deep chest -> rigid giraffe neck
     spine_ctrl = [
-        (-0.74, 0.0, 1.56, 0.003, 0.003),  # 0: Stub tail tip
-        (-0.58, 0.0, 1.60, 0.075, 0.070),  # 1: Mid stub tail
-        (-0.48, 0.0, 1.64, 0.145, 0.135),  # 2: Bone_Tail0
+        (-0.74, 0.0, 1.48, 0.003, 0.003),  # 0: Stub tail tip aligning with dorsal back slope
+        (-0.60, 0.0, 1.55, 0.072, 0.068),  # 1: Mid stub tail
+        (-0.48, 0.0, 1.63, 0.145, 0.135),  # 2: Bone_Tail0
         (-0.32, 0.0, 1.72, 0.230, 0.210),  # 3: Compact pelvis
-        (0.00,  0.0, 1.88, 0.310, 0.285),  # 4: Bone_Hips / sloping abdomen
-        (0.32,  0.0, 2.08, 0.375, 0.335),  # 5: Deep pectoral chest & carina
-        (0.58,  0.0, 2.22, 0.255, 0.235),  # 6: Shoulder girdle / Bone_Neck pivot
-        (0.76,  0.0, 2.66, 0.165, 0.160),  # 7: Lower stiffened cervical pillar
+        (0.00,  0.0, 1.88, 0.305, 0.280),  # 4: Bone_Hips / sloping abdomen
+        (0.30,  0.0, 2.06, 0.350, 0.312),  # 5: Smooth deep pectoral chest & carina
+        (0.56,  0.0, 2.22, 0.242, 0.224),  # 6: Shoulder girdle / Bone_Neck pivot
+        (0.76,  0.0, 2.66, 0.168, 0.162),  # 7: Lower stiffened cervical pillar
         (0.96,  0.0, 3.16, 0.148, 0.146),  # 8: Mid straight giraffe neck
         (1.14,  0.0, 3.60, 0.136, 0.138),  # 9: Upper cervical
         (1.22,  0.0, 3.84, 0.132, 0.136),  # 10: Bone_Head occiput joint
@@ -1210,7 +1222,7 @@ def build_quetzal_high_definition():
     t_j_tail0 = 2.0 / 11.0
     t_j_torso = 4.0 / 11.0
     t_j_neck = 6.0 / 11.0
-    overlap = 0.042
+    overlap = 0.036
 
     _build_continuous_spine_segment(
         "Quetzal_Tail", master_spine,
@@ -1225,7 +1237,7 @@ def build_quetzal_high_definition():
     _build_continuous_spine_segment(
         "Quetzal_Torso", master_spine,
         t_j_torso - overlap, t_j_neck + overlap, t_j_torso, t_j_neck,
-        (0.0, 0.0, 1.98), torso, mats["hide"], segs_u=38, segs_v=26,
+        (0.0, 0.0, 1.98), torso, mats["hide"], segs_u=36, segs_v=26,
     )
     _build_continuous_spine_segment(
         "Quetzal_Neck", master_spine,

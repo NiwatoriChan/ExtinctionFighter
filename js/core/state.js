@@ -1,5 +1,5 @@
 // 3. ÉTAT GLOBAL DE L'APPLICATION
-var GAME_VERSION = 'v0.3.2';
+var GAME_VERSION = 'v0.3.3';
 var gameMode = 'cpu'; // 'campaign', 'cpu', 'pvp', 'practice'
 var aiDifficulty = 'normal';
 var currentArena = 'volcano';

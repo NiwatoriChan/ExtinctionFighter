@@ -2,6 +2,13 @@
 
 All notable changes to **Extinction Kombat 3D** (*ExtinctionFighter*) are documented in this file.
 
+## [v0.3.3] - 2026-11-15
+
+### Changed
+- **Quetzalcoatlus Sculpt, Rig & PBR Overhaul**: Rebuilt `assets/models/fighters/quetzal.glb` using a dedicated Blender sculptor (`tools/blender/quetzal_sculptor.py`) and PBR texture generator (`tools/blender/generate_quetzal_pbr_textures.py`) with a quadrupedal terrestrial azhdarchid stance, toothless spear beak, recessed nasoantorbital fenestra, cerulean sagittal crest, and dedicated albedo/normal/bump maps (`quetzal_*.png`). Removed the legacy `quetzal` builder from `tools/blender/build_batch5_apex.py`.
+- **Quetzalcoatlus Animations**: Updated `js/animations/quetzalcoatlus/` (`quetzalcoatlus_idle.js`, `quetzalcoatlus_walking.js`, `quetzalcoatlus_jumping.js`, `quetzalcoatlus_attacking.js`) for quadrupedal ground movement and full wing-unfolding during aerial and dash moves.
+- **Portraits & UI**: Regenerated all 16 fighter portraits in `assets/portraits/`, updated `screenshots/character-select.png`, and bumped `GAME_VERSION` to `v0.3.3` across `js/core/state.js`, menus, `README.md`, and `tools/test_coherence_overhaul.js`.
+
 ## [v0.3.2] - 2026-11-15
 
 ### Changed
