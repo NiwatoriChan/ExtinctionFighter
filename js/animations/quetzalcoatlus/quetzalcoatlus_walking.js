@@ -21,37 +21,30 @@ registerFighterAnimation('quetzal', {
         }
 
         const sp = rig.specialParts;
-        const qRig = sp && sp.qRig;
 
         const moveDir = fighter ? (fighter.vx * fighter.facing) : 4.0;
         const isSprint = moveDir > 6.5 || (fighter && (fighter.isSprinting || fighter.sprintDuration > 0.25));
-        const strideSpeed = isSprint ? 5.6 : 4.2;
-        const strideAmp = isSprint ? 1.32 : 1.0;
+        const strideSpeed = isSprint ? 6.2 : 4.6;
+        const strideAmp = isSprint ? 0.52 : 0.36;
 
-        // Marche quadrupède terrestre extraite du modèle paléontologique
-        if (sp && typeof sp.applyPoseMode === 'function') {
-            sp.applyPoseMode('walk', time, { strideSpeed, strideAmp });
+        const c = Math.sin(time * strideSpeed);
+        rig.hips.position.y = baseHipsY + Math.abs(Math.sin(time * strideSpeed)) * 0.08;
+        rig.torso.rotation.z = isSprint ? -0.24 : (moveDir < -0.5 ? 0.10 : -0.06);
+        rig.neck.rotation.z = isSprint ? -0.06 : 0.12;
+        rig.headGroup.rotation.z = isSprint ? -0.16 : (moveDir < -0.5 ? 0.14 : -0.12);
+        rig.jaw.rotation.z = isSprint ? -0.16 : -0.04;
+
+        if (rig.legs.length >= 2) {
+            rig.legs[0].rotation.z = c * strideAmp;
+            rig.legs[1].rotation.z = -c * strideAmp;
         }
-
-        rig.hips.position.y = baseHipsY;
-
-        // Inclinaison dynamique de course (Sprint Boost) ou recul prudent
-        if (qRig && fighter) {
-            if (isSprint) {
-                qRig.rootJoint.rotation.x += 0.22; // Buste penché vers l'avant (+Z du modèle)
-                qRig.neckSegments.forEach((seg, i) => {
-                    seg.rotation.x += (i < 4 ? 0.045 : -0.02);
-                });
-                qRig.setHeadRot(0.35, 0, 0);
-                qRig.setJawRot(0.16);
-            } else if (moveDir < -0.5) {
-                qRig.rootJoint.rotation.x -= 0.14; // Posture défensive redressée
-                qRig.setHeadRot(0.62, 0, 0);
-            }
+        if (sp.leftWing && sp.rightWing) {
+            sp.leftWing.rotation.set(-0.62, 0.16 - c * 0.28, 0.22 + c * 0.24);
+            sp.rightWing.rotation.set(0.62, -0.16 - c * 0.28, 0.22 - c * 0.24);
         }
-
-        if (sp && typeof sp.updateAnatomicalSkin === 'function') {
-            sp.updateAnatomicalSkin(time, fighter, 'walk');
+        if (rig.arms.length >= 2) {
+            rig.arms[0].rotation.set(1.36, 0.52, -0.28);
+            rig.arms[1].rotation.set(-1.36, -0.52, -0.28);
         }
     },
 
@@ -59,63 +52,26 @@ registerFighterAnimation('quetzal', {
     animateDash(ctx) {
         const { fighter, rig, lunge, isBackDash, baseHipsY, time } = ctx;
         const sp = rig.specialParts;
-        const qRig = sp && sp.qRig;
 
-        if (!qRig || !sp) return;
-
-        // Partir du déploiement complet en vol / envergure
-        sp.applyPoseMode('soar', time, {
-            flapFreq: 8.5,
-            flapAmp: 0.75,
-            rootY: isBackDash ? 2.18 + lunge * 0.25 : 1.82
-        });
-
-        if (isBackDash) {
-            // Esquive aérienne en retrait ailes déployées en freinage (parade / cabré)
-            rig.hips.position.y = baseHipsY * (0.94 + lunge * 0.18);
-            rig.hips.position.x = -lunge * 0.45;
-            qRig.rootJoint.rotation.set(-0.48, 0, 0);
-
-            qRig.neckSegments.forEach((seg, i) => {
-                seg.rotation.set(i === 0 ? -0.45 : -0.04, 0, 0);
-            });
-            qRig.setHeadRot(0.32, 0, 0);
-            qRig.setJawRot(0.28 * lunge);
-
-            [qRig.leftWing, qRig.rightWing].forEach(w => {
-                const s = w.side;
-                w.shoulder.rotation.set(0.38, -s * 0.18, s * 0.22 * lunge);
-                w.elbow.rotation.set(0, s * 0.12, s * 0.15);
-                w.knuckle.rotation.set(0, -s * 0.12, -s * 0.15);
-            });
-
-            [qRig.leftLeg, qRig.rightLeg].forEach(l => {
-                l.hip.rotation.set(0.45 - lunge * 0.35, 0, -l.side * 0.1);
-                l.knee.rotation.set(0.35, 0, 0);
-                l.ankle.rotation.set(-0.2, 0, 0);
-            });
-        } else {
-            // Ruée offensive vers l'avant : rostre en lance pointé et ailes profilées en flèche
-            rig.hips.position.y = baseHipsY * 0.85;
-            rig.hips.position.x = lunge * 0.58;
-            qRig.rootJoint.rotation.set(0.26, 0, 0);
-
-            qRig.neckSegments.forEach((seg, i) => {
-                seg.rotation.set(i === 0 ? 0.16 : 0.025, 0, 0);
-            });
-            qRig.setHeadRot(-0.18, 0, 0);
-            qRig.setJawRot(0.22);
-
-            [qRig.leftWing, qRig.rightWing].forEach(w => {
-                const s = w.side;
-                w.shoulder.rotation.set(-0.15, s * 0.28, -s * 0.18);
-                w.elbow.rotation.set(0, -s * 0.15, 0);
-                w.wrist.rotation.set(0, 0, 0);
-                w.knuckle.rotation.set(0, -s * 0.22, 0);
-            });
+        const flap = Math.sin(time * 12) * 0.48;
+        rig.hips.position.y = isBackDash ? baseHipsY * (0.96 + lunge * 0.18) : baseHipsY * 0.88;
+        rig.hips.position.x = isBackDash ? -lunge * 0.45 : lunge * 0.58;
+        rig.torso.rotation.z = isBackDash ? 0.36 * lunge : -0.32 * lunge;
+        rig.neck.rotation.z = isBackDash ? 0.18 * lunge : -0.16 * lunge;
+        rig.headGroup.rotation.z = isBackDash ? -0.14 : 0.12;
+        rig.jaw.rotation.z = -0.24 * lunge;
+        if (sp.leftWing && sp.rightWing) {
+            sp.leftWing.rotation.set(flap, isBackDash ? -0.22 : 0.32, 0);
+            sp.rightWing.rotation.set(-flap, isBackDash ? 0.22 : -0.32, 0);
         }
-
-        sp.updateAnatomicalSkin(time, fighter, 'soar');
+        if (rig.arms.length >= 2) {
+            rig.arms[0].rotation.set(0, 0, 0);
+            rig.arms[1].rotation.set(0, 0, 0);
+        }
+        if (rig.legs.length >= 2) {
+            rig.legs[0].rotation.z = isBackDash ? 0.38 : -0.58;
+            rig.legs[1].rotation.z = isBackDash ? 0.30 : -0.50;
+        }
     }
 });
 

@@ -171,449 +171,29 @@ class EraMinion3D {
     }
 
     buildMesh() {
-        const mat = new THREE.MeshStandardMaterial({
-            color: this.def.color,
-            roughness: 0.55,
-            metalness: 0.2
-        });
-        const darkMat = new THREE.MeshStandardMaterial({
-            color: 0x18181b,
-            roughness: 0.7
-        });
-        const glowEyeMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9 });
-        const amberMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3 });
-        const wingMat = new THREE.MeshStandardMaterial({
-            color: 0xa7f3d0,
-            roughness: 0.25,
-            transparent: true,
-            opacity: 0.65
-        });
-
+        this.bodyMesh = this.root;
+        this.legs = [];
+        this.arms = [];
         const t = this.def.enemyType;
-
-        if (t === 'cambrian_trilobite') {
-            // === TRILOBITE PRIMORDIAL ===
-            const cephGeo = new THREE.CylinderGeometry(0.72, 0.96, 0.28, 10, 1, false, 0, Math.PI);
-            cephGeo.rotateZ(-Math.PI / 2);
-            cephGeo.rotateY(Math.PI / 2);
-            this.bodyMesh = new THREE.Mesh(cephGeo, mat);
-            this.bodyMesh.position.set(0.25, 0.35, 0);
-            this.bodyMesh.castShadow = true;
-            this.root.add(this.bodyMesh);
-
-            const glabellaGeo = new THREE.CylinderGeometry(0.24, 0.28, 0.65, 8);
-            glabellaGeo.rotateZ(Math.PI / 2);
-            const glabella = new THREE.Mesh(glabellaGeo, darkMat);
-            glabella.position.set(0.12, 0.12, 0);
-            this.bodyMesh.add(glabella);
-
-            for (let f = 0; f < 3; f++) {
-                const furrow = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.44), mat);
-                furrow.position.set(0.25 - f * 0.15, 0.22, 0);
-                this.bodyMesh.add(furrow);
+        if (typeof THREE !== 'undefined' && typeof THREE.GLTFLoader !== 'undefined' &&
+            typeof MINION_GLB_CACHE !== 'undefined' && typeof hydrateMinionFromGLB === 'function') {
+            if (MINION_GLB_CACHE[t] && hydrateMinionFromGLB(this, MINION_GLB_CACHE[t])) {
+                return;
             }
-
-            [-0.88, 0.88].forEach(z => {
-                const spineGeo = new THREE.ConeGeometry(0.07, 1.25, 5);
-                spineGeo.rotateZ(Math.PI / 2);
-                spineGeo.rotateY(z > 0 ? -0.15 : 0.15);
-                const spine = new THREE.Mesh(spineGeo, darkMat);
-                spine.position.set(-0.45, -0.02, z);
-                this.bodyMesh.add(spine);
-            });
-
-            [-0.36, 0.36].forEach(z => {
-                const eyeGeo = new THREE.SphereGeometry(0.13, 8, 8);
-                eyeGeo.scale(1.2, 0.8, 1.0);
-                const eye = new THREE.Mesh(eyeGeo, glowEyeMat);
-                eye.position.set(0.20, 0.18, z);
-                this.bodyMesh.add(eye);
-            });
-
-            this.antennules = [];
-            [-0.18, 0.18].forEach((z, i) => {
-                const antGroup = new THREE.Group();
-                antGroup.position.set(0.68, 0.05, z);
-                const antGeo = new THREE.CylinderGeometry(0.02, 0.035, 0.85, 4);
-                antGeo.rotateZ(-Math.PI / 3);
-                const antMesh = new THREE.Mesh(antGeo, amberMat);
-                antMesh.position.set(0.35, 0.12, (i === 0 ? 0.18 : -0.18));
-                antGroup.add(antMesh);
-                this.bodyMesh.add(antGroup);
-                this.antennules.push(antGroup);
-            });
-
-            for (let i = 0; i < 7; i++) {
-                const segGroup = new THREE.Group();
-                segGroup.position.set(-0.16 - i * 0.20, 0, 0);
-                const axialGeo = new THREE.CylinderGeometry(0.22 - i * 0.015, 0.22 - i * 0.015, 0.18, 6);
-                axialGeo.rotateZ(Math.PI / 2);
-                segGroup.add(new THREE.Mesh(axialGeo, darkMat));
-
-                [-1, 1].forEach(side => {
-                    const pleuraW = 0.52 - i * 0.04;
-                    const pleura = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, pleuraW), i % 2 === 0 ? mat : darkMat);
-                    pleura.position.set(0, -0.02, side * (0.22 + pleuraW * 0.5));
-                    segGroup.add(pleura);
-
-                    const plSpineGeo = new THREE.ConeGeometry(0.04, 0.32, 4);
-                    plSpineGeo.rotateZ(Math.PI / 2);
-                    plSpineGeo.rotateY(side * 0.4);
-                    const plSpine = new THREE.Mesh(plSpineGeo, darkMat);
-                    plSpine.position.set(-0.12, -0.04, side * (0.24 + pleuraW));
-                    segGroup.add(plSpine);
-                });
-                this.bodyMesh.add(segGroup);
+            if (typeof loadMinionGLB === 'function') {
+                loadMinionGLB(t).then((gltf) => {
+                    if (this.root && !this.isDead && !this._isGlbHydrated) {
+                        hydrateMinionFromGLB(this, gltf);
+                    }
+                }).catch(() => {});
             }
-
-            const pygidiumGeo = new THREE.CylinderGeometry(0.48, 0.18, 0.22, 8, 1, false, 0, Math.PI);
-            pygidiumGeo.rotateZ(Math.PI / 2);
-            pygidiumGeo.rotateY(-Math.PI / 2);
-            const pygidium = new THREE.Mesh(pygidiumGeo, darkMat);
-            pygidium.position.set(-1.62, -0.02, 0);
-            this.bodyMesh.add(pygidium);
-
-            this.legs = [];
-            for (let i = 0; i < 7; i++) {
-                [-1, 1].forEach(side => {
-                    const legRoot = new THREE.Group();
-                    legRoot.position.set(0.18 - i * 0.22, -0.16, side * 0.35);
-                    const endoGeo = new THREE.CylinderGeometry(0.04, 0.025, 0.46, 5);
-                    endoGeo.rotateZ(side * -0.35);
-                    const endo = new THREE.Mesh(endoGeo, darkMat);
-                    endo.position.set(0, -0.18, side * 0.16);
-                    legRoot.add(endo);
-                    this.bodyMesh.add(legRoot);
-                    this.legs.push(legRoot);
-                });
-            }
-        } else if (t === 'opabinia_radiodont_elite') {
-            // === OPABINIA REGALIS (5 YEUX PÉDONCULÉS, TROMPE & LOBES) ===
-            const bodyGeo = new THREE.CylinderGeometry(0.32, 0.16, 2.1, 10);
-            bodyGeo.rotateZ(Math.PI / 2);
-            this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
-            this.bodyMesh.position.set(0, 0.55, 0);
-            this.bodyMesh.castShadow = true;
-            this.root.add(this.bodyMesh);
-
-            const headGeo = new THREE.ConeGeometry(0.34, 0.65, 8);
-            headGeo.rotateZ(-Math.PI / 2);
-            const head = new THREE.Mesh(headGeo, mat);
-            head.position.set(1.15, 0, 0);
-            this.bodyMesh.add(head);
-
-            const opabiniaEyes = [
-                { x: 1.12, y: 0.32, z: 0, stalkLen: 0.18, bulbR: 0.09 },
-                { x: 1.05, y: 0.28, z: 0.24, stalkLen: 0.26, bulbR: 0.11 },
-                { x: 1.05, y: 0.28, z: -0.24, stalkLen: 0.26, bulbR: 0.11 },
-                { x: 0.88, y: 0.32, z: 0.32, stalkLen: 0.32, bulbR: 0.12 },
-                { x: 0.88, y: 0.32, z: -0.32, stalkLen: 0.32, bulbR: 0.12 }
-            ];
-            opabiniaEyes.forEach(eyeSpec => {
-                const stalk = new THREE.Group();
-                stalk.position.set(eyeSpec.x, eyeSpec.y, eyeSpec.z);
-                const stalkGeo = new THREE.CylinderGeometry(0.03, 0.035, eyeSpec.stalkLen, 5);
-                stalkGeo.rotateX(eyeSpec.z > 0 ? -0.35 : (eyeSpec.z < 0 ? 0.35 : 0));
-                stalk.add(new THREE.Mesh(stalkGeo, darkMat));
-                const eyeBulb = new THREE.Mesh(new THREE.SphereGeometry(eyeSpec.bulbR, 8, 8), glowEyeMat);
-                eyeBulb.position.set(0, eyeSpec.stalkLen * 0.9, 0);
-                stalk.add(eyeBulb);
-                this.bodyMesh.add(stalk);
-            });
-
-            const probRoot = new THREE.Group();
-            probRoot.position.set(1.35, -0.05, 0);
-            let currProb = probRoot;
-            for (let s = 0; s < 5; s++) {
-                const segNode = new THREE.Group();
-                segNode.position.set(s === 0 ? 0 : 0.22, s === 0 ? 0 : (s < 3 ? -0.06 : 0.08), 0);
-                segNode.rotation.z = (s < 3 ? -0.15 : 0.25);
-                const ringGeo = new THREE.CylinderGeometry(0.09 - s * 0.012, 0.10 - s * 0.012, 0.24, 7);
-                ringGeo.rotateZ(Math.PI / 2);
-                segNode.add(new THREE.Mesh(ringGeo, s % 2 === 0 ? mat : darkMat));
-                currProb.add(segNode);
-                currProb = segNode;
-            }
-            const clawL = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.28, 4), amberMat);
-            clawL.position.set(0.24, 0.10, 0.07);
-            clawL.rotation.z = -Math.PI / 3;
-            currProb.add(clawL);
-            const clawR = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.28, 4), amberMat);
-            clawR.position.set(0.24, -0.10, -0.07);
-            clawR.rotation.z = Math.PI / 3;
-            currProb.add(clawR);
-            this.proboscis = probRoot;
-            this.probClaws = [clawL, clawR];
-            this.bodyMesh.add(probRoot);
-
-            this.swimmingFlaps = [];
-            for (let i = 0; i < 15; i++) {
-                const factor = (i < 5) ? (0.65 + i * 0.12) : (1.25 - (i - 5) * 0.08);
-                const flapX = 0.85 - i * 0.18;
-                [-1, 1].forEach(side => {
-                    const flapGroup = new THREE.Group();
-                    flapGroup.position.set(flapX, -0.06, side * (0.28 * factor));
-                    const flapMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.035, 0.40 * factor), glowEyeMat);
-                    flapMesh.position.z = side * (0.20 * factor);
-                    flapGroup.add(flapMesh);
-                    this.bodyMesh.add(flapGroup);
-                    this.swimmingFlaps.push({ mesh: flapGroup, side, idx: i });
-                });
-            }
-
-            const tailFanGroup = new THREE.Group();
-            tailFanGroup.position.set(-1.15, 0.08, 0);
-            tailFanGroup.rotation.z = 0.40;
-            for (let f = 0; f < 3; f++) {
-                const finGeo = new THREE.BoxGeometry(0.55, 0.035, 0.22);
-                finGeo.rotateY((f - 1) * 0.42);
-                const fin = new THREE.Mesh(finGeo, darkMat);
-                fin.position.set(-0.25, 0.08 + Math.abs(f - 1) * 0.08, (f - 1) * 0.24);
-                tailFanGroup.add(fin);
-            }
-            this.bodyMesh.add(tailFanGroup);
-            this.tailFan = tailFanGroup;
-            this.legs = [];
-        } else if (t === 'orthoceras') {
-            // === ORTHOCERAS (COQUILLE CONIQUE + TENTACULES) ===
-            const shellGeo = new THREE.ConeGeometry(0.55, 2.6, 10);
-            shellGeo.rotateZ(Math.PI / 2);
-            this.bodyMesh = new THREE.Mesh(shellGeo, mat);
-            this.bodyMesh.position.set(-0.3, 0.85, 0);
-            this.bodyMesh.castShadow = true;
-            this.root.add(this.bodyMesh);
-
-            for (let r = 0; r < 5; r++) {
-                const ring = new THREE.Mesh(new THREE.TorusGeometry(0.45 - r * 0.07, 0.04, 6, 12), darkMat);
-                ring.rotation.y = Math.PI / 2;
-                ring.position.set(0.65 - r * 0.38, 0, 0);
-                this.bodyMesh.add(ring);
-            }
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.46, 8, 8), darkMat);
-            head.position.set(1.25, 0, 0);
-            this.bodyMesh.add(head);
-
-            this.antennules = [];
-            for (let tIdx = 0; tIdx < 6; tIdx++) {
-                const tent = new THREE.Group();
-                tent.position.set(1.55, (tIdx - 2.5) * 0.12, (tIdx % 2 === 0 ? 0.18 : -0.18));
-                const tentMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.02, 0.8, 5), amberMat);
-                tentMesh.rotation.z = -Math.PI / 2;
-                tentMesh.position.x = 0.4;
-                tent.add(tentMesh);
-                this.bodyMesh.add(tent);
-                this.antennules.push(tent);
-            }
-            this.legs = [];
-        } else if (t === 'eurypterid') {
-            // === EURYPTÉRIDE / PTERYGOTUS / MEGALOGRAPTUS ===
-            const torsoGeo = new THREE.BoxGeometry(1.6, 0.35, 1.0);
-            this.bodyMesh = new THREE.Mesh(torsoGeo, mat);
-            this.bodyMesh.position.set(0, 0.5, 0);
-            this.bodyMesh.castShadow = true;
-            this.root.add(this.bodyMesh);
-
-            const shield = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.38, 1.1), darkMat);
-            shield.position.set(0.9, 0.05, 0);
-            this.bodyMesh.add(shield);
-
-            [-0.45, 0.45].forEach(z => {
-                const arm = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.18, 0.2), amberMat);
-                arm.position.set(1.45, 0, z);
-                this.bodyMesh.add(arm);
-                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 6), glowEyeMat);
-                eye.position.set(1.1, 0.22, z * 0.7);
-                this.bodyMesh.add(eye);
-            });
-
-            const tail = new THREE.Mesh(new THREE.ConeGeometry(0.22, 1.4, 5), darkMat);
-            tail.rotation.z = Math.PI / 2;
-            tail.position.set(-1.45, 0.15, 0);
-            this.bodyMesh.add(tail);
-
-            this.legs = [];
-            for (let i = 0; i < 6; i++) {
-                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.04, 0.75, 5), darkMat);
-                leg.position.set(0.4 - (i % 3) * 0.45, -0.25, i < 3 ? 0.65 : -0.65);
-                this.bodyMesh.add(leg);
-                this.legs.push(leg);
-            }
-        } else if (t === 'meganeura' || t === 'bird_pterosaur') {
-            // === CRÉATURE AÉRIENNE (MEGANEURA / ARGENTAVIS / VOID QUETZAL) ===
-            const bodyLen = t === 'meganeura' ? 2.1 : 1.4;
-            const bodyGeo = new THREE.CylinderGeometry(0.22, 0.15, bodyLen, 8);
-            bodyGeo.rotateZ(Math.PI / 2);
-            this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
-            this.bodyMesh.position.set(0, 0.9, 0);
-            this.bodyMesh.castShadow = true;
-            this.root.add(this.bodyMesh);
-
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 8, 8), darkMat);
-            head.position.set(bodyLen * 0.55, 0.08, 0);
-            this.bodyMesh.add(head);
-
-            if (t !== 'meganeura') {
-                const beak = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.9, 5), amberMat);
-                beak.rotation.z = -Math.PI / 2;
-                beak.position.set(0.55, -0.02, 0);
-                head.add(beak);
-            }
-
-            const wingCount = t === 'meganeura' ? 2 : 1;
-            this.wings = [];
-            for (let w = 0; w < wingCount; w++) {
-                [-1, 1].forEach(side => {
-                    const wingPivot = new THREE.Group();
-                    wingPivot.position.set(0.3 - w * 0.45, 0.15, side * 0.2);
-                    const wingGeo = new THREE.BoxGeometry(0.55, 0.04, 1.85);
-                    const wing = new THREE.Mesh(wingGeo, t === 'meganeura' ? wingMat : mat);
-                    wing.position.z = side * 0.95;
-                    wingPivot.add(wing);
-                    this.bodyMesh.add(wingPivot);
-                    this.wings.push({ pivot: wingPivot, side, idx: w });
-                });
-            }
-            this.legs = [];
-        } else if (t === 'arthropleura' || t === 'serpent') {
-            // === CRÉATURE MULTI-SEGMENTÉE (ARTHROPLEURA / TITANOBOA) ===
-            const segCount = t === 'serpent' ? 9 : 8;
-            this.bodyMesh = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 8), mat);
-            this.bodyMesh.position.set(0.8, 0.55, 0);
-            this.bodyMesh.castShadow = true;
-            this.root.add(this.bodyMesh);
-
-            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 6), glowEyeMat);
-            eyeL.position.set(0.32, 0.15, 0.25);
-            this.bodyMesh.add(eyeL);
-            const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 6), glowEyeMat);
-            eyeR.position.set(0.32, 0.15, -0.25);
-            this.bodyMesh.add(eyeR);
-
-            this.segments = [];
-            this.legs = [];
-            for (let s = 0; s < segCount; s++) {
-                const radius = t === 'serpent' ? (0.42 - s * 0.03) : 0.48;
-                const seg = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), s % 2 === 0 ? mat : darkMat);
-                seg.scale.set(1.1, t === 'arthropleura' ? 0.65 : 0.95, 1.15);
-                seg.position.set(-0.45 - s * 0.48, 0, 0);
-                this.bodyMesh.add(seg);
-                this.segments.push(seg);
-
-                if (t === 'arthropleura') {
-                    [-1, 1].forEach(side => {
-                        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.03, 0.5, 4), amberMat);
-                        leg.position.set(0, -0.25, side * 0.45);
-                        seg.add(leg);
-                        this.legs.push(leg);
-                    });
-                }
-            }
-        } else if (t === 'bothriolepis' || t === 'scutosaurus' || t === 'dino_tank') {
-            // === CRÉATURE CUIRASSÉE / TANK ===
-            const bodyGeo = new THREE.BoxGeometry(1.9, 0.95, 1.35);
-            this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
-            this.bodyMesh.position.set(0, 0.95, 0);
-            this.bodyMesh.castShadow = true;
-            this.root.add(this.bodyMesh);
-
-            const shieldPlate = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.05, 1.45), amberMat);
-            shieldPlate.position.set(0.95, 0.05, 0);
-            this.bodyMesh.add(shieldPlate);
-
-            for (let sp = 0; sp < 4; sp++) {
-                const plate = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.55, 4), darkMat);
-                plate.position.set(0.5 - sp * 0.45, 0.65, 0);
-                this.bodyMesh.add(plate);
-            }
-
-            const clubTail = new THREE.Mesh(new THREE.SphereGeometry(0.34, 8, 8), darkMat);
-            clubTail.position.set(-1.5, 0, 0);
-            this.bodyMesh.add(clubTail);
-
-            this.legs = [];
-            for (let i = 0; i < 4; i++) {
-                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.12, 0.8, 6), darkMat);
-                leg.position.set(i < 2 ? 0.55 : -0.55, -0.55, i % 2 === 0 ? 0.55 : -0.55);
-                this.bodyMesh.add(leg);
-                this.legs.push(leg);
-            }
-        } else if (t === 'jawless_fish' || t === 'shark_placoderm') {
-            // === POISSON / REQUIN PRIMORDIAL ===
-            const bodyGeo = new THREE.ConeGeometry(0.52, 2.3, 8);
-            bodyGeo.rotateZ(-Math.PI / 2);
-            this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
-            this.bodyMesh.position.set(0, 0.85, 0);
-            this.bodyMesh.castShadow = true;
-            this.root.add(this.bodyMesh);
-
-            const dorsalFin = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.85, 4), darkMat);
-            dorsalFin.position.set(-0.1, 0.55, 0);
-            this.bodyMesh.add(dorsalFin);
-
-            const tailFin = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.85, 0.08), darkMat);
-            tailFin.position.set(-1.25, 0.1, 0);
-            this.bodyMesh.add(tailFin);
-            this.tailFan = tailFin;
-            this.legs = [];
-        } else {
-            // === RAPTORS, SYNAPSIDES & MAMMIFÈRES PRÉHISTORIQUES ===
-            const bodyGeo = new THREE.SphereGeometry(0.95, 8, 8);
-            bodyGeo.scale(1.3, 0.72, 0.78);
-            this.bodyMesh = new THREE.Mesh(bodyGeo, mat);
-            this.bodyMesh.position.y = 1.0;
-            this.bodyMesh.castShadow = true;
-            this.root.add(this.bodyMesh);
-
-            const headGeo = new THREE.ConeGeometry(0.5, 1.15, 7);
-            headGeo.rotateZ(-Math.PI / 2);
-            this.headMesh = new THREE.Mesh(headGeo, mat);
-            this.headMesh.position.set(1.05, 0.55, 0);
-            this.bodyMesh.add(this.headMesh);
-
-            if (t === 'synapsid' || t === 'mammal' || t === 'glacier_panther') {
-                // Crocs proéminents (Gorgonopsides / Loups / Smilodons)
-                [-0.14, 0.14].forEach(z => {
-                    const fang = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.35, 4), amberMat);
-                    fang.rotation.z = Math.PI;
-                    fang.position.set(0.18, -0.24, z);
-                    this.headMesh.add(fang);
-                });
-            } else {
-                // Crête de raptor
-                const crest = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.25, 0.08), amberMat);
-                crest.position.set(-0.1, 0.38, 0);
-                this.headMesh.add(crest);
-            }
-
-            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), glowEyeMat);
-            eyeL.position.set(0.15, 0.2, 0.3);
-            this.headMesh.add(eyeL);
-            const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), glowEyeMat);
-            eyeR.position.set(0.15, 0.2, -0.3);
-            this.headMesh.add(eyeR);
-
-            this.legs = [];
-            for (let i = 0; i < 4; i++) {
-                const legGeo = new THREE.CylinderGeometry(0.09, 0.06, 0.9, 5);
-                const leg = new THREE.Mesh(legGeo, darkMat);
-                leg.position.set((i < 2 ? 0.45 : -0.45), -0.45, (i % 2 === 0 ? 0.55 : -0.55));
-                leg.rotation.z = (i < 2 ? -0.25 : 0.25);
-                this.bodyMesh.add(leg);
-                this.legs.push(leg);
-            }
-
-            const tailGeo = new THREE.ConeGeometry(0.22, 1.35, 5);
-            tailGeo.rotateZ(Math.PI / 2);
-            this.tailMesh = new THREE.Mesh(tailGeo, darkMat);
-            this.tailMesh.position.set(-1.3, 0.15, 0);
-            this.bodyMesh.add(this.tailMesh);
         }
     }
 
     syncPosition() {
         if (!this.root) return;
         this.root.position.set(this.x, this.y, 0);
-        this.root.rotation.y = this.facing > 0 ? Math.PI / 2 : -Math.PI / 2;
+        this.root.rotation.y = this.facing > 0 ? 0 : Math.PI;
         this.updateHpBarScreenPos();
     }
 
@@ -917,10 +497,26 @@ class EraMinion3D {
         }
 
         const now = performance.now();
-        if (this.legs && this.legs.length > 0 && this.action === 'walk') {
+        if (this.legs && this.legs.length > 0 && this._isGlbHydrated) {
             this.legs.forEach((l, idx) => {
-                l.rotation.x = Math.sin(now * 0.016 + idx * 0.5) * 0.45;
+                l.rotation.z = (this.action === 'walk')
+                    ? Math.sin(now * 0.016 + idx * 0.8) * 0.42
+                    : l.rotation.z * 0.82;
             });
+        }
+        if (this._isGlbHydrated) {
+            if (this.arms && this.arms.length > 0) {
+                this.arms.forEach((a, idx) => {
+                    a.rotation.z = (this.action === 'attack')
+                        ? Math.sin(now * 0.025 + idx) * 0.55
+                        : a.rotation.z * 0.82;
+                });
+            }
+            if (this.headMesh) {
+                this.headMesh.rotation.z = (this.action === 'attack')
+                    ? -Math.abs(Math.sin(now * 0.022)) * 0.35
+                    : Math.sin(now * 0.004) * 0.05;
+            }
         }
         if (this.wings && this.wings.length > 0) {
             this.wings.forEach(w => {
@@ -938,10 +534,10 @@ class EraMinion3D {
                 a.rotation.y = (i === 0 ? 0.2 : -0.2) + (i === 0 ? twitch : -twitch);
             });
         }
-        if (this.swimmingFlaps && this.swimmingFlaps.length > 0) {
+        if (this.swimmingFlaps && this.swimmingFlaps.length > 0 && this._isGlbHydrated) {
             this.swimmingFlaps.forEach(fl => {
                 const wave = Math.sin(now * 0.008 + fl.idx * 0.42) * 0.35;
-                fl.mesh.rotation.z = fl.side * (0.15 + wave);
+                fl.mesh.rotation.x = fl.side * (0.15 + wave);
             });
         }
         if (this.proboscis) {
@@ -1098,11 +694,26 @@ class CampaignHazardObject3D {
             this.bolt.visible = false;
             this.root.add(this.bolt);
         } else {
-            this.projectile = new THREE.Mesh(
-                kind === 'icicle' ? new THREE.ConeGeometry(0.45, 1.5, 6) : new THREE.SphereGeometry(0.55, 8, 8),
-                new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.45, roughness: 0.4 })
-            );
-            if (kind === 'icicle') this.projectile.rotation.z = Math.PI;
+            this.projectile = new THREE.Group();
+            const propIdMap = {
+                meteor: 'hazard_meteor',
+                boulder: 'hazard_boulder',
+                icicle: 'hazard_icicle'
+            };
+            const propGlbId = propIdMap[kind];
+            const propScale = kind === 'icicle' ? 1.0 : 0.92;
+
+            if (propGlbId && typeof THREE.GLTFLoader !== 'undefined' && typeof hydrateCampaignPropFromGLB === 'function') {
+                if (typeof CAMPAIGN_GLB_CACHE !== 'undefined' && CAMPAIGN_GLB_CACHE[propGlbId]) {
+                    hydrateCampaignPropFromGLB(this.projectile, CAMPAIGN_GLB_CACHE[propGlbId], propScale);
+                } else if (typeof loadCampaignGLB === 'function') {
+                    loadCampaignGLB(propGlbId).then((gltf) => {
+                        if (!this.isExpired && this.projectile && !this.projectile._isGlbHydrated) {
+                            hydrateCampaignPropFromGLB(this.projectile, gltf, propScale);
+                        }
+                    }).catch(() => {});
+                }
+            }
             this.projectile.position.set(x, this.y, 0);
             this.root.add(this.projectile);
         }
@@ -1170,31 +781,18 @@ class PrehistoricPickup3D {
         this.root = new THREE.Group();
         this.root.position.set(x, y, 0);
 
-        if (type === 'meat') {
-            // Côtelette d'os avec viande rouge succulente
-            const boneGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.9, 6);
-            const boneMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.3 });
-            const bone = new THREE.Mesh(boneGeo, boneMat);
-            bone.rotation.z = Math.PI / 4;
-            this.root.add(bone);
-
-            const meatGeo = new THREE.SphereGeometry(0.3, 8, 8);
-            meatGeo.scale(1.2, 0.8, 0.8);
-            const meatMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 });
-            const meat = new THREE.Mesh(meatGeo, meatMat);
-            this.root.add(meat);
-        } else {
-            // Coeur d'ambre préhistorique doré
-            const amberGeo = new THREE.OctahedronGeometry(0.32, 0);
-            const amberMat = new THREE.MeshStandardMaterial({
-                color: 0xfbbf24,
-                emissive: 0xf59e0b,
-                emissiveIntensity: 0.5,
-                roughness: 0.15,
-                metalness: 0.8
-            });
-            const amber = new THREE.Mesh(amberGeo, amberMat);
-            this.root.add(amber);
+        const pickupGlbId = (type === 'meat') ? 'pickup_meat' : 'pickup_amber';
+        const pickupScale = (type === 'meat') ? 0.78 : 0.62;
+        if (typeof THREE.GLTFLoader !== 'undefined' && typeof hydrateCampaignPropFromGLB === 'function') {
+            if (typeof CAMPAIGN_GLB_CACHE !== 'undefined' && CAMPAIGN_GLB_CACHE[pickupGlbId]) {
+                hydrateCampaignPropFromGLB(this.root, CAMPAIGN_GLB_CACHE[pickupGlbId], pickupScale);
+            } else if (typeof loadCampaignGLB === 'function') {
+                loadCampaignGLB(pickupGlbId).then((gltf) => {
+                    if (!this.isCollected && this.root && !this.root._isGlbHydrated) {
+                        hydrateCampaignPropFromGLB(this.root, gltf, pickupScale);
+                    }
+                }).catch(() => {});
+            }
         }
 
         if (battleScene) {
@@ -1456,318 +1054,21 @@ function startCampaignWave(waveIdx) {
     updateCampaignSmashHUD();
 }
 
-function buildAnomalocarisBossModel(fighter, bossWave) {
+function buildAnomalocarisBossModel(fighter) {
     if (!fighter || !fighter.rig || !fighter.rig.root) return;
-
-    // Masquer tous les composants du squelette/rig dinosaure de base
-    if (fighter.rig.hips) {
-        fighter.rig.hips.visible = false;
-    }
-    if (fighter.rig.skeletonGroup) {
-        fighter.rig.skeletonGroup.visible = false;
-    }
-    if (fighter.rig.skinMeshes) {
-        fighter.rig.skinMeshes.forEach(m => { m.visible = false; });
-    }
-
-    // Supprimer l'ancien modèle s'il existe
-    const old = (typeof fighter.rig.root.getObjectByName === 'function') ? fighter.rig.root.getObjectByName('AnomalocarisBossHierarchy') : null;
-    if (old) fighter.rig.root.remove(old);
-
-    const anomRoot = new THREE.Group();
-    anomRoot.name = 'AnomalocarisBossHierarchy';
-    fighter.rig.root.add(anomRoot);
-
-    const primaryColor = bossWave.color || 0x0e7490;
-    const accentColor = bossWave.accentColor || 0x22d3ee;
-
-    const chitinMat = new THREE.MeshStandardMaterial({
-        color: primaryColor,
-        roughness: 0.35,
-        metalness: 0.4
-    });
-    const dorsalCarapaceMat = new THREE.MeshStandardMaterial({
-        color: 0x083344,
-        roughness: 0.3,
-        metalness: 0.5
-    });
-    const ventralMat = new THREE.MeshStandardMaterial({
-        color: 0x155e75,
-        roughness: 0.5,
-        metalness: 0.2
-    });
-    const glowCyanMat = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        emissive: accentColor,
-        emissiveIntensity: 0.85,
-        roughness: 0.2
-    });
-    const amberSpineMat = new THREE.MeshStandardMaterial({
-        color: 0xf59e0b,
-        emissive: 0xd97706,
-        emissiveIntensity: 0.35,
-        roughness: 0.2
-    });
-    const darkMouthMat = new THREE.MeshStandardMaterial({
-        color: 0x030712,
-        roughness: 0.85
-    });
-    const compoundEyeMat = new THREE.MeshBasicMaterial({
-        color: 0xa5f3fc
-    });
-
-    // 1. CARAPACE CÉPHALIQUE HYDRODYNAMIQUE (Sclérite dorsal H + sclérites latéraux P)
-    const headCarapaceGeo = new THREE.ConeGeometry(0.92, 1.85, 8);
-    headCarapaceGeo.rotateZ(-Math.PI / 2);
-    headCarapaceGeo.scale(1.26, 0.56, 1.08);
-    const headCarapace = new THREE.Mesh(headCarapaceGeo, dorsalCarapaceMat);
-    headCarapace.position.set(1.15, 0.5, 0);
-    headCarapace.castShadow = true;
-    anomRoot.add(headCarapace);
-
-    // Sclérites latéraux céphaliques P (P-elements)
-    [-0.55, 0.55].forEach(z => {
-        const pElemGeo = new THREE.BoxGeometry(0.75, 0.20, 0.30);
-        pElemGeo.rotateZ(-0.25);
-        const pElem = new THREE.Mesh(pElemGeo, chitinMat);
-        pElem.position.set(1.10, 0.32, z);
-        anomRoot.add(pElem);
-    });
-
-    // Yeux composés géants sur pédoncules articulés (Stalked Compound Eyes)
-    const eyeStalks = [];
-    [-0.55, 0.55].forEach((zSign) => {
-        const stalk = new THREE.Group();
-        stalk.position.set(1.4, 0.7, zSign);
-
-        const stalkGeo = new THREE.CylinderGeometry(0.08, 0.1, 0.5, 6);
-        stalkGeo.rotateX(zSign > 0 ? -0.4 : 0.4);
-        const stalkMesh = new THREE.Mesh(stalkGeo, chitinMat);
-        stalk.add(stalkMesh);
-
-        const eyeBulbGeo = new THREE.SphereGeometry(0.26, 12, 12);
-        eyeBulbGeo.scale(1.2, 1.0, 1.0);
-        const eyeBulb = new THREE.Mesh(eyeBulbGeo, compoundEyeMat);
-        eyeBulb.position.set(0.12, 0.28, zSign * 0.18);
-        stalk.add(eyeBulb);
-
-        const ringGeo = new THREE.TorusGeometry(0.25, 0.04, 6, 12);
-        const ring = new THREE.Mesh(ringGeo, glowCyanMat);
-        ring.position.copy(eyeBulb.position);
-        ring.rotation.y = Math.PI / 2;
-        stalk.add(ring);
-
-        anomRoot.add(stalk);
-        eyeStalks.push(stalk);
-    });
-
-    // 2. APPENDICES RAPACES FRONTALES (PODOMÈRES ET ÉPINES ENDITIQUES AVEC SPINULES AUXILIAIRES)
-    const raptorialClaws = [];
-    [-0.26, 0.26].forEach((zSign) => {
-        const clawRoot = new THREE.Group();
-        clawRoot.position.set(1.95, 0.3, zSign);
-
-        let parentNode = clawRoot;
-        const segmentMeshes = [];
-        for (let s = 0; s < 5; s++) {
-            const seg = new THREE.Group();
-            seg.position.set(s === 0 ? 0 : 0.32, s === 0 ? 0 : -0.15, 0);
-            seg.rotation.z = -0.30;
-
-            const segGeo = new THREE.BoxGeometry(0.35, 0.20, 0.15);
-            const segMesh = new THREE.Mesh(segGeo, chitinMat);
-            segMesh.position.x = 0.16;
-            segMesh.castShadow = true;
-            seg.add(segMesh);
-
-            // Épine enditique ventrale principale
-            const spineHeight = 0.32 + (s * 0.08);
-            const spineGeo = new THREE.ConeGeometry(0.055, spineHeight, 4);
-            spineGeo.rotateZ(Math.PI);
-            const spine = new THREE.Mesh(spineGeo, amberSpineMat);
-            spine.position.set(0.16, -0.20 - spineHeight * 0.4, 0);
-            seg.add(spine);
-
-            // Épines auxiliaires de capture
-            [-0.04, 0.04].forEach(offsetY => {
-                const auxSpineGeo = new THREE.ConeGeometry(0.025, 0.15, 3);
-                auxSpineGeo.rotateZ(Math.PI * 0.85);
-                const auxSpine = new THREE.Mesh(auxSpineGeo, amberSpineMat);
-                auxSpine.position.set(0.04, offsetY, 0);
-                spine.add(auxSpine);
-            });
-
-            parentNode.add(seg);
-            parentNode = seg;
-            segmentMeshes.push(seg);
-        }
-
-        anomRoot.add(clawRoot);
-        raptorialClaws.push({ root: clawRoot, segments: segmentMeshes });
-    });
-
-    // 3. CÔNE ORAL TRIRADIAL DE PEYTOIA (3 GRANDES PLAQUES + DENTS CHITINEUSES)
-    const mouthGroup = new THREE.Group();
-    mouthGroup.position.set(1.2, 0.08, 0);
-    mouthGroup.rotation.x = Math.PI / 2;
-
-    const oralConeOuter = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.12, 8, 24), ventralMat);
-    mouthGroup.add(oralConeOuter);
-
-    const oralCavity = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.18, 16), darkMouthMat);
-    mouthGroup.add(oralCavity);
-
-    // 3 grandes plaques dominantes triradiales
-    for (let p = 0; p < 3; p++) {
-        const radAngle = (p * Math.PI * 2) / 3;
-        const mainPlateGeo = new THREE.BoxGeometry(0.14, 0.06, 0.18);
-        const mainPlate = new THREE.Mesh(mainPlateGeo, chitinMat);
-        mainPlate.position.set(Math.cos(radAngle) * 0.30, 0.08, Math.sin(radAngle) * 0.30);
-        mainPlate.rotation.y = -radAngle;
-        mouthGroup.add(mainPlate);
-    }
-
-    for (let t = 0; t < 24; t++) {
-        const angle = (t / 24) * Math.PI * 2;
-        const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.16, 4), amberSpineMat);
-        tooth.position.set(Math.cos(angle) * 0.25, 0.05, Math.sin(angle) * 0.25);
-        tooth.rotation.z = Math.PI;
-        tooth.rotation.y = angle;
-        mouthGroup.add(tooth);
-    }
-    anomRoot.add(mouthGroup);
-
-    // 4. TRONC MÉTAMÉRISÉ HYDRODYNAMIQUE (SEGMENTED BODY)
-    const bodySegments = [];
-    const trunkCount = 8;
-    for (let i = 0; i < trunkCount; i++) {
-        const segGroup = new THREE.Group();
-        const factor = 1.0 - (i / trunkCount) * 0.55;
-        const segX = 0.5 - i * 0.58;
-
-        const segGeo = new THREE.BoxGeometry(0.62, 0.48 * factor, 1.15 * factor);
-        const segMesh = new THREE.Mesh(segGeo, i % 2 === 0 ? chitinMat : dorsalCarapaceMat);
-        segMesh.castShadow = true;
-        segGroup.position.set(segX, 0.48, 0);
-        segGroup.add(segMesh);
-
-        // Crête dorsale carénée luminescente
-        const crestGeo = new THREE.ConeGeometry(0.08 * factor, 0.35 * factor, 4);
-        crestGeo.rotateZ(Math.PI / 2);
-        const crest = new THREE.Mesh(crestGeo, glowCyanMat);
-        crest.position.set(0, 0.3 * factor, 0);
-        segGroup.add(crest);
-
-        anomRoot.add(segGroup);
-        bodySegments.push(segGroup);
-    }
-
-    // 5. 11 PAIRES DE LOBES NATATOIRES LATÉRAUX (22 FLAPS) & BANDES BRANCHIALES SÉTIFÈRES
-    const swimmingFlaps = [];
-    const flapCount = 11;
-    const gillMat = new THREE.MeshStandardMaterial({
-        color: 0x38bdf8,
-        roughness: 0.45,
-        transparent: true,
-        opacity: 0.85
-    });
-
-    for (let i = 0; i < flapCount; i++) {
-        const factor = (i < 4) ? (0.62 + i * 0.20) : (1.35 - (i - 4) * 0.14);
-        const flapX = 0.95 - i * 0.48;
-
-        // Lobe gauche
-        const flapLGroup = new THREE.Group();
-        flapLGroup.position.set(flapX, 0.38, 0.54 * factor);
-        const flapLGeo = new THREE.BoxGeometry(0.46, 0.05, 0.74 * factor);
-        const flapL = new THREE.Mesh(flapLGeo, glowCyanMat);
-        flapL.position.z = 0.38 * factor;
-        flapLGroup.add(flapL);
-
-        // Bande branchiale sétifère dorsale gauche
-        const gillL = new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.03, 0.60 * factor), gillMat);
-        gillL.position.set(0, 0.04, 0.32 * factor);
-        flapLGroup.add(gillL);
-        anomRoot.add(flapLGroup);
-
-        // Lobe droit
-        const flapRGroup = new THREE.Group();
-        flapRGroup.position.set(flapX, 0.38, -0.54 * factor);
-        const flapRGeo = new THREE.BoxGeometry(0.46, 0.05, 0.74 * factor);
-        const flapR = new THREE.Mesh(flapRGeo, glowCyanMat);
-        flapR.position.z = -0.38 * factor;
-        flapRGroup.add(flapR);
-
-        // Bande branchiale sétifère dorsale droite
-        const gillR = new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.03, 0.60 * factor), gillMat);
-        gillR.position.set(0, 0.04, -0.32 * factor);
-        flapRGroup.add(gillR);
-        anomRoot.add(flapRGroup);
-
-        swimmingFlaps.push({ left: flapLGroup, right: flapRGroup, factor, index: i });
-    }
-
-    // 6. FURCA CAUDALE TRI-LOBÉE RELEVÉE À ~35° (TAIL FAN STABILIZER)
-    const tailFanGroup = new THREE.Group();
-    tailFanGroup.position.set(-4.2, 0.58, 0);
-    tailFanGroup.rotation.z = 0.35; // Hydrofoil tilt
-    for (let f = 0; f < 3; f++) {
-        const angle = (f - 1) * 0.45;
-        const bladeGeo = new THREE.BoxGeometry(1.25, 0.055, 0.36);
-        bladeGeo.rotateY(angle);
-        const blade = new THREE.Mesh(bladeGeo, glowCyanMat);
-        blade.position.set(-0.55, 0.18 + Math.abs(f - 1) * 0.14, (f - 1) * 0.55);
-        tailFanGroup.add(blade);
-    }
-    anomRoot.add(tailFanGroup);
-
+    if (fighter.rig.hips) fighter.rig.hips.visible = true;
     fighter._isAnomalocaris = true;
     fighter.bodyRadius = 1.95;
     fighter._anomModel = {
-        root: anomRoot,
-        eyeStalks,
-        raptorialClaws,
-        mouthGroup,
-        bodySegments,
-        swimmingFlaps,
-        tailFanGroup
+        root: fighter.rig.root
     };
 }
 
 function updateAnomalocarisBossAnimations(boss, dt, nowSec) {
-    if (!boss || !boss._isAnomalocaris || !boss._anomModel) return;
-    const anom = boss._anomModel;
+    if (!boss || !boss._isAnomalocaris) return;
     const time = nowSec;
 
-    // 1. Ondulation fluide des lobes natatoires (Swimming Flaps Wave)
-    if (anom.swimmingFlaps) {
-        anom.swimmingFlaps.forEach(fl => {
-            const wave = Math.sin(time * 7.5 + fl.index * 0.45) * 0.32;
-            fl.left.rotation.x = wave * 0.35;
-            fl.left.rotation.z = 0.15 + wave;
-            fl.right.rotation.x = -wave * 0.35;
-            fl.right.rotation.z = -0.15 - wave;
-        });
-    }
-
-    // 2. Mouvement d'attaque des appendices rapaces (Claw strike)
-    if (anom.raptorialClaws) {
-        const isAttacking = boss.actionDuration > 0 && boss.action !== 'idle' && boss.action !== 'walk';
-        const strikeProg = isAttacking ? Math.sin((boss.actionTimer / Math.max(0.01, boss.actionDuration)) * Math.PI) : 0;
-        anom.raptorialClaws.forEach((claw, cIdx) => {
-            const idleSway = Math.sin(time * 3.2 + cIdx) * 0.12;
-            claw.root.rotation.z = (strikeProg > 0.05) ? (0.45 - strikeProg * 1.35) : idleSway;
-            claw.root.rotation.y = (strikeProg > 0.05) ? (cIdx === 0 ? 0.35 : -0.35) : 0;
-        });
-    }
-
-    // 3. Battement fluide de l'éventail caudal
-    if (anom.tailFanGroup) {
-        anom.tailFanGroup.rotation.y = Math.sin(time * 4.2) * 0.18;
-        anom.tailFanGroup.rotation.z = 0.35 + Math.cos(time * 3.2) * 0.08;
-    }
-
-    // 4. Flottaison marine primordiale au-dessus du sol
+    // Flottaison marine primordiale au-dessus du sol
     const targetGroundY = boss.groundY || 0;
     const floatY = targetGroundY + 0.45 + Math.sin(time * 2.8) * 0.22;
     if (boss.y < floatY) {
@@ -1785,11 +1086,16 @@ function spawnEraBossMonster(bossWave) {
 
     // Créer une copie personnalisée du boss avec des PV équilibrés et épiques
     const scaledMaxHp = Math.max(1250, Math.round((bossWave.hp || 2400) * 0.65));
+    const hasCustomBossGlb = (typeof CAMPAIGN_BOSS_GLB_IDS !== 'undefined')
+        ? CAMPAIGN_BOSS_GLB_IDS.has(bossWave.bossId)
+        : ['boss_cameroceras', 'boss_jaekelopterus', 'boss_dunkleosteus', 'boss_dimetrodon', 'boss_pyroclast', 'boss_wendigo'].includes(bossWave.bossId);
+
     const customBossDino = Object.assign({}, baseDino, {
         name: bossWave.bossName,
         fullName: bossWave.bossTitle,
         maxHp: scaledMaxHp,
         isBoss: true,
+        bossGlbId: hasCustomBossGlb ? bossWave.bossId : null,
         primaryColor: bossWave.color,
         accentColor: bossWave.accentColor || 0xf59e0b
     });
@@ -1804,35 +1110,8 @@ function spawnEraBossMonster(bossWave) {
         fighter2.rig.root.scale.set(fighter2.scale, fighter2.scale, fighter2.scale);
     }
 
-    // Construction / différenciation visuelle des Boss d'Ères
     if (bossWave.bossId === 'boss_anomalocaris') {
         buildAnomalocarisBossModel(fighter2, bossWave);
-    } else if (fighter2.rig && fighter2.rig.hips && bossWave.bossId !== 'boss_drakzul') {
-        const armorColor = bossWave.color || 0xf59e0b;
-        const accentMat = new THREE.MeshStandardMaterial({
-            color: armorColor,
-            emissive: bossWave.accentColor || armorColor,
-            emissiveIntensity: 0.25,
-            roughness: 0.38,
-            metalness: 0.35
-        });
-        if (bossWave.bossId === 'boss_cameroceras') {
-            const shell = new THREE.Mesh(new THREE.ConeGeometry(0.65, 2.8, 10), accentMat);
-            shell.rotation.z = Math.PI / 2;
-            shell.position.set(-1.35, 0.55, 0);
-            fighter2.rig.hips.add(shell);
-        } else if (bossWave.bossId === 'boss_dimetrodon') {
-            for (let s = -2; s <= 2; s++) {
-                const spine = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.35 - Math.abs(s) * 0.16, 0.08), accentMat);
-                spine.position.set(s * 0.35, 1.15, 0);
-                fighter2.rig.hips.add(spine);
-            }
-        } else if (bossWave.bossId === 'boss_jaekelopterus' || bossWave.bossId === 'boss_dunkleosteus') {
-            const crest = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55, 0), accentMat);
-            crest.scale.set(1.6, 0.7, 1.1);
-            crest.position.set(0.4, 0.9, 0);
-            fighter2.rig.hips.add(crest);
-        }
     }
 
     campaignBossFighter = fighter2;

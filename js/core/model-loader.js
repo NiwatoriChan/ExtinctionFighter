@@ -8,19 +8,73 @@ const GLB_FIGHTER_IDS = new Set([
     'apato',
     'dragon',
     'maiasaura',
+    'pachyrhino',
     'giantsloth',
     'postosuchus',
     'pulmonoscorpius',
+    'quetzal',
     'smilodon',
     'spinosaurus',
     'stegosaurus',
     'terabird',
-    'therizino'
+    'therizino',
+    'trex'
 ]);
 
 const FIGHTER_GLB_CACHE = {};
 const FIGHTER_GLB_PROMISES = {};
 const FIGHTER_GLB_LISTENERS = [];
+let _reportedGlbError = null;
+
+function reportGlbLoadError(fighterId, err) {
+    if (err && err._isGlbFatalReport) {
+        return err;
+    }
+    const reason = (err && err.message) ? err.message : String(err || 'Erreur inconnue');
+    const isFileProto = (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:');
+    const hint = isFileProto
+        ? ' Le jeu doit être lancé via un serveur HTTP local (start.bat sous Windows ou ./start.sh sous Linux/macOS).'
+        : '';
+    const msg = `[Extinction Kombat 3D] Échec critique du chargement du modèle GLB (${fighterId || 'inconnu'}) : ${reason}.${hint}`;
+
+    console.error(msg, err);
+    if (typeof window !== 'undefined') {
+        window.__glbFatalError = msg;
+        if (Array.isArray(window.__testErrors)) {
+            window.__testErrors.push(msg);
+        }
+        try {
+            window.dispatchEvent(new ErrorEvent('error', { message: msg, error: err instanceof Error ? err : new Error(msg) }));
+        } catch (_) {}
+    }
+
+    if (typeof document !== 'undefined' && document.body && !_reportedGlbError) {
+        _reportedGlbError = msg;
+        const existing = document.getElementById('glb-fatal-error-overlay');
+        if (existing) existing.remove();
+        const overlay = document.createElement('div');
+        overlay.id = 'glb-fatal-error-overlay';
+        overlay.setAttribute('role', 'alert');
+        overlay.style.cssText = [
+            'position:fixed', 'inset:0', 'z-index:999999',
+            'background:rgba(10,12,18,0.94)', 'color:#fef2f2',
+            'display:flex', 'flex-direction:column', 'align-items:center', 'justify-content:center',
+            'padding:32px', 'text-align:center', 'font-family:system-ui,-apple-system,sans-serif'
+        ].join(';');
+        overlay.innerHTML = `
+            <div style="max-width:640px;border:2px solid #ef4444;border-radius:14px;padding:28px;background:#18181b;box-shadow:0 24px 60px rgba(0,0,0,0.7);">
+                <div style="font-size:22px;font-weight:800;letter-spacing:1px;color:#f87171;margin-bottom:12px;">ERREUR DE CHARGEMENT MODÈLE 3D (.GLB)</div>
+                <p style="font-size:15px;line-height:1.55;color:#e4e4e7;margin:0 0 18px 0;"></p>
+                <button type="button" onclick="window.location.reload()" style="cursor:pointer;border:none;border-radius:8px;padding:10px 22px;font-weight:700;background:#ef4444;color:#fff;font-size:14px;">Recharger le jeu</button>
+            </div>
+        `;
+        overlay.querySelector('p').textContent = msg;
+        document.body.appendChild(overlay);
+    }
+    const fatalErr = new Error(msg);
+    fatalErr._isGlbFatalReport = true;
+    return fatalErr;
+}
 
 function onFighterGLBLoaded(cb) {
     if (typeof cb === 'function') {
@@ -28,44 +82,66 @@ function onFighterGLBLoaded(cb) {
     }
 }
 
-function loadFighterGLB(fighterId) {
-    if (!fighterId || !GLB_FIGHTER_IDS.has(fighterId)) {
-        return Promise.resolve(null);
+function _loadGLBAsset(assetId, allowedIds, url, cache, promises, listeners) {
+    if (!assetId || (allowedIds && !allowedIds.has(assetId))) {
+        const err = reportGlbLoadError(assetId, new Error(`Identifiant GLB inconnu ou non enregistré: ${assetId}`));
+        return Promise.reject(err);
     }
     if (typeof THREE === 'undefined' || !THREE.GLTFLoader) {
-        return Promise.resolve(null);
+        const err = reportGlbLoadError(assetId, new Error('THREE.GLTFLoader indisponible'));
+        return Promise.reject(err);
     }
-    // Avoid blocked fetch() calls when opened directly via file:// protocol
     if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') {
-        return Promise.resolve(null);
+        const err = reportGlbLoadError(assetId, new Error('Protocole file:// non supporté pour fetch(.glb)'));
+        return Promise.reject(err);
     }
-    if (FIGHTER_GLB_CACHE[fighterId]) {
-        return Promise.resolve(FIGHTER_GLB_CACHE[fighterId]);
+    if (cache[assetId]) {
+        return Promise.resolve(cache[assetId]);
     }
-    if (FIGHTER_GLB_PROMISES[fighterId]) {
-        return FIGHTER_GLB_PROMISES[fighterId];
+    if (promises[assetId]) {
+        return promises[assetId];
     }
 
     const loader = new THREE.GLTFLoader();
-    const url = `assets/models/fighters/${fighterId}.glb`;
-    FIGHTER_GLB_PROMISES[fighterId] = new Promise((resolve) => {
+    promises[assetId] = new Promise((resolve, reject) => {
         loader.load(
             url,
             (gltf) => {
-                FIGHTER_GLB_CACHE[fighterId] = gltf;
-                FIGHTER_GLB_LISTENERS.forEach((cb) => {
-                    try { cb(fighterId, gltf); } catch (_) {}
-                });
+                if (!gltf || !gltf.scene) {
+                    const err = reportGlbLoadError(assetId, new Error(`Scène glTF invalide dans ${url}`));
+                    reject(err);
+                    return;
+                }
+                cache[assetId] = gltf;
+                if (listeners) {
+                    listeners.forEach((cb) => {
+                        try { cb(assetId, gltf); } catch (_) {}
+                    });
+                }
                 resolve(gltf);
             },
             undefined,
-            () => {
-                // Missing .glb or non-HTTP environment: silently keep procedural fallback
-                resolve(null);
+            (loadErr) => {
+                const err = reportGlbLoadError(
+                    assetId,
+                    loadErr instanceof Error ? loadErr : new Error(`Impossible de charger ${url}`)
+                );
+                reject(err);
             }
         );
     });
-    return FIGHTER_GLB_PROMISES[fighterId];
+    return promises[assetId];
+}
+
+function loadFighterGLB(fighterId) {
+    return _loadGLBAsset(
+        fighterId,
+        GLB_FIGHTER_IDS,
+        `assets/models/fighters/${fighterId}.glb`,
+        FIGHTER_GLB_CACHE,
+        FIGHTER_GLB_PROMISES,
+        FIGHTER_GLB_LISTENERS
+    );
 }
 
 function preloadAllFighterGLBs() {
@@ -294,6 +370,18 @@ function hydrateRigFromGLB(rig, dino, skin, gltf) {
         });
     }
 
+    // Apply campaign boss theme tint when reusing a shared fighter GLB without a bespoke boss GLB
+    if (dino && dino.isBoss && !dino.bossGlbId) {
+        allMats.forEach((m) => {
+            if (!m || !m.color || !m.name) return;
+            if (m.name.includes('Mat_BodyPrimary') && dino.primaryColor !== undefined) {
+                m.color.lerp(new THREE.Color(dino.primaryColor), 0.42);
+            } else if (m.name.includes('Mat_Accent') && dino.accentColor !== undefined) {
+                m.color.lerp(new THREE.Color(dino.accentColor), 0.42);
+            }
+        });
+    }
+
     // Re-capture restPose for resetDino3DRig
     rig.restPose = {
         hipsPos: rig.hips.position.clone(),
@@ -309,8 +397,179 @@ function hydrateRigFromGLB(rig, dino, skin, gltf) {
             : null
     };
 
+    if (dino && dino.id === 'quetzal' && typeof attachQuetzalEnduranceGauge === 'function') {
+        attachQuetzalEnduranceGauge(rig);
+    }
+
     rig._isGlbHydrated = true;
+    if (Array.isArray(rig._onHydratedCallbacks) && rig._onHydratedCallbacks.length > 0) {
+        const cbs = rig._onHydratedCallbacks.splice(0, rig._onHydratedCallbacks.length);
+        cbs.forEach((cb) => {
+            try { cb(rig); } catch (_) {}
+        });
+    }
     return true;
+}
+
+// ============================================================================
+// CAMPAIGN MINIONS, BOSSES & PROPS (.GLB) REGISTRY & HYDRATION
+// ============================================================================
+
+const MINION_GLB_IDS = new Set([
+    'cambrian_trilobite',
+    'opabinia_radiodont_elite',
+    'orthoceras',
+    'eurypterid',
+    'jawless_fish',
+    'shark_placoderm',
+    'bothriolepis',
+    'meganeura',
+    'arthropleura',
+    'synapsid',
+    'scutosaurus',
+    'raptor',
+    'triassic_hound',
+    'dino_tank',
+    'magma_ceratopsian',
+    'mammal',
+    'serpent',
+    'bird_pterosaur',
+    'glacier_panther'
+]);
+const MINION_GLB_CACHE = {};
+const MINION_GLB_PROMISES = {};
+
+const CAMPAIGN_BOSS_GLB_IDS = new Set([
+    'boss_cameroceras',
+    'boss_jaekelopterus',
+    'boss_dunkleosteus',
+    'boss_dimetrodon',
+    'boss_pyroclast',
+    'boss_wendigo'
+]);
+const CAMPAIGN_PROP_GLB_IDS = new Set([
+    'pickup_meat',
+    'pickup_amber',
+    'hazard_meteor',
+    'hazard_boulder',
+    'hazard_icicle'
+]);
+const CAMPAIGN_GLB_IDS = new Set([...CAMPAIGN_BOSS_GLB_IDS, ...CAMPAIGN_PROP_GLB_IDS]);
+const CAMPAIGN_GLB_CACHE = {};
+const CAMPAIGN_GLB_PROMISES = {};
+
+function _collectUniqueMaterials(rootObj) {
+    const mats = new Set();
+    if (!rootObj) return [];
+    rootObj.traverse((node) => {
+        if (!node.isMesh) return;
+        const list = Array.isArray(node.material) ? node.material : [node.material];
+        list.forEach((m) => { if (m) mats.add(m); });
+    });
+    return Array.from(mats);
+}
+
+function loadMinionGLB(enemyType) {
+    return _loadGLBAsset(
+        enemyType,
+        MINION_GLB_IDS,
+        `assets/models/minions/${enemyType}.glb`,
+        MINION_GLB_CACHE,
+        MINION_GLB_PROMISES
+    );
+}
+
+function loadCampaignGLB(modelId) {
+    return _loadGLBAsset(
+        modelId,
+        CAMPAIGN_GLB_IDS,
+        `assets/models/campaign/${modelId}.glb`,
+        CAMPAIGN_GLB_CACHE,
+        CAMPAIGN_GLB_PROMISES
+    );
+}
+
+function hydrateMinionFromGLB(minion, gltf) {
+    if (!minion || !minion.root || !gltf || !gltf.scene) return false;
+
+    const clonedScene = cloneGLTFSceneWithIsolatedMaterials(gltf.scene);
+    const glbRoot = clonedScene.getObjectByName('Minion_Root') || clonedScene;
+    const allMats = _collectUniqueMaterials(glbRoot);
+
+    if (minion.def && minion.def.color !== undefined) {
+        const waveCol = new THREE.Color(minion.def.color);
+        allMats.forEach((m) => {
+            if (!m || !m.color || !m.name) return;
+            if (m.name.includes('Mat_BodyPrimary')) {
+                m.color.lerp(waveCol, 0.35);
+            }
+        });
+    }
+
+    while (minion.root.children.length > 0) {
+        minion.root.remove(minion.root.children[0]);
+    }
+    minion.root.add(glbRoot);
+
+    minion.bodyMesh = glbRoot.getObjectByName('Body_Main') || glbRoot;
+    minion.headMesh = glbRoot.getObjectByName('Head_Pivot') || null;
+    minion.tailFan = glbRoot.getObjectByName('TailFan') || null;
+    minion.tailMesh = minion.tailFan;
+    minion.proboscis = glbRoot.getObjectByName('Proboscis') || null;
+    const pClaw0 = glbRoot.getObjectByName('ProbClaw0');
+    const pClaw1 = glbRoot.getObjectByName('ProbClaw1');
+    minion.probClaws = (pClaw0 && pClaw1) ? [pClaw0, pClaw1] : null;
+
+    minion.legs = collectNumberedNodes(glbRoot, 'Leg');
+    minion.arms = collectNumberedNodes(glbRoot, 'Arm');
+
+    const wingNodes = collectNumberedNodes(glbRoot, 'WingPivot');
+    minion.wings = wingNodes.map((pivot, idx) => ({
+        pivot,
+        side: pivot.position.z <= 0 ? 1 : -1,
+        idx
+    }));
+
+    minion.segments = collectNumberedNodes(glbRoot, 'Seg');
+    minion.antennules = collectNumberedNodes(glbRoot, 'Antennule');
+
+    const flaps = [];
+    collectNumberedNodes(glbRoot, 'FlapL').forEach((mesh, idx) => {
+        flaps.push({ mesh, side: 1, idx });
+    });
+    collectNumberedNodes(glbRoot, 'FlapR').forEach((mesh, idx) => {
+        flaps.push({ mesh, side: -1, idx });
+    });
+    minion.swimmingFlaps = flaps;
+
+    minion._glbMaterials = allMats;
+    minion._isGlbHydrated = true;
+    return true;
+}
+
+function hydrateCampaignPropFromGLB(targetGroup, gltf, targetScale = 1.0) {
+    if (!targetGroup || !gltf || !gltf.scene) return false;
+    const clonedScene = cloneGLTFSceneWithIsolatedMaterials(gltf.scene);
+    const propRoot = clonedScene.getObjectByName('Prop_Root') || clonedScene;
+    propRoot.scale.setScalar(targetScale);
+
+    while (targetGroup.children.length > 0) {
+        targetGroup.remove(targetGroup.children[0]);
+    }
+    targetGroup.add(propRoot);
+    targetGroup._isGlbHydrated = true;
+    return true;
+}
+
+function preloadAllCampaignGLBs() {
+    const promises = [];
+    MINION_GLB_IDS.forEach((id) => {
+        promises.push(loadMinionGLB(id));
+    });
+    CAMPAIGN_GLB_IDS.forEach((id) => {
+        promises.push(loadCampaignGLB(id));
+    });
+    return Promise.all(promises);
 }
 
 if (typeof window !== 'undefined') {
@@ -320,4 +579,16 @@ if (typeof window !== 'undefined') {
     window.preloadAllFighterGLBs = preloadAllFighterGLBs;
     window.hydrateRigFromGLB = hydrateRigFromGLB;
     window.onFighterGLBLoaded = onFighterGLBLoaded;
+    window.reportGlbLoadError = reportGlbLoadError;
+    window.MINION_GLB_IDS = MINION_GLB_IDS;
+    window.MINION_GLB_CACHE = MINION_GLB_CACHE;
+    window.loadMinionGLB = loadMinionGLB;
+    window.hydrateMinionFromGLB = hydrateMinionFromGLB;
+    window.CAMPAIGN_BOSS_GLB_IDS = CAMPAIGN_BOSS_GLB_IDS;
+    window.CAMPAIGN_PROP_GLB_IDS = CAMPAIGN_PROP_GLB_IDS;
+    window.CAMPAIGN_GLB_IDS = CAMPAIGN_GLB_IDS;
+    window.CAMPAIGN_GLB_CACHE = CAMPAIGN_GLB_CACHE;
+    window.loadCampaignGLB = loadCampaignGLB;
+    window.hydrateCampaignPropFromGLB = hydrateCampaignPropFromGLB;
+    window.preloadAllCampaignGLBs = preloadAllCampaignGLBs;
 }

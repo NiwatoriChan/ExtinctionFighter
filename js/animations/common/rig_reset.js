@@ -107,10 +107,6 @@ function resetDino3DRig(fighter, rig, baseHipsY, time, dt) {
         fighter.combatController.update(dt);
     }
 
-    if (rig.specialParts && typeof rig.specialParts.resetQuetzalPose === 'function') {
-        rig.specialParts.resetQuetzalPose(time);
-    }
-
     // Flash lumineux d'impact (blanc sur coup reçu, cyan sur relevé invulnérable)
     const isWakeUpInvuln = fighter.combatController && fighter.combatController.state === CombatState.WAKE_UP_STAND;
     if (fighter.hitStun > 0.08) {

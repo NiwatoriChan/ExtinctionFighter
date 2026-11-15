@@ -13,10 +13,10 @@
 
 ## 🌟 Points Forts du Jeu
 
-* **🦖 16 Combattants Préhistoriques (3 de base + 13 Déblocables — v0.3.0)** :
+* **🦖 16 Combattants Préhistoriques (3 de base + 13 Déblocables — v0.3.1)** :
   * **3 colosses disponibles dès le départ** (*T-Rex*, *Stégosaure*, *Quetzalcoatlus*).
   * **13 Combattants Déblocables en Campagne** à travers les ères géologiques : **Anomalocaris** (Ère 1), **Maiasaura** (Ère 2), **Ankylosaure** (Ère 3), **Spinosaure** (Ère 4), **Pulmonoscorpius** (Ère 5), **Pachyrhinosaure** (Ère 6), **Postosuchus** (Ère 7), **Apatosaure** (Ère 8), **Thérizinosaure** (Ère 9), **Oiseau de Terreur** (Ère 10), **Mégathérium** (Ère 11), **Smilodon** (Ère 12) et le dragon titanesque **Drak'Zul** (Ère 13, jouable une fois terrassé).
-  * **Pipeline 3D Blender & PBR (v0.3.0)** : Modèles 3D `.glb` dédiés générés sous Blender (`assets/models/fighters/`) avec textures PBR albedo/bump (`assets/textures/fighters/`), plans vectoriels SVG (`assets/svg/`), et fallback procédural Three.js haute fidélité.
+  * **Pipeline 3D Blender & PBR exclusif `.glb` (v0.3.1)** : Les 16 combattants (`assets/models/fighters/`), les 19 sbires de campagne (`assets/models/minions/`) et les 11 boss et objets de campagne (`assets/models/campaign/`) utilisent exclusivement des modèles 3D `.glb` sculptés sous Blender sans fallback procédural, avec textures PBR albedo/bump (`assets/textures/fighters/`), plans vectoriels SVG (`assets/svg/`) et signalement d'erreur bloquant en cas d'échec de chargement GLB.
 * **🗺️ Nouveau Mode Campagne — *L'Odyssée des Ères*** :
   * **Carte du Monde Pangaea Interactive** : Une frise géologique complète reliant **13 Ères** (du Cambrien à l'Apogée de l'Extinction), chacune dotée de son propre blason et de dangers environnementaux dédiés.
   * **Niveaux d'Ère par Vagues (Style Beat'em up / Melee)** : Chaque ère est un niveau complet avec essaims d'ennemis de l'époque (Trilobites, Archosaures, Raptors de cendre, Loups du blizzard), plateformes aériennes 3D et geysers hydrothermaux servant de tremplins verticaux de projection.
@@ -54,6 +54,16 @@
 | Anomalocaris (Écran de Sélection) | Anomalocaris (Combat 3D) |
 | :---: | :---: |
 | ![Anomalocaris Sélection](screenshots/anomalocaris_select_screen.png) | ![Anomalocaris Combat](screenshots/anomalocaris_in_match.png) |
+
+---
+
+## 🆕 Notes de Patch — v0.3.1
+
+* **Finalisation des 16 Combattants `.glb`** : Ajout des modèles sculptés sous Blender (`assets/models/fighters/`), cartes PBR 1024×1024 et plans SVG pour **T-Rex**, **Pachyrhinosaure** et **Quetzalcoatlus** (`build_batch5_apex.py`, `trex_sculptor.py`, `generate_trex_pbr_textures.py`) et ajustement des animations associées.
+* **19 Sbires de Campagne `.glb`** : Sculpture et rigging de l'ensemble des 19 ennemis de vagues (`assets/models/minions/*.glb` via `tools/blender/build_minions_glb.py`) avec animations de pattes, bras, tête, ailes et lobes natatoires pilotées par `EraMinion3D`.
+* **11 Boss & Objets de Campagne `.glb`** : Ajout de 6 boss uniques d'ères (`boss_cameroceras`, `boss_jaekelopterus`, `boss_dunkleosteus`, `boss_dimetrodon`, `boss_pyroclast`, `boss_wendigo`) et 5 pickups/dangers (`pickup_meat`, `pickup_amber`, `hazard_meteor`, `hazard_boulder`, `hazard_icicle`) dans `assets/models/campaign/*.glb` (`tools/blender/build_campaign_bosses_glb.py`), préchargés via `preloadAllCampaignGLBs()`.
+* **Suppression des Anciens Modèles Procéduraux** : Retrait complet de l'ancien code de géométrie procédurale héritée pour les 16 combattants (`js/fighters/*.js`, `js/core/rig.js`, `js/core/animation.js`), ainsi que pour les sbires, pickups, dangers et le boss *Anomalocaris* (`js/core/campaign-level.js`), remplacés exclusivement par les 46 modèles Blender `.glb`.
+* **Outillage & Lancement** : Extension de `tools/test_glb_models.js` à l'ensemble des 46 modèles `.glb` (combattants, sbires et campagne) et ajout du lanceur Windows `start.bat`.
 
 ---
 
@@ -140,13 +150,17 @@ Le jeu est découpé de manière modulaire (animations par combattant, modules d
 ```text
 ExtinctionFighter/
 ├── index.html                 # Point d'entrée HTML5
-├── start.sh                   # Lanceur serveur HTTP local sans cache (WebGL & GLB)
+├── start.sh                   # Lanceur serveur HTTP local sans cache Linux/macOS (WebGL & GLB)
+├── start.bat                  # Lanceur serveur HTTP local sans cache Windows (WebGL & GLB)
 ├── README.md                  # Documentation complète du jeu
 ├── css/
 │   └── style.css              # Styles arcade, animations CSS & thèmes de pierre
 ├── assets/                    # Ressources graphiques & 3D
 │   ├── mockups/               # Décors de fond HD (menus, carte de campagne, settings)
-│   ├── models/fighters/       # Modèles 3D GLB exportés depuis Blender (13 combattants)
+│   ├── models/                # 46 modèles 3D GLB exportés depuis Blender
+│   │   ├── fighters/          # 16 combattants (.glb)
+│   │   ├── minions/           # 19 types d'ennemis de campagne (.glb)
+│   │   └── campaign/          # 6 boss uniques d'ères & 5 pickups/dangers (.glb)
 │   ├── portraits/             # Portraits haute résolution de chaque créature
 │   ├── svg/                   # Plans anatomiques, emblèmes et textures vectorielles SVG
 │   ├── textures/fighters/     # Cartes PBR albedo & bump 1024x1024 par espèce
@@ -243,9 +257,13 @@ ExtinctionFighter/
 
 1. **Via le script lanceur inclus** *(recommandé pour le chargement des modèles 3D `.glb` sans cache)* :
    ```bash
+   # Linux / macOS
    ./start.sh
+
+   # Windows (ou double-clic sur start.bat)
+   start.bat
    ```
-   *(Options utiles : `./start.sh --unlock-all` pour débloquer immédiatement les 16 combattants sur l'écran de sélection.)*
+   *(Options utiles : `--unlock-all` sur `start.sh` ou `start.bat` pour débloquer immédiatement les 16 combattants sur l'écran de sélection.)*
 
 2. **Via un serveur local HTTP** :
    ```bash
@@ -257,15 +275,15 @@ ExtinctionFighter/
    ```
    Rendez-vous ensuite sur `http://localhost:8080`.
 
-3. **Directement dans le navigateur** :
-   Ouvrez le fichier `index.html` dans un navigateur moderne (utilise le fallback procédural Three.js si ouvert en `file://`).
+3. **Directement en HTTP local uniquement pour les `.glb`** :
+   Ouvrez le jeu via un serveur HTTP local (`./start.sh`, `start.bat`, `python3 -m http.server` ou `npx serve .`) afin que Three.js puisse charger l'ensemble des 46 modèles 3D `.glb` (CORS bloque le chargement de fichiers `.glb` en `file://`).
 
 ---
 
 ## 📜 Technologies Utilisées
 
 * **Moteur 3D WebGL** : [Three.js](https://threejs.org/) (`three.min.js` + `GLTFLoader.js`)
-* **Modélisation & Pipeline 3D** : Blender + Python (`tools/blender/` & `tools/generate_species_svgs.py`) pour la génération de textures PBR, plans SVG, rigging squelettique et export `.glb` (`assets/models/fighters/`)
+* **Modélisation & Pipeline 3D** : Blender + Python (`tools/blender/` & `tools/generate_species_svgs.py`) pour la génération de textures PBR, plans SVG, rigging squelettique et export exclusif des 46 modèles `.glb` (`assets/models/fighters/`, `assets/models/minions/`, `assets/models/campaign/`)
 * **Système UI & Composants Spatiaux** : [`@pmndrs/uikit`](https://pmndrs.github.io/uikit/) avec signaux réactifs `@preact/signals-core` et layout Flexbox Yoga-compatible
 * **Pipeline d'Intelligence Artificielle en 4 Étapes** :
   * Étape 1 : **Three-Pathfinding** (`three-pathfinding`) et **Kompute Tactical** (analyse spatiale, sweet-spotting et esquive de projectiles)

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_quetzal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#242629"/>
+      <stop offset="45%" stop-color="#52555a"/>
+      <stop offset="100%" stop-color="#a89f90"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_quetzal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8f7454"/>
+      <stop offset="100%" stop-color="#383b40"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Quetzalcoatlus northropi -->
+  <g id="layer-body-side">
+    <path d="M 320,345 C 375,285 485,275 565,305 C 605,322 615,368 575,392 C 505,412 375,408 320,368 Z" fill="url(#bodyGrad_quetzal)" stroke="#242629" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 705,135 L 985,175 L 978,195 L 705,192 Z" fill="#52555a" stroke="#242629" stroke-width="4"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 325,348 L 255,355 L 265,372 L 332,368 Z" fill="#383b40" stroke="#242629" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <path d="M 565,318 L 708,142 L 732,175 L 588,358 Z" fill="#8f7454" fill-opacity="0.82" stroke="#242629" stroke-width="3"/>
+    <path d="M 705,140 L 625,105 L 738,145 Z" fill="#8f7454" fill-opacity="0.82" stroke="#242629" stroke-width="3"/>
+    <path d="M 545,308 L 415,115 L 245,255 L 365,355 L 505,358 Z" fill="#8f7454" fill-opacity="0.82" stroke="#242629" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 320,500 C 375,430 505,415 585,465 C 610,482 615,518 585,535 C 505,585 375,570 320,500 Z" fill="#52555a" fill-opacity="0.28" stroke="#8f7454" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

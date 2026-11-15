@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_trex" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9e8c68"/>
+      <stop offset="55%" stop-color="#48523d"/>
+      <stop offset="100%" stop-color="#2e3628"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 270,315 C 185,295 100,285 20,275 L 25,305 C 110,335 190,355 280,368 Z" fill="#2e3628"/>
+    <path d="M 260,310 C 350,210 535,190 675,235 C 745,258 780,315 765,372 C 675,418 400,425 275,375 Z" fill="url(#emblem_trex)"/>
+    <path d="M 735,165 C 790,115 910,120 965,168 C 972,195 948,238 890,248 L 765,242 Z" fill="#48523d"/>
+    <path d="M 790,145 L 828,118 L 855,148 Z" fill="#9e8c68"/>
+    <path d="M 768,242 L 938,248 L 912,285 L 758,282 Z" fill="#9e8c68"/>
+    <path d="M 655,355 L 692,415 L 722,428 L 705,392 Z" fill="#9e8c68"/>
+  </g>
+</svg>

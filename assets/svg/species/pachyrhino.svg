@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_pachyrhino" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2c1911"/>
+      <stop offset="45%" stop-color="#734a36"/>
+      <stop offset="100%" stop-color="#a38e73"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_pachyrhino" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a89278"/>
+      <stop offset="100%" stop-color="#42281c"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Pachyrhinosaurus canadensis -->
+  <g id="layer-body-side">
+    <path d="M 225,335 C 270,210 445,165 625,195 C 735,215 795,270 810,340 C 795,388 710,410 565,412 L 265,395 Z" fill="url(#bodyGrad_pachyrhino)" stroke="#2c1911" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 775,240 C 835,195 925,215 968,275 C 972,315 942,355 885,362 L 778,348 Z" fill="#734a36" stroke="#2c1911" stroke-width="4"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 232,332 L 135,345 L 48,378 L 58,398 L 155,378 L 245,375 Z" fill="#42281c" stroke="#2c1911" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <path d="M 785,250 C 745,135 660,92 612,125 C 635,195 685,255 752,295 Z" fill="#a89278" fill-opacity="0.82" stroke="#2c1911" stroke-width="3"/>
+    <path d="M 642,115 L 592,68 L 668,108 Z" fill="#a89278" fill-opacity="0.82" stroke="#2c1911" stroke-width="3"/>
+    <path d="M 865,222 C 895,198 948,208 962,248 L 875,258 Z" fill="#a89278" fill-opacity="0.82" stroke="#2c1911" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 230,500 C 285,355 455,320 635,348 C 755,368 805,435 805,500 C 805,565 755,632 635,652 C 455,680 285,645 230,500 Z" fill="#734a36" fill-opacity="0.28" stroke="#a89278" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

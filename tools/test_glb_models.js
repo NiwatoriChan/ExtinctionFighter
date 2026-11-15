@@ -25,6 +25,48 @@ const EXPECTED_BONES = {
     stegosaurus: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Arm0', 'Bone_Arm1', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Tail0', 'Bone_Tail3'],
     terabird: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Arm0', 'Bone_Arm1', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Tail0'],
     therizino: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Arm0', 'Bone_Arm1', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Tail0', 'Bone_Tail2'],
+    trex: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Arm0', 'Bone_Arm1', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Tail0', 'Bone_Tail3'],
+    pachyrhino: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Leg2', 'Bone_Leg3', 'Bone_Tail0', 'Bone_Tail2'],
+    quetzal: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Tail0', 'Bone_Arm0', 'Bone_Arm1', 'Special_LeftWing', 'Special_RightWing'],
+};
+
+const MINION_MODEL_DIR = path.join(ROOT, 'assets', 'models', 'minions');
+const CAMPAIGN_MODEL_DIR = path.join(ROOT, 'assets', 'models', 'campaign');
+
+const EXPECTED_MINION_NODES = {
+    cambrian_trilobite: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Leg0', 'Antennule0', 'TailFan'],
+    opabinia_radiodont_elite: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'FlapL0', 'FlapR0', 'Proboscis', 'ProbClaw0', 'ProbClaw1', 'TailFan'],
+    orthoceras: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Arm0', 'Proboscis', 'TailFan'],
+    eurypterid: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Arm0', 'Leg0', 'FlapL0', 'TailFan'],
+    jawless_fish: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'FlapL0', 'TailFan'],
+    shark_placoderm: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'FlapL0', 'TailFan'],
+    bothriolepis: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Arm0', 'TailFan'],
+    meganeura: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'WingPivot0', 'WingPivot3', 'Leg0', 'TailFan'],
+    arthropleura: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Seg0', 'Seg5', 'Leg0', 'Antennule0', 'TailFan'],
+    synapsid: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Leg0', 'Leg3', 'TailFan'],
+    scutosaurus: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Leg0', 'Leg3', 'TailFan'],
+    raptor: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Arm0', 'Leg0', 'Leg1', 'TailFan'],
+    triassic_hound: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Leg0', 'Leg3', 'TailFan'],
+    dino_tank: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Leg0', 'Leg3', 'TailFan'],
+    magma_ceratopsian: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Leg0', 'Leg3', 'TailFan'],
+    mammal: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Leg0', 'Leg3', 'TailFan'],
+    serpent: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Seg0', 'Seg5', 'TailFan'],
+    bird_pterosaur: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'WingPivot0', 'WingPivot1', 'Leg0', 'TailFan'],
+    glacier_panther: ['Minion_Root', 'Body_Main', 'Head_Pivot', 'Leg0', 'Leg3', 'TailFan'],
+};
+
+const EXPECTED_CAMPAIGN_NODES = {
+    boss_cameroceras: EXPECTED_BONES.spinosaurus.concat(['Special_Sail']),
+    boss_jaekelopterus: EXPECTED_BONES.pulmonoscorpius.concat(['Special_Stinger']),
+    boss_dunkleosteus: EXPECTED_BONES.postosuchus,
+    boss_dimetrodon: EXPECTED_BONES.postosuchus.concat(['Special_Sail']),
+    boss_pyroclast: EXPECTED_BONES.trex,
+    boss_wendigo: EXPECTED_BONES.giantsloth,
+    pickup_meat: ['Prop_Root'],
+    pickup_amber: ['Prop_Root'],
+    hazard_meteor: ['Prop_Root'],
+    hazard_boulder: ['Prop_Root'],
+    hazard_icicle: ['Prop_Root'],
 };
 
 function parseGlbJson(filePath) {
@@ -41,33 +83,46 @@ function parseGlbJson(filePath) {
     return { size: buf.length, json: JSON.parse(jsonStr) };
 }
 
-let failures = 0;
-for (const [fid, reqNodes] of Object.entries(EXPECTED_BONES)) {
-    const glbPath = path.join(MODEL_DIR, `${fid}.glb`);
-    if (!fs.existsSync(glbPath)) {
-        console.error(`FAIL [${fid}]: missing ${glbPath}`);
-        failures++;
-        continue;
-    }
-    try {
-        const { size, json } = parseGlbJson(glbPath);
-        const names = new Set((json.nodes || []).map((n) => n.name).filter(Boolean));
-        const missing = reqNodes.filter((b) => !names.has(b));
-        const meshes = (json.meshes || []).length;
-        if (missing.length > 0 || meshes === 0) {
-            console.error(`FAIL [${fid}]: missing bones [${missing.join(', ')}], meshes=${meshes}`);
-            failures++;
-        } else {
-            console.log(`PASS [${fid}]: ${(size / 1024).toFixed(1)} KB, nodes=${names.size}, meshes=${meshes}`);
+function verifyGlbBatch(label, dir, expectedMap) {
+    let batchFailures = 0;
+    console.log(`\n=== Verifying ${Object.keys(expectedMap).length} ${label} GLB models ===`);
+    for (const [id, reqNodes] of Object.entries(expectedMap)) {
+        const glbPath = path.join(dir, `${id}.glb`);
+        if (!fs.existsSync(glbPath)) {
+            console.error(`FAIL [${id}]: missing ${glbPath}`);
+            batchFailures++;
+            continue;
         }
-    } catch (err) {
-        console.error(`FAIL [${fid}]: ${err.message}`);
-        failures++;
+        try {
+            const { size, json } = parseGlbJson(glbPath);
+            const names = new Set((json.nodes || []).map((n) => n.name).filter(Boolean));
+            const missing = reqNodes.filter((b) => !names.has(b));
+            const meshes = (json.meshes || []).length;
+            if (missing.length > 0 || meshes === 0) {
+                console.error(`FAIL [${id}]: missing nodes [${missing.join(', ')}], meshes=${meshes}`);
+                batchFailures++;
+            } else {
+                console.log(`PASS [${id}]: ${(size / 1024).toFixed(1)} KB, nodes=${names.size}, meshes=${meshes}`);
+            }
+        } catch (err) {
+            console.error(`FAIL [${id}]: ${err.message}`);
+            batchFailures++;
+        }
     }
+    return batchFailures;
 }
 
+const failures =
+    verifyGlbBatch('FIGHTER', MODEL_DIR, EXPECTED_BONES) +
+    verifyGlbBatch('MINION', MINION_MODEL_DIR, EXPECTED_MINION_NODES) +
+    verifyGlbBatch('CAMPAIGN', CAMPAIGN_MODEL_DIR, EXPECTED_CAMPAIGN_NODES);
+
 if (failures > 0) {
-    console.error(`\n${failures} fighter GLB check(s) failed.`);
+    console.error(`\n${failures} GLB check(s) failed.`);
     process.exit(1);
 }
-console.log(`\nALL ${Object.keys(EXPECTED_BONES).length} FIGHTER GLB MODELS VERIFIED!`);
+const totalVerified =
+    Object.keys(EXPECTED_BONES).length +
+    Object.keys(EXPECTED_MINION_NODES).length +
+    Object.keys(EXPECTED_CAMPAIGN_NODES).length;
+console.log(`\nALL ${totalVerified} GLB MODELS (FIGHTERS + MINIONS + CAMPAIGN) VERIFIED!`);

@@ -9,75 +9,45 @@ registerFighterAnimation('pachyrhino', {
     animateFatality(ctx) {
         const { fighter, rig, prog, baseHipsY, time } = ctx;
         const sp = rig.specialParts;
-        const pRig = sp && sp.pRig;
 
-        if (!sp || !pRig) return;
-
-        rig.torso.rotation.set(0, 0, 0);
-        rig.neck.rotation.set(0, 0, 0);
-        rig.legs.forEach(l => { if (l) l.rotation.set(0, 0, 0); });
-        rig.tailSegments.forEach(s => { if (s) s.rotation.set(0, 0, 0); });
-        rig.hips.position.y = baseHipsY || 1.65;
-
+        const by = baseHipsY || 1.65;
+        rig.hips.position.y = by;
         if (prog < 0.35) {
-            // Acte 1 : Recul d'armement, patte avant qui gratte furieusement la terre, tête baissée en bélier
             const p = prog / 0.35;
-            sp.applyPoseMode('crouch', time);
+            const paw = Math.sin(prog * 46);
             rig.hips.position.x = -1.2 * p;
-
-            const pawCycle = Math.sin(prog * 48);
-            pRig.rootJoint.position.set(0, 1.36, 0);
-            pRig.rootJoint.rotation.set(0.22, Math.sin(prog * 24) * 0.05, 0);
-
-            pRig.neckSegments.forEach((seg, i) => {
-                seg.rotation.set(0.08 + i * 0.025, 0, 0);
-            });
-            pRig.setHeadRot(0.44, Math.sin(prog * 24) * 0.08, 0);
-            pRig.setJawRot(0.32 + Math.abs(pawCycle) * 0.25);
-
-            // La patte avant droite gratte le sol avant la charge
-            pRig.setForelimbPose(pRig.rightFrontLeg, pawCycle * 0.55, Math.max(0, pawCycle) * 0.65, -0.25, 0.28, 0.06);
-            pRig.setForelimbPose(pRig.leftFrontLeg, 0.12, 0.18, -0.10, 0.28, 0.06);
-
-            sp.updateAnatomicalSkin(time, fighter, 'crouch');
-
+            rig.hips.position.y = by - 0.18;
+            rig.torso.rotation.z = -0.22;
+            rig.headGroup.rotation.z = -0.44;
+            rig.jaw.rotation.z = -0.28 - Math.abs(paw) * 0.22;
+            if (rig.legs[1]) rig.legs[1].rotation.z = paw * 0.58;
         } else if (prog < 0.65) {
-            // Acte 2 : Charge polaire foudroyante à travers l'arène
             const p = (prog - 0.35) / 0.30;
-            sp.applyPoseMode('sprint', time, { isSprint: true, strideSpeed: 22.0, strideAmp: 1.45 });
+            const g = Math.sin(prog * 40);
             rig.hips.position.x = -1.2 + p * 3.0;
-
-            pRig.rootJoint.position.set(0, 1.38, 0.18);
-            pRig.rootJoint.rotation.set(0.28, 0, 0);
-
-            pRig.neckSegments.forEach((seg, i) => {
-                seg.rotation.set(0.10 + i * 0.03, 0, 0);
-            });
-            pRig.setHeadRot(0.48, 0, 0);
-            pRig.setJawRot(0.42);
-
-            sp.updateAnatomicalSkin(time, fighter, 'sprint');
-
+            rig.hips.position.y = by - 0.14;
+            rig.torso.rotation.z = -0.26;
+            rig.headGroup.rotation.z = -0.48;
+            rig.jaw.rotation.z = -0.38;
+            if (rig.legs.length >= 4) {
+                rig.legs[0].rotation.z = g * 0.65;
+                rig.legs[3].rotation.z = g * 0.65;
+                rig.legs[1].rotation.z = -g * 0.65;
+                rig.legs[2].rotation.z = -g * 0.65;
+            }
         } else {
-            // Acte 3 : Impact cataclysmique, projection vers le ciel et cabré de triomphe cératopsien
             const p = (prog - 0.65) / 0.35;
-            sp.applyPoseMode('display', time);
-            rig.hips.position.x = 1.8;
-
             const rearLift = Math.sin(Math.min(1, p * 1.4) * Math.PI * 0.5);
-            pRig.rootJoint.position.set(0, 1.72 + rearLift * 0.22, 0);
-            pRig.rootJoint.rotation.set(-0.32 * rearLift, 0, 0);
-
-            pRig.neckSegments.forEach((seg, i) => {
-                seg.rotation.set(-0.12 - i * 0.035, 0, 0);
-            });
-            pRig.setHeadRot(-0.74 * rearLift, Math.sin(time * 12) * 0.12, 0);
-            pRig.setJawRot(0.72);
-
-            pRig.setForelimbPose(pRig.leftFrontLeg, -0.42 * rearLift, 0.55, -0.25, 0, 0.08);
-            pRig.setForelimbPose(pRig.rightFrontLeg, -0.32 * rearLift, 0.48, -0.22, 0, 0.08);
-
-            sp.updateAnatomicalSkin(time, fighter, 'display');
+            rig.hips.position.x = 1.8;
+            rig.hips.position.y = by + rearLift * 0.22;
+            rig.torso.rotation.z = 0.36 * rearLift;
+            rig.headGroup.rotation.z = 0.68 * rearLift;
+            rig.headGroup.rotation.y = Math.sin(prog * 22) * 0.14;
+            rig.jaw.rotation.z = -0.68;
+            if (rig.legs.length >= 2) {
+                rig.legs[0].rotation.z = 0.48 * rearLift;
+                rig.legs[1].rotation.z = 0.40 * rearLift;
+            }
         }
     },
 

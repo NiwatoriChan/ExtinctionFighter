@@ -53,6 +53,9 @@ function bootGame() {
     if (typeof preloadAllFighterGLBs === 'function') {
         preloadAllFighterGLBs();
     }
+    if (typeof preloadAllCampaignGLBs === 'function') {
+        preloadAllCampaignGLBs();
+    }
 
     // Appliquer les paramètres graphiques initiaux (par défaut "high")
     if (typeof applyGraphicsSettings === 'function') {

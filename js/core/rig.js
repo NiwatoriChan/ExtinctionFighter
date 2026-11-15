@@ -26,11 +26,6 @@ function createDino3DRig(dino, skinIndex = 0) {
         roughness: 0.48,
         metalness: 0.04
     });
-    const boneMat = new THREE.MeshStandardMaterial({
-        color: 0xfef3c7,
-        roughness: 0.4
-    });
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
     const shieldMat = new THREE.MeshBasicMaterial({
         color: 0xf59e0b,
         transparent: true,
@@ -39,16 +34,6 @@ function createDino3DRig(dino, skinIndex = 0) {
     });
 
     const skinMeshes = [];
-    function addMesh(geo, mat, parent, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
-        const m = new THREE.Mesh(geo, mat);
-        m.position.set(x, y, z);
-        m.rotation.set(rx, ry, rz);
-        m.castShadow = true;
-        m.receiveShadow = true;
-        parent.add(m);
-        if (mat === bodyMat || mat === darkMat) skinMeshes.push(m);
-        return m;
-    }
 
     // Structure des articulations communes et spécifiques
     const rig = {
@@ -217,48 +202,62 @@ function createDino3DRig(dino, skinIndex = 0) {
     rig.skeletonGroup.visible = false;
     hips.add(rig.skeletonGroup);
 
-    // --- CONSTRUCTION 3D PAR ESPÈCE (GLB BLENDER EN PRIORITÉ, FALLBACK PROCÉDURAL) ---
-    const cachedGlb = (typeof FIGHTER_GLB_CACHE !== 'undefined' && dino && dino.id) ? FIGHTER_GLB_CACHE[dino.id] : null;
-    if (cachedGlb && typeof hydrateRigFromGLB === 'function') {
-        hydrateRigFromGLB(rig, dino, skin, cachedGlb);
-    } else {
-        const fighterImpl = FIGHTER_IMPLS[dino.id];
-        if (fighterImpl && fighterImpl.buildRig) {
-            fighterImpl.buildRig({ dino, skin, root, hips, rig, addMesh, bodyMat, darkMat, accentMat, boneMat, eyeMat, shieldMat, skinMeshes });
+    // --- CONSTRUCTION 3D PAR ESPÈCE (MODÈLES BLENDER .GLB UNIQUEMENT) ---
+    const reportMissingModel = (err) => {
+        if (typeof reportGlbLoadError === 'function') {
+            reportGlbLoadError(dino && dino.id, err);
+        } else {
+            console.error('[ExtinctionFighter] Échec chargement modèle GLB :', err);
         }
+    };
 
-        // Nommage standardisé des nœuds d'articulation pour THREE.AnimationMixer & ColliderRig (Update 2.0)
+    const useBossGlb = Boolean(dino && dino.bossGlbId);
+    const glbAssetId = useBossGlb ? dino.bossGlbId : (dino && dino.id);
+    const cachedGlb = useBossGlb
+        ? ((typeof CAMPAIGN_GLB_CACHE !== 'undefined') ? CAMPAIGN_GLB_CACHE[glbAssetId] : null)
+        : ((typeof FIGHTER_GLB_CACHE !== 'undefined' && glbAssetId) ? FIGHTER_GLB_CACHE[glbAssetId] : null);
+
+    if (cachedGlb && typeof hydrateRigFromGLB === 'function') {
+        if (!hydrateRigFromGLB(rig, dino, skin, cachedGlb)) {
+            reportMissingModel(new Error(`Hydratation GLB impossible pour "${glbAssetId}"`));
+        }
+    } else {
+        // Nommage standardisé et pose de repos initiale en attendant l'hydratation GLB asynchrone
         root.name = 'Bone_Root';
         hips.name = 'Bone_Hips';
         rig.torso.name = 'Bone_Torso';
         rig.neck.name = 'Bone_Neck';
         rig.headGroup.name = 'Bone_Head';
         rig.jaw.name = 'Bone_Jaw';
-        rig.legs.forEach((leg, idx) => { if (leg) leg.name = `Bone_Leg${idx}`; });
-        rig.arms.forEach((arm, idx) => { if (arm) arm.name = `Bone_Arm${idx}`; });
-        rig.tailSegments.forEach((seg, idx) => { if (seg) seg.name = `Bone_Tail${idx}`; });
 
-        // Sauvegarde de la pose de repos initiale (Rest Pose) pour éviter toute dérive de position/échelle entre les mouvements
         rig.restPose = {
             hipsPos: hips.position.clone(),
             torsoPos: rig.torso.position.clone(),
             neckPos: rig.neck.position.clone(),
             headPos: rig.headGroup.position.clone(),
             jawPos: rig.jaw.position.clone(),
-            armsPos: rig.arms.map(a => a ? a.position.clone() : null),
-            legsPos: rig.legs.map(l => l ? l.position.clone() : null),
-            tailPos: rig.tailSegments.map(s => s ? s.position.clone() : null),
-            neckSegmentsPos: (rig.specialParts && rig.specialParts.neckSegments)
-                ? rig.specialParts.neckSegments.map(n => n.position.clone())
-                : null
+            armsPos: [],
+            legsPos: [],
+            tailPos: [],
+            neckSegmentsPos: null
         };
 
-        // Hydratation asynchrone automatique dès que le modèle Blender .glb est chargé
-        if (typeof loadFighterGLB === 'function' && dino && dino.id) {
-            loadFighterGLB(dino.id).then((gltf) => {
-                if (gltf && !rig._isGlbHydrated && typeof hydrateRigFromGLB === 'function') {
-                    hydrateRigFromGLB(rig, dino, skin, gltf);
+        const glbLoaderFn = useBossGlb
+            ? (typeof loadCampaignGLB === 'function' ? loadCampaignGLB : null)
+            : (typeof loadFighterGLB === 'function' ? loadFighterGLB : null);
+
+        if (!glbLoaderFn || typeof hydrateRigFromGLB !== 'function' || !glbAssetId) {
+            reportMissingModel(new Error(`Chargeur GLB indisponible pour "${glbAssetId}"`));
+        } else {
+            glbLoaderFn(glbAssetId).then((gltf) => {
+                if (!rig._isGlbHydrated) {
+                    const ok = hydrateRigFromGLB(rig, dino, skin, gltf);
+                    if (!ok) {
+                        reportMissingModel(new Error(`Hydratation GLB impossible pour "${glbAssetId}"`));
+                    }
                 }
+            }).catch((err) => {
+                reportMissingModel(err);
             });
         }
     }

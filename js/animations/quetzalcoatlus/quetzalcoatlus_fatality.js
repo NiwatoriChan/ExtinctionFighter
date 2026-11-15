@@ -7,23 +7,25 @@ registerFighterAnimation('quetzal', {
     animateFatality(ctx) {
         const { fighter, rig, prog, baseHipsY, time } = ctx;
         const sp = rig.specialParts;
-        const qRig = sp && sp.qRig;
 
         rig.hips.position.y = baseHipsY + Math.sin(prog * Math.PI) * 4.5;
 
-        if (sp && qRig) {
-            sp.applyPoseMode('soar', time || (prog * 6.0), {
-                flapFreq: 8.5,
-                flapAmp: 1.35,
-                rootY: 2.05
-            });
-            qRig.rootJoint.rotation.x = 0.22;
-            qRig.neckSegments.forEach((seg, i) => {
-                seg.rotation.set(i === 0 ? 0.24 : 0.04, 0, 0);
-            });
-            qRig.setHeadRot(-0.28, 0, 0);
-            qRig.setJawRot(0.35);
-            sp.updateAnatomicalSkin(time || (prog * 6.0), fighter, 'soar');
+        const flap = Math.sin((time || prog * 6.0) * 10.5) * 0.68;
+        rig.torso.rotation.z = -0.18;
+        rig.neck.rotation.z = -0.14;
+        rig.headGroup.rotation.z = 0.22;
+        rig.jaw.rotation.z = -0.35;
+        if (sp.leftWing && sp.rightWing) {
+            sp.leftWing.rotation.set(flap, 0.20, 0);
+            sp.rightWing.rotation.set(-flap, -0.20, 0);
+        }
+        if (rig.arms.length >= 2) {
+            rig.arms[0].rotation.set(0, 0, 0);
+            rig.arms[1].rotation.set(0, 0, 0);
+        }
+        if (rig.legs.length >= 2) {
+            rig.legs[0].rotation.z = -0.52;
+            rig.legs[1].rotation.z = -0.48;
         }
     },
 

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_quetzal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8f7454"/>
+      <stop offset="55%" stop-color="#52555a"/>
+      <stop offset="100%" stop-color="#383b40"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 325,348 L 255,355 L 265,372 L 332,368 Z" fill="#383b40"/>
+    <path d="M 320,345 C 375,285 485,275 565,305 C 605,322 615,368 575,392 C 505,412 375,408 320,368 Z" fill="url(#emblem_quetzal)"/>
+    <path d="M 705,135 L 985,175 L 978,195 L 705,192 Z" fill="#52555a"/>
+    <path d="M 565,318 L 708,142 L 732,175 L 588,358 Z" fill="#8f7454"/>
+    <path d="M 705,140 L 625,105 L 738,145 Z" fill="#8f7454"/>
+    <path d="M 545,308 L 415,115 L 245,255 L 365,355 L 505,358 Z" fill="#8f7454"/>
+  </g>
+</svg>

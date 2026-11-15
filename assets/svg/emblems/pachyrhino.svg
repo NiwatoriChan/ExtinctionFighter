@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_pachyrhino" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a89278"/>
+      <stop offset="55%" stop-color="#734a36"/>
+      <stop offset="100%" stop-color="#42281c"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 232,332 L 135,345 L 48,378 L 58,398 L 155,378 L 245,375 Z" fill="#42281c"/>
+    <path d="M 225,335 C 270,210 445,165 625,195 C 735,215 795,270 810,340 C 795,388 710,410 565,412 L 265,395 Z" fill="url(#emblem_pachyrhino)"/>
+    <path d="M 775,240 C 835,195 925,215 968,275 C 972,315 942,355 885,362 L 778,348 Z" fill="#734a36"/>
+    <path d="M 785,250 C 745,135 660,92 612,125 C 635,195 685,255 752,295 Z" fill="#a89278"/>
+    <path d="M 642,115 L 592,68 L 668,108 Z" fill="#a89278"/>
+    <path d="M 865,222 C 895,198 948,208 962,248 L 875,258 Z" fill="#a89278"/>
+  </g>
+</svg>

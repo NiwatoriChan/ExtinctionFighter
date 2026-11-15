@@ -10,7 +10,12 @@ then rasterizes the texture SVGs into 1024x1024 PBR PNG maps for Blender & GLB.
 import math
 import os
 import random
-import resvg_py
+import subprocess
+import sys
+try:
+    import resvg_py
+except ImportError:
+    resvg_py = None
 from PIL import Image
 import io
 
@@ -279,6 +284,68 @@ SPECIES_SPECS = {
             "M 615,242 L 455,65 L 325,135 L 385,225 L 485,245 Z",
         ],
     },
+    "trex": {
+        "sci": "Tyrannosaurus rex",
+        "primary": "#48523d",
+        "secondary": "#2e3628",
+        "dark": "#1c211a",
+        "belly": "#9e9780",
+        "accent": "#9e8c68",
+        "pattern": "tyrannosaur_scales",
+        "side_body": "M 260,310 C 350,210 535,190 675,235 C 745,258 780,315 765,372 C 675,418 400,425 275,375 Z",
+        "side_head": "M 735,165 C 790,115 910,120 965,168 C 972,195 948,238 890,248 L 765,242 Z",
+        "side_tail": "M 270,315 C 185,295 100,285 20,275 L 25,305 C 110,335 190,355 280,368 Z",
+        "top_body": "M 265,500 C 355,380 545,365 690,415 C 755,440 785,470 785,500 C 785,530 755,560 690,585 C 545,635 355,620 265,500 Z",
+        "extras": [
+            # Brow lacrimal horns & jugal boss
+            "M 790,145 L 828,118 L 855,148 Z",
+            # Deep hinged mandible
+            "M 768,242 L 938,248 L 912,285 L 758,282 Z",
+            # Vestigial didactyl forelimb
+            "M 655,355 L 692,415 L 722,428 L 705,392 Z",
+        ],
+    },
+    "pachyrhino": {
+        "sci": "Pachyrhinosaurus canadensis",
+        "primary": "#734a36",
+        "secondary": "#42281c",
+        "dark": "#2c1911",
+        "belly": "#a38e73",
+        "accent": "#a89278",
+        "pattern": "tubercles_stripes",
+        "side_body": "M 225,335 C 270,210 445,165 625,195 C 735,215 795,270 810,340 C 795,388 710,410 565,412 L 265,395 Z",
+        "side_head": "M 775,240 C 835,195 925,215 968,275 C 972,315 942,355 885,362 L 778,348 Z",
+        "side_tail": "M 232,332 L 135,345 L 48,378 L 58,398 L 155,378 L 245,375 Z",
+        "top_body": "M 230,500 C 285,355 455,320 635,348 C 755,368 805,435 805,500 C 805,565 755,632 635,652 C 455,680 285,645 230,500 Z",
+        "extras": [
+            # Tall armored parietosquamosal frill with occipital horns
+            "M 785,250 C 745,135 660,92 612,125 C 635,195 685,255 752,295 Z",
+            "M 642,115 L 592,68 L 668,108 Z",
+            # Massive keratinous nasal boss
+            "M 865,222 C 895,198 948,208 962,248 L 875,258 Z",
+        ],
+    },
+    "quetzal": {
+        "sci": "Quetzalcoatlus northropi",
+        "primary": "#52555a",
+        "secondary": "#383b40",
+        "dark": "#242629",
+        "belly": "#a89f90",
+        "accent": "#8f7454",
+        "pattern": "plumage_barbs",
+        "side_body": "M 320,345 C 375,285 485,275 565,305 C 605,322 615,368 575,392 C 505,412 375,408 320,368 Z",
+        "side_head": "M 705,135 L 985,175 L 978,195 L 705,192 Z",
+        "side_tail": "M 325,348 L 255,355 L 265,372 L 332,368 Z",
+        "top_body": "M 320,500 C 375,430 505,415 585,465 C 610,482 615,518 585,535 C 505,585 375,570 320,500 Z",
+        "extras": [
+            # Elongated rigid azhdarchid neck
+            "M 565,318 L 708,142 L 732,175 L 588,358 Z",
+            # Cranial sagittal crest
+            "M 705,140 L 625,105 L 738,145 Z",
+            # Folded wing spar & membrane silhouette
+            "M 545,308 L 415,115 L 245,255 L 365,355 L 505,358 Z",
+        ],
+    },
 }
 
 
@@ -422,7 +489,7 @@ def build_skin_texture_svgs(fid, spec):
                     f'<polygon points="{poly}" fill="rgb({b_lum},{b_lum},{b_lum})" stroke="#2a2a2a" stroke-width="2.2"/>'
                 )
 
-    elif pat in ("aquatic_stripes", "hadrosaur_bands", "tubercles_stripes"):
+    elif pat in ("aquatic_stripes", "hadrosaur_bands", "tubercles_stripes", "tyrannosaur_scales"):
         # Organic broken camouflage mottling & natural weathered flank patches (no rigid stacked rings)
         for s in range(26):
             yc = (s + rng.random() * 0.85) * (size / 26.0)
@@ -594,13 +661,26 @@ def build_skin_texture_svgs(fid, spec):
 
 
 def rasterize_svg_to_png(svg_str, out_png_path):
-    png_bytes = resvg_py.svg_to_bytes(svg_string=svg_str, width=1024, height=1024)
-    img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
-    img.save(out_png_path, format="PNG", optimize=True)
+    if resvg_py is not None:
+        png_bytes = resvg_py.svg_to_bytes(svg_string=svg_str, width=1024, height=1024)
+        img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
+        img.save(out_png_path, format="PNG", optimize=True)
+    else:
+        proc = subprocess.run(
+            ["rsvg-convert", "-w", "1024", "-h", "1024", "-f", "png", "-"],
+            input=svg_str.encode("utf-8"),
+            stdout=subprocess.PIPE,
+            check=True,
+        )
+        img = Image.open(io.BytesIO(proc.stdout)).convert("RGB")
+        img.save(out_png_path, format="PNG", optimize=True)
 
 
 def main():
+    only = set(sys.argv[1:]) if len(sys.argv) > 1 else None
     for fid, spec in SPECIES_SPECS.items():
+        if only and fid not in only:
+            continue
         blueprint_svg = build_species_blueprint_svg(fid, spec)
         with open(os.path.join(SVG_SPECIES_DIR, f"{fid}.svg"), "w", encoding="utf-8") as f:
             f.write(blueprint_svg)

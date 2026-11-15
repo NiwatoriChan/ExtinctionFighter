@@ -28,46 +28,27 @@ registerFighterAnimation('quetzal', {
         }
 
         const sp = rig.specialParts;
-        const qRig = sp && sp.qRig;
 
-        // --- MODE AU SOL (Posture d'échassier quadrupède sur métacarpiens repliés) ---
-        if (sp && typeof sp.applyPoseMode === 'function') {
-            sp.applyPoseMode('idle', time);
+        const breathe = Math.sin(time * 2.2);
+        const crouch = Boolean(fighter && fighter.isCrouching);
+        rig.hips.position.y = crouch ? baseHipsY * 0.72 : (baseHipsY + breathe * 0.028);
+        rig.torso.rotation.z = crouch ? -0.18 : (-0.06 + breathe * 0.025);
+        rig.neck.rotation.z = crouch ? 0.10 : (0.14 - breathe * 0.02);
+        rig.headGroup.rotation.z = crouch ? -0.12 : (-0.18 + Math.sin(time * 1.4) * 0.04);
+        rig.headGroup.rotation.y = Math.sin(time * 1.1) * 0.09;
+        rig.jaw.rotation.z = -0.04 - Math.max(0, Math.sin(time * 1.8)) * 0.06;
+        if (sp.leftWing && sp.rightWing) {
+            const sway = breathe * 0.04;
+            sp.leftWing.rotation.set(-0.62 + sway, 0.16, 0.22);
+            sp.rightWing.rotation.set(0.62 - sway, -0.16, 0.22);
         }
-
-        const freq = 2.2;
-        rig.hips.position.y = baseHipsY + Math.sin(time * freq) * 0.025;
-
-        // Posture d'accroupissement (Crouch) : abaissement quadrupède prêt au bond (Quad-Launch)
-        if (fighter && fighter.isCrouching && qRig) {
-            rig.hips.position.y = baseHipsY * 0.62;
-            qRig.rootJoint.position.y = 1.68;
-            qRig.rootJoint.rotation.x = -0.35;
-
-            qRig.neckSegments.forEach((seg, i) => {
-                const rx = i === 0 ? -0.18 : (i < 4 ? 0.02 : 0.06);
-                seg.rotation.set(rx, 0, 0);
-            });
-            qRig.setHeadRot(0.18, 0, 0);
-            qRig.setJawRot(0.08);
-
-            [qRig.leftWing, qRig.rightWing].forEach(w => {
-                const s = w.side;
-                w.shoulder.rotation.set(0.88, -s * 0.28, -s * 1.05);
-                w.elbow.rotation.set(0, 0, -s * 0.45);
-                w.wrist.rotation.set(0, 0, s * 0.22);
-                w.knuckle.rotation.set(0, s * 1.38, s * 1.98);
-            });
-
-            [qRig.leftLeg, qRig.rightLeg].forEach(l => {
-                l.hip.rotation.set(0.32, 0, 0);
-                l.knee.rotation.set(0.68, 0, 0);
-                l.ankle.rotation.set(-0.35, 0, 0);
-            });
+        if (rig.arms.length >= 2) {
+            rig.arms[0].rotation.set(1.38, 0.52, -0.28);
+            rig.arms[1].rotation.set(-1.38, -0.52, -0.28);
         }
-
-        if (sp && typeof sp.updateAnatomicalSkin === 'function') {
-            sp.updateAnatomicalSkin(time, fighter, 'idle');
+        if (rig.legs.length >= 2) {
+            rig.legs[0].rotation.z = crouch ? 0.26 : 0;
+            rig.legs[1].rotation.z = crouch ? 0.26 : 0;
         }
     }
 });

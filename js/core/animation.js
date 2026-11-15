@@ -5,7 +5,7 @@
 
 function animateDino3DRig(fighter, time, dt) {
     const rig = fighter.rig;
-    if (!rig) return;
+    if (!rig || !rig._isGlbHydrated) return;
     const id = fighter.dino.id;
     const act = fighter.action;
     const prog = fighter.actionDuration > 0 ? Math.min(1, fighter.actionTimer / fighter.actionDuration) : 0;
@@ -16,15 +16,8 @@ function animateDino3DRig(fighter, time, dt) {
     // 1. RÉINITIALISATION COMPLÈTE À LA POSE DE REPOS (REST POSE) À CHAQUE FRAME
     resetDino3DRig(fighter, rig, baseHipsY, time, dt);
 
-    const finishAnatomicalSkin = () => {
-        if (rig.specialParts && typeof rig.specialParts.updateAnatomicalSkin === 'function') {
-            rig.specialParts.updateAnatomicalSkin(time, fighter);
-        }
-    };
-
     // 2. RÉACTIONS DE COMBAT (X-RAY, MORT, DIZZY, CHOPE, KNOCKDOWN, HITSTUN, GARDE 3-VOIES)
     if (animateCombatReactions(fighter, rig, baseHipsY, act, time)) {
-        finishAnatomicalSkin();
         return;
     }
 
@@ -39,7 +32,6 @@ function animateDino3DRig(fighter, time, dt) {
 
         if (fighterImpl && fighterImpl.animateDash) {
             fighterImpl.animateDash({ fighter, rig, id, lunge, dashProg, isBackDash, baseHipsY, time });
-            finishAnatomicalSkin();
             return;
         }
     }
@@ -88,7 +80,6 @@ function animateDino3DRig(fighter, time, dt) {
                 if (rig.legs[1]) rig.legs[1].rotation.z = isRising ? -0.38 : -0.15;
             }
         }
-        finishAnatomicalSkin();
         return;
     }
 
@@ -135,7 +126,6 @@ function animateDino3DRig(fighter, time, dt) {
                 if (rig.legs[1]) rig.legs[1].rotation.z = -0.42;
             }
         }
-        finishAnatomicalSkin();
         return;
     }
 
@@ -153,7 +143,6 @@ function animateDino3DRig(fighter, time, dt) {
 
         // C. ENRICHISSEMENT BIOMÉCANIQUE POST-CHORÉGRAPHIE
         applyPostAttackBiomechanics(fighter, rig, id, act, prog, strike, swing, time);
-        finishAnatomicalSkin();
         return;
     }
 
@@ -161,5 +150,4 @@ function animateDino3DRig(fighter, time, dt) {
     if (act === 'fatality') {
         if (fighterImpl.animateFatality) fighterImpl.animateFatality(animCtx);
     }
-    finishAnatomicalSkin();
 }

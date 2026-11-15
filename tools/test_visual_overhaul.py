@@ -50,8 +50,8 @@ def make_driver():
 
 ALL_OVERHAULED = [
     "ankylo", "anomalocaris", "apato", "dragon", "giantsloth",
-    "maiasaura", "postosuchus", "pulmonoscorpius", "smilodon",
-    "spinosaurus", "stegosaurus", "terabird", "therizino",
+    "maiasaura", "pachyrhino", "postosuchus", "pulmonoscorpius", "quetzal",
+    "smilodon", "spinosaurus", "stegosaurus", "terabird", "therizino", "trex",
 ]
 
 
