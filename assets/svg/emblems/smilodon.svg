@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
   <defs>
     <linearGradient id="emblem_smilodon" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f5c26b"/>
-      <stop offset="55%" stop-color="#e69635"/>
-      <stop offset="100%" stop-color="#b86420"/>
+      <stop offset="0%" stop-color="#9c6c3b"/>
+      <stop offset="55%" stop-color="#b88448"/>
+      <stop offset="100%" stop-color="#85582d"/>
     </linearGradient>
   </defs>
   <g transform="translate(0, -15)">
-    <path d="M 268,318 C 215,310 185,325 162,348 L 178,364 C 205,345 232,338 272,345 Z" fill="#b86420"/>
+    <path d="M 268,318 C 215,310 185,325 162,348 L 178,364 C 205,345 232,338 272,345 Z" fill="#85582d"/>
     <path d="M 265,320 C 325,245 495,215 645,232 C 715,242 745,295 735,352 C 665,388 375,385 275,355 Z" fill="url(#emblem_smilodon)"/>
-    <path d="M 735,218 C 778,188 848,195 888,232 C 898,255 888,288 848,292 L 745,282 Z" fill="#e69635"/>
-    <path d="M 848,278 C 858,325 848,378 825,412 C 818,372 824,322 828,278 Z" fill="#f5c26b"/>
-    <path d="M 862,276 C 872,322 862,372 840,404 C 834,366 840,318 844,276 Z" fill="#f5c26b"/>
+    <path d="M 735,218 C 778,188 848,195 888,232 C 898,255 888,288 848,292 L 745,282 Z" fill="#b88448"/>
+    <path d="M 848,278 C 858,325 848,378 825,412 C 818,372 824,322 828,278 Z" fill="#9c6c3b"/>
+    <path d="M 862,276 C 872,322 862,372 840,404 C 834,366 840,318 844,276 Z" fill="#9c6c3b"/>
   </g>
 </svg>

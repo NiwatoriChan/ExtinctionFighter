@@ -77,14 +77,14 @@ def build_smilodon():
     clear_scene()
     fid = "smilodon"
     skin_mat = make_pbr_material(
-        "Mat_BodyPrimary", base_color=(0.94, 0.78, 0.62, 1.0), roughness=0.62, metallic=0.02,
+        "Mat_BodyPrimary", base_color=(0.46, 0.28, 0.12, 1.0), roughness=0.74, metallic=0.01,
         albedo_path=_tex(fid, "albedo"), bump_path=_tex(fid, "bump"), bump_strength=0.24
     )
-    belly_mat = make_pbr_material("Mat_Secondary", base_color=(0.90, 0.80, 0.64, 1.0), roughness=0.66, metallic=0.02)
-    dark_fur_mat = make_pbr_material("SmilodonDarkFurMat", base_color=(0.24, 0.15, 0.10, 1.0), roughness=0.70, metallic=0.02)
-    saber_mat = make_pbr_material("Mat_Accent", base_color=(0.96, 0.92, 0.84, 1.0), roughness=0.18, metallic=0.06)
-    nose_mat = make_pbr_material("SmilodonNoseMat", base_color=(0.24, 0.12, 0.10, 1.0), roughness=0.36, metallic=0.04)
-    iris_mat = make_pbr_material("Mat_Eye", base_color=(0.94, 0.62, 0.10, 1.0), roughness=0.14, emissive=(0.9, 0.5, 0.05), emissive_strength=0.18)
+    belly_mat = make_pbr_material("Mat_Secondary", base_color=(0.62, 0.52, 0.38, 1.0), roughness=0.78, metallic=0.01)
+    dark_fur_mat = make_pbr_material("SmilodonDarkFurMat", base_color=(0.07, 0.04, 0.02, 1.0), roughness=0.82, metallic=0.01)
+    saber_mat = make_pbr_material("Mat_Accent", base_color=(0.78, 0.72, 0.58, 1.0), roughness=0.22, metallic=0.02)
+    nose_mat = make_pbr_material("SmilodonNoseMat", base_color=(0.14, 0.06, 0.05, 1.0), roughness=0.42, metallic=0.02)
+    iris_mat = make_pbr_material("Mat_Eye", base_color=(0.70, 0.42, 0.08, 1.0), roughness=0.14, emissive=(0.55, 0.28, 0.04), emissive_strength=0.12)
     pupil_mat = make_pbr_material("Mat_Pupil", base_color=(0.02, 0.02, 0.02, 1.0), roughness=0.10)
 
     # Smilodon animBaseHipsY = 1.55
@@ -224,14 +224,14 @@ def build_giantsloth():
     clear_scene()
     fid = "giantsloth"
     fur_mat = make_pbr_material(
-        "Mat_BodyPrimary", base_color=(0.86, 0.72, 0.56, 1.0), roughness=0.80, metallic=0.02,
+        "Mat_BodyPrimary", base_color=(0.20, 0.12, 0.07, 1.0), roughness=0.84, metallic=0.0,
         albedo_path=_tex(fid, "albedo"), bump_path=_tex(fid, "bump"), bump_strength=0.30
     )
-    light_fur_mat = make_pbr_material("Mat_Secondary", base_color=(0.68, 0.52, 0.38, 1.0), roughness=0.78, metallic=0.02)
-    dark_fur_mat = make_pbr_material("SlothDarkFurMat", base_color=(0.28, 0.18, 0.12, 1.0), roughness=0.84, metallic=0.02)
-    snout_mat = make_pbr_material("SlothSnoutMat", base_color=(0.20, 0.15, 0.12, 1.0), roughness=0.52, metallic=0.03)
-    claw_mat = make_pbr_material("Mat_Accent", base_color=(0.94, 0.89, 0.76, 1.0), roughness=0.22, metallic=0.06)
-    iris_mat = make_pbr_material("Mat_Eye", base_color=(0.80, 0.48, 0.12, 1.0), roughness=0.18, emissive=(0.45, 0.22, 0.05), emissive_strength=0.12)
+    light_fur_mat = make_pbr_material("Mat_Secondary", base_color=(0.32, 0.22, 0.14, 1.0), roughness=0.82, metallic=0.0)
+    dark_fur_mat = make_pbr_material("SlothDarkFurMat", base_color=(0.06, 0.04, 0.02, 1.0), roughness=0.86, metallic=0.0)
+    snout_mat = make_pbr_material("SlothSnoutMat", base_color=(0.12, 0.09, 0.07, 1.0), roughness=0.56, metallic=0.01)
+    claw_mat = make_pbr_material("Mat_Accent", base_color=(0.62, 0.55, 0.40, 1.0), roughness=0.34, metallic=0.02)
+    iris_mat = make_pbr_material("Mat_Eye", base_color=(0.60, 0.36, 0.10, 1.0), roughness=0.18, emissive=(0.35, 0.18, 0.04), emissive_strength=0.10)
     pupil_mat = make_pbr_material("Mat_Pupil", base_color=(0.02, 0.02, 0.02, 1.0), roughness=0.12)
 
     # Megatherium animBaseHipsY = 1.85

@@ -1,29 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
   <defs>
     <linearGradient id="bodyGrad_apato" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2b2852"/>
-      <stop offset="45%" stop-color="#58569c"/>
-      <stop offset="100%" stop-color="#ced5f5"/>
+      <stop offset="0%" stop-color="#2c2b29"/>
+      <stop offset="45%" stop-color="#615f5c"/>
+      <stop offset="100%" stop-color="#9e998e"/>
     </linearGradient>
     <linearGradient id="accentGrad_apato" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#a78bfa"/>
-      <stop offset="100%" stop-color="#3b386b"/>
+      <stop offset="0%" stop-color="#756f64"/>
+      <stop offset="100%" stop-color="#474542"/>
     </linearGradient>
   </defs>
   <!-- Anatomical Reference Sheet: Apatosaurus ajax -->
   <g id="layer-body-side">
-    <path d="M 280,335 C 330,190 485,155 615,195 C 690,220 725,285 715,365 C 635,415 395,420 295,380 Z" fill="url(#bodyGrad_apato)" stroke="#2b2852" stroke-width="4"/>
+    <path d="M 280,335 C 330,190 485,155 615,195 C 690,220 725,285 715,365 C 635,415 395,420 295,380 Z" fill="url(#bodyGrad_apato)" stroke="#2c2b29" stroke-width="4"/>
   </g>
   <g id="layer-head-profile">
-    <path d="M 865,125 C 898,114 942,126 955,148 C 958,162 935,172 902,168 L 868,158 Z" fill="#58569c" stroke="#2b2852" stroke-width="4"/>
+    <path d="M 865,125 C 898,114 942,126 955,148 C 958,162 935,172 902,168 L 868,158 Z" fill="#615f5c" stroke="#2c2b29" stroke-width="4"/>
   </g>
   <g id="layer-tail-profile">
-    <path d="M 285,330 C 195,315 110,330 22,290 C 12,295 16,308 32,315 C 115,355 200,362 292,372 Z" fill="#3b386b" stroke="#2b2852" stroke-width="4"/>
+    <path d="M 285,330 C 195,315 110,330 22,290 C 12,295 16,308 32,315 C 115,355 200,362 292,372 Z" fill="#474542" stroke="#2c2b29" stroke-width="4"/>
   </g>
   <g id="layer-appendages">
-    <path d="M 665,235 C 735,195 805,150 875,132 L 882,165 C 815,195 755,255 705,315 Z" fill="#a78bfa" fill-opacity="0.82" stroke="#2b2852" stroke-width="3"/>
+    <path d="M 665,235 C 735,195 805,150 875,132 L 882,165 C 815,195 755,255 705,315 Z" fill="#756f64" fill-opacity="0.82" stroke="#2c2b29" stroke-width="3"/>
   </g>
   <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
-    <path d="M 280,500 C 345,360 495,335 625,375 C 695,400 725,455 725,500 C 725,545 695,600 625,625 C 495,665 345,640 280,500 Z" fill="#58569c" fill-opacity="0.28" stroke="#a78bfa" stroke-width="2" stroke-dasharray="8 6"/>
+    <path d="M 280,500 C 345,360 495,335 625,375 C 695,400 725,455 725,500 C 725,545 695,600 625,625 C 495,665 345,640 280,500 Z" fill="#615f5c" fill-opacity="0.28" stroke="#756f64" stroke-width="2" stroke-dasharray="8 6"/>
   </g>
 </svg>

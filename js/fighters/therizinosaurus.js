@@ -138,10 +138,10 @@ registerFighter({
     fullName: 'Therizinosaurus Cheloniformis',
     role: 'Faucheuse Préhistorique',
     title: '« Les Lames Vivantes de Mongolie »',
-    primaryColor: 0x0f172a,
-    secondaryColor: 0x020617,
-    accentColor: 0x10b981,
-    cssPrimary: '#0d9488',
+    primaryColor: 0x4d4238,
+    secondaryColor: 0x1f1a16,
+    accentColor: 0xb8aa8c,
+    cssPrimary: '#5c4e41',
     scale: 1.05,
     previewScale: 0.92,
     stats: { pow: 97, spd: 75, def: 82 },
@@ -153,7 +153,7 @@ registerFighter({
     moveStyle: 'Posture droite de bretteur, moulinets de faux d’un mètre, entailles fulgurantes en X.',
     fatalityDesc: 'Croise ses griffes géantes d’un mètre et exécute trois entailles fulgurantes en X qui découpent la cible et font voler sa tête.',
     skins: [
-        { name: 'Cyber Reaper', primary: 0x0f172a, secondary: 0x020617, accent: 0x10b981, claw: 0xf8fafc, isDefaultPBR: true }
+        { name: 'Nemegt Plumed Reaper', primary: 0x4d4238, secondary: 0x1f1a16, accent: 0xb8aa8c, claw: 0xc8bfa6, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 2.15,

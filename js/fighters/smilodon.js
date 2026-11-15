@@ -163,10 +163,10 @@ registerFighter({
     fullName: 'Smilodon Fatalis',
     role: 'Félin Machairodonte Apex',
     title: '« La Terreur Glaciaire du Pléistocène »',
-    primaryColor: 0xd97706,
-    secondaryColor: 0x1c1917,
-    accentColor: 0xfef3c7,
-    cssPrimary: '#f59e0b',
+    primaryColor: 0xb88448,
+    secondaryColor: 0x422b18,
+    accentColor: 0xd8cbb4,
+    cssPrimary: '#b88448',
     scale: 0.86,
     previewScale: 0.95,
     stats: { pow: 94, spd: 94, def: 80 },
@@ -179,8 +179,8 @@ registerFighter({
     fatalityDesc: 'Plaque sauvagement la victime au sol, rugit à pleins poumons et transperce la gorge avec ses canines sabres colossales.',
     isUnlockable: true,
     skins: [
-        { name: 'Saber Predator', primary: 0xd97706, secondary: 0x1c1917, accent: 0xfef3c7 },
-        { name: 'Glacial Ghost', primary: 0xe2e8f0, secondary: 0x334155, accent: 0xffffff }
+        { name: 'La Brea Tawny', primary: 0xb88448, secondary: 0x422b18, accent: 0xd8cbb4 },
+        { name: 'Glacial Ghost', primary: 0xcbd5e1, secondary: 0x475569, accent: 0xe2e8f0 }
     ]
 }, {
     animBaseHipsY: 1.55,

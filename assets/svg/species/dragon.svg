@@ -1,32 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
   <defs>
     <linearGradient id="bodyGrad_dragon" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2e2833"/>
-      <stop offset="45%" stop-color="#4f4857"/>
-      <stop offset="100%" stop-color="#a62424"/>
+      <stop offset="0%" stop-color="#2b252f"/>
+      <stop offset="45%" stop-color="#4a4350"/>
+      <stop offset="100%" stop-color="#8c2222"/>
     </linearGradient>
     <linearGradient id="accentGrad_dragon" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ff5e14"/>
-      <stop offset="100%" stop-color="#63525b"/>
+      <stop offset="0%" stop-color="#d94e14"/>
+      <stop offset="100%" stop-color="#5a4b52"/>
     </linearGradient>
   </defs>
   <!-- Anatomical Reference Sheet: Drak'Zul (Dracorex + Varanus + Patagium) -->
   <g id="layer-body-side">
-    <path d="M 265,335 C 335,235 495,215 645,245 C 715,262 745,315 735,368 C 655,405 385,408 275,375 Z" fill="url(#bodyGrad_dragon)" stroke="#2e2833" stroke-width="4"/>
+    <path d="M 265,335 C 335,235 495,215 645,245 C 715,262 745,315 735,368 C 655,405 385,408 275,375 Z" fill="url(#bodyGrad_dragon)" stroke="#2b252f" stroke-width="4"/>
   </g>
   <g id="layer-head-profile">
-    <path d="M 755,155 C 805,125 895,135 948,175 C 958,195 942,222 895,225 L 772,215 Z" fill="#4f4857" stroke="#2e2833" stroke-width="4"/>
+    <path d="M 755,155 C 805,125 895,135 948,175 C 958,195 942,222 895,225 L 772,215 Z" fill="#4a4350" stroke="#2b252f" stroke-width="4"/>
   </g>
   <g id="layer-tail-profile">
-    <path d="M 272,332 C 175,312 95,338 22,295 L 38,332 C 105,368 188,362 282,372 Z" fill="#63525b" stroke="#2e2833" stroke-width="4"/>
+    <path d="M 272,332 C 175,312 95,338 22,295 L 38,332 C 105,368 188,362 282,372 Z" fill="#5a4b52" stroke="#2b252f" stroke-width="4"/>
   </g>
   <g id="layer-appendages">
-    <path d="M 665,255 C 705,215 735,175 765,158 L 785,198 C 755,225 732,265 705,305 Z" fill="#ff5e14" fill-opacity="0.82" stroke="#2e2833" stroke-width="3"/>
-    <path d="M 778,148 L 705,88 L 795,138 Z" fill="#ff5e14" fill-opacity="0.82" stroke="#2e2833" stroke-width="3"/>
-    <path d="M 798,142 L 738,75 L 818,136 Z" fill="#ff5e14" fill-opacity="0.82" stroke="#2e2833" stroke-width="3"/>
-    <path d="M 615,242 L 455,65 L 325,135 L 385,225 L 485,245 Z" fill="#ff5e14" fill-opacity="0.82" stroke="#2e2833" stroke-width="3"/>
+    <path d="M 665,255 C 705,215 735,175 765,158 L 785,198 C 755,225 732,265 705,305 Z" fill="#d94e14" fill-opacity="0.82" stroke="#2b252f" stroke-width="3"/>
+    <path d="M 778,148 L 705,88 L 795,138 Z" fill="#d94e14" fill-opacity="0.82" stroke="#2b252f" stroke-width="3"/>
+    <path d="M 798,142 L 738,75 L 818,136 Z" fill="#d94e14" fill-opacity="0.82" stroke="#2b252f" stroke-width="3"/>
+    <path d="M 615,242 L 455,65 L 325,135 L 385,225 L 485,245 Z" fill="#d94e14" fill-opacity="0.82" stroke="#2b252f" stroke-width="3"/>
   </g>
   <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
-    <path d="M 265,500 C 335,395 505,375 655,405 C 720,425 748,465 748,500 C 748,535 720,575 655,595 C 505,625 335,605 265,500 Z" fill="#4f4857" fill-opacity="0.28" stroke="#ff5e14" stroke-width="2" stroke-dasharray="8 6"/>
+    <path d="M 265,500 C 335,395 505,375 655,405 C 720,425 748,465 748,500 C 748,535 720,575 655,595 C 505,625 335,605 265,500 Z" fill="#4a4350" fill-opacity="0.28" stroke="#d94e14" stroke-width="2" stroke-dasharray="8 6"/>
   </g>
 </svg>

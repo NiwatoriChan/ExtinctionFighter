@@ -131,10 +131,10 @@ registerFighter({
     fullName: 'Stegosaurus Stenops',
     role: 'Sentinelle à Plaques',
     title: '« Le Mur d’Épines et de Plaques »',
-    primaryColor: 0x16a34a,
-    secondaryColor: 0x14532d,
-    accentColor: 0xff5400,
-    cssPrimary: '#ea580c',
+    primaryColor: 0x6b6a46,
+    secondaryColor: 0x4b4a31,
+    accentColor: 0x8c4a2e,
+    cssPrimary: '#6b6a46',
     scale: 1.08,
     previewScale: 0.88,
     stats: { pow: 92, spd: 68, def: 95 },
@@ -146,7 +146,7 @@ registerFighter({
     moveStyle: 'Marche quadrupède rythmée par ses doubles rangées de plaques dorsales et ses 4 pointes caudales.',
     fatalityDesc: 'Pivote à 180° et empale le torse adverse de ses 4 pointes osseuses d’un mètre avant de projeter la dépouille.',
     skins: [
-        { name: 'Solar Stegosaur', primary: 0x16a34a, secondary: 0x14532d, accent: 0xff5400, belly: 0x86efac, isDefaultPBR: true }
+        { name: 'Olive Terracotta', primary: 0x6b6a46, secondary: 0x4b4a31, accent: 0x8c4a2e, belly: 0xa9a286, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 1.65,

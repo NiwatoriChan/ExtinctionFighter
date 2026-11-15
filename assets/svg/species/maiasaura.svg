@@ -1,29 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
   <defs>
     <linearGradient id="bodyGrad_maiasaura" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0d4c38"/>
-      <stop offset="45%" stop-color="#26b37d"/>
-      <stop offset="100%" stop-color="#b8f7dc"/>
+      <stop offset="0%" stop-color="#2f3425"/>
+      <stop offset="45%" stop-color="#6a7355"/>
+      <stop offset="100%" stop-color="#b5ad93"/>
     </linearGradient>
     <linearGradient id="accentGrad_maiasaura" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#f97316"/>
-      <stop offset="100%" stop-color="#12684d"/>
+      <stop offset="0%" stop-color="#9e7348"/>
+      <stop offset="100%" stop-color="#4c533c"/>
     </linearGradient>
   </defs>
   <!-- Anatomical Reference Sheet: Maiasaura peeblesorum -->
   <g id="layer-body-side">
-    <path d="M 275,335 C 335,215 495,195 645,235 C 725,258 765,315 760,370 C 680,415 415,420 285,375 Z" fill="url(#bodyGrad_maiasaura)" stroke="#0d4c38" stroke-width="4"/>
+    <path d="M 275,335 C 335,215 495,195 645,235 C 725,258 765,315 760,370 C 680,415 415,420 285,375 Z" fill="url(#bodyGrad_maiasaura)" stroke="#2f3425" stroke-width="4"/>
   </g>
   <g id="layer-head-profile">
-    <path d="M 755,220 C 795,192 875,205 928,238 C 942,252 932,272 895,274 L 772,268 Z" fill="#26b37d" stroke="#0d4c38" stroke-width="4"/>
+    <path d="M 755,220 C 795,192 875,205 928,238 C 942,252 932,272 895,274 L 772,268 Z" fill="#6a7355" stroke="#2f3425" stroke-width="4"/>
   </g>
   <g id="layer-tail-profile">
-    <path d="M 280,330 L 65,305 L 48,328 L 285,372 Z" fill="#12684d" stroke="#0d4c38" stroke-width="4"/>
+    <path d="M 280,330 L 65,305 L 48,328 L 285,372 Z" fill="#4c533c" stroke="#2f3425" stroke-width="4"/>
   </g>
   <g id="layer-appendages">
-    <path d="M 805,202 L 828,176 L 855,205 Z" fill="#f97316" fill-opacity="0.82" stroke="#0d4c38" stroke-width="3"/>
+    <path d="M 805,202 L 828,176 L 855,205 Z" fill="#9e7348" fill-opacity="0.82" stroke="#2f3425" stroke-width="3"/>
   </g>
   <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
-    <path d="M 275,500 C 345,390 505,370 655,405 C 730,425 765,465 765,500 C 765,535 730,575 655,595 C 505,630 345,610 275,500 Z" fill="#26b37d" fill-opacity="0.28" stroke="#f97316" stroke-width="2" stroke-dasharray="8 6"/>
+    <path d="M 275,500 C 345,390 505,370 655,405 C 730,425 765,465 765,500 C 765,535 730,575 655,595 C 505,630 345,610 275,500 Z" fill="#6a7355" fill-opacity="0.28" stroke="#9e7348" stroke-width="2" stroke-dasharray="8 6"/>
   </g>
 </svg>

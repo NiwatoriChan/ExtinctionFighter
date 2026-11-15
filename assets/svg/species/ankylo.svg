@@ -1,35 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
   <defs>
     <linearGradient id="bodyGrad_ankylo" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0d4a44"/>
-      <stop offset="45%" stop-color="#149c8d"/>
-      <stop offset="100%" stop-color="#7ef0de"/>
+      <stop offset="0%" stop-color="#262b23"/>
+      <stop offset="45%" stop-color="#5a6352"/>
+      <stop offset="100%" stop-color="#9a9685"/>
     </linearGradient>
     <linearGradient id="accentGrad_ankylo" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#185d56"/>
+      <stop offset="0%" stop-color="#7a6f59"/>
+      <stop offset="100%" stop-color="#3f463a"/>
     </linearGradient>
   </defs>
   <!-- Anatomical Reference Sheet: Ankylosaurus magniventris -->
   <g id="layer-body-side">
-    <path d="M 160,340 C 190,220 330,175 500,178 C 660,180 760,225 795,295 C 805,345 770,385 690,395 L 280,398 C 200,395 155,375 160,340 Z" fill="url(#bodyGrad_ankylo)" stroke="#0d4a44" stroke-width="4"/>
+    <path d="M 160,340 C 190,220 330,175 500,178 C 660,180 760,225 795,295 C 805,345 770,385 690,395 L 280,398 C 200,395 155,375 160,340 Z" fill="url(#bodyGrad_ankylo)" stroke="#262b23" stroke-width="4"/>
   </g>
   <g id="layer-head-profile">
-    <path d="M 785,295 C 815,260 885,255 935,290 C 958,310 955,345 925,358 L 800,362 Z" fill="#149c8d" stroke="#0d4a44" stroke-width="4"/>
+    <path d="M 785,295 C 815,260 885,255 935,290 C 958,310 955,345 925,358 L 800,362 Z" fill="#5a6352" stroke="#262b23" stroke-width="4"/>
   </g>
   <g id="layer-tail-profile">
-    <path d="M 168,332 L 70,326 L 35,305 C 18,300 12,332 28,354 C 46,368 72,356 85,346 L 175,355 Z" fill="#185d56" stroke="#0d4a44" stroke-width="4"/>
+    <path d="M 168,332 L 70,326 L 35,305 C 18,300 12,332 28,354 C 46,368 72,356 85,346 L 175,355 Z" fill="#3f463a" stroke="#262b23" stroke-width="4"/>
   </g>
   <g id="layer-appendages">
-    <path d="M 795,270 L 760,225 L 818,255 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#0d4a44" stroke-width="3"/>
-    <path d="M 792,352 L 758,388 L 815,365 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#0d4a44" stroke-width="3"/>
-    <path d="M 230,220 L 210,185 L 255,212 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#0d4a44" stroke-width="3"/>
-    <path d="M 340,188 L 325,152 L 368,182 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#0d4a44" stroke-width="3"/>
-    <path d="M 465,178 L 455,140 L 495,176 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#0d4a44" stroke-width="3"/>
-    <path d="M 595,184 L 590,146 L 625,188 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#0d4a44" stroke-width="3"/>
-    <path d="M 705,210 L 705,174 L 734,218 Z" fill="#f59e0b" fill-opacity="0.82" stroke="#0d4a44" stroke-width="3"/>
+    <path d="M 795,270 L 760,225 L 818,255 Z" fill="#7a6f59" fill-opacity="0.82" stroke="#262b23" stroke-width="3"/>
+    <path d="M 792,352 L 758,388 L 815,365 Z" fill="#7a6f59" fill-opacity="0.82" stroke="#262b23" stroke-width="3"/>
+    <path d="M 230,220 L 210,185 L 255,212 Z" fill="#7a6f59" fill-opacity="0.82" stroke="#262b23" stroke-width="3"/>
+    <path d="M 340,188 L 325,152 L 368,182 Z" fill="#7a6f59" fill-opacity="0.82" stroke="#262b23" stroke-width="3"/>
+    <path d="M 465,178 L 455,140 L 495,176 Z" fill="#7a6f59" fill-opacity="0.82" stroke="#262b23" stroke-width="3"/>
+    <path d="M 595,184 L 590,146 L 625,188 Z" fill="#7a6f59" fill-opacity="0.82" stroke="#262b23" stroke-width="3"/>
+    <path d="M 705,210 L 705,174 L 734,218 Z" fill="#7a6f59" fill-opacity="0.82" stroke="#262b23" stroke-width="3"/>
   </g>
   <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
-    <path d="M 170,500 C 210,360 360,315 515,318 C 675,322 765,375 795,500 C 765,625 675,678 515,682 C 360,685 210,640 170,500 Z" fill="#149c8d" fill-opacity="0.28" stroke="#f59e0b" stroke-width="2" stroke-dasharray="8 6"/>
+    <path d="M 170,500 C 210,360 360,315 515,318 C 675,322 765,375 795,500 C 765,625 675,678 515,682 C 360,685 210,640 170,500 Z" fill="#5a6352" fill-opacity="0.28" stroke="#7a6f59" stroke-width="2" stroke-dasharray="8 6"/>
   </g>
 </svg>

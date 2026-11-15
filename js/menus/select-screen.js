@@ -632,20 +632,24 @@ function getDino3DThumbnail(dino, skinIndex = 0) {
             offscreen3DRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
             offscreen3DRenderer.setPixelRatio(1);
             offscreen3DRenderer.setSize(180, 180, false);
+            offscreen3DRenderer.outputEncoding = THREE.sRGBEncoding;
+            offscreen3DRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+            offscreen3DRenderer.toneMappingExposure = 1.0;
 
             offscreen3DScene = new THREE.Scene();
             offscreen3DCamera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
 
-            offscreen3DScene.add(new THREE.AmbientLight(0xffffff, 1.15));
-            const sun = new THREE.DirectionalLight(0xffedd5, 1.6);
+            offscreen3DScene.add(new THREE.AmbientLight(0xffffff, 0.45));
+            offscreen3DScene.add(new THREE.HemisphereLight(0xe2e8f0, 0x44403c, 0.65));
+            const sun = new THREE.DirectionalLight(0xfff7ed, 1.25);
             sun.position.set(5, 7, 5);
             offscreen3DScene.add(sun);
 
-            const fill = new THREE.DirectionalLight(0x93c5fd, 0.85);
+            const fill = new THREE.DirectionalLight(0xdbeafe, 0.45);
             fill.position.set(-4, -1, 3);
             offscreen3DScene.add(fill);
 
-            const rim = new THREE.DirectionalLight(0xffffff, 1.3);
+            const rim = new THREE.DirectionalLight(0xe2e8f0, 0.65);
             rim.position.set(-4, 6, -4);
             offscreen3DScene.add(rim);
         }
@@ -735,22 +739,26 @@ function setupPreviewScene(previewObj, canvasId, isP1 = true) {
     if (!canvas) return;
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(36, 1.4, 0.1, 100);
     camera.position.set(0, 2.1, 13.0);
     camera.lookAt(0, 1.70, 0);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.78));
-    const dirLight = new THREE.DirectionalLight(0xffeedd, 1.25);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.42));
+    scene.add(new THREE.HemisphereLight(0xdbeafe, 0x3f352c, 0.55));
+    const dirLight = new THREE.DirectionalLight(0xfff7ed, 1.15);
     dirLight.position.set(4, 7, 5);
     scene.add(dirLight);
 
-    const torch = new THREE.PointLight(0xf59e0b, 1.3, 14);
+    const torch = new THREE.PointLight(0xfde68a, 0.65, 14);
     torch.position.set(isP1 ? 2.5 : -2.5, 2.4, 2.5);
     scene.add(torch);
 
-    const rimLight = new THREE.DirectionalLight(isP1 ? 0x38bdf8 : 0xef4444, 1.35);
+    const rimLight = new THREE.DirectionalLight(0xcbd5e1, 0.65);
     rimLight.position.set(isP1 ? -4 : 4, 5, -4);
     scene.add(rimLight);
 
@@ -905,7 +913,7 @@ function updatePreviewModels(time) {
         }
 
         if (item.p.rimLight) {
-            item.p.rimLight.color.setHex(item.dino.accentColor || (item.dir === 1 ? 0xef4444 : 0x38bdf8));
+            item.p.rimLight.color.setHex(0xcbd5e1);
         }
 
         if (item.p.uikitRoot) {

@@ -99,10 +99,10 @@ registerFighter({
     fullName: 'Maiasaura Peeblesorum',
     role: 'Protectrice Féroce',
     title: '« La Bonne Mère Indomptable »',
-    primaryColor: 0x10b981,
-    secondaryColor: 0x064e3b,
-    accentColor: 0xf97316,
-    cssPrimary: '#10b981',
+    primaryColor: 0x6a7355,
+    secondaryColor: 0x4c533c,
+    accentColor: 0x9e7348,
+    cssPrimary: '#6a7355',
     scale: 0.98,
     previewScale: 0.92,
     stats: { pow: 82, spd: 86, def: 78 },
@@ -114,7 +114,7 @@ registerFighter({
     moveStyle: 'Galop agile à deux et quatre pattes, ruades foudroyantes et ondes sonores stridentes.',
     fatalityDesc: 'Pousse un hurlement qui paralyse le système nerveux adverse, puis piétine frénétiquement le torse de la victime jusqu’à dislocation complète.',
     skins: [
-        { name: 'Tropical Matriarch', primary: 0x10b981, secondary: 0x064e3b, accent: 0xf97316, belly: 0xfef08a, isDefaultPBR: true }
+        { name: 'Sagewood Matriarch', primary: 0x6a7355, secondary: 0x4c533c, accent: 0x9e7348, belly: 0xb5ad93, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 1.95,
@@ -131,15 +131,13 @@ registerFighter({
             map: tiger.colorMap,
             bumpMap: tiger.bumpMap,
             bumpScale: 0.034,
-            roughness: 0.58,
-            metalness: 0.08
+            roughness: 0.74,
+            metalness: 0.02
         });
-        const beakMat = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.4 });
+        const beakMat = new THREE.MeshStandardMaterial({ color: 0x4c533c, roughness: 0.56 });
         const crestMat = new THREE.MeshPhysicalMaterial({
-            color: 0xf97316,
-            emissive: 0xea580c,
-            emissiveIntensity: 0.45,
-            roughness: 0.3
+            color: 0x9e7348,
+            roughness: 0.50
         });
         const irisMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
         const pupilMat = new THREE.MeshBasicMaterial({ color: 0x09090b });

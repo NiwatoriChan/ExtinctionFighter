@@ -111,10 +111,10 @@ registerFighter({
     fullName: 'Ankylosaurus Magniventris',
     role: 'Forteresse Vivante',
     title: '« Le Cuirassé Caudal »',
-    primaryColor: 0x0d9488,
-    secondaryColor: 0x134e4a,
-    accentColor: 0xf59e0b,
-    cssPrimary: '#059669',
+    primaryColor: 0x5a6352,
+    secondaryColor: 0x3f463a,
+    accentColor: 0x7a6f59,
+    cssPrimary: '#5a6352',
     scale: 1.02,
     previewScale: 0.95,
     stats: { pow: 90, spd: 64, def: 99 },
@@ -126,7 +126,7 @@ registerFighter({
     moveStyle: 'Démarche basse et blindée, frappe circulaire de massue osseuse caudale.',
     fatalityDesc: 'Effectue un demi-tour centrifuge avec sa massue osseuse de 50 kg, fracasse les rotules de l’opposant avant de lui aplatir la cage thoracique.',
     skins: [
-        { name: 'Jade Fortress', primary: 0x0d9488, secondary: 0x134e4a, accent: 0xf59e0b, belly: 0x5eead4, isDefaultPBR: true }
+        { name: 'Slate Moss Fortress', primary: 0x5a6352, secondary: 0x3f463a, accent: 0x7a6f59, belly: 0x9a9685, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 1.35,

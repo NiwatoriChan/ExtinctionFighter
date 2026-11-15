@@ -102,10 +102,10 @@ def build_quadruped_leg(name, hip_pos, knee_offset, ankle_offset, foot_offset, r
 def build_ankylo():
     clear_scene()
     albedo, bump = tex_paths("ankylo")
-    mat_body = make_pbr_material("Mat_BodyPrimary", (0.14, 0.72, 0.66, 1), roughness=0.50, metallic=0.06, albedo_path=albedo, bump_path=bump, bump_strength=0.30)
-    mat_horn = make_pbr_material("Mat_Accent", (0.96, 0.64, 0.08, 1), roughness=0.32, metallic=0.16)
-    mat_beak = make_pbr_material("Mat_Secondary", (0.16, 0.44, 0.42, 1), roughness=0.45)
-    mat_iris = make_pbr_material("Mat_Eye", (0.20, 0.85, 0.60, 1), roughness=0.12, emissive=(0.15, 0.75, 0.5, 1), emissive_strength=0.4)
+    mat_body = make_pbr_material("Mat_BodyPrimary", (0.12, 0.14, 0.10, 1), roughness=0.72, metallic=0.02, albedo_path=albedo, bump_path=bump, bump_strength=0.32)
+    mat_horn = make_pbr_material("Mat_Accent", (0.26, 0.22, 0.15, 1), roughness=0.45, metallic=0.02)
+    mat_beak = make_pbr_material("Mat_Secondary", (0.09, 0.10, 0.08, 1), roughness=0.68, metallic=0.02)
+    mat_iris = make_pbr_material("Mat_Eye", (0.55, 0.35, 0.08, 1), roughness=0.12, emissive=(0.35, 0.20, 0.04, 1), emissive_strength=0.15)
     mat_pupil = make_pbr_material("Mat_Pupil", (0.02, 0.02, 0.03, 1), roughness=0.1)
 
     root = create_bone_node("Bone_Root")
@@ -293,10 +293,10 @@ def build_ankylo():
 def build_stegosaurus():
     clear_scene()
     albedo, bump = tex_paths("stegosaurus")
-    mat_body = make_pbr_material("Mat_BodyPrimary", (0.18, 0.72, 0.36, 1), roughness=0.54, metallic=0.04, albedo_path=albedo, bump_path=bump, bump_strength=0.28)
-    mat_plate = make_pbr_material("Mat_Accent", (0.98, 0.38, 0.06, 1), roughness=0.36, metallic=0.08, emissive=(0.45, 0.14, 0.0, 1), emissive_strength=0.14)
-    mat_horn = make_pbr_material("Mat_Secondary", (0.96, 0.92, 0.78, 1), roughness=0.30)
-    mat_iris = make_pbr_material("Mat_Eye", (0.98, 0.80, 0.20, 1), roughness=0.1, emissive=(0.6, 0.45, 0.05, 1), emissive_strength=0.35)
+    mat_body = make_pbr_material("Mat_BodyPrimary", (0.16, 0.16, 0.08, 1), roughness=0.74, metallic=0.02, albedo_path=albedo, bump_path=bump, bump_strength=0.28)
+    mat_plate = make_pbr_material("Mat_Accent", (0.30, 0.09, 0.04, 1), roughness=0.52, metallic=0.02)
+    mat_horn = make_pbr_material("Mat_Secondary", (0.48, 0.42, 0.28, 1), roughness=0.42, metallic=0.02)
+    mat_iris = make_pbr_material("Mat_Eye", (0.62, 0.42, 0.10, 1), roughness=0.12, emissive=(0.35, 0.22, 0.03, 1), emissive_strength=0.15)
     mat_pupil = make_pbr_material("Mat_Pupil", (0.02, 0.02, 0.02, 1), roughness=0.1)
 
     root = create_bone_node("Bone_Root")
@@ -453,10 +453,10 @@ def build_stegosaurus():
 def build_maiasaura():
     clear_scene()
     albedo, bump = tex_paths("maiasaura")
-    mat_body = make_pbr_material("Mat_BodyPrimary", (0.18, 0.78, 0.56, 1), roughness=0.52, metallic=0.04, albedo_path=albedo, bump_path=bump, bump_strength=0.26)
-    mat_crest = make_pbr_material("Mat_Accent", (0.94, 0.52, 0.18, 1), roughness=0.34, emissive=(0.35, 0.14, 0.02, 1), emissive_strength=0.14)
-    mat_beak = make_pbr_material("Mat_Secondary", (0.10, 0.42, 0.32, 1), roughness=0.45)
-    mat_iris = make_pbr_material("Mat_Eye", (0.98, 0.85, 0.25, 1), roughness=0.1, emissive=(0.55, 0.45, 0.05, 1), emissive_strength=0.35)
+    mat_body = make_pbr_material("Mat_BodyPrimary", (0.16, 0.18, 0.11, 1), roughness=0.74, metallic=0.02, albedo_path=albedo, bump_path=bump, bump_strength=0.26)
+    mat_crest = make_pbr_material("Mat_Accent", (0.36, 0.18, 0.07, 1), roughness=0.54, metallic=0.02)
+    mat_beak = make_pbr_material("Mat_Secondary", (0.10, 0.11, 0.07, 1), roughness=0.68, metallic=0.02)
+    mat_iris = make_pbr_material("Mat_Eye", (0.62, 0.42, 0.10, 1), roughness=0.12, emissive=(0.35, 0.22, 0.03, 1), emissive_strength=0.15)
     mat_pupil = make_pbr_material("Mat_Pupil", (0.02, 0.02, 0.02, 1), roughness=0.1)
 
     root = create_bone_node("Bone_Root")
@@ -591,10 +591,10 @@ def build_maiasaura():
 def build_apato():
     clear_scene()
     albedo, bump = tex_paths("apato")
-    mat_body = make_pbr_material("Mat_BodyPrimary", (0.72, 0.70, 0.92, 1), roughness=0.86, metallic=0.02, albedo_path=albedo, bump_path=bump, bump_strength=0.12)
-    mat_accent = make_pbr_material("Mat_Accent", (0.78, 0.42, 0.92, 1), roughness=0.38, emissive=(0.24, 0.10, 0.36, 1), emissive_strength=0.14)
-    mat_claw = make_pbr_material("Mat_Secondary", (0.34, 0.30, 0.52, 1), roughness=0.45)
-    mat_iris = make_pbr_material("Mat_Eye", (0.95, 0.80, 0.35, 1), roughness=0.1, emissive=(0.5, 0.4, 0.1, 1), emissive_strength=0.3)
+    mat_body = make_pbr_material("Mat_BodyPrimary", (0.14, 0.13, 0.12, 1), roughness=0.84, metallic=0.0, albedo_path=albedo, bump_path=bump, bump_strength=0.16)
+    mat_accent = make_pbr_material("Mat_Accent", (0.20, 0.18, 0.15, 1), roughness=0.70, metallic=0.0)
+    mat_claw = make_pbr_material("Mat_Secondary", (0.12, 0.10, 0.09, 1), roughness=0.48, metallic=0.02)
+    mat_iris = make_pbr_material("Mat_Eye", (0.58, 0.40, 0.12, 1), roughness=0.12, emissive=(0.30, 0.20, 0.04, 1), emissive_strength=0.12)
     mat_pupil = make_pbr_material("Mat_Pupil", (0.02, 0.02, 0.02, 1), roughness=0.1)
 
     root = create_bone_node("Bone_Root")

@@ -13,20 +13,18 @@ function createDino3DRig(dino, skinIndex = 0) {
 
     const bodyMat = new THREE.MeshStandardMaterial({
         color: skin.primary,
-        roughness: 0.55,
-        metalness: 0.15
+        roughness: 0.74,
+        metalness: 0.02
     });
     const darkMat = new THREE.MeshStandardMaterial({
         color: skin.secondary,
-        roughness: 0.65,
-        metalness: 0.1
+        roughness: 0.80,
+        metalness: 0.02
     });
     const accentMat = new THREE.MeshStandardMaterial({
         color: skin.accent,
-        roughness: 0.35,
-        metalness: 0.3,
-        emissive: skin.accent,
-        emissiveIntensity: 0.25
+        roughness: 0.48,
+        metalness: 0.04
     });
     const boneMat = new THREE.MeshStandardMaterial({
         color: 0xfef3c7,

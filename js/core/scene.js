@@ -45,7 +45,9 @@ function applyGraphicsSettings(quality) {
             battleRenderer.shadowMap.enabled = shadowsAllowed;
             battleRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
         }
-        battleRenderer.toneMappingExposure = bloomAllowed ? 1.12 : 0.92;
+        battleRenderer.outputEncoding = THREE.sRGBEncoding;
+        battleRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+        battleRenderer.toneMappingExposure = bloomAllowed ? 1.02 : 0.90;
         battleRenderer.shadowMap.needsUpdate = true;
     }
 }
@@ -64,10 +66,13 @@ function initBattle3DScene() {
     battleScene = new THREE.Scene();
     battleCamera = new THREE.PerspectiveCamera(45, 2, 0.1, 250);
 
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.65);
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.38);
     battleScene.add(ambLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfff7ed, 1.35);
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x3f352c, 0.55);
+    battleScene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight(0xfff7ed, 1.20);
     sunLight.position.set(8, 18, 12);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 1024;
@@ -80,7 +85,7 @@ function initBattle3DScene() {
     sunLight.shadow.camera.bottom = -4;
     battleScene.add(sunLight);
 
-    const rimLight = new THREE.PointLight(0xef4444, 1.2, 35);
+    const rimLight = new THREE.DirectionalLight(0xd8e2ec, 0.50);
     rimLight.position.set(0, 6, -8);
     battleScene.add(rimLight);
 
@@ -133,16 +138,22 @@ function setupArenaPreview(canvasId = 'arenaPreviewCanvas') {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(48, 16 / 9, 0.1, 250);
     camera.position.set(0, 4.5, 14.5);
     camera.lookAt(0, 1.2, 0);
 
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.45);
     scene.add(ambLight);
 
-    const sunLight = new THREE.DirectionalLight(0xffedd5, 1.25);
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x3f352c, 0.45);
+    scene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight(0xffedd5, 1.15);
     sunLight.position.set(8, 16, 10);
     scene.add(sunLight);
 

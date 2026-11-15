@@ -88,10 +88,10 @@ registerFighter({
     fullName: 'Anomalocaris Canadensis Titan',
     role: 'Super-Prédateur Radiodonte',
     title: '« Le Titan Abyssal de l\'Explosion Cambrienne »',
-    primaryColor: 0x0e7490,
-    secondaryColor: 0x083344,
-    accentColor: 0x22d3ee,
-    cssPrimary: '#0e7490',
+    primaryColor: 0x3e5c63,
+    secondaryColor: 0x18272c,
+    accentColor: 0x9e733b,
+    cssPrimary: '#3e5c63',
     scale: 0.95,
     previewScale: 1.05,
     stats: { pow: 96, spd: 92, def: 88 },
@@ -104,9 +104,9 @@ registerFighter({
     moveStyle: 'Nage hydrodynamique à 11 paires de lobes natatoires, carénage dorsal cyan bioluminescent et griffes raptoriales à 14 podomères.',
     fatalityDesc: 'Enserre le rival de ses appendices épineux, le broie dans son cône buccal triradial de Peytoia aux 32 plaques denticulées, et le dissout dans un vortex abyssal.',
     skins: [
-        { name: 'Abyssal Cyan', primary: 0x0e7490, secondary: 0x083344, accent: 0x22d3ee },
-        { name: 'Burgess Amber', primary: 0xb45309, secondary: 0x451a03, accent: 0xf59e0b },
-        { name: 'Toxic Emerald', primary: 0x047857, secondary: 0x022c22, accent: 0x34d399 }
+        { name: 'Burgess Shale Slate', primary: 0x3e5c63, secondary: 0x18272c, accent: 0x9e733b },
+        { name: 'Cambrian Ochre', primary: 0xb59b78, secondary: 0x5c4328, accent: 0xa67438 },
+        { name: 'Pelagic Moss', primary: 0x8ea392, secondary: 0x37473a, accent: 0x8c7b56 }
     ]
 }, {
     animBaseHipsY: 1.25,
@@ -150,9 +150,9 @@ registerFighter({
     buildRig(ctx) {
         const { hips, rig, addMesh, skin, skinMeshes } = ctx;
         const dino = ctx.dino || {};
-        const primaryColor = (skin && skin.primary) || dino.primaryColor || 0x0e7490;
-        const secondaryColor = (skin && skin.secondary) || dino.secondaryColor || 0x083344;
-        const accentColor = (skin && skin.accent) || dino.accentColor || 0x22d3ee;
+        const primaryColor = (skin && skin.primary) || dino.primaryColor || 0x3e5c63;
+        const secondaryColor = (skin && skin.secondary) || dino.secondaryColor || 0x18272c;
+        const accentColor = (skin && skin.accent) || dino.accentColor || 0x9e733b;
 
         const addLocalMesh = (geo, mat, parent, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
             const targetParent = parent || rig.torso || hips;
@@ -179,30 +179,28 @@ registerFighter({
             map: chitinTex,
             bumpMap: bumpTex,
             bumpScale: 0.04,
-            roughness: 0.35,
-            metalness: 0.4
+            roughness: 0.44,
+            metalness: 0.04
         });
         const dorsalCarapaceMat = new THREE.MeshStandardMaterial({
             color: secondaryColor,
-            roughness: 0.3,
-            metalness: 0.5
+            roughness: 0.40,
+            metalness: 0.05
         });
         const ventralMat = new THREE.MeshStandardMaterial({
-            color: 0x155e75,
-            roughness: 0.5,
-            metalness: 0.2
+            color: 0x283e45,
+            roughness: 0.54,
+            metalness: 0.02
         });
         const glowCyanMat = new THREE.MeshStandardMaterial({
             color: accentColor,
-            emissive: accentColor,
-            emissiveIntensity: 0.85,
-            roughness: 0.2
+            roughness: 0.38,
+            metalness: 0.05
         });
         const amberSpineMat = new THREE.MeshStandardMaterial({
-            color: 0xf59e0b,
-            emissive: 0xd97706,
-            emissiveIntensity: 0.35,
-            roughness: 0.2
+            color: 0x9e733b,
+            roughness: 0.38,
+            metalness: 0.04
         });
         const darkMouthMat = new THREE.MeshStandardMaterial({
             color: 0x030712,

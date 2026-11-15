@@ -41,10 +41,10 @@ def tex_paths(fid):
 def build_therizino():
     clear_scene()
     albedo, bump = tex_paths("therizino")
-    mat_body = make_pbr_material("Mat_BodyPrimary", (0.58, 0.42, 0.30, 1), roughness=0.64, metallic=0.04, albedo_path=albedo, bump_path=bump, bump_strength=0.30)
-    mat_accent = make_pbr_material("Mat_Accent", (0.42, 0.88, 0.70, 1), roughness=0.26, metallic=0.14, emissive=(0.06, 0.42, 0.28, 1), emissive_strength=0.20)
-    mat_beak = make_pbr_material("Mat_Secondary", (0.28, 0.22, 0.18, 1), roughness=0.44, metallic=0.06, bump_path=bump, bump_strength=0.20)
-    mat_iris = make_pbr_material("Mat_Eye", (0.20, 0.95, 0.65, 1), roughness=0.1, emissive=(0.1, 0.75, 0.45, 1), emissive_strength=0.55)
+    mat_body = make_pbr_material("Mat_BodyPrimary", (0.10, 0.08, 0.06, 1), roughness=0.80, metallic=0.01, albedo_path=albedo, bump_path=bump, bump_strength=0.30)
+    mat_accent = make_pbr_material("Mat_Accent", (0.50, 0.44, 0.30, 1), roughness=0.42, metallic=0.02)
+    mat_beak = make_pbr_material("Mat_Secondary", (0.06, 0.05, 0.04, 1), roughness=0.62, metallic=0.02, bump_path=bump, bump_strength=0.20)
+    mat_iris = make_pbr_material("Mat_Eye", (0.58, 0.32, 0.05, 1), roughness=0.12, emissive=(0.45, 0.22, 0.03, 1), emissive_strength=0.18)
     mat_pupil = make_pbr_material("Mat_Pupil", (0.02, 0.02, 0.02, 1), roughness=0.1)
 
     root = create_bone_node("Bone_Root")
@@ -174,11 +174,11 @@ def build_therizino():
 def build_postosuchus():
     clear_scene()
     albedo, bump = tex_paths("postosuchus")
-    mat_body = make_pbr_material("Mat_BodyPrimary", (0.84, 0.36, 0.24, 1), roughness=0.48, metallic=0.06, albedo_path=albedo, bump_path=bump, bump_strength=0.30)
-    mat_dark = make_pbr_material("Mat_Secondary", (0.34, 0.16, 0.12, 1), roughness=0.50, metallic=0.06, bump_path=bump, bump_strength=0.22)
-    mat_accent = make_pbr_material("Mat_Accent", (0.98, 0.56, 0.14, 1), roughness=0.35, emissive=(0.40, 0.14, 0.02, 1), emissive_strength=0.18)
-    mat_tooth = make_pbr_material("Mat_Tooth", (0.98, 0.95, 0.86, 1), roughness=0.18)
-    mat_iris = make_pbr_material("Mat_Eye", (0.98, 0.72, 0.12, 1), roughness=0.1, emissive=(0.65, 0.42, 0.04, 1), emissive_strength=0.4)
+    mat_body = make_pbr_material("Mat_BodyPrimary", (0.16, 0.06, 0.04, 1), roughness=0.72, metallic=0.02, albedo_path=albedo, bump_path=bump, bump_strength=0.30)
+    mat_dark = make_pbr_material("Mat_Secondary", (0.08, 0.03, 0.02, 1), roughness=0.74, metallic=0.02, bump_path=bump, bump_strength=0.22)
+    mat_accent = make_pbr_material("Mat_Accent", (0.30, 0.14, 0.05, 1), roughness=0.60, metallic=0.02)
+    mat_tooth = make_pbr_material("Mat_Tooth", (0.74, 0.68, 0.54, 1), roughness=0.24, metallic=0.0)
+    mat_iris = make_pbr_material("Mat_Eye", (0.62, 0.36, 0.06, 1), roughness=0.12, emissive=(0.40, 0.20, 0.02, 1), emissive_strength=0.15)
     mat_pupil = make_pbr_material("Mat_Pupil", (0.02, 0.02, 0.02, 1), roughness=0.1)
 
     root = create_bone_node("Bone_Root")
@@ -278,10 +278,10 @@ def build_postosuchus():
 def build_terabird():
     clear_scene()
     albedo, bump = tex_paths("terabird")
-    mat_body = make_pbr_material("Mat_BodyPrimary", (0.94, 0.48, 0.18, 1), roughness=0.58, metallic=0.04, albedo_path=albedo, bump_path=bump, bump_strength=0.26)
-    mat_dark = make_pbr_material("Mat_Secondary", (0.34, 0.20, 0.14, 1), roughness=0.52, bump_path=bump, bump_strength=0.18)
-    mat_beak = make_pbr_material("Mat_Accent", (0.92, 0.62, 0.12, 1), roughness=0.34, metallic=0.06)
-    mat_iris = make_pbr_material("Mat_Eye", (0.98, 0.88, 0.22, 1), roughness=0.1, emissive=(0.7, 0.55, 0.05, 1), emissive_strength=0.45)
+    mat_body = make_pbr_material("Mat_BodyPrimary", (0.12, 0.07, 0.05, 1), roughness=0.78, metallic=0.01, albedo_path=albedo, bump_path=bump, bump_strength=0.26)
+    mat_dark = make_pbr_material("Mat_Secondary", (0.06, 0.04, 0.03, 1), roughness=0.72, metallic=0.01, bump_path=bump, bump_strength=0.18)
+    mat_beak = make_pbr_material("Mat_Accent", (0.40, 0.24, 0.07, 1), roughness=0.42, metallic=0.02)
+    mat_iris = make_pbr_material("Mat_Eye", (0.64, 0.46, 0.10, 1), roughness=0.12, emissive=(0.40, 0.28, 0.04, 1), emissive_strength=0.15)
     mat_pupil = make_pbr_material("Mat_Pupil", (0.02, 0.02, 0.02, 1), roughness=0.1)
 
     root = create_bone_node("Bone_Root")

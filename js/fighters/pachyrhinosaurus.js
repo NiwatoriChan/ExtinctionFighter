@@ -172,23 +172,23 @@ function getPachyPBRMaps() {
         const n1 = fbm(u * 14, v * 18, 3, 101);
         const n2 = fbm(u * 30 + 3.1, v * 36 + 1.7, 2, 211);
 
-        let r = 0.64 + p1.cid * 0.08;
-        let g = 0.33 + p1.cid * 0.05;
-        let b = 0.14 + p1.cid * 0.03;
+        let r = 0.45 + p1.cid * 0.06;
+        let g = 0.29 + p1.cid * 0.04;
+        let b = 0.21 + p1.cid * 0.03;
 
-        // Ventre sable-beige chaud
+        // Ventre sable-pierre terne
         const bellyT = clamp01((-dorsal - 0.16) * 1.2 + (n1 - 0.5) * 0.22);
-        r = mix(r, 0.81, bellyT);
-        g = mix(g, 0.64, bellyT);
-        b = mix(b, 0.46, bellyT);
+        r = mix(r, 0.64, bellyT);
+        g = mix(g, 0.56, bellyT);
+        b = mix(b, 0.45, bellyT);
 
         // Crête dorsale plus sombre
         const spineT = clamp01((dorsal - 0.78) * 3.8 + (n2 - 0.5) * 0.22) * 0.68;
-        r = mix(r, 0.35, spineT);
+        r = mix(r, 0.26, spineT);
         g = mix(g, 0.17, spineT);
-        b = mix(b, 0.08, spineT);
+        b = mix(b, 0.12, spineT);
 
-        // Bandes et marbrures diagonales gris-taupe sur le dos et les épaules
+        // Bandes et marbrures diagonales gris-ardoise sur le dos et les épaules
         const warp = (n1 - 0.5) * 0.12 + (n2 - 0.5) * 0.06;
         const vDiag = v + flank * 0.16 + warp;
         const b1 = Math.exp(-Math.pow((vDiag - 0.75) / 0.025, 2));
@@ -196,10 +196,10 @@ function getPachyPBRMaps() {
         const b3 = Math.exp(-Math.pow((vDiag - 0.41) / 0.024, 2)) * clamp01((n1 - 0.42) * 4.0);
         const hipSpots = Math.exp(-Math.pow((v - 0.34) / 0.11, 2)) * clamp01((n2 - 0.58) * 5.0);
         const rawBand = (b1 + b2 * 0.90 + b3 * 0.85 + hipSpots * 0.75) * clamp01((dorsal + 0.12) * 1.5);
-        const taupeT = clamp01((rawBand + (n2 - 0.5) * 0.45 - 0.24) * 3.8) * 0.88;
-        r = mix(r, 0.66, taupeT);
-        g = mix(g, 0.60, taupeT);
-        b = mix(b, 0.54, taupeT);
+        const taupeT = clamp01((rawBand + (n2 - 0.5) * 0.45 - 0.24) * 3.8) * 0.72;
+        r = mix(r, 0.50, taupeT);
+        g = mix(g, 0.47, taupeT);
+        b = mix(b, 0.43, taupeT);
 
         // Rangée de 5 scutelles ostéodermiques ovales bombées & caillouteuses sur le haut du flanc
         let scuteBump = 0;
@@ -255,14 +255,14 @@ function getPachyPBRMaps() {
         const n1 = fbm(u * 10, v * 12, 2, 88);
         const dorsal = Math.cos(u * Math.PI * 2);
 
-        let r = 0.64 + p1.cid * 0.07;
-        let g = 0.34 + p1.cid * 0.04;
-        let b = 0.15 + p1.cid * 0.02;
+        let r = 0.45 + p1.cid * 0.06;
+        let g = 0.29 + p1.cid * 0.04;
+        let b = 0.21 + p1.cid * 0.03;
 
         const tanT = clamp01((-dorsal * 0.38 + 0.16) * 0.42 + clamp01((v - 0.66) * 1.3) * 0.24 + (n1 - 0.5) * 0.12);
-        r = mix(r, 0.78, tanT);
-        g = mix(g, 0.61, tanT);
-        b = mix(b, 0.43, tanT);
+        r = mix(r, 0.62, tanT);
+        g = mix(g, 0.54, tanT);
+        b = mix(b, 0.44, tanT);
 
         // Plis cutanés distaux subtils en relief (sans rayures sombres sur la cuisse/épaule)
         let fold = 0;
@@ -290,16 +290,16 @@ function getPachyPBRMaps() {
         const n1 = fbm(u * 12, v * 12, 3, 131);
         const n2 = fbm(u * 26, v * 26, 2, 177);
 
-        let r = 0.62 + p1.cid * 0.08;
-        let g = 0.31 + p1.cid * 0.05;
-        let b = 0.14 + p1.cid * 0.03;
+        let r = 0.44 + p1.cid * 0.06;
+        let g = 0.28 + p1.cid * 0.04;
+        let b = 0.20 + p1.cid * 0.03;
 
         const midTaupe = Math.exp(-Math.pow((u - 0.5) / 0.14, 2)) *
             Math.exp(-Math.pow((v - 0.46) / 0.20, 2)) *
-            clamp01((n1 - 0.36) * 2.5) * 0.72;
-        r = mix(r, 0.64, midTaupe);
-        g = mix(g, 0.58, midTaupe);
-        b = mix(b, 0.52, midTaupe);
+            clamp01((n1 - 0.36) * 2.5) * 0.68;
+        r = mix(r, 0.50, midTaupe);
+        g = mix(g, 0.47, midTaupe);
+        b = mix(b, 0.43, midTaupe);
 
         const sx = Math.abs(u - 0.5);
         const dxOc = (sx - 0.185) * 1.15;
@@ -554,10 +554,10 @@ registerFighter({
     fullName: 'Pachyrhinosaurus Canadensis',
     role: 'Bélier Blindé',
     title: '« Le Colosse à Bosse d’Acier »',
-    primaryColor: 0xb85d28,
-    secondaryColor: 0x5c2c12,
-    accentColor: 0xd4a373,
-    cssPrimary: '#b85d28',
+    primaryColor: 0x734a36,
+    secondaryColor: 0x42281c,
+    accentColor: 0xa89278,
+    cssPrimary: '#734a36',
     scale: 1.0,
     previewScale: 0.90,
     stats: { pow: 88, spd: 76, def: 92 },
@@ -569,9 +569,9 @@ registerFighter({
     moveStyle: 'Trot quadrupède puissant, coup de bosse nasale pachyostotique et soulèvement de collerette ocellée.',
     fatalityDesc: 'Gratte le sol, charge à vitesse supersonique avec sa bosse nasale blindée, pulvérise le torse ennemi et empale son crâne.',
     skins: [
-        { name: 'Ocellus Terre Cuite', primary: 0xb85d28, secondary: 0x5c2c12, accent: 0xd4a373, belly: 0xdfc09a, isDefaultPBR: true },
-        { name: 'Glacial Ice Centrosaur', primary: 0x0284c7, secondary: 0x0c4a6e, accent: 0x38bdf8, belly: 0xe0f2fe },
-        { name: 'Blizzard Sapphire', primary: 0x0369a1, secondary: 0x082f49, accent: 0x7dd3fc, belly: 0xf0f9ff }
+        { name: 'Ocellus Terre Cuite', primary: 0x734a36, secondary: 0x42281c, accent: 0xa89278, belly: 0xa38e73, isDefaultPBR: true },
+        { name: 'Boreal Slate', primary: 0x56626b, secondary: 0x2c343b, accent: 0x9ca6ad, belly: 0xcbd2d6 },
+        { name: 'Tundra Frost', primary: 0x7b7870, secondary: 0x3e3c38, accent: 0xb8b2a6, belly: 0xd8d4cc }
     ]
 }, {
     animBaseHipsY: 1.65,

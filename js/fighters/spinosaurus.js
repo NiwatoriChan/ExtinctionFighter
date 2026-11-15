@@ -180,10 +180,10 @@ registerFighter({
     fullName: 'Spinosaurus Aegyptiacus',
     role: 'Léviathan du Crétacé',
     title: '« Le Carnivore Démesuré »',
-    primaryColor: 0x1d4ed8,
-    secondaryColor: 0x0f172a,
-    accentColor: 0x06b6d4,
-    cssPrimary: '#0284c7',
+    primaryColor: 0x4f5d5e,
+    secondaryColor: 0x232a2c,
+    accentColor: 0x8c563a,
+    cssPrimary: '#4f5d5e',
     scale: 1.16,
     previewScale: 0.88,
     stats: { pow: 95, spd: 74, def: 88 },
@@ -195,7 +195,7 @@ registerFighter({
     moveStyle: 'Posture massive semi-aquatique, mâchoire de gavial à rosette, revers de grandes griffes et coups de voile.',
     fatalityDesc: 'Empale la victime de ses griffes crocodiliennes, la soulève au-dessus de sa voile dorsale et la déchiquette en deux parties.',
     skins: [
-        { name: 'Cobalt Leviathan', primary: 0x1d4ed8, secondary: 0x0f172a, accent: 0x06b6d4, belly: 0x67e8f9, isDefaultPBR: true }
+        { name: 'Nile Silt Leviathan', primary: 0x4f5d5e, secondary: 0x232a2c, accent: 0x8c563a, belly: 0x9c9b8d, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 1.85,

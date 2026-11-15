@@ -28,11 +28,11 @@ for d in (SVG_SPECIES_DIR, SVG_TEX_DIR, SVG_EMBLEM_DIR, TEX_PNG_DIR):
 SPECIES_SPECS = {
     "ankylo": {
         "sci": "Ankylosaurus magniventris",
-        "primary": "#149c8d",
-        "secondary": "#185d56",
-        "dark": "#0d4a44",
-        "belly": "#7ef0de",
-        "accent": "#f59e0b",
+        "primary": "#5a6352",
+        "secondary": "#3f463a",
+        "dark": "#262b23",
+        "belly": "#9a9685",
+        "accent": "#7a6f59",
         "pattern": "osteoderm_scutes",
         "side_body": "M 160,340 C 190,220 330,175 500,178 C 660,180 760,225 795,295 C 805,345 770,385 690,395 L 280,398 C 200,395 155,375 160,340 Z",
         "side_head": "M 785,295 C 815,260 885,255 935,290 C 958,310 955,345 925,358 L 800,362 Z",
@@ -50,11 +50,11 @@ SPECIES_SPECS = {
     },
     "stegosaurus": {
         "sci": "Stegosaurus stenops",
-        "primary": "#22b357",
-        "secondary": "#1a6838",
-        "dark": "#114b29",
-        "belly": "#9cf4bc",
-        "accent": "#ff5400",
+        "primary": "#6b6a46",
+        "secondary": "#4b4a31",
+        "dark": "#2d2c1e",
+        "belly": "#a9a286",
+        "accent": "#8c4a2e",
         "pattern": "tubercles_stripes",
         "side_body": "M 270,340 C 310,190 470,135 615,175 C 725,205 780,275 825,295 C 855,310 855,355 815,375 C 715,405 445,420 295,380 Z",
         "side_head": "M 820,295 C 865,280 925,295 955,320 C 962,334 948,348 915,350 L 825,342 Z",
@@ -74,11 +74,11 @@ SPECIES_SPECS = {
     },
     "spinosaurus": {
         "sci": "Spinosaurus aegyptiacus",
-        "primary": "#2678b8",
-        "secondary": "#164d75",
-        "dark": "#143d59",
-        "belly": "#9ae2fa",
-        "accent": "#12c9df",
+        "primary": "#4f5d5e",
+        "secondary": "#374244",
+        "dark": "#232a2c",
+        "belly": "#9c9b8d",
+        "accent": "#8c563a",
         "pattern": "aquatic_stripes",
         "side_body": "M 290,340 C 365,245 545,235 685,275 C 745,295 795,285 835,275 L 820,365 C 725,405 465,415 305,375 Z",
         "side_head": "M 815,272 C 865,255 935,262 978,282 C 988,295 982,314 955,318 L 835,326 Z",
@@ -93,11 +93,11 @@ SPECIES_SPECS = {
     },
     "therizino": {
         "sci": "Therizinosaurus cheloniformis",
-        "primary": "#6e4c36",
-        "secondary": "#473024",
-        "dark": "#33221a",
-        "belly": "#d2b494",
-        "accent": "#10b981",
+        "primary": "#4d4238",
+        "secondary": "#332b24",
+        "dark": "#1f1a16",
+        "belly": "#8b7b67",
+        "accent": "#b8aa8c",
         "pattern": "plumage_barbs",
         "side_body": "M 280,390 C 295,255 415,195 545,205 C 635,215 685,295 675,395 C 625,455 375,465 280,390 Z",
         "side_head": "M 645,145 C 685,112 755,112 795,142 C 805,158 790,175 752,178 L 665,175 Z",
@@ -114,11 +114,11 @@ SPECIES_SPECS = {
     },
     "maiasaura": {
         "sci": "Maiasaura peeblesorum",
-        "primary": "#26b37d",
-        "secondary": "#12684d",
-        "dark": "#0d4c38",
-        "belly": "#b8f7dc",
-        "accent": "#f97316",
+        "primary": "#6a7355",
+        "secondary": "#4c533c",
+        "dark": "#2f3425",
+        "belly": "#b5ad93",
+        "accent": "#9e7348",
         "pattern": "hadrosaur_bands",
         "side_body": "M 275,335 C 335,215 495,195 645,235 C 725,258 765,315 760,370 C 680,415 415,420 285,375 Z",
         "side_head": "M 755,220 C 795,192 875,205 928,238 C 942,252 932,272 895,274 L 772,268 Z",
@@ -131,11 +131,11 @@ SPECIES_SPECS = {
     },
     "apato": {
         "sci": "Apatosaurus ajax",
-        "primary": "#58569c",
-        "secondary": "#3b386b",
-        "dark": "#2b2852",
-        "belly": "#ced5f5",
-        "accent": "#a78bfa",
+        "primary": "#615f5c",
+        "secondary": "#474542",
+        "dark": "#2c2b29",
+        "belly": "#9e998e",
+        "accent": "#756f64",
         "pattern": "sauropod_spots",
         "side_body": "M 280,335 C 330,190 485,155 615,195 C 690,220 725,285 715,365 C 635,415 395,420 295,380 Z",
         "side_head": "M 865,125 C 898,114 942,126 955,148 C 958,162 935,172 902,168 L 868,158 Z",
@@ -148,11 +148,11 @@ SPECIES_SPECS = {
     },
     "postosuchus": {
         "sci": "Postosuchus kirkpatricki",
-        "primary": "#c74432",
-        "secondary": "#6b2b20",
-        "dark": "#471e17",
-        "belly": "#f5cbb8",
-        "accent": "#f59e0b",
+        "primary": "#6e3c2a",
+        "secondary": "#4d291d",
+        "dark": "#2d1812",
+        "belly": "#a68c76",
+        "accent": "#8f623d",
         "pattern": "croc_osteoderms",
         "side_body": "M 275,335 C 345,250 515,245 665,272 C 735,288 765,335 745,375 C 660,405 395,405 285,372 Z",
         "side_head": "M 745,262 C 805,238 895,248 948,278 C 958,298 942,322 895,326 L 758,318 Z",
@@ -167,11 +167,11 @@ SPECIES_SPECS = {
     },
     "terabird": {
         "sci": "Phorusrhacos longissimus",
-        "primary": "#e26a22",
-        "secondary": "#6e3920",
-        "dark": "#422416",
-        "belly": "#feddb8",
-        "accent": "#facc15",
+        "primary": "#5c4636",
+        "secondary": "#3d2e24",
+        "dark": "#241b15",
+        "belly": "#a49480",
+        "accent": "#a88446",
         "pattern": "raptor_feathers",
         "side_body": "M 320,335 C 345,235 465,195 575,215 C 645,230 675,295 655,355 C 595,405 395,405 320,335 Z",
         "side_head": "M 645,112 C 705,86 815,92 878,128 C 895,148 888,188 865,202 C 845,172 805,168 745,170 L 655,162 Z",
@@ -185,11 +185,11 @@ SPECIES_SPECS = {
     },
     "smilodon": {
         "sci": "Smilodon fatalis",
-        "primary": "#e69635",
-        "secondary": "#b86420",
-        "dark": "#703a12",
-        "belly": "#faf0dc",
-        "accent": "#f5c26b",
+        "primary": "#b88448",
+        "secondary": "#85582d",
+        "dark": "#422b18",
+        "belly": "#d8cbb4",
+        "accent": "#9c6c3b",
         "pattern": "feline_rosettes",
         "side_body": "M 265,320 C 325,245 495,215 645,232 C 715,242 745,295 735,352 C 665,388 375,385 275,355 Z",
         "side_head": "M 735,218 C 778,188 848,195 888,232 C 898,255 888,288 848,292 L 745,282 Z",
@@ -203,11 +203,11 @@ SPECIES_SPECS = {
     },
     "giantsloth": {
         "sci": "Megatherium americanum",
-        "primary": "#a35e2c",
-        "secondary": "#6b3b1a",
-        "dark": "#47250e",
-        "belly": "#ebd09d",
-        "accent": "#fbbf24",
+        "primary": "#735036",
+        "secondary": "#523825",
+        "dark": "#332216",
+        "belly": "#b29f82",
+        "accent": "#8f7d60",
         "pattern": "shaggy_fur",
         "side_body": "M 265,375 C 285,225 415,155 555,175 C 655,195 705,275 685,375 C 625,445 355,455 265,375 Z",
         "side_head": "M 675,185 C 718,155 795,165 835,205 C 845,228 828,255 785,258 L 685,248 Z",
@@ -221,11 +221,11 @@ SPECIES_SPECS = {
     },
     "pulmonoscorpius": {
         "sci": "Pulmonoscorpius kirktonensis",
-        "primary": "#9b4de0",
-        "secondary": "#5c278a",
-        "dark": "#411a66",
-        "belly": "#eeddff",
-        "accent": "#f43f5e",
+        "primary": "#453a47",
+        "secondary": "#2e2630",
+        "dark": "#1b161d",
+        "belly": "#75666e",
+        "accent": "#7d4332",
         "pattern": "arachnid_chitin",
         "side_body": "M 325,340 C 385,285 535,282 675,295 C 745,305 785,335 765,372 C 675,395 415,395 325,340 Z",
         "side_head": "M 745,298 C 785,285 835,295 855,325 C 858,342 835,360 785,362 L 745,355 Z",
@@ -240,11 +240,11 @@ SPECIES_SPECS = {
     },
     "anomalocaris": {
         "sci": "Anomalocaris canadensis",
-        "primary": "#26a9be",
-        "secondary": "#167a8e",
-        "dark": "#1d5e6e",
-        "belly": "#cbeff7",
-        "accent": "#f59e0b",
+        "primary": "#3e5c63",
+        "secondary": "#283e45",
+        "dark": "#18272c",
+        "belly": "#8fa19e",
+        "accent": "#9e733b",
         "pattern": "cambrian_chitin",
         "side_body": "M 215,325 C 315,278 525,275 715,295 C 775,305 815,332 795,362 C 715,388 385,392 215,348 Z",
         "side_head": "M 765,295 C 815,275 885,285 915,318 C 918,338 892,358 845,362 L 775,355 Z",
@@ -259,11 +259,11 @@ SPECIES_SPECS = {
     },
     "dragon": {
         "sci": "Drak'Zul (Dracorex + Varanus + Patagium)",
-        "primary": "#4f4857",
-        "secondary": "#63525b",
-        "dark": "#2e2833",
-        "belly": "#a62424",
-        "accent": "#ff5e14",
+        "primary": "#4a4350",
+        "secondary": "#5a4b52",
+        "dark": "#2b252f",
+        "belly": "#8c2222",
+        "accent": "#d94e14",
         "pattern": "magma_scales",
         "side_body": "M 265,335 C 335,235 495,215 645,245 C 715,262 745,315 735,368 C 655,405 385,408 275,375 Z",
         "side_head": "M 755,155 C 805,125 895,135 948,175 C 958,195 942,222 895,225 L 772,215 Z",
@@ -354,17 +354,17 @@ def build_skin_texture_svgs(fid, spec):
     size = 1024
     pat = spec["pattern"]
 
-    # Countershaded gradient across U (0/1 = dorsal dark ridge, 0.5 = ventral belly)
+    # Smooth natural countershaded gradient across U (0/1 = dorsal ridge, 0.5 = ventral belly)
     albedo_elems = [
         f'''<defs>
   <linearGradient id="cs_{fid}" x1="0%" y1="0%" x2="100%" y2="0%">
     <stop offset="0%" stop-color="{spec["dark"]}"/>
-    <stop offset="18%" stop-color="{spec["secondary"]}"/>
-    <stop offset="36%" stop-color="{spec["primary"]}"/>
-    <stop offset="47%" stop-color="{spec["belly"]}"/>
-    <stop offset="53%" stop-color="{spec["belly"]}"/>
-    <stop offset="64%" stop-color="{spec["primary"]}"/>
-    <stop offset="82%" stop-color="{spec["secondary"]}"/>
+    <stop offset="16%" stop-color="{spec["secondary"]}"/>
+    <stop offset="34%" stop-color="{spec["primary"]}"/>
+    <stop offset="46%" stop-color="{spec["belly"]}"/>
+    <stop offset="54%" stop-color="{spec["belly"]}"/>
+    <stop offset="66%" stop-color="{spec["primary"]}"/>
+    <stop offset="84%" stop-color="{spec["secondary"]}"/>
     <stop offset="100%" stop-color="{spec["dark"]}"/>
   </linearGradient>
 </defs>
@@ -380,59 +380,83 @@ def build_skin_texture_svgs(fid, spec):
         cw, ch = size / cols, size / rows
         for gy in range(rows):
             for gx in range(cols):
-                cx = (gx + 0.2 + rng.random() * 0.6) * cw
-                cy = (gy + 0.2 + rng.random() * 0.6) * ch
-                rx = cw * (0.38 + rng.random() * 0.16)
-                ry = ch * (0.36 + rng.random() * 0.16)
+                cx = (gx + 0.35 + rng.random() * 0.30) * cw
+                cy = (gy + 0.35 + rng.random() * 0.30) * ch
+                rx = cw * (0.45 + rng.random() * 0.10)
+                ry = ch * (0.44 + rng.random() * 0.10)
                 sides = 5 + rng.randint(0, 2)
                 rot = rng.random() * math.pi * 2
                 pts = []
                 for s in range(sides):
                     a = rot + (s / sides) * math.pi * 2
-                    rm = 0.84 + rng.random() * 0.28
+                    rm = 0.88 + rng.random() * 0.20
                     pts.append(f"{cx + math.cos(a)*rx*rm:.1f},{cy + math.sin(a)*ry*rm:.1f}")
                 poly = " ".join(pts)
                 u = cx / size
-                is_dorsal = u < 0.26 or u > 0.74
-                fill_col = spec["accent"] if (is_dorsal and rng.random() > 0.68) else (spec["dark"] if rng.random() > 0.45 else spec["primary"])
-                alpha = 0.34 if pat != "magma_scales" else (0.55 if is_dorsal else 0.32)
-                stroke_col = spec["accent"] if (pat == "magma_scales" and is_dorsal and rng.random() > 0.7) else spec["dark"]
+                is_dorsal = u < 0.24 or u > 0.76
+                if pat == "magma_scales":
+                    fill_col = spec["accent"] if (is_dorsal and rng.random() > 0.68) else (spec["dark"] if rng.random() > 0.45 else spec["primary"])
+                    alpha = 0.55 if is_dorsal else 0.32
+                    stroke_col = spec["accent"] if (is_dorsal and rng.random() > 0.7) else spec["dark"]
+                    stroke_a = 0.65
+                else:
+                    if is_dorsal and rng.random() > 0.65:
+                        fill_col = spec["dark"]
+                        alpha = 0.30
+                    elif rng.random() > 0.78:
+                        fill_col = spec["accent"]
+                        alpha = 0.18
+                    elif rng.random() > 0.45:
+                        fill_col = spec["secondary"]
+                        alpha = 0.24
+                    else:
+                        fill_col = spec["primary"]
+                        alpha = 0.20
+                    stroke_col = spec["dark"]
+                    stroke_a = 0.42
                 albedo_elems.append(
-                    f'<polygon points="{poly}" fill="{hex_to_rgba(fill_col, alpha)}" stroke="{hex_to_rgba(stroke_col, 0.65)}" stroke-width="2.0"/>'
+                    f'<polygon points="{poly}" fill="{hex_to_rgba(fill_col, alpha)}" stroke="{hex_to_rgba(stroke_col, stroke_a)}" stroke-width="1.8"/>'
                 )
-                b_lum = rng.randint(155, 228) if is_dorsal else rng.randint(110, 175)
+                b_lum = rng.randint(155, 224) if is_dorsal else rng.randint(112, 175)
                 bump_elems.append(
-                    f'<polygon points="{poly}" fill="rgb({b_lum},{b_lum},{b_lum})" stroke="#2a2a2a" stroke-width="2.4"/>'
+                    f'<polygon points="{poly}" fill="rgb({b_lum},{b_lum},{b_lum})" stroke="#2a2a2a" stroke-width="2.2"/>'
                 )
 
     elif pat in ("aquatic_stripes", "hadrosaur_bands", "tubercles_stripes"):
-        # Soft organic mottled flank patches & dappled natural skin markings (avoids rigid pinstripe rings)
-        for s in range(18):
-            yc = (s + 0.35 + rng.random() * 0.3) * (size / 18.0)
-            rx_band = 95 + rng.random() * 145
-            ry_band = 18 + rng.random() * 26
+        # Organic broken camouflage mottling & natural weathered flank patches (no rigid stacked rings)
+        for s in range(26):
+            yc = (s + rng.random() * 0.85) * (size / 26.0)
             for side in (0, 1):
-                cx = size * (0.14 + rng.random() * 0.14) if side == 0 else size * (0.86 - rng.random() * 0.14)
-                ang = (rng.random() - 0.5) * 24
+                if rng.random() < 0.22:
+                    continue
+                u_pos = (0.08 + rng.random() * 0.20) if side == 0 else (0.92 - rng.random() * 0.20)
+                cx = size * u_pos
+                rx_band = 55 + rng.random() * 110
+                ry_band = 14 + rng.random() * 22
+                ang = (rng.random() - 0.5) * 32
+                col = spec["dark"] if rng.random() > 0.30 else spec["secondary"]
                 albedo_elems.append(
-                    f'<ellipse cx="{cx:.1f}" cy="{yc:.1f}" rx="{rx_band:.1f}" ry="{ry_band:.1f}" transform="rotate({ang:.1f} {cx:.1f} {yc:.1f})" fill="{hex_to_rgba(spec["dark"], 0.28)}"/>'
+                    f'<ellipse cx="{cx:.1f}" cy="{yc:.1f}" rx="{rx_band:.1f}" ry="{ry_band:.1f}" transform="rotate({ang:.1f} {cx:.1f} {yc:.1f})" fill="{hex_to_rgba(col, 0.22)}"/>'
                 )
-                albedo_elems.append(
-                    f'<ellipse cx="{cx + (40 if side == 0 else -40):.1f}" cy="{yc + 8:.1f}" rx="{rx_band*0.55:.1f}" ry="{ry_band*0.5:.1f}" transform="rotate({ang:.1f} {cx:.1f} {yc:.1f})" fill="{hex_to_rgba(spec["accent"], 0.20)}"/>'
-                )
-        for _ in range(2600):
+                if rng.random() > 0.45:
+                    dx = cx + (28 if side == 0 else -28)
+                    albedo_elems.append(
+                        f'<ellipse cx="{dx:.1f}" cy="{yc + 6:.1f}" rx="{rx_band*0.48:.1f}" ry="{ry_band*0.52:.1f}" transform="rotate({ang:.1f} {dx:.1f} {yc+6:.1f})" fill="{hex_to_rgba(spec["accent"], 0.14)}"/>'
+                    )
+        # Subtle pebbled reptilian tubercles across the hide
+        for _ in range(2800):
             x = rng.random() * size
             y = rng.random() * size
-            r = 2.0 + rng.random() * 5.0
-            b_lum = rng.randint(115, 205)
+            r = 2.2 + rng.random() * 4.4
+            b_lum = rng.randint(115, 202)
             bump_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="rgb({b_lum},{b_lum},{b_lum})" stroke="#404040" stroke-width="0.7"/>')
-            if rng.random() > 0.48:
-                col = spec["accent"] if rng.random() > 0.72 else spec["dark"]
-                albedo_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{hex_to_rgba(col, 0.16)}"/>')
+            if rng.random() > 0.52:
+                col = spec["dark"] if rng.random() > 0.35 else spec["secondary"]
+                albedo_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{hex_to_rgba(col, 0.12)}" stroke="{hex_to_rgba(spec["dark"], 0.14)}" stroke-width="0.5"/>')
 
     elif pat in ("plumage_barbs", "raptor_feathers", "shaggy_fur"):
-        # Overlapping layered natural feather vanes / shaggy fur locks (warm streaks, never neon spots)
-        count = 2200 if pat != "shaggy_fur" else 2600
+        # Overlapping layered natural feather vanes / shaggy fur locks
+        count = 2300 if pat != "shaggy_fur" else 2600
         for _ in range(count):
             x = rng.random() * size
             y = rng.random() * size
@@ -440,39 +464,37 @@ def build_skin_texture_svgs(fid, spec):
             h = 30 + rng.random() * 38
             ang = (rng.random() - 0.5) * 14
             roll = rng.random()
-            if roll > 0.84:
+            if roll > 0.86:
                 col = spec["belly"]
-                alpha = 0.16
-            elif roll > 0.42:
+                alpha = 0.14
+            elif roll > 0.44:
                 col = spec["secondary"]
-                alpha = 0.34
+                alpha = 0.32
             else:
                 col = spec["primary"]
-                alpha = 0.32
+                alpha = 0.30
             albedo_elems.append(
-                f'<ellipse cx="{x:.1f}" cy="{y:.1f}" rx="{w*0.5:.1f}" ry="{h*0.5:.1f}" transform="rotate({ang:.1f} {x:.1f} {y:.1f})" fill="{hex_to_rgba(col, alpha)}" stroke="{hex_to_rgba(spec["dark"], 0.28)}" stroke-width="0.9"/>'
+                f'<ellipse cx="{x:.1f}" cy="{y:.1f}" rx="{w*0.5:.1f}" ry="{h*0.5:.1f}" transform="rotate({ang:.1f} {x:.1f} {y:.1f})" fill="{hex_to_rgba(col, alpha)}" stroke="{hex_to_rgba(spec["dark"], 0.24)}" stroke-width="0.9"/>'
             )
-            b_lum = rng.randint(120, 215)
+            b_lum = rng.randint(120, 212)
             bump_elems.append(
                 f'<ellipse cx="{x:.1f}" cy="{y:.1f}" rx="{w*0.45:.1f}" ry="{h*0.45:.1f}" transform="rotate({ang:.1f} {x:.1f} {y:.1f})" fill="rgb({b_lum},{b_lum},{b_lum})" stroke="#383838" stroke-width="0.9"/>'
             )
 
     elif pat == "feline_rosettes":
         # Natural irregular broken jaguar/Pleistocene cat rosettes + fine fur strokes
-        for _ in range(260):
+        for _ in range(240):
             u = rng.random()
             if 0.38 < u < 0.62:
                 continue
             cx = u * size
             cy = rng.random() * size
-            rx = 11 + rng.random() * 18
-            ry = rx * (0.78 + rng.random() * 0.44)
+            rx = 11 + rng.random() * 17
+            ry = rx * (0.78 + rng.random() * 0.42)
             rot_r = rng.random() * math.pi * 2
-            # Warm dark-ochre rosette core
             albedo_elems.append(
-                f'<ellipse cx="{cx:.1f}" cy="{cy:.1f}" rx="{rx*0.72:.1f}" ry="{ry*0.72:.1f}" transform="rotate({math.degrees(rot_r):.1f} {cx:.1f} {cy:.1f})" fill="{hex_to_rgba(spec["accent"], 0.36)}"/>'
+                f'<ellipse cx="{cx:.1f}" cy="{cy:.1f}" rx="{rx*0.72:.1f}" ry="{ry*0.72:.1f}" transform="rotate({math.degrees(rot_r):.1f} {cx:.1f} {cy:.1f})" fill="{hex_to_rgba(spec["accent"], 0.30)}"/>'
             )
-            # 3-5 irregular dark kidney-shaped outer petals
             n_petals = rng.randint(3, 5)
             for p_idx in range(n_petals):
                 a0 = rot_r + (p_idx / n_petals) * math.pi * 2 + (rng.random() - 0.5) * 0.35
@@ -482,13 +504,12 @@ def build_skin_texture_svgs(fid, spec):
                 ph = ry * (0.16 + rng.random() * 0.12)
                 pang = math.degrees(a0) + 90
                 albedo_elems.append(
-                    f'<ellipse cx="{px:.1f}" cy="{py:.1f}" rx="{pw:.1f}" ry="{ph:.1f}" transform="rotate({pang:.1f} {px:.1f} {py:.1f})" fill="{hex_to_rgba(spec["dark"], 0.72)}"/>'
+                    f'<ellipse cx="{px:.1f}" cy="{py:.1f}" rx="{pw:.1f}" ry="{ph:.1f}" transform="rotate({pang:.1f} {px:.1f} {py:.1f})" fill="{hex_to_rgba(spec["dark"], 0.64)}"/>'
                 )
             if rng.random() > 0.45:
-                # 1-2 tiny interior dots like Panthera onca
                 dx = cx + (rng.random() - 0.5) * rx * 0.45
                 dy = cy + (rng.random() - 0.5) * ry * 0.45
-                albedo_elems.append(f'<circle cx="{dx:.1f}" cy="{dy:.1f}" r="{1.8 + rng.random()*2.0:.1f}" fill="{hex_to_rgba(spec["dark"], 0.68)}"/>')
+                albedo_elems.append(f'<circle cx="{dx:.1f}" cy="{dy:.1f}" r="{1.8 + rng.random()*2.0:.1f}" fill="{hex_to_rgba(spec["dark"], 0.60)}"/>')
         for _ in range(2000):
             x = rng.random() * size
             y = rng.random() * size
@@ -497,60 +518,66 @@ def build_skin_texture_svgs(fid, spec):
             bump_elems.append(f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{x+1.5:.1f}" y2="{y+l:.1f}" stroke="rgb({b_lum},{b_lum},{b_lum})" stroke-width="1.5"/>')
 
     elif pat == "sauropod_spots":
-        # Reticulated elephantine hide polygons + subtle mottled dorsal pebbles (natural, non-neon)
-        for _ in range(1800):
+        # Reticulated elephantine hide cells + weathered dermal creases (natural stone-grey/taupe)
+        cols, rows = 36, 36
+        cw, ch = size / cols, size / rows
+        for gy in range(rows):
+            for gx in range(cols):
+                cx = (gx + 0.3 + rng.random() * 0.4) * cw
+                cy = (gy + 0.3 + rng.random() * 0.4) * ch
+                r = cw * (0.42 + rng.random() * 0.14)
+                u = cx / size
+                is_dorsal = u < 0.26 or u > 0.74
+                b_lum = rng.randint(120, 195) if is_dorsal else rng.randint(105, 175)
+                bump_elems.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="rgb({b_lum},{b_lum},{b_lum})" stroke="#343434" stroke-width="1.4"/>')
+                if rng.random() > 0.35:
+                    col = spec["dark"] if (is_dorsal and rng.random() > 0.5) else spec["secondary"]
+                    albedo_elems.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r*0.92:.1f}" fill="{hex_to_rgba(col, 0.18)}" stroke="{hex_to_rgba(spec["dark"], 0.26)}" stroke-width="1.1"/>')
+        # Large weathered skin wrinkle folds across flanks
+        for _ in range(90):
             x = rng.random() * size
             y = rng.random() * size
-            r = 4 + rng.random() * 11
-            b_lum = rng.randint(105, 195)
-            bump_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="rgb({b_lum},{b_lum},{b_lum})" stroke="#353535" stroke-width="1.2"/>')
-        for _ in range(260):
-            u = rng.random()
-            if 0.34 < u < 0.66:
-                continue
-            cx, cy = u * size, rng.random() * size
-            r = 7 + rng.random() * 16
-            col = spec["accent"] if rng.random() > 0.6 else spec["dark"]
-            albedo_elems.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="{hex_to_rgba(col, 0.22)}" stroke="{hex_to_rgba(spec["dark"], 0.28)}" stroke-width="1.5"/>')
+            rx = 18 + rng.random() * 35
+            ry = 6 + rng.random() * 10
+            ang = (rng.random() - 0.5) * 20
+            albedo_elems.append(f'<ellipse cx="{x:.1f}" cy="{y:.1f}" rx="{rx:.1f}" ry="{ry:.1f}" transform="rotate({ang:.1f} {x:.1f} {y:.1f})" fill="{hex_to_rgba(spec["dark"], 0.12)}"/>')
 
     elif pat == "cambrian_chitin":
-        # Luminous Burgess-Shale chitin plates with transverse gill-blade striations & dappled amber-teal spots
+        # Natural Burgess-Shale chitin plates with transverse gill-blade striations & muted ochre/slate mottling
         for y in range(0, size, 64):
-            albedo_elems.append(f'<rect x="0" y="{y}" width="1024" height="5" fill="{hex_to_rgba("#0c3b47", 0.50)}"/>')
-            albedo_elems.append(f'<rect x="0" y="{y+5}" width="1024" height="5" fill="{hex_to_rgba("#67e8f9", 0.48)}"/>')
-            albedo_elems.append(f'<rect x="0" y="{y+10}" width="1024" height="3" fill="{hex_to_rgba(spec["accent"], 0.42)}"/>')
+            albedo_elems.append(f'<rect x="0" y="{y}" width="1024" height="5" fill="{hex_to_rgba(spec["dark"], 0.55)}"/>')
+            albedo_elems.append(f'<rect x="0" y="{y+5}" width="1024" height="5" fill="{hex_to_rgba("#6d8a8e", 0.34)}"/>')
+            albedo_elems.append(f'<rect x="0" y="{y+10}" width="1024" height="3" fill="{hex_to_rgba(spec["accent"], 0.28)}"/>')
             bump_elems.append(f'<rect x="0" y="{y}" width="1024" height="6" fill="#323232"/>')
             bump_elems.append(f'<rect x="0" y="{y+6}" width="1024" height="6" fill="#e4e4e4"/>')
-        # Fine parallel gill-lamellae striations along each tergite band
         for x in range(0, size, 14):
-            albedo_elems.append(f'<line x1="{x}" y1="0" x2="{x}" y2="1024" stroke="{hex_to_rgba("#99f6e4", 0.16)}" stroke-width="2.0"/>')
+            albedo_elems.append(f'<line x1="{x}" y1="0" x2="{x}" y2="1024" stroke="{hex_to_rgba("#7a9596", 0.14)}" stroke-width="2.0"/>')
             bump_elems.append(f'<line x1="{x}" y1="0" x2="{x}" y2="1024" stroke="#b8b8b8" stroke-width="1.8"/>')
-        # Dappled museum-style carapace spots (golden-amber + dark slate-teal)
-        for _ in range(950):
+        for _ in range(850):
             x = rng.random() * size
             y = rng.random() * size
-            r = 3.0 + rng.random() * 10.5
-            is_amber = rng.random() > 0.46
-            col = "#fbbf24" if is_amber else "#0f4858"
-            alpha = 0.44 if is_amber else 0.34
-            albedo_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{hex_to_rgba(col, alpha)}" stroke="{hex_to_rgba("#22d3ee", 0.25)}" stroke-width="0.9"/>')
-            b_lum = rng.randint(145, 232)
+            r = 2.5 + rng.random() * 8.5
+            is_amber = rng.random() > 0.52
+            col = spec["accent"] if is_amber else spec["dark"]
+            alpha = 0.28 if is_amber else 0.26
+            albedo_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{hex_to_rgba(col, alpha)}" stroke="{hex_to_rgba(spec["dark"], 0.22)}" stroke-width="0.8"/>')
+            b_lum = rng.randint(145, 225)
             bump_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="rgb({b_lum},{b_lum},{b_lum})"/>')
 
     elif pat == "arachnid_chitin":
-        # Segmented chitin plates, iridescent striations & tuberculate ridges
+        # Segmented chitin plates, subtle cuticle sutures & dark tuberculate ridges
         for y in range(0, size, 64):
             albedo_elems.append(f'<rect x="0" y="{y}" width="1024" height="8" fill="{hex_to_rgba(spec["dark"], 0.55)}"/>')
-            albedo_elems.append(f'<rect x="0" y="{y+8}" width="1024" height="4" fill="{hex_to_rgba(spec["accent"], 0.48)}"/>')
+            albedo_elems.append(f'<rect x="0" y="{y+8}" width="1024" height="4" fill="{hex_to_rgba(spec["accent"], 0.26)}"/>')
             bump_elems.append(f'<rect x="0" y="{y}" width="1024" height="8" fill="#3a3a3a"/>')
             bump_elems.append(f'<rect x="0" y="{y+8}" width="1024" height="6" fill="#d8d8d8"/>')
         for _ in range(900):
             x = rng.random() * size
             y = rng.random() * size
-            r = 2.5 + rng.random() * 7.5
-            col = spec["accent"] if rng.random() > 0.6 else spec["secondary"]
-            albedo_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{hex_to_rgba(col, 0.35)}" stroke="{hex_to_rgba(spec["accent"], 0.3)}" stroke-width="0.8"/>')
-            b_lum = rng.randint(135, 225)
+            r = 2.5 + rng.random() * 6.5
+            col = spec["dark"] if rng.random() > 0.35 else spec["secondary"]
+            albedo_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{hex_to_rgba(col, 0.26)}" stroke="{hex_to_rgba(spec["dark"], 0.24)}" stroke-width="0.7"/>')
+            b_lum = rng.randint(135, 220)
             bump_elems.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="rgb({b_lum},{b_lum},{b_lum})"/>')
 
     albedo_svg = (

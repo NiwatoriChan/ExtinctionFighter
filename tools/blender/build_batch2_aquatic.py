@@ -191,62 +191,58 @@ def build_anomalocaris():
     albedo, bump = tex_paths("anomalocaris")
     mat_body = make_pbr_material(
         "Mat_BodyPrimary",
-        (0.18, 0.72, 0.82, 1.0),
-        roughness=0.38,
-        metallic=0.10,
+        (0.06, 0.13, 0.15, 1.0),
+        roughness=0.46,
+        metallic=0.04,
         albedo_path=albedo,
         bump_path=bump,
         bump_strength=0.30,
     )
     mat_tergite = make_pbr_material(
         "Mat_Tergite",
-        (0.14, 0.56, 0.68, 1.0),
-        roughness=0.32,
-        metallic=0.14,
+        (0.04, 0.10, 0.12, 1.0),
+        roughness=0.40,
+        metallic=0.05,
         albedo_path=albedo,
         bump_path=bump,
         bump_strength=0.38,
     )
     mat_dark = make_pbr_material(
         "Mat_Secondary",
-        (0.08, 0.34, 0.44, 1.0),
-        roughness=0.30,
-        metallic=0.22,
+        (0.03, 0.06, 0.08, 1.0),
+        roughness=0.42,
+        metallic=0.06,
         bump_path=bump,
         bump_strength=0.25,
     )
     mat_flap = make_pbr_material(
         "Mat_Flap",
-        (0.20, 0.68, 0.80, 1.0),
-        roughness=0.34,
-        metallic=0.08,
+        (0.06, 0.12, 0.14, 1.0),
+        roughness=0.44,
+        metallic=0.03,
         albedo_path=albedo,
         bump_path=bump,
         bump_strength=0.22,
     )
     mat_cyan = make_pbr_material(
         "Mat_Accent",
-        (0.20, 0.90, 0.96, 1.0),
-        roughness=0.22,
-        metallic=0.12,
-        emissive=(0.14, 0.78, 0.90, 1.0),
-        emissive_strength=0.52,
+        (0.38, 0.22, 0.06, 1.0),
+        roughness=0.38,
+        metallic=0.05,
     )
     mat_amber = make_pbr_material(
         "Mat_Amber",
-        (0.96, 0.66, 0.14, 1.0),
-        roughness=0.25,
-        metallic=0.15,
-        emissive=(0.65, 0.36, 0.03, 1.0),
-        emissive_strength=0.18,
+        (0.34, 0.18, 0.05, 1.0),
+        roughness=0.38,
+        metallic=0.04,
     )
     mat_eye = make_pbr_material(
         "Mat_Eye",
-        (0.14, 0.55, 0.45, 1.0),
-        roughness=0.08,
-        metallic=0.20,
-        emissive=(0.06, 0.35, 0.28, 1.0),
-        emissive_strength=0.30,
+        (0.08, 0.28, 0.22, 1.0),
+        roughness=0.10,
+        metallic=0.08,
+        emissive=(0.04, 0.20, 0.16, 1.0),
+        emissive_strength=0.18,
     )
     mat_pupil = make_pbr_material("Mat_Pupil", (0.04, 0.10, 0.12, 1.0), roughness=0.06, metallic=0.15)
 
@@ -619,10 +615,10 @@ def build_anomalocaris():
 def build_pulmonoscorpius():
     clear_scene()
     albedo, bump = tex_paths("pulmonoscorpius")
-    mat_body = make_pbr_material("Mat_BodyPrimary", (0.76, 0.42, 0.98, 1), roughness=0.28, metallic=0.12, albedo_path=albedo, bump_path=bump, bump_strength=0.30)
-    mat_dark = make_pbr_material("Mat_Secondary", (0.32, 0.14, 0.52, 1), roughness=0.30, metallic=0.14, bump_path=bump, bump_strength=0.24)
-    mat_stinger = make_pbr_material("Mat_Accent", (0.76, 0.08, 0.22, 1), roughness=0.18, metallic=0.12, emissive=(0.55, 0.04, 0.14, 1), emissive_strength=0.30)
-    mat_eye = make_pbr_material("Mat_Eye", (0.98, 0.88, 0.35, 1), roughness=0.10, emissive=(0.8, 0.55, 0.1, 1), emissive_strength=0.55)
+    mat_body = make_pbr_material("Mat_BodyPrimary", (0.07, 0.05, 0.07, 1), roughness=0.38, metallic=0.05, albedo_path=albedo, bump_path=bump, bump_strength=0.30)
+    mat_dark = make_pbr_material("Mat_Secondary", (0.03, 0.02, 0.04, 1), roughness=0.40, metallic=0.06, bump_path=bump, bump_strength=0.24)
+    mat_stinger = make_pbr_material("Mat_Accent", (0.22, 0.06, 0.03, 1), roughness=0.30, metallic=0.05)
+    mat_eye = make_pbr_material("Mat_Eye", (0.62, 0.44, 0.10, 1), roughness=0.12, emissive=(0.45, 0.28, 0.05, 1), emissive_strength=0.20)
 
     root = create_bone_node("Bone_Root")
     hips = create_bone_node("Bone_Hips", (0.0, 0.0, 0.95), parent=root)
@@ -734,11 +730,11 @@ def build_pulmonoscorpius():
 def build_spinosaurus():
     clear_scene()
     albedo, bump = tex_paths("spinosaurus")
-    mat_body = make_pbr_material("Mat_BodyPrimary", (0.24, 0.62, 0.88, 1), roughness=0.44, metallic=0.06, albedo_path=albedo, bump_path=bump, bump_strength=0.28)
-    mat_sail = make_pbr_material("Mat_Accent", (0.14, 0.80, 0.88, 1), roughness=0.40, metallic=0.06, albedo_path=albedo, bump_path=bump, bump_strength=0.22, emissive=(0.04, 0.36, 0.48, 1), emissive_strength=0.14)
-    mat_dark = make_pbr_material("Mat_Secondary", (0.16, 0.36, 0.52, 1), roughness=0.46, metallic=0.08, albedo_path=albedo, bump_path=bump, bump_strength=0.22)
-    mat_tooth = make_pbr_material("Mat_Tooth", (0.98, 0.96, 0.88, 1), roughness=0.18)
-    mat_iris = make_pbr_material("Mat_Eye", (0.98, 0.75, 0.15, 1), roughness=0.1, emissive=(0.65, 0.45, 0.05, 1), emissive_strength=0.45)
+    mat_body = make_pbr_material("Mat_BodyPrimary", (0.09, 0.12, 0.12, 1), roughness=0.68, metallic=0.02, albedo_path=albedo, bump_path=bump, bump_strength=0.28)
+    mat_sail = make_pbr_material("Mat_Accent", (0.28, 0.12, 0.06, 1), roughness=0.60, metallic=0.02, bump_path=bump, bump_strength=0.22)
+    mat_dark = make_pbr_material("Mat_Secondary", (0.06, 0.08, 0.08, 1), roughness=0.66, metallic=0.02, albedo_path=albedo, bump_path=bump, bump_strength=0.22)
+    mat_tooth = make_pbr_material("Mat_Tooth", (0.74, 0.68, 0.54, 1), roughness=0.24, metallic=0.0)
+    mat_iris = make_pbr_material("Mat_Eye", (0.62, 0.40, 0.08, 1), roughness=0.12, emissive=(0.35, 0.22, 0.03, 1), emissive_strength=0.15)
     mat_pupil = make_pbr_material("Mat_Pupil", (0.02, 0.02, 0.02, 1), roughness=0.1)
 
     root = create_bone_node("Bone_Root")

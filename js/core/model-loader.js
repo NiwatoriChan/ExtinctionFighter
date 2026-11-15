@@ -290,7 +290,6 @@ function hydrateRigFromGLB(rig, dino, skin, gltf) {
                 m.color.setHex(skin.secondary);
             } else if (m.name && m.name.includes('Mat_Accent') && skin.accent !== undefined) {
                 m.color.setHex(skin.accent);
-                if (m.emissive) m.emissive.setHex(skin.accent);
             }
         });
     }

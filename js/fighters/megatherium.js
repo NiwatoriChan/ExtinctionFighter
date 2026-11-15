@@ -121,10 +121,10 @@ registerFighter({
     fullName: 'Megatherium Americanum',
     role: 'Paresseux Géant Béhémoth',
     title: '« La Force Brute du Pléistocène »',
-    primaryColor: 0xb45309,
-    secondaryColor: 0x451a03,
-    accentColor: 0xfbbf24,
-    cssPrimary: '#d97706',
+    primaryColor: 0x735036,
+    secondaryColor: 0x332216,
+    accentColor: 0x8f7d60,
+    cssPrimary: '#735036',
     scale: 1.08,
     previewScale: 0.90,
     stats: { pow: 96, spd: 70, def: 93 },
@@ -136,8 +136,8 @@ registerFighter({
     moveStyle: 'Posture bipède colossale et voûtée, revers de pattes herculéennes armées de griffes recourbées.',
     fatalityDesc: 'Enserre le torse de la victime dans ses avant-bras colossaux, brise la cage thoracique en deux dans une étreinte fatale avant de l’écraser au sol.',
     skins: [
-        { name: 'Sunlit Megatherium', primary: 0xb45309, secondary: 0x451a03, accent: 0xfbbf24, claw: 0xfef3c7 },
-        { name: 'Tundra Behemoth', primary: 0x78716c, secondary: 0x292524, accent: 0xd6d3d1, claw: 0xf5f5f4 }
+        { name: 'Pampas Ground Sloth', primary: 0x735036, secondary: 0x332216, accent: 0x8f7d60, claw: 0xc8bfa6 },
+        { name: 'Tundra Behemoth', primary: 0x78716c, secondary: 0x292524, accent: 0xa8a29e, claw: 0xd6d3cb }
     ]
 }, {
     animBaseHipsY: 1.85,
@@ -154,29 +154,29 @@ registerFighter({
         const pbr = getMegatheriumPBRMaps();
 
         const stylizedBodyMat = new THREE.MeshStandardMaterial({
-            color: skin.primary || 0xb45309,
+            color: skin.primary || 0x735036,
             map: pbr.furTex,
             bumpMap: pbr.bumpTex,
             bumpScale: 0.08,
-            roughness: 0.72,
-            metalness: 0.04
+            roughness: 0.84,
+            metalness: 0.0
         });
         const darkFurMat = new THREE.MeshStandardMaterial({
-            color: skin.secondary || 0x451a03,
-            roughness: 0.85,
-            metalness: 0.02
+            color: skin.secondary || 0x332216,
+            roughness: 0.86,
+            metalness: 0.0
         });
         const furLightMat = new THREE.MeshStandardMaterial({
-            color: skin.accent || 0xfbbf24,
-            roughness: 0.65,
-            metalness: 0.05
+            color: skin.accent || 0x8f7d60,
+            roughness: 0.80,
+            metalness: 0.0
         });
-        const snoutMat = new THREE.MeshStandardMaterial({ color: 0x240e04, roughness: 0.50, metalness: 0.1 });
+        const snoutMat = new THREE.MeshStandardMaterial({ color: 0x241812, roughness: 0.56, metalness: 0.01 });
         const clawMat = new THREE.MeshStandardMaterial({
-            color: skin.claw || 0xfef3c7,
+            color: skin.claw || 0xc8bfa6,
             map: pbr.clawTex,
-            roughness: 0.28,
-            metalness: 0.35
+            roughness: 0.36,
+            metalness: 0.02
         });
         const eyeAmberMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
         const pupilMat = new THREE.MeshBasicMaterial({ color: 0x09090b });

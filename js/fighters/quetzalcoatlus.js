@@ -30,15 +30,15 @@ function getQuetzalPBRMaps() {
         const cCtx = colorCanvas.getContext('2d');
         const bCtx = bumpCanvas.getContext('2d');
 
-        // Countershaded organic base coat flashy or solaire / ambre doré
+        // Countershaded natural coat: slate-charcoal dorsal -> warm taupe flanks -> parchment belly
         const grad = cCtx.createLinearGradient(0, 0, size, 0);
-        grad.addColorStop(0.0, '#451a03');   // Épine dorsale acajou profond
-        grad.addColorStop(0.22, '#b45309');  // Haut des flancs ambre cuivré
-        grad.addColorStop(0.42, '#f59e0b');  // Flancs or solaire étincelant
-        grad.addColorStop(0.5, '#fef08a');   // Gorge / ventre jaune d'or lumineux
-        grad.addColorStop(0.58, '#f59e0b');
-        grad.addColorStop(0.78, '#b45309');
-        grad.addColorStop(1.0, '#451a03');
+        grad.addColorStop(0.0, '#27292c');   // Épine dorsale ardoise charbon
+        grad.addColorStop(0.24, '#464a4f');  // Haut des flancs gris ardoise
+        grad.addColorStop(0.42, '#7a756c');  // Flancs taupe sableux
+        grad.addColorStop(0.5, '#a89f90');   // Gorge / ventre parchemin terne
+        grad.addColorStop(0.58, '#7a756c');
+        grad.addColorStop(0.76, '#464a4f');
+        grad.addColorStop(1.0, '#27292c');
         cCtx.fillStyle = grad;
         cCtx.fillRect(0, 0, size, size);
 
@@ -103,14 +103,14 @@ function getQuetzalPBRMaps() {
         const ctx = canvas.getContext('2d');
         const bCtx = bump.getContext('2d');
 
-        // Longitudinal gradient from cranial base (left) to spear tip (right) flashy or étincelant
+        // Longitudinal gradient from cranial base (left) to spear tip (right) natural horn-ochre
         const grad = ctx.createLinearGradient(0, 0, size, 0);
-        grad.addColorStop(0.0, '#451a03');   // Base crânienne sombre
-        grad.addColorStop(0.25, '#78350f');  // Région nasoantorbitaire
-        grad.addColorStop(0.58, '#d97706');  // Rostre moyen ambre doré
-        grad.addColorStop(0.84, '#fbbf24');  // Lame de bec or éclatant
-        grad.addColorStop(0.96, '#fef08a');  // Pointe solaire
-        grad.addColorStop(1.0, '#78350f');
+        grad.addColorStop(0.0, '#2e2b28');   // Base crânienne sombre
+        grad.addColorStop(0.25, '#4f483d');  // Région nasoantorbitaire
+        grad.addColorStop(0.58, '#8d7956');  // Rostre moyen corne ocre
+        grad.addColorStop(0.84, '#b09a6c');  // Lame de bec parchemin ocre
+        grad.addColorStop(0.96, '#423c34');  // Pointe usée sombre
+        grad.addColorStop(1.0, '#24201c');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
 
@@ -163,11 +163,11 @@ function getQuetzalPBRMaps() {
         const ctx = canvas.getContext('2d');
 
         const grad = ctx.createLinearGradient(0, size, size * 0.8, 0);
-        grad.addColorStop(0.0, '#4c0519');
-        grad.addColorStop(0.22, '#9f1239');
-        grad.addColorStop(0.55, '#e11d48');
-        grad.addColorStop(0.82, '#f43f5e');
-        grad.addColorStop(1.0, '#fef08a');
+        grad.addColorStop(0.0, '#2b2c30');
+        grad.addColorStop(0.28, '#434c4e');
+        grad.addColorStop(0.62, '#6e5243');
+        grad.addColorStop(0.88, '#9c7853');
+        grad.addColorStop(1.0, '#c2a67a');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
 
@@ -199,13 +199,13 @@ function getQuetzalPBRMaps() {
         const bCtx = bumpCanvas.getContext('2d');
         const tCtx = thickCanvas.getContext('2d');
 
-        // V (0 = bord d'attaque musculaire épais, 1 = bord de fuite translucide flamboyant)
+        // V (0 = bord d'attaque musculaire épais, 1 = bord de fuite cuir parcheminé)
         const grad = cCtx.createLinearGradient(0, 0, 0, size);
-        grad.addColorStop(0.0, '#451a03');   // Longeron d'attaque acajou
-        grad.addColorStop(0.18, '#9a3412');  // Membrane antérieure cuivre
-        grad.addColorStop(0.55, '#ea580c');  // Membrane médiane coucher de soleil
-        grad.addColorStop(0.85, '#f97316');  // Zone de fuite corail ardent translucide
-        grad.addColorStop(1.0, '#c2410c');   // Liseré de fuite renforcé
+        grad.addColorStop(0.0, '#302923');   // Longeron d'attaque sombre
+        grad.addColorStop(0.20, '#574a3d');  // Membrane antérieure brun cuir
+        grad.addColorStop(0.55, '#7d6c58');  // Membrane médiane peau sèche
+        grad.addColorStop(0.85, '#9c8a72');  // Zone de fuite parchemin tanné
+        grad.addColorStop(1.0, '#5e5042');   // Liseré de fuite renforcé
         cCtx.fillStyle = grad;
         cCtx.fillRect(0, 0, size, size);
 
@@ -246,7 +246,7 @@ function getQuetzalPBRMaps() {
             const nx = x + Math.cos(angle) * len;
             const ny = y + Math.sin(angle) * len;
 
-            cCtx.strokeStyle = `rgba(115, 28, 22, ${0.12 + width * 0.05})`;
+            cCtx.strokeStyle = `rgba(68, 42, 34, ${0.10 + width * 0.04})`;
             cCtx.lineWidth = width;
             cCtx.beginPath();
             cCtx.moveTo(x, y);
@@ -342,10 +342,10 @@ registerFighter({
     fullName: 'Quetzalcoatlus Northropi',
     role: 'Monarque Céleste',
     title: '« L’Envergure Démesurée des Cieux »',
-    primaryColor: 0xf59e0b,
-    secondaryColor: 0x451a03,
-    accentColor: 0xf43f5e,
-    cssPrimary: '#f59e0b',
+    primaryColor: 0x52555a,
+    secondaryColor: 0x2b2d30,
+    accentColor: 0x8f7454,
+    cssPrimary: '#5c6066',
     scale: 0.96,
     previewScale: 0.72,
     stats: { pow: 94, spd: 96, def: 74 },
@@ -357,7 +357,8 @@ registerFighter({
     moveStyle: 'Démarche quadrupède ailée sur de longues échasses, vol libre stratosphérique de 2 secondes avec jauge circulaire d’endurance, estocs foudroyants et piqués dévastateurs.',
     fatalityDesc: 'Saisit l’ennemi de son long bec en dague, s’élève dans la haute atmosphère et le laisse s’écraser à vitesse terminale.',
     skins: [
-        { name: 'Solar Phoenix Quetzal', primary: 0xf59e0b, secondary: 0x451a03, accent: 0xf43f5e, membrane: 0xea580c, beak: 0xfacc15, isDefaultPBR: true }
+        { name: 'Ashen Ridge Azhdarchid', primary: 0x52555a, secondary: 0x2b2d30, accent: 0x8f7454, membrane: 0x7d6c58, beak: 0x9c865b, isDefaultPBR: true },
+        { name: 'Steppe Ochre Monarch', primary: 0x7a6852, secondary: 0x3b3126, accent: 0x8a523b, membrane: 0x8c775c, beak: 0xb09662 }
     ]
 }, {
     // Hauteur de base du bassin utilisée par le système d'animation (5.2m de haut, hanches à 1.98m)
@@ -397,10 +398,10 @@ registerFighter({
                 map: beakMaps.colorMap,
                 bumpMap: beakMaps.bumpMap,
                 bumpScale: 0.012,
-                roughness: 0.36,
-                metalness: 0.05,
-                clearcoat: 0.28,
-                clearcoatRoughness: 0.35,
+                roughness: 0.46,
+                metalness: 0.02,
+                clearcoat: 0.10,
+                clearcoatRoughness: 0.45,
                 side: THREE.DoubleSide
             }),
             crest: new THREE.MeshPhysicalMaterial({
@@ -408,9 +409,10 @@ registerFighter({
                 map: crestTex,
                 bumpMap: beakMaps.bumpMap,
                 bumpScale: 0.014,
-                roughness: 0.32,
-                clearcoat: 0.35,
-                clearcoatRoughness: 0.28,
+                roughness: 0.44,
+                metalness: 0.02,
+                clearcoat: 0.12,
+                clearcoatRoughness: 0.40,
                 side: THREE.DoubleSide
             }),
             oralMucosa: new THREE.MeshPhysicalMaterial({
@@ -425,8 +427,8 @@ registerFighter({
                 map: patagiumMaps.colorMap,
                 bumpMap: patagiumMaps.bumpMap,
                 bumpScale: 0.012,
-                roughness: 0.56,
-                metalness: 0.02,
+                roughness: 0.64,
+                metalness: 0.01,
                 side: THREE.DoubleSide,
                 transparent: true,
                 opacity: 0.98
@@ -436,13 +438,13 @@ registerFighter({
                 bumpMap: pycnoMaps.bumpMap,
                 bumpScale: 0.014,
                 color: furTint,
-                roughness: 0.72
+                roughness: 0.76
             }),
             scalyPad: new THREE.MeshStandardMaterial({
                 color: 0x2b2420,
                 bumpMap: beakMaps.bumpMap,
                 bumpScale: 0.02,
-                roughness: 0.65
+                roughness: 0.68
             }),
             boneXray: new THREE.MeshStandardMaterial({
                 color: 0xf8fafc,
@@ -451,9 +453,9 @@ registerFighter({
                 roughness: 0.22
             }),
             eyeIris: new THREE.MeshStandardMaterial({
-                color: 0xf59e0b,
-                emissive: 0x78350f,
-                emissiveIntensity: 0.25,
+                color: 0xb87d28,
+                emissive: 0x6b4714,
+                emissiveIntensity: 0.15,
                 roughness: 0.18
             }),
             eyeCornea: new THREE.MeshPhysicalMaterial({

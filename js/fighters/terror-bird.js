@@ -137,10 +137,10 @@ registerFighter({
     fullName: 'Phorusrhacos Longissimus',
     role: 'Faucheur Véloce Miocène',
     title: '« La Hache Plumée du Miocène »',
-    primaryColor: 0xea580c,
-    secondaryColor: 0x1c1917,
-    accentColor: 0xfacc15,
-    cssPrimary: '#ea580c',
+    primaryColor: 0x5c4636,
+    secondaryColor: 0x241b15,
+    accentColor: 0xa88446,
+    cssPrimary: '#6e523d',
     scale: 0.88,
     previewScale: 0.92,
     stats: { pow: 93, spd: 98, def: 70 },
@@ -152,8 +152,8 @@ registerFighter({
     moveStyle: 'Sprinteur hyperkinétique bipède, frappes verticales de son bec tranchant en coin.',
     fatalityDesc: 'Assène une frappe verticale d’une violence inouïe avec son bec crochu, ouvrant le crâne adverse en deux avant de déchirer les viscères.',
     skins: [
-        { name: 'Firestorm Terror', primary: 0xea580c, secondary: 0x1c1917, accent: 0xfacc15, neck: 0xffedd5, beak: 0xfacc15 },
-        { name: 'Ash Harpy', primary: 0x57534e, secondary: 0x1c1917, accent: 0x38bdf8, neck: 0xe2e8f0, beak: 0x38bdf8 }
+        { name: 'Pampas Umber Hawk', primary: 0x5c4636, secondary: 0x241b15, accent: 0xa88446, neck: 0xa49480, beak: 0xa88446 },
+        { name: 'Ashland Harpy', primary: 0x57534e, secondary: 0x1c1917, accent: 0x8f887d, neck: 0xbcb8b0, beak: 0x9ca3af }
     ]
 }, {
     animBaseHipsY: 2.25,
@@ -170,12 +170,12 @@ registerFighter({
         const pbr = getTerrorBirdPBRMaps();
 
         const stylizedBodyMat = new THREE.MeshStandardMaterial({
-            color: skin.primary || 0xea580c,
+            color: skin.primary || 0x5c4636,
             map: pbr.featherTex,
             bumpMap: pbr.bumpTex,
             bumpScale: 0.06,
-            roughness: 0.65,
-            metalness: 0.05
+            roughness: 0.78,
+            metalness: 0.01
         });
         const darkFeatherMat = new THREE.MeshStandardMaterial({
             color: skin.secondary || 0x1c1917,

@@ -1,32 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
   <defs>
     <linearGradient id="bodyGrad_therizino" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#33221a"/>
-      <stop offset="45%" stop-color="#6e4c36"/>
-      <stop offset="100%" stop-color="#d2b494"/>
+      <stop offset="0%" stop-color="#1f1a16"/>
+      <stop offset="45%" stop-color="#4d4238"/>
+      <stop offset="100%" stop-color="#8b7b67"/>
     </linearGradient>
     <linearGradient id="accentGrad_therizino" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#10b981"/>
-      <stop offset="100%" stop-color="#473024"/>
+      <stop offset="0%" stop-color="#b8aa8c"/>
+      <stop offset="100%" stop-color="#332b24"/>
     </linearGradient>
   </defs>
   <!-- Anatomical Reference Sheet: Therizinosaurus cheloniformis -->
   <g id="layer-body-side">
-    <path d="M 280,390 C 295,255 415,195 545,205 C 635,215 685,295 675,395 C 625,455 375,465 280,390 Z" fill="url(#bodyGrad_therizino)" stroke="#33221a" stroke-width="4"/>
+    <path d="M 280,390 C 295,255 415,195 545,205 C 635,215 685,295 675,395 C 625,455 375,465 280,390 Z" fill="url(#bodyGrad_therizino)" stroke="#1f1a16" stroke-width="4"/>
   </g>
   <g id="layer-head-profile">
-    <path d="M 645,145 C 685,112 755,112 795,142 C 805,158 790,175 752,178 L 665,175 Z" fill="#6e4c36" stroke="#33221a" stroke-width="4"/>
+    <path d="M 645,145 C 685,112 755,112 795,142 C 805,158 790,175 752,178 L 665,175 Z" fill="#4d4238" stroke="#1f1a16" stroke-width="4"/>
   </g>
   <g id="layer-tail-profile">
-    <path d="M 285,365 L 125,385 L 95,412 L 295,418 Z" fill="#473024" stroke="#33221a" stroke-width="4"/>
+    <path d="M 285,365 L 125,385 L 95,412 L 295,418 Z" fill="#332b24" stroke="#1f1a16" stroke-width="4"/>
   </g>
   <g id="layer-appendages">
-    <path d="M 595,235 C 615,175 630,135 665,142 L 685,172 C 660,185 650,225 642,265 Z" fill="#10b981" fill-opacity="0.82" stroke="#33221a" stroke-width="3"/>
-    <path d="M 645,335 C 735,340 825,385 885,465 C 835,435 760,392 650,368 Z" fill="#10b981" fill-opacity="0.82" stroke="#33221a" stroke-width="3"/>
-    <path d="M 645,355 C 725,372 805,425 855,495 C 805,458 742,412 645,382 Z" fill="#10b981" fill-opacity="0.82" stroke="#33221a" stroke-width="3"/>
-    <path d="M 645,372 C 712,398 778,452 820,515 C 775,478 722,428 640,396 Z" fill="#10b981" fill-opacity="0.82" stroke="#33221a" stroke-width="3"/>
+    <path d="M 595,235 C 615,175 630,135 665,142 L 685,172 C 660,185 650,225 642,265 Z" fill="#b8aa8c" fill-opacity="0.82" stroke="#1f1a16" stroke-width="3"/>
+    <path d="M 645,335 C 735,340 825,385 885,465 C 835,435 760,392 650,368 Z" fill="#b8aa8c" fill-opacity="0.82" stroke="#1f1a16" stroke-width="3"/>
+    <path d="M 645,355 C 725,372 805,425 855,495 C 805,458 742,412 645,382 Z" fill="#b8aa8c" fill-opacity="0.82" stroke="#1f1a16" stroke-width="3"/>
+    <path d="M 645,372 C 712,398 778,452 820,515 C 775,478 722,428 640,396 Z" fill="#b8aa8c" fill-opacity="0.82" stroke="#1f1a16" stroke-width="3"/>
   </g>
   <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
-    <path d="M 285,500 C 315,375 435,345 555,365 C 645,385 685,445 685,500 C 685,555 645,615 555,635 C 435,655 315,625 285,500 Z" fill="#6e4c36" fill-opacity="0.28" stroke="#10b981" stroke-width="2" stroke-dasharray="8 6"/>
+    <path d="M 285,500 C 315,375 435,345 555,365 C 645,385 685,445 685,500 C 685,555 645,615 555,635 C 435,655 315,625 285,500 Z" fill="#4d4238" fill-opacity="0.28" stroke="#b8aa8c" stroke-width="2" stroke-dasharray="8 6"/>
   </g>
 </svg>

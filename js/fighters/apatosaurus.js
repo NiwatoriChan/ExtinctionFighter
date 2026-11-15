@@ -98,10 +98,10 @@ registerFighter({
     fullName: 'Apatosaurus Ajax',
     role: 'Titan Sismique',
     title: '« Le Fléau des Tempêtes »',
-    primaryColor: 0x7c3aed,
-    secondaryColor: 0x2e1065,
-    accentColor: 0xd946ef,
-    cssPrimary: '#7c3aed',
+    primaryColor: 0x615f5c,
+    secondaryColor: 0x2c2b29,
+    accentColor: 0x756f64,
+    cssPrimary: '#615f5c',
     scale: 1.25,
     previewScale: 0.72,
     stats: { pow: 98, spd: 58, def: 94 },
@@ -113,7 +113,7 @@ registerFighter({
     moveStyle: 'Pas titanesque faisant trembler le sol, claquement de queue supersonique.',
     fatalityDesc: 'Dresse ses pattes antérieures dans le ciel orageux et s’abat de tout son poids de 30 tonnes, réduisant la victime en purée sous ses sabots.',
     skins: [
-        { name: 'Amethyst Behemoth', primary: 0x7c3aed, secondary: 0x2e1065, accent: 0xd946ef, belly: 0xc4b5fd, isDefaultPBR: true }
+        { name: 'Morrison Stone Grey', primary: 0x615f5c, secondary: 0x2c2b29, accent: 0x756f64, belly: 0x9e998e, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 2.1,

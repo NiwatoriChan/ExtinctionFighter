@@ -44,26 +44,26 @@ function getTrexPBRMaps() {
         const cCtx = colorCanvas.getContext('2d');
         const bCtx = bumpCanvas.getContext('2d');
 
-        // Contre-ombrage flashy rubis-magma (U = circonférence : 0/1 = crête dorsale obsidienne, 0.5 = gorge/ventre or ambré éclatant)
+        // Contre-ombrage paléontologique olive-ardoise & sable pâle (U = 0/1 dorsal -> 0.5 ventral)
         const grad = cCtx.createLinearGradient(0, 0, size, 0);
-        grad.addColorStop(0.00, '#1c0707');   // Crête dorsale et ostéodermes (charbon obsidienne volcanique)
-        grad.addColorStop(0.16, '#5b0f14');   // Haut des flancs (cramoisi volcanique profond)
-        grad.addColorStop(0.32, '#a8181e');   // Milieu des flancs (rouge écarlate rubis)
-        grad.addColorStop(0.42, '#d92626');   // Reflets écarlate vermillon éclatant
-        grad.addColorStop(0.47, '#e06014');   // Transition ventrale magma ardent
-        grad.addColorStop(0.50, '#f59e0b');   // Gorge / ventre (or solaire ambre éclatant)
-        grad.addColorStop(0.53, '#e06014');
-        grad.addColorStop(0.58, '#d92626');
-        grad.addColorStop(0.68, '#a8181e');
-        grad.addColorStop(0.84, '#5b0f14');
-        grad.addColorStop(1.00, '#1c0707');
+        grad.addColorStop(0.00, '#1c211a');   // Crête dorsale charbon olive sombre
+        grad.addColorStop(0.16, '#2e3628');   // Haut des flancs mousse sombre
+        grad.addColorStop(0.32, '#48523d');   // Milieu des flancs olive forêt
+        grad.addColorStop(0.42, '#6c6e58');   // Transition latérale taupe-sauge
+        grad.addColorStop(0.47, '#89846e');   // Transition ventrale sable gris
+        grad.addColorStop(0.50, '#9e9780');   // Gorge / ventre parchemin terne
+        grad.addColorStop(0.53, '#89846e');
+        grad.addColorStop(0.58, '#6c6e58');
+        grad.addColorStop(0.68, '#48523d');
+        grad.addColorStop(0.84, '#2e3628');
+        grad.addColorStop(1.00, '#1c211a');
         cCtx.fillStyle = grad;
         cCtx.fillRect(0, 0, size, size);
 
         bCtx.fillStyle = '#787878';
         bCtx.fillRect(0, 0, size, size);
 
-        // Bandes tigrées transversales charbon-noir le long de l'épine dorsale et des flancs (V = queue -> cou)
+        // Bandes tigrées transversales charbon-olive le long de l'épine dorsale et des flancs
         const numStripes = 30;
         for (let s = 0; s < numStripes; s++) {
             const vCenter = (s + 0.5) / numStripes;
@@ -77,7 +77,7 @@ function getTrexPBRMaps() {
                 const waveY = yCenter + (rand() - 0.5) * 24;
 
                 cCtx.save();
-                cCtx.strokeStyle = 'rgba(15, 6, 6, 0.78)';
+                cCtx.strokeStyle = 'rgba(18, 20, 14, 0.58)';
                 cCtx.lineWidth = stripeW;
                 cCtx.lineCap = 'round';
                 cCtx.beginPath();
@@ -85,8 +85,8 @@ function getTrexPBRMaps() {
                 cCtx.quadraticCurveTo(midX, waveY, endX, yCenter + (rand() - 0.5) * 18);
                 cCtx.stroke();
 
-                // Liseré or/ambre étincelant adjacent soulignant les reliefs d'ostéodermes
-                cCtx.strokeStyle = 'rgba(251, 191, 36, 0.38)';
+                // Liseré sable/sauge discret soulignant les reliefs d'ostéodermes
+                cCtx.strokeStyle = 'rgba(155, 152, 126, 0.22)';
                 cCtx.lineWidth = stripeW * 0.42;
                 cCtx.beginPath();
                 cCtx.moveTo(startX, yCenter + stripeW * 0.62);
@@ -137,12 +137,12 @@ function getTrexPBRMaps() {
             bCtx.fill();
 
             if (i % 3 === 0) {
-                // Cernes sombres entre les écailles polygonales et reflets or-ambre au sommet
-                cCtx.strokeStyle = 'rgba(20, 6, 6, 0.32)';
+                // Cernes sombres entre les écailles polygonales et reflets sable-olive discrets
+                cCtx.strokeStyle = 'rgba(16, 18, 12, 0.28)';
                 cCtx.lineWidth = 0.8;
                 cCtx.fillStyle = rand() > 0.48
-                    ? 'rgba(245, 158, 11, 0.16)'
-                    : 'rgba(28, 8, 8, 0.22)';
+                    ? 'rgba(128, 128, 98, 0.14)'
+                    : 'rgba(22, 24, 18, 0.20)';
                 cCtx.beginPath();
                 cCtx.arc(x, y, scaleR, 0, Math.PI * 2);
                 cCtx.fill();
@@ -161,8 +161,8 @@ function getTrexPBRMaps() {
             bCtx.arc(x, y, r, 0, Math.PI * 2);
             bCtx.fill();
 
-            cCtx.fillStyle = 'rgba(28, 8, 8, 0.48)';
-            cCtx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+            cCtx.fillStyle = 'rgba(26, 28, 22, 0.45)';
+            cCtx.strokeStyle = 'rgba(130, 128, 104, 0.26)';
             cCtx.lineWidth = 1.1;
             cCtx.beginPath();
             cCtx.arc(x, y, r, 0, Math.PI * 2);
@@ -177,7 +177,7 @@ function getTrexPBRMaps() {
         return { colorMap, bumpMap };
     }
 
-    // 2. Cuirasse crânienne en pavés d'écailles polygonales rouge rubis/écarlate & balafres cramoisies du portrait
+    // 2. Cuirasse crânienne en pavés d'écailles polygonales olive-ardoise & balafres anciennes du portrait
     function createCraniumKeratinMaps() {
         const size = 1024;
         const canvas = document.createElement('canvas');
@@ -187,13 +187,13 @@ function getTrexPBRMaps() {
         const ctx = canvas.getContext('2d');
         const bCtx = bump.getContext('2d');
 
-        // Base rouge rubis écarlate & or ardent avec zone claire sur le renflement maxillaire (joue)
+        // Base olive-ardoise & bronze terni avec zone claire sur le renflement maxillaire
         const grad = ctx.createLinearGradient(0, 0, size, 0);
-        grad.addColorStop(0.00, '#240808'); // Occiput & tempes sombres obsidienne
-        grad.addColorStop(0.28, '#781216'); // Région postorbitaire & jugale cramoisie
-        grad.addColorStop(0.55, '#c91a24'); // Renflement maxillaire (écarlate éclatant)
-        grad.addColorStop(0.78, '#e05318'); // Région narinaire & museau (magma flamboyant)
-        grad.addColorStop(1.00, '#1c0606'); // Prémaxillaire kératinisé sombre
+        grad.addColorStop(0.00, '#20241b'); // Occiput & tempes sombres
+        grad.addColorStop(0.28, '#3a4232'); // Région postorbitaire & jugale olive sombre
+        grad.addColorStop(0.55, '#525b44'); // Renflement maxillaire olive mousse
+        grad.addColorStop(0.78, '#686b52'); // Région narinaire & museau bronze sableux
+        grad.addColorStop(1.00, '#1b1e16'); // Prémaxillaire kératinisé sombre
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
 
@@ -234,18 +234,18 @@ function getTrexPBRMaps() {
                 ctx.closePath();
                 bCtx.closePath();
 
-                // Nuance individuelle de chaque plaque d'écaille (rouge rubis, or ambré ou obsidienne)
+                // Nuance individuelle de chaque plaque d'écaille (olive, ocre terne ou charbon)
                 const shade = rand();
                 if (shade > 0.68) {
-                    ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
+                    ctx.fillStyle = 'rgba(136, 128, 92, 0.22)';
                 } else if (shade < 0.30) {
-                    ctx.fillStyle = 'rgba(24, 6, 6, 0.32)';
+                    ctx.fillStyle = 'rgba(20, 22, 16, 0.30)';
                 } else {
-                    ctx.fillStyle = 'rgba(185, 28, 28, 0.22)';
+                    ctx.fillStyle = 'rgba(72, 82, 61, 0.22)';
                 }
                 ctx.fill();
-                ctx.strokeStyle = 'rgba(20, 5, 5, 0.72)';
-                ctx.lineWidth = 2.2;
+                ctx.strokeStyle = 'rgba(16, 18, 12, 0.64)';
+                ctx.lineWidth = 2.0;
                 ctx.stroke();
                 ctx.restore();
 
@@ -293,8 +293,8 @@ function getTrexPBRMaps() {
                 const ex = sx + Math.cos(sc.ang) * sc.len;
                 const ey = sy + Math.sin(sc.ang) * sc.len;
 
-                // Bord cicatriciel rosé/ocre
-                ctx.strokeStyle = 'rgba(168, 92, 82, 0.48)';
+                // Bord cicatriciel parchemin / terre cuite ancienne
+                ctx.strokeStyle = 'rgba(132, 114, 96, 0.44)';
                 ctx.lineWidth = sc.w * 1.9;
                 ctx.lineCap = 'round';
                 ctx.beginPath();
@@ -302,8 +302,8 @@ function getTrexPBRMaps() {
                 ctx.lineTo(ex, ey);
                 ctx.stroke();
 
-                // Sillon central rouge sang / cramoisi sombre
-                ctx.strokeStyle = 'rgba(115, 22, 20, 0.82)';
+                // Sillon central brun-ocre cicatrisé
+                ctx.strokeStyle = 'rgba(68, 42, 34, 0.72)';
                 ctx.lineWidth = sc.w;
                 ctx.beginPath();
                 ctx.moveTo(sx, sy);
@@ -552,10 +552,10 @@ registerFighter({
     fullName: 'Tyrannosaurus Rex',
     role: 'Apex Carnivore',
     title: '« Le Roi Sanglant du Crétacé »',
-    primaryColor: 0xd92626,
-    secondaryColor: 0x18181b,
-    accentColor: 0xf59e0b,
-    cssPrimary: '#dc2626',
+    primaryColor: 0x48523d,
+    secondaryColor: 0x242920,
+    accentColor: 0x9e8c68,
+    cssPrimary: '#48523d',
     scale: 1.10,
     previewScale: 0.92,
     stats: { pow: 96, spd: 72, def: 85 },
@@ -567,7 +567,8 @@ registerFighter({
     moveStyle: 'Foulée bipède lourde sur membres digitigrades, morsure broyeuse d’os à 12 800 PSI, piétinement sismique et balayage caudal rotatif.',
     fatalityDesc: 'Saisit la victime dans ses mâchoires géantes, la secoue violemment, arrache la tête et l’avale dans une gerbe de sang.',
     skins: [
-        { name: 'Volcanic Crimson Tyrant', primary: 0xd92626, secondary: 0x18181b, accent: 0xf59e0b, belly: 0xfbbf24, isDefaultPBR: true }
+        { name: 'Moros Olive Tyrant', primary: 0x48523d, secondary: 0x242920, accent: 0x9e8c68, belly: 0x9e9780, isDefaultPBR: true },
+        { name: 'Badlands Umber', primary: 0x6b4c38, secondary: 0x2e2119, accent: 0x8f7a60, belly: 0xb29f85 }
     ]
 }, {
     animBaseHipsY: 2.1,
@@ -585,7 +586,7 @@ registerFighter({
         const isDefaultSkin = Boolean(skin && skin.isDefaultPBR);
         const hideTint = isDefaultSkin ? 0xffffff : (skin.primary || 0xffffff);
         const skullTint = isDefaultSkin ? 0xffffff : (skin.primary || 0xffffff);
-        const hornTint = isDefaultSkin ? 0xf59e0b : (skin.secondary || 0x18181b);
+        const hornTint = isDefaultSkin ? 0x363b2e : (skin.secondary || 0x242920);
 
         // =====================================================================
         // 1. PALETTE DE MATÉRIAUX PHYSIQUEMENT BASÉS (PBR)
@@ -596,27 +597,27 @@ registerFighter({
                 map: hideMaps.colorMap,
                 bumpMap: hideMaps.bumpMap,
                 bumpScale: 0.028,
-                roughness: 0.68,
-                metalness: 0.04
+                roughness: 0.78,
+                metalness: 0.01
             }),
             skullKeratin: new THREE.MeshPhysicalMaterial({
                 color: skullTint,
                 map: craniumMaps.colorMap,
                 bumpMap: craniumMaps.bumpMap,
                 bumpScale: 0.036,
-                roughness: 0.48,
-                metalness: 0.05,
-                clearcoat: 0.28,
-                clearcoatRoughness: 0.32
+                roughness: 0.56,
+                metalness: 0.02,
+                clearcoat: 0.12,
+                clearcoatRoughness: 0.45
             }),
             hornBoss: new THREE.MeshPhysicalMaterial({
                 color: hornTint,
                 bumpMap: craniumMaps.bumpMap,
                 bumpScale: 0.034,
-                roughness: 0.38,
-                metalness: 0.06,
-                clearcoat: 0.38,
-                clearcoatRoughness: 0.26
+                roughness: 0.46,
+                metalness: 0.02,
+                clearcoat: 0.14,
+                clearcoatRoughness: 0.40
             }),
             gingiva: new THREE.MeshPhysicalMaterial({
                 color: 0x7a1f26,
@@ -676,10 +677,10 @@ registerFighter({
             eyeIris: new THREE.MeshStandardMaterial({
                 color: skin && !isDefaultSkin && skin.accent ? skin.accent : 0xffffff,
                 map: irisMap,
-                emissive: skin && !isDefaultSkin && skin.accent ? skin.accent : 0xd97706,
+                emissive: 0x7c5816,
                 emissiveMap: irisMap,
-                emissiveIntensity: 0.48,
-                roughness: 0.12
+                emissiveIntensity: 0.20,
+                roughness: 0.14
             }),
             eyeCornea: new THREE.MeshPhysicalMaterial({
                 color: 0xffffff,

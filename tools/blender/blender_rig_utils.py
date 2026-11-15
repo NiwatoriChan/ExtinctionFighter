@@ -87,7 +87,7 @@ def make_pbr_material(
     if 'Metallic' in bsdf.inputs:
         bsdf.inputs['Metallic'].default_value = metallic
     if 'Specular IOR Level' in bsdf.inputs:
-        bsdf.inputs['Specular IOR Level'].default_value = 0.28 if roughness > 0.4 else 0.55
+        bsdf.inputs['Specular IOR Level'].default_value = 0.20 if roughness > 0.5 else 0.45
     if 'Alpha' in bsdf.inputs and alpha < 1.0:
         bsdf.inputs['Alpha'].default_value = alpha
         if hasattr(mat, 'blend_method'):

@@ -131,10 +131,10 @@ registerFighter({
     fullName: 'Pulmonoscorpius Kirktonensis',
     role: 'Scorpion Primordial Apex',
     title: '« L’Arachnide Venimeux du Carbonifère »',
-    primaryColor: 0x9333ea,
-    secondaryColor: 0x2e1065,
-    accentColor: 0xf43f5e,
-    cssPrimary: '#9333ea',
+    primaryColor: 0x453a47,
+    secondaryColor: 0x1b161d,
+    accentColor: 0x7d4332,
+    cssPrimary: '#5c4d5e',
     scale: 0.82,
     previewScale: 0.95,
     stats: { pow: 94, spd: 88, def: 90 },
@@ -146,8 +146,8 @@ registerFighter({
     moveStyle: 'Galop à 8 pattes chitineuses, garde de pinces dentelées et dard caudal prêt à fondre.',
     fatalityDesc: 'Verrouille la tête de la victime dans ses pinces et lui transperce le crâne de son dard caudal venimeux jusqu’à liquéfaction.',
     skins: [
-        { name: 'Ultraviolet Chitin', primary: 0x9333ea, secondary: 0x2e1065, accent: 0xf43f5e, legs: 0xa855f7 },
-        { name: 'Toxic Emerald', primary: 0x059669, secondary: 0x064e3b, accent: 0x10b981, legs: 0x34d399 }
+        { name: 'Obsidian Chitin', primary: 0x453a47, secondary: 0x1b161d, accent: 0x7d4332, legs: 0x5c4d5e },
+        { name: 'Peatland Mahogany', primary: 0xa88f7a, secondary: 0x4f3a2e, accent: 0x8c523e, legs: 0x755e4c }
     ]
 }, {
     animBaseHipsY: 0.95,

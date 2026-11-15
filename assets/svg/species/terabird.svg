@@ -1,30 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
   <defs>
     <linearGradient id="bodyGrad_terabird" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#422416"/>
-      <stop offset="45%" stop-color="#e26a22"/>
-      <stop offset="100%" stop-color="#feddb8"/>
+      <stop offset="0%" stop-color="#241b15"/>
+      <stop offset="45%" stop-color="#5c4636"/>
+      <stop offset="100%" stop-color="#a49480"/>
     </linearGradient>
     <linearGradient id="accentGrad_terabird" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#facc15"/>
-      <stop offset="100%" stop-color="#6e3920"/>
+      <stop offset="0%" stop-color="#a88446"/>
+      <stop offset="100%" stop-color="#3d2e24"/>
     </linearGradient>
   </defs>
   <!-- Anatomical Reference Sheet: Phorusrhacos longissimus -->
   <g id="layer-body-side">
-    <path d="M 320,335 C 345,235 465,195 575,215 C 645,230 675,295 655,355 C 595,405 395,405 320,335 Z" fill="url(#bodyGrad_terabird)" stroke="#422416" stroke-width="4"/>
+    <path d="M 320,335 C 345,235 465,195 575,215 C 645,230 675,295 655,355 C 595,405 395,405 320,335 Z" fill="url(#bodyGrad_terabird)" stroke="#241b15" stroke-width="4"/>
   </g>
   <g id="layer-head-profile">
-    <path d="M 645,112 C 705,86 815,92 878,128 C 895,148 888,188 865,202 C 845,172 805,168 745,170 L 655,162 Z" fill="#e26a22" stroke="#422416" stroke-width="4"/>
+    <path d="M 645,112 C 705,86 815,92 878,128 C 895,148 888,188 865,202 C 845,172 805,168 745,170 L 655,162 Z" fill="#5c4636" stroke="#241b15" stroke-width="4"/>
   </g>
   <g id="layer-tail-profile">
-    <path d="M 325,315 L 175,275 L 155,312 L 315,345 Z" fill="#6e3920" stroke="#422416" stroke-width="4"/>
+    <path d="M 325,315 L 175,275 L 155,312 L 315,345 Z" fill="#3d2e24" stroke="#241b15" stroke-width="4"/>
   </g>
   <g id="layer-appendages">
-    <path d="M 595,230 C 618,175 632,128 655,115 L 685,155 C 668,185 658,225 642,268 Z" fill="#facc15" fill-opacity="0.82" stroke="#422416" stroke-width="3"/>
-    <path d="M 648,108 L 588,75 L 635,126 Z" fill="#facc15" fill-opacity="0.82" stroke="#422416" stroke-width="3"/>
+    <path d="M 595,230 C 618,175 632,128 655,115 L 685,155 C 668,185 658,225 642,268 Z" fill="#a88446" fill-opacity="0.82" stroke="#241b15" stroke-width="3"/>
+    <path d="M 648,108 L 588,75 L 635,126 Z" fill="#a88446" fill-opacity="0.82" stroke="#241b15" stroke-width="3"/>
   </g>
   <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
-    <path d="M 315,500 C 355,400 475,380 585,405 C 645,425 675,465 675,500 C 675,535 645,575 585,595 C 475,620 355,600 315,500 Z" fill="#e26a22" fill-opacity="0.28" stroke="#facc15" stroke-width="2" stroke-dasharray="8 6"/>
+    <path d="M 315,500 C 355,400 475,380 585,405 C 645,425 675,465 675,500 C 675,535 645,575 585,595 C 475,620 355,600 315,500 Z" fill="#5c4636" fill-opacity="0.28" stroke="#a88446" stroke-width="2" stroke-dasharray="8 6"/>
   </g>
 </svg>

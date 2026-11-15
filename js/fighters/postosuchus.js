@@ -106,10 +106,10 @@ registerFighter({
     fullName: 'Postosuchus Kirkpatricki',
     role: 'Archosaurien Carnassier',
     title: '« L’Ombre du Trias Supérieur »',
-    primaryColor: 0xb91c1c,
-    secondaryColor: 0x18181b,
-    accentColor: 0xf97316,
-    cssPrimary: '#b91c1c',
+    primaryColor: 0x6e3c2a,
+    secondaryColor: 0x2d1812,
+    accentColor: 0x8f623d,
+    cssPrimary: '#6e3c2a',
     scale: 0.92,
     previewScale: 0.92,
     stats: { pow: 91, spd: 80, def: 84 },
@@ -121,7 +121,7 @@ registerFighter({
     moveStyle: 'Démarche menaçante, bonds violents, mâchoires en étau et roulement déchiqueteur.',
     fatalityDesc: 'Broyage du cou par morsure en étau, roule sur lui-même comme un crocodile primitif pour arracher la colonne vertébrale.',
     skins: [
-        { name: 'Bloodfang Archosaur', primary: 0xb91c1c, secondary: 0x18181b, accent: 0xf97316, belly: 0xfca5a5, isDefaultPBR: true }
+        { name: 'Triassic Umber Stalker', primary: 0x6e3c2a, secondary: 0x2d1812, accent: 0x8f623d, belly: 0xa68c76, isDefaultPBR: true }
     ]
 }, {
     animBaseHipsY: 1.48,
