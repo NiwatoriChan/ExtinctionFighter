@@ -2,6 +2,19 @@
 
 All notable changes to **Extinction Kombat 3D** (*ExtinctionFighter*) are documented in this file.
 
+## [v0.3.5] - 2026-11-18
+
+### Added
+- **Playable Gorgonopsia (*Inostrancevia latifrons*)**: Added `js/fighters/gorgonopsia.js` (loaded in `index.html`), sculpted in Blender (`tools/blender/gorgonopsia_sculptor.py`, `tools/blender/generate_gorgonopsia_pbr_textures.py` → `assets/models/fighters/gorgonopsia.glb` + PBR maps `gorgonopsia_*.png`), with portrait (`assets/portraits/gorgonopsia.png`) and SVG icons (`assets/svg/emblems/gorgonopsia.svg`, `assets/svg/species/gorgonopsia.svg`), registered in `js/core/registry.js`, `js/core/model-loader.js`, and `js/menus/select-screen.js` (21-fighter 7×3 roster grid).
+- **Pangaea Red Desert Arena (`desert`)**: Added `js/arenas/desert.js` and integrated it into `js/menus/arena-chooser.js`, `js/campaign/era-06-permian.js`, `js/campaign/era-07-triassic.js`, and `FIGHTER_THEMED_ARENAS` (`js/core/registry.js`).
+- **Campaign Demi-Boss Progression**: Added multi-wave Demi-Boss support (amber Demi-Boss vs. crimson Boss health bar, mid-stage Demi-Boss healing/unlock, and dual champion rewards) across `js/core/campaign-level.js`, `js/core/match.js`, `js/menus/campaign-map.js`, and `js/campaign/era-06-permian.js` (4-wave Permian campaign with Dimetrodon Demi-Boss and Gorgonopsia Boss).
+
+### Changed
+- **Stegosaurus Sculpt & PBR Overhaul**: Rebuilt `assets/models/fighters/stegosaurus.glb` using a dedicated Blender sculptor (`tools/blender/stegosaurus_sculptor.py`) and PBR texture generator (`tools/blender/generate_stegosaurus_pbr_textures.py`) with dedicated albedo, normal, and bump maps (`stegosaurus_*.png`) for body, beak, cranium, iris, plates, and thagomizer spikes. Removed the legacy `stegosaurus` builder from `tools/blender/build_batch1_herbivores.py`.
+- **Smilodon Sculpt & PBR Overhaul**: Rebuilt `assets/models/fighters/smilodon.glb` using a dedicated Blender sculptor (`tools/blender/smilodon_sculptor.py`) and PBR texture generator (`tools/blender/generate_smilodon_pbr_textures.py`) with dedicated albedo, normal, and bump maps (`smilodon_*.png`), and updated `tools/blender/build_batch4_beasts.py` for both `smilodon` and `gorgonopsia`.
+- **Paleozoic Titan Portraits**: Updated portraits for `cameroceras.png`, `dimetrodon.png`, `dunkleosteus.png`, and `jaekelopterus.png` in `assets/portraits/`.
+- **Tests & Versioning**: Updated `tools/test_glb_models.js` (47 GLB models), `tools/test_campaign_system.js`, `tools/play_campaign_levels.js`, `tools/test_coherence_overhaul.js`, `README.md`, and bumped `GAME_VERSION` to `v0.3.5` across `js/core/state.js` and menus.
+
 ## [v0.3.4] - 2026-11-15
 
 ### Added

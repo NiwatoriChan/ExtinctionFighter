@@ -164,6 +164,7 @@ const allFighters = [
     { id: 'jaekelopterus', name: 'JAEKELOPTERUS', maxHp: 1080, stats: { pow: 92 }, walkSpeed: 8.3, bossGlbId: 'boss_jaekelopterus' },
     { id: 'dunkleosteus', name: 'DUNKLEOSTEUS', maxHp: 1240, stats: { pow: 98 }, walkSpeed: 7.2, bossGlbId: 'boss_dunkleosteus' },
     { id: 'dimetrodon', name: 'DIMETRODON', maxHp: 1140, stats: { pow: 95 }, walkSpeed: 7.6, bossGlbId: 'boss_dimetrodon' },
+    { id: 'gorgonopsia', name: 'GORGONOPSIA', maxHp: 1080, stats: { pow: 96 }, walkSpeed: 8.6, animBaseId: 'smilodon' },
     { id: 'pachyrhino', name: 'PACHYRHINOSAURE', maxHp: 1100, stats: { pow: 48 }, walkSpeed: 7.0 },
     { id: 'ankylo', name: 'ANKYLOSAURE', maxHp: 1250, stats: { pow: 55 }, walkSpeed: 6.2 },
     { id: 'apato', name: 'APATOSAURE', maxHp: 1400, stats: { pow: 58 }, walkSpeed: 5.8 },
@@ -261,10 +262,15 @@ console.log("==================================================================\
 
 for (let eraIdx = 0; eraIdx < CAMPAIGN_ERAS.length; eraIdx++) {
     const era = CAMPAIGN_ERAS[eraIdx];
+    const finalBossWave = era.waves[era.waves.length - 1];
+    const demiBossWave = era.waves.find(w => w.isDemiBoss);
     console.log(`\n------------------------------------------------------------------`);
-    console.log(`▶ ENTERING ${era.name} (Era ${era.id} / ${CAMPAIGN_ERAS.length})`);
+    console.log(`▶ ENTERING ${era.name} (Era ${era.id} / ${CAMPAIGN_ERAS.length}) [${era.waves.length} Waves]`);
     console.log(`  Setting: ${era.subtitle} | Hazard: ${era.hazard ? era.hazard.name : 'none'}`);
-    console.log(`  Boss: ${era.waves[2].bossName} (${era.waves[2].bossTitle})`);
+    if (demiBossWave) {
+        console.log(`  Demi-Boss: ${demiBossWave.bossName} (${demiBossWave.bossTitle})`);
+    }
+    console.log(`  Boss: ${finalBossWave.bossName} (${finalBossWave.bossTitle})`);
     console.log(`  Reward Preview: ${era.reward.fighterName} + Arena ${era.reward.arenaName}`);
     console.log(`------------------------------------------------------------------`);
 
@@ -278,21 +284,27 @@ for (let eraIdx = 0; eraIdx < CAMPAIGN_ERAS.length; eraIdx++) {
 
     const dt = 0.05; // 20 updates per second simulation
     let simTime = 0;
-    const maxSimTime = 60.0; // max 60s per era
+    const maxSimTime = 90.0; // allow room for 4-wave Demi-Boss + Boss eras
     let eraCompleted = false;
+    let sawDemiBoss = false;
 
     while (simTime < maxSimTime && !eraCompleted) {
         simTime += dt;
 
         // Simulate Player actions:
-        // Move towards nearest target (minion or boss)
+        // Move towards nearest target (minion, demi-boss, or final boss)
+        const curWave = era.waves[currentCampaignWaveIdx];
+        const isBossWave = !!(curWave && (curWave.isBoss || curWave.isDemiBoss));
+        if (curWave && curWave.isDemiBoss && campaignBossFighter) {
+            sawDemiBoss = true;
+        }
         let targetX = 0;
         let hasTarget = false;
 
-        if (currentCampaignWaveIdx < 2 && campaignActiveMinions.length > 0) {
+        if (!isBossWave && campaignActiveMinions.length > 0) {
             targetX = campaignActiveMinions[0].x;
             hasTarget = true;
-        } else if (currentCampaignWaveIdx === 2 && campaignBossFighter && !campaignBossFighter.isDead) {
+        } else if (isBossWave && campaignBossFighter && !campaignBossFighter.isDead) {
             targetX = campaignBossFighter.x;
             hasTarget = true;
         }
@@ -319,7 +331,7 @@ for (let eraIdx = 0; eraIdx < CAMPAIGN_ERAS.length; eraIdx++) {
                 if (!fighter1.hasHitCurrentAttack && fighter1.actionTimer >= 0.15) {
                     fighter1.hasHitCurrentAttack = true;
 
-                    if (currentCampaignWaveIdx < 2) {
+                    if (!isBossWave) {
                         // Attack Minion
                         if (campaignActiveMinions.length > 0) {
                             const minion = campaignActiveMinions[0];
@@ -328,7 +340,7 @@ for (let eraIdx = 0; eraIdx < CAMPAIGN_ERAS.length; eraIdx++) {
                             totalDamageDealt += dmg;
                         }
                     } else if (campaignBossFighter && !campaignBossFighter.isDead) {
-                        // Attack Boss
+                        // Attack Demi-Boss or Final Boss
                         const dmg = fighter1.action === 'special1' ? 280 : (fighter1.action === 'heavy' ? 190 : 110);
                         campaignBossFighter.takeDamage(dmg);
                         totalDamageDealt += dmg;
@@ -341,7 +353,7 @@ for (let eraIdx = 0; eraIdx < CAMPAIGN_ERAS.length; eraIdx++) {
         updateCampaignLevelEngine(dt, simTime);
 
         if (Math.floor(simTime / 5) > Math.floor((simTime - dt) / 5)) {
-            console.log(`  [t=${simTime.toFixed(1)}s] Wave: ${currentCampaignWaveIdx + 1}/3, Minions: ${campaignActiveMinions.length}, BossHP: ${campaignBossFighter ? Math.round(campaignBossFighter.hp) : 'none'}, BannerTimer: ${campaignWaveBannerTimer.toFixed(1)}, P1 HP: ${Math.round(fighter1.hp)}, matchState: ${matchState}`);
+            console.log(`  [t=${simTime.toFixed(1)}s] Wave: ${currentCampaignWaveIdx + 1}/${era.waves.length}, Minions: ${campaignActiveMinions.length}, BossHP: ${campaignBossFighter ? Math.round(campaignBossFighter.hp) : 'none'}, BannerTimer: ${campaignWaveBannerTimer.toFixed(1)}, P1 HP: ${Math.round(fighter1.hp)}, matchState: ${matchState}`);
         }
 
         // Check if pick up items
@@ -369,6 +381,9 @@ for (let eraIdx = 0; eraIdx < CAMPAIGN_ERAS.length; eraIdx++) {
     if (!eraCompleted) {
         throw new Error(`Era ${era.id} timed out! Encounter pacing is too slow or enemies too tanky.`);
     }
+    if (demiBossWave && !sawDemiBoss) {
+        throw new Error(`Era ${era.id} skipped its Demi-Boss wave (${demiBossWave.bossName})!`);
+    }
 
     console.log(`✔ ERA ${era.id} CLEARED in ${simTime.toFixed(1)}s!`);
     console.log(`  Player remaining stocks: ${campaignPlayerStocks} / 3 | HP: ${Math.round(fighter1.hp)} / ${fighter1.maxHp}`);
@@ -380,6 +395,13 @@ for (let eraIdx = 0; eraIdx < CAMPAIGN_ERAS.length; eraIdx++) {
     }
     if (localStorage.getItem(`ek3d_unlocked_${era.reward.fighterId}`) !== 'true') {
         throw new Error(`Fighter ${era.reward.fighterId} was not unlocked in localStorage!`);
+    }
+    if (Array.isArray(era.reward.extraFighterIds)) {
+        era.reward.extraFighterIds.forEach(extraId => {
+            if (localStorage.getItem(`ek3d_unlocked_${extraId}`) !== 'true') {
+                throw new Error(`Extra demi-boss fighter ${extraId} was not unlocked in localStorage!`);
+            }
+        });
     }
     if (localStorage.getItem(`ek3d_unlocked_arena_${era.reward.arenaId}`) !== 'true') {
         throw new Error(`Arena ${era.reward.arenaId} was not unlocked in localStorage!`);

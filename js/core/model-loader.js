@@ -7,6 +7,7 @@ const GLB_FIGHTER_IDS = new Set([
     'anomalocaris',
     'apato',
     'dragon',
+    'gorgonopsia',
     'maiasaura',
     'pachyrhino',
     'giantsloth',

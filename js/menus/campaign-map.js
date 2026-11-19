@@ -165,8 +165,25 @@ function buildCampaignMapUIKit() {
                             }),
                             new UIKit.Text({
                                 tag: 'div',
+                                className: UIKit.computed(() => {
+                                    const era = CAMPAIGN_ERAS[selectedEraIndexSignal.value];
+                                    const hasDemi = era && era.waves && era.waves.some(w => w.isDemiBoss);
+                                    return hasDemi ? 'font-chakra text-xs text-orange-400 font-black flex items-center gap-1.5' : 'hidden';
+                                }),
+                                text: UIKit.computed(() => {
+                                    const era = CAMPAIGN_ERAS[selectedEraIndexSignal.value];
+                                    const demi = era && era.waves ? era.waves.find(w => w.isDemiBoss) : null;
+                                    return demi ? `⚔️ DEMI-BOSS : ${demi.bossName}` : '';
+                                })
+                            }),
+                            new UIKit.Text({
+                                tag: 'div',
                                 className: 'font-chakra text-xs text-red-400 font-black flex items-center gap-1.5',
-                                text: UIKit.computed(() => `👑 BOSS APEX : ${CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves[2].bossName}`)
+                                text: UIKit.computed(() => {
+                                    const waves = CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves;
+                                    const boss = waves[waves.length - 1];
+                                    return `👑 BOSS APEX : ${boss.bossName}`;
+                                })
                             }),
                             new UIKit.Text({
                                 tag: 'div',
@@ -180,7 +197,8 @@ function buildCampaignMapUIKit() {
                                 tag: 'div',
                                 className: 'font-chakra text-[10px] text-orange-300 font-bold leading-snug',
                                 text: UIKit.computed(() => {
-                                    const boss = CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves[2];
+                                    const waves = CAMPAIGN_ERAS[selectedEraIndexSignal.value].waves;
+                                    const boss = waves[waves.length - 1];
                                     return boss.phase2Desc ? `🔥 ${boss.phase2Desc}` : '';
                                 })
                             })
@@ -228,7 +246,12 @@ function buildCampaignMapUIKit() {
                                             new UIKit.Text({
                                                 tag: 'span',
                                                 className: 'font-cinzel font-black text-xs text-amber-200 uppercase',
-                                                text: UIKit.computed(() => `🦖 Combattant : ${CAMPAIGN_ERAS[selectedEraIndexSignal.value].reward.fighterName}`)
+                                                text: UIKit.computed(() => {
+                                                    const r = CAMPAIGN_ERAS[selectedEraIndexSignal.value].reward;
+                                                    return r.extraFighterName
+                                                        ? `🦖 Combattants : ${r.fighterName} & ${r.extraFighterName}`
+                                                        : `🦖 Combattant : ${r.fighterName}`;
+                                                })
                                             }),
                                             new UIKit.Text({
                                                 tag: 'span',

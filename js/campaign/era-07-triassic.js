@@ -9,24 +9,24 @@ registerCampaignEra({
     subtitle: 'L\'AUBE DES ARCHOSAURES PRÉDATEURS',
     periodYears: '252 - 201 Ma',
     logo: 'assets/ui/era_logos/era_2_triassic.png',
-    arenaId: 'boneyard',
+    arenaId: 'desert',
     themeColor: '#f59e0b',
     mapX: 51,
     mapY: 22,
     hazard: {
         id: 'lightning',
         name: 'Tempête d\'Éclairs',
-        desc: 'Des éclairs télégraphiés frappent périodiquement les plateformes.'
+        desc: 'Des éclairs télégraphiés frappent périodiquement les dunes du désert.'
     },
-    description: 'Les rudes terres du Trias résonnent du tonnerre des premiers grands carnassiers. Déjouez la meute de Coelophysis et domptez Fasolasuchus.',
+    description: 'Les badlands arides du Trias résonnent du tonnerre des premiers grands carnassiers. Déjouez la meute de Coelophysis et domptez Fasolasuchus.',
     reward: {
         fighterId: 'postosuchus',
         fighterName: 'Postosuchus',
         fighterRole: 'Archosaurien Carnassier',
         fighterPortrait: 'assets/portraits/postosuchus.png',
-        arenaId: 'boneyard',
-        arenaName: 'Canyon Fossile du Trias',
-        arenaDesc: 'Colonnes de basalte balayées par des tempêtes d\'éclairs'
+        arenaId: 'desert',
+        arenaName: 'Badlands Arides du Trias',
+        arenaDesc: 'Dunes rouges et mesas de grès balayées par des orages secs'
     },
     waves: [
         {

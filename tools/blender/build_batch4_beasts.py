@@ -71,150 +71,19 @@ def _build_wing_membrane(name, pts_list, mat, parent, thickness=0.022):
 
 
 # ==============================================================================
-# 1. SMILODON (Smilodon fatalis)
+# 1. SMILODON (Smilodon fatalis) & GORGONOPSIA (Inostrancevia latifrons)
+#    High-Definition Quadruped Sculptor Pipeline
 # ==============================================================================
 def build_smilodon():
-    clear_scene()
-    fid = "smilodon"
-    skin_mat = make_pbr_material(
-        "Mat_BodyPrimary", base_color=(0.46, 0.28, 0.12, 1.0), roughness=0.74, metallic=0.01,
-        albedo_path=_tex(fid, "albedo"), bump_path=_tex(fid, "bump"), bump_strength=0.24
-    )
-    belly_mat = make_pbr_material("Mat_Secondary", base_color=(0.62, 0.52, 0.38, 1.0), roughness=0.78, metallic=0.01)
-    dark_fur_mat = make_pbr_material("SmilodonDarkFurMat", base_color=(0.07, 0.04, 0.02, 1.0), roughness=0.82, metallic=0.01)
-    saber_mat = make_pbr_material("Mat_Accent", base_color=(0.78, 0.72, 0.58, 1.0), roughness=0.22, metallic=0.02)
-    nose_mat = make_pbr_material("SmilodonNoseMat", base_color=(0.14, 0.06, 0.05, 1.0), roughness=0.42, metallic=0.02)
-    iris_mat = make_pbr_material("Mat_Eye", base_color=(0.70, 0.42, 0.08, 1.0), roughness=0.14, emissive=(0.55, 0.28, 0.04), emissive_strength=0.12)
-    pupil_mat = make_pbr_material("Mat_Pupil", base_color=(0.02, 0.02, 0.02, 1.0), roughness=0.10)
+    """Delegates to the high-definition Gorgonopsia-derived Smilodon fatalis sculptor."""
+    from smilodon_sculptor import build_smilodon_high_definition
+    return build_smilodon_high_definition()
 
-    # Smilodon animBaseHipsY = 1.55
-    hips = create_bone_node("Bone_Hips", (0.0, 0.0, 1.55))
-    torso = create_bone_node("Bone_Torso", (0.0, 0.0, 0.0), hips)
 
-    # Massive muscular scapular hump sloping into compact hindquarters (Smilodon hallmark)
-    build_organic_tube("Smilodon_Torso", [
-        (-1.12, 0.0, -0.02, 0.24, 0.28),
-        (-0.62, 0.0, 0.04, 0.43, 0.46),
-        (0.05, 0.0, 0.14, 0.50, 0.56),
-        (0.66, 0.0, 0.26, 0.57, 0.68),
-        (1.16, 0.0, 0.34, 0.30, 0.36),
-    ], segs_u=26, segs_v=24, mat=skin_mat, parent=torso, dorsal_keel=0.06, belly_flat=0.05, taper_start=True, taper_end=True, subdiv=1)
-
-    # Cream chest ruff / throat mane blended deep into sternum
-    build_organic_tube("Smilodon_ChestRuff", [
-        (0.56, 0.0, -0.18, 0.30, 0.24),
-        (0.92, 0.0, 0.06, 0.32, 0.28),
-        (1.16, 0.0, 0.28, 0.22, 0.20),
-    ], segs_u=14, segs_v=18, mat=belly_mat, parent=torso, subdiv=1)
-
-    # Muscular thick feline neck (seamless overlap collar)
-    neck = create_bone_node("Bone_Neck", (0.98, 0.0, 0.34), torso)
-    build_organic_tube("Smilodon_Neck", [
-        (-0.26, 0.0, -0.12, 0.38, 0.42),
-        (0.14, 0.0, 0.10, 0.33, 0.36),
-        (0.50, 0.0, 0.26, 0.26, 0.29),
-    ], segs_u=16, segs_v=20, mat=skin_mat, parent=neck, dorsal_keel=0.04, taper_start=True, taper_end=True, subdiv=1)
-
-    # Broad machairodont skull with heavy zygomatic cheekbones and short truncated muzzle
-    head = create_bone_node("Bone_Head", (0.42, 0.0, 0.24), neck)
-    build_organic_tube("Smilodon_Skull", [
-        (-0.24, 0.0, 0.0, 0.25, 0.26),
-        (0.12, 0.0, 0.09, 0.37, 0.35),
-        (0.38, 0.0, 0.02, 0.26, 0.25),
-        (0.64, 0.0, -0.05, 0.21, 0.19),
-        (0.76, 0.0, -0.07, 0.13, 0.11),
-    ], segs_u=18, segs_v=20, mat=skin_mat, parent=head, belly_flat=0.06, taper_start=True, subdiv=1)
-
-    # Upper lip flews & dark rhinarium nose pad
-    build_organic_tube("Smilodon_NosePad", [
-        (0.68, 0.0, -0.02, 0.08, 0.07),
-        (0.77, 0.0, -0.04, 0.06, 0.05),
-    ], segs_u=8, segs_v=12, mat=nose_mat, parent=head, subdiv=0)
-
-    # Rounded low-set feline ears + forward-facing predator eyes + backward-swept scimitar saber canines
-    for side in (-1, 1):
-        build_organic_tube(f"Smilodon_Ear_{side}", [
-            (-0.02, side * 0.24, 0.22, 0.055, 0.11),
-            (-0.08, side * 0.29, 0.36, 0.032, 0.075),
-        ], segs_u=8, segs_v=12, mat=dark_fur_mat, parent=head, subdiv=0)
-        build_anatomical_eye(f"Smilodon_Eye_{side}", 0.056, iris_mat, pupil_mat, head, (0.34, -side * 0.23, 0.12))
-
-        # Signature laterally-flattened backward-curving scimitar saber canines
-        saber_obj = build_curved_claw_or_horn(
-            f"Smilodon_Saber_{side}", length=0.72, base_r=0.058, curve_bend=0.22,
-            direction=(0.14, 0.0, -1.0), mat=saber_mat, parent=head,
-            local_pos=(0.56, side * 0.16, -0.07), segs_u=14, segs_v=12
-        )
-        saber_obj.scale = (1.35, 0.40, 1.0)
-
-    # Articulated lower jaw (jaw.rotation.z < 0 opens mouth up to 120 degrees!)
-    jaw = create_bone_node("Bone_Jaw", (0.14, 0.0, -0.14), head)
-    build_organic_tube("Smilodon_Mandible", [
-        (-0.04, 0.0, 0.0, 0.17, 0.12),
-        (0.24, 0.0, -0.03, 0.16, 0.11),
-        (0.48, 0.0, -0.04, 0.13, 0.08),
-    ], segs_u=12, segs_v=16, mat=belly_mat, parent=jaw, belly_flat=0.08, subdiv=1)
-    for side in (-1, 1):
-        # Mandibular flanges + lower canines
-        build_curved_claw_or_horn(
-            f"Smilodon_LowerCanine_{side}", length=0.11, base_r=0.024, curve_bend=0.02,
-            direction=(0.15, 0.0, 1.0), mat=saber_mat, parent=jaw,
-            local_pos=(0.40, side * 0.11, 0.03), segs_u=8, segs_v=8
-        )
-
-    # 3-segment short bobcat-like muscular tail
-    t_parent = torso
-    for s in range(3):
-        tbone = create_bone_node(
-            f"Bone_Tail{s}",
-            (-1.02, 0.0, 0.08) if s == 0 else (-0.28, 0.0, -0.03),
-            t_parent
-        )
-        r0 = 0.16 - s * 0.03
-        r1 = max(0.05, r0 - 0.035)
-        build_organic_tube(f"Smilodon_TailSeg{s}", [
-            (0.02, 0.0, 0.0, r0, r0),
-            (-0.15, 0.0, -0.02, (r0 + r1) * 0.5, (r0 + r1) * 0.5),
-            (-0.30, 0.0, -0.04, r1, r1),
-        ], segs_u=8, segs_v=12, mat=dark_fur_mat if s == 2 else skin_mat, parent=tbone, subdiv=0)
-        t_parent = tbone
-
-    # 4 heavy feline legs (exact order: FL, FR, RL, RR -> legs[0..3]; feet at Z = -1.55 relative to hips)
-    leg_specs = [
-        (0.68, 0.44, True),   # BL y = +0.44 -> Three.js z = -0.44 (Front Left)
-        (0.68, -0.44, True),  # BL y = -0.44 -> Three.js z = +0.44 (Front Right)
-        (-0.68, 0.42, False), # Rear Left
-        (-0.68, -0.42, False) # Rear Right
-    ]
-    for idx, (lx, ly, is_front) in enumerate(leg_specs):
-        lbone = create_bone_node(f"Bone_Leg{idx}", (lx, ly, 0.02), hips)
-        if is_front:
-            build_organic_tube(f"Smilodon_LegMesh{idx}", [
-                (0.0, 0.0, 0.14, 0.30, 0.38),
-                (-0.08, 0.0, -0.52, 0.22, 0.24),
-                (0.02, 0.0, -1.06, 0.16, 0.17),
-                (0.10, 0.0, -1.44, 0.15, 0.14),
-            ], segs_u=16, segs_v=16, mat=skin_mat, parent=lbone, subdiv=1)
-        else:
-            build_organic_tube(f"Smilodon_LegMesh{idx}", [
-                (0.0, 0.0, 0.08, 0.28, 0.36),
-                (0.16, 0.0, -0.58, 0.20, 0.22),
-                (-0.12, 0.0, -1.10, 0.14, 0.15),
-                (0.10, 0.0, -1.44, 0.14, 0.13),
-            ], segs_u=16, segs_v=16, mat=skin_mat, parent=lbone, subdiv=1)
-        # Broad padded feline paw touching floor Z = -1.55
-        build_organic_tube(f"Smilodon_Paw{idx}", [
-            (-0.04, 0.0, -1.49, 0.16, 0.09),
-            (0.24, 0.0, -1.51, 0.16, 0.075),
-        ], segs_u=10, segs_v=14, mat=skin_mat, parent=lbone, belly_flat=0.22, subdiv=1)
-        for dy in (-0.09, -0.03, 0.03, 0.09):
-            build_curved_claw_or_horn(
-                f"Smilodon_Claw_{idx}_{dy:.2f}", length=0.14, base_r=0.024, curve_bend=-0.03,
-                direction=(1.0, 0.0, -0.20), mat=saber_mat, parent=lbone,
-                local_pos=(0.30, dy, -1.50), segs_u=6, segs_v=8
-            )
-
-    return export_fighter_glb(os.path.join(OUT_DIR, f"{fid}.glb"))
+def build_gorgonopsia():
+    """Delegates to the high-definition mammalian hippo-skinned Gorgonopsia sculptor."""
+    from gorgonopsia_sculptor import build_gorgonopsia_high_definition
+    return build_gorgonopsia_high_definition()
 
 
 # ==============================================================================
@@ -615,6 +484,7 @@ def build_dragon():
 
 
 BUILDERS = {
+    "gorgonopsia": build_gorgonopsia,
     "smilodon": build_smilodon,
     "giantsloth": build_giantsloth,
     "dragon": build_dragon,

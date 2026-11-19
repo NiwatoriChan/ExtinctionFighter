@@ -34,7 +34,8 @@ const UNLOCKABLE_FIGHTER_ERAS = {
     'jaekelopterus': 3,   // Débloqué à l'Ère 3 (Silurien)
     'dunkleosteus': 4,    // Débloqué à l'Ère 4 (Dévonien)
     'pulmonoscorpius': 5, // Débloqué à l'Ère 5 (Carbonifère)
-    'dimetrodon': 6,      // Débloqué à l'Ère 6 (Permien)
+    'dimetrodon': 6,      // Débloqué à l'Ère 6 (Permien — Demi-Boss)
+    'gorgonopsia': 6,     // Débloqué à l'Ère 6 (Permien — Boss Apex)
     'postosuchus': 7,     // Débloqué à l'Ère 7 (Trias)
     'apato': 8,           // Débloqué à l'Ère 8 (Jurassique)
     'therizino': 9,       // Débloqué à l'Ère 9 (Crétacé)
@@ -48,6 +49,7 @@ const UNLOCKABLE_FIGHTER_ERAS = {
 const UNLOCKABLE_ARENA_ERAS = {
     'cambrian': 1,    // Récif Abyssal du Cambrien (Ère 1)
     'swamp': 5,       // Marais Houiller du Carbonifère (Ère 5)
+    'desert': 6,      // Désert Rouge de la Pangée (Ère 6 — Permien & Trias)
     'storm': 8,       // Tempête / Canyon Orageux du Jurassique (Ère 8)
     'jungle': 10,     // Forêt Tropicale du Paléogène (Ère 10)
     'iceage': 12,     // Glacier de l'Ère Glaciaire (Ère 12)
@@ -163,7 +165,7 @@ const FIGHTER_THEMED_ARENAS = {
     smilodon: 'iceage',
     giantsloth: 'iceage',
     spinosaurus: 'swamp',
-    postosuchus: 'swamp',
+    postosuchus: 'desert',
     pulmonoscorpius: 'swamp',
     maiasaura: 'jungle',
     terabird: 'storm',
@@ -175,7 +177,8 @@ const FIGHTER_THEMED_ARENAS = {
     cameroceras: 'cambrian',
     jaekelopterus: 'cambrian',
     dunkleosteus: 'cambrian',
-    dimetrodon: 'boneyard'
+    dimetrodon: 'desert',
+    gorgonopsia: 'desert'
 };
 
 function getThemedArenaForFighter(fighterId) {

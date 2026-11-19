@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768" width="1024" height="768">
+  <defs>
+    <linearGradient id="bodyGrad_gorgonopsia" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#26211e"/>
+      <stop offset="48%" stop-color="#8c2d19"/>
+      <stop offset="100%" stop-color="#c99e6b"/>
+    </linearGradient>
+    <linearGradient id="accentGrad_gorgonopsia" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5e9cf"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+  </defs>
+  <!-- Anatomical Reference Sheet: Inostrancevia alexandri (Gorgonopsia) -->
+  <g id="layer-body-side">
+    <path d="M 270,320 C 375,260 565,245 715,272 C 760,295 765,365 718,402 C 585,418 415,405 275,368 Z" fill="url(#bodyGrad_gorgonopsia)" stroke="#26211e" stroke-width="4"/>
+  </g>
+  <g id="layer-head-profile">
+    <path d="M 702,268 C 765,240 865,244 926,278 C 942,306 930,342 872,356 L 780,358 L 714,352 Z" fill="#8c2d19" stroke="#26211e" stroke-width="4"/>
+    <path d="M 758,348 L 912,354 L 892,386 L 765,378 Z" fill="#3a2c24" stroke="#26211e" stroke-width="3"/>
+  </g>
+  <g id="layer-tail-profile">
+    <path d="M 274,322 C 185,332 108,358 34,386 C 110,378 190,368 276,365 Z" fill="#26211e" stroke="#26211e" stroke-width="4"/>
+  </g>
+  <g id="layer-appendages">
+    <!-- Colossal upper saber canines -->
+    <path d="M 862,334 L 876,416 L 892,336 Z" fill="url(#accentGrad_gorgonopsia)" stroke="#26211e" stroke-width="3"/>
+    <path d="M 888,334 L 898,404 L 910,334 Z" fill="url(#accentGrad_gorgonopsia)" stroke="#26211e" stroke-width="2.5"/>
+    <!-- Powerful semi-erect forelimb & hindlimb -->
+    <path d="M 650,388 L 638,496 L 676,500 L 692,388 Z" fill="#5c2116" stroke="#26211e" stroke-width="3"/>
+    <path d="M 358,365 L 336,494 L 376,498 L 404,368 Z" fill="#5c2116" stroke="#26211e" stroke-width="3"/>
+  </g>
+  <g id="layer-body-top" transform="translate(0, 120) scale(1, 0.72)">
+    <path d="M 265,500 C 375,425 575,412 735,442 C 825,462 885,482 885,500 C 885,518 825,538 735,558 C 575,588 375,575 265,500 Z" fill="#8c2d19" fill-opacity="0.28" stroke="#eab308" stroke-width="2" stroke-dasharray="8 6"/>
+  </g>
+</svg>

@@ -25,7 +25,8 @@ const FIGHTER_PORTRAIT_IMAGES = {
     cameroceras: 'assets/portraits/cameroceras.png',
     jaekelopterus: 'assets/portraits/jaekelopterus.png',
     dunkleosteus: 'assets/portraits/dunkleosteus.png',
-    dimetrodon: 'assets/portraits/dimetrodon.png'
+    dimetrodon: 'assets/portraits/dimetrodon.png',
+    gorgonopsia: 'assets/portraits/gorgonopsia.png'
 };
 
 function getFighterPortraitUrl(fighterId) {
@@ -309,6 +310,21 @@ const FIGHTER_PORTRAITS = {
             <path d="M14 40 Q30 32 48 34 L52 42 L20 44 Z" fill="#9a3412" stroke="#fed7aa" stroke-width="1"/>
             <circle cx="44" cy="36" r="2" fill="#fef08a"/>
         </svg>
+    `,
+    gorgonopsia: `
+        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+            <defs>
+                <radialGradient id="bg_gorgo" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#dc2626" stop-opacity="0.5"/>
+                    <stop offset="100%" stop-color="#26211e" stop-opacity="0.95"/>
+                </radialGradient>
+            </defs>
+            <circle cx="32" cy="32" r="30" fill="url(#bg_gorgo)" stroke="#f97316" stroke-width="1.5"/>
+            <path d="M12 40 Q16 20 30 18 L48 24 Q54 32 46 38 L34 40 L18 44 Z" fill="#8c2d19" stroke="#fed7aa" stroke-width="1"/>
+            <path d="M38 36 L41 54 L44 36 Z" fill="#f5e9cf" stroke="#78350f" stroke-width="0.7"/>
+            <path d="M44 35 L46 50 L48 35 Z" fill="#ffffff" stroke="#78350f" stroke-width="0.7"/>
+            <circle cx="33" cy="25" r="2.2" fill="#f59e0b"/>
+        </svg>
     `
 };
 
@@ -500,9 +516,9 @@ const selectScreenRoot = new UIKit.Fullscreen({
                 new UIKit.Container({
                     className: 'lg:col-span-6 flex flex-col justify-between items-center gap-2 overflow-visible relative z-20 my-auto h-full py-1',
                     children: [
-                        // The ancient stone & vine framed 5x4 grid
+                        // The ancient stone & vine framed 7x3 grid (21 fighters)
                         new UIKit.Card({
-                            className: 'beast-grid-frame w-full max-w-[620px] p-3 sm:p-4 relative shadow-2xl rounded-2xl flex flex-col justify-center',
+                            className: 'beast-grid-frame w-full max-w-[680px] p-3 sm:p-4 relative shadow-2xl rounded-2xl flex flex-col justify-center',
                             create3DMesh: false,
                             children: [
                                 new UIKit.Container({
@@ -510,7 +526,7 @@ const selectScreenRoot = new UIKit.Fullscreen({
                                 }),
                                 new UIKit.Container({
                                     id: 'rosterGrid',
-                                    className: 'grid grid-cols-5 gap-1.5 sm:gap-2 relative z-20 w-full'
+                                    className: 'grid grid-cols-5 sm:grid-cols-7 gap-1.5 sm:gap-2 relative z-20 w-full'
                                 })
                             ]
                         }),
@@ -628,7 +644,7 @@ const selectScreenRoot = new UIKit.Fullscreen({
                         }),
                         new UIKit.Badge({
                             className: 'px-2 py-0.5 rounded bg-stone-900 border border-amber-600/60 text-amber-300 font-black text-[10px] tracking-wider',
-                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.4'
+                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.5'
                         })
                     ]
                 }),
@@ -855,8 +871,8 @@ function setupPreviewScene(previewObj, canvasId, isP1 = true) {
 
 function getP2EffectiveDino() {
     if (gameMode === 'campaign') {
-        if (typeof pendingCampaignEra !== 'undefined' && pendingCampaignEra && pendingCampaignEra.waves && pendingCampaignEra.waves[2]) {
-            const bossWave = pendingCampaignEra.waves[2];
+        if (typeof pendingCampaignEra !== 'undefined' && pendingCampaignEra && Array.isArray(pendingCampaignEra.waves) && pendingCampaignEra.waves.length > 0) {
+            const bossWave = pendingCampaignEra.waves[pendingCampaignEra.waves.length - 1];
             if (bossWave.baseDino === 'dragon' && typeof DRAGON_BOSS !== 'undefined' && DRAGON_BOSS) {
                 return DRAGON_BOSS;
             }
@@ -1178,7 +1194,8 @@ function updateSelectScreenUI() {
         const toggleVsModeBtn = document.getElementById('btnToggleVsMode');
         if (toggleVsModeBtn) toggleVsModeBtn.classList.add('hidden');
         if (isEraPending) {
-            const bossWave = pendingCampaignEra.waves && pendingCampaignEra.waves[2];
+            const waves = pendingCampaignEra.waves;
+            const bossWave = Array.isArray(waves) && waves.length > 0 ? waves[waves.length - 1] : null;
             p2HeaderLabelSignal.value = bossWave && bossWave.bossName ? bossWave.bossName : 'BOSS D\'ÈRE';
         } else {
             p2HeaderLabelSignal.value = campaignStage === 6 ? "DRAK'ZUL" : `ÉTAPE ${campaignStage}`;

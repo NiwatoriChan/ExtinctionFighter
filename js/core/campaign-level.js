@@ -72,10 +72,15 @@ function clearEraProgress(eraId) {
         if (typeof CAMPAIGN_ERAS !== 'undefined' && nextId <= CAMPAIGN_ERAS.length) {
             localStorage.setItem('ek3d_unlocked_era_' + nextId, 'true');
         }
-        // Débloquer la récompense de combattant et d'arène
+        // Débloquer la récompense de combattant(s) et d'arène
         const era = typeof CAMPAIGN_ERAS !== 'undefined' ? CAMPAIGN_ERAS.find(e => e.id === eraId) : null;
         if (era && era.reward) {
-            if (typeof unlockFighter === 'function') unlockFighter(era.reward.fighterId);
+            if (typeof unlockFighter === 'function') {
+                unlockFighter(era.reward.fighterId);
+                if (Array.isArray(era.reward.extraFighterIds)) {
+                    era.reward.extraFighterIds.forEach(fid => unlockFighter(fid));
+                }
+            }
             if (typeof unlockArena === 'function') unlockArena(era.reward.arenaId);
         }
     } catch (e) {
@@ -1027,17 +1032,105 @@ function spawnMinionFromWaveDef(def, spawnX, groundY) {
     return minion;
 }
 
+function getCurrentCampaignWave() {
+    if (!activeCampaignEra || !Array.isArray(activeCampaignEra.waves)) return null;
+    return activeCampaignEra.waves[currentCampaignWaveIdx] || null;
+}
+
+function isCampaignBossWaveActive() {
+    const wave = getCurrentCampaignWave();
+    return Boolean(wave && (wave.isBoss || wave.isDemiBoss) && campaignBossFighter && !campaignBossFighter.isDead);
+}
+
+function isFinalCampaignWave() {
+    if (!activeCampaignEra || !Array.isArray(activeCampaignEra.waves) || activeCampaignEra.waves.length === 0) {
+        return currentCampaignWaveIdx >= 2;
+    }
+    return currentCampaignWaveIdx >= activeCampaignEra.waves.length - 1;
+}
+
+function handleCampaignBossDefeated() {
+    if (matchState !== 'campaign_level') return;
+    const wave = getCurrentCampaignWave();
+    const isFinal = isFinalCampaignWave();
+
+    if (!isFinal) {
+        // Demi-Boss vaincu -> récompense intermédiaire, soin, déblocage éventuel et passage à la vague suivante (Boss Apex)
+        if (campaignBossFighter) {
+            campaignBossFighter.isDead = true;
+            campaignBossFighter.hp = 0;
+        }
+        const defeatedX = (campaignBossFighter && typeof campaignBossFighter.x === 'number')
+            ? campaignBossFighter.x
+            : ((fighter1 && typeof fighter1.x === 'number') ? fighter1.x + 3.0 : 4.0);
+        const groundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, defeatedX, 0) : 0;
+
+        campaignLevelScore += 1500;
+        if (typeof sfx !== 'undefined' && sfx.playGong) sfx.playGong();
+        if (typeof spawnHitSparks3D === 'function') spawnHitSparks3D(defeatedX, groundY + 1.4, true);
+        if (typeof spawnFloatingPopup === 'function') {
+            spawnFloatingPopup(defeatedX, '⚔️ DEMI-BOSS TERRASSÉ ! +1500', '#f59e0b');
+        }
+
+        if (wave && wave.unlockFighterId && typeof unlockFighter === 'function') {
+            unlockFighter(wave.unlockFighterId);
+            if (typeof spawnFloatingPopup === 'function' && fighter1) {
+                spawnFloatingPopup(fighter1.x, `🔓 ${wave.unlockFighterId.toUpperCase()} DÉBLOQUÉ !`, '#22c55e');
+            }
+        }
+
+        if (fighter1 && !fighter1.isDead) {
+            fighter1.hp = Math.min(fighter1.maxHp, fighter1.hp + 350);
+            if (typeof spawnPrehistoricPickup === 'function') {
+                spawnPrehistoricPickup(defeatedX, groundY + 1.0, 'meat');
+            }
+        }
+
+        if (fighter2 && typeof fighter2.destroy === 'function') {
+            fighter2.destroy();
+        }
+        fighter2 = null;
+        campaignBossFighter = null;
+        campaignBossPhase = 1;
+
+        const barContainer = document.getElementById('colossalBossBarContainer');
+        if (barContainer) {
+            if (barContainer.classList) barContainer.classList.add('hidden');
+            if (barContainer.style) barContainer.style.display = 'none';
+        }
+
+        startCampaignWave(currentCampaignWaveIdx + 1);
+        return;
+    }
+
+    finishCampaignEraVictory();
+}
+
 function startCampaignWave(waveIdx) {
     if (!activeCampaignEra) return;
     currentCampaignWaveIdx = waveIdx;
     const wave = activeCampaignEra.waves[waveIdx];
     if (!wave) return;
+    const totalWaves = activeCampaignEra.waves.length || 3;
 
     // Nettoyer les précédents minions & projectiles résiduels
     campaignActiveMinions.forEach(m => m.destroy());
     campaignActiveMinions = [];
     campaignActiveProjectiles.forEach(pr => pr.destroy());
     campaignActiveProjectiles = [];
+
+    if (!wave.isBoss && !wave.isDemiBoss) {
+        if (fighter2 && typeof fighter2.destroy === 'function') {
+            fighter2.destroy();
+        }
+        fighter2 = null;
+        campaignBossFighter = null;
+        const barContainer = document.getElementById('colossalBossBarContainer');
+        if (barContainer) {
+            if (barContainer.classList) barContainer.classList.add('hidden');
+            if (barContainer.style) barContainer.style.display = 'none';
+        }
+    }
 
     campaignWaveObjective = wave.objective || 'clear';
     campaignWaveDuration = wave.duration || 0;
@@ -1047,8 +1140,10 @@ function startCampaignWave(waveIdx) {
 
     // Annonce Smash Melee de début de vague
     campaignWaveBannerTimer = 3.2;
-    campaignWaveAnnounceTitle = `VAGUE ${wave.waveNum} / 3 : ${wave.name}`;
-    if (wave.isBoss) {
+    campaignWaveAnnounceTitle = `VAGUE ${wave.waveNum} / ${totalWaves} : ${wave.name}`;
+    if (wave.isDemiBoss) {
+        campaignWaveAnnounceSub = `ALERTE DEMI-BOSS : ${wave.bossName}`;
+    } else if (wave.isBoss) {
         campaignWaveAnnounceSub = `ALERTE : BOSS APEX ${wave.bossName}`;
     } else if (campaignWaveObjective === 'survive') {
         campaignWaveAnnounceSub = `OBJECTIF : SURVIVEZ PENDANT ${campaignWaveDuration} SECONDES !`;
@@ -1061,8 +1156,8 @@ function startCampaignWave(waveIdx) {
     }
     sfx.playGong();
 
-    if (wave.isBoss) {
-        // VAGUE 3 : APEX BOSS MONSTER !
+    if (wave.isBoss || wave.isDemiBoss) {
+        // VAGUE DEMI-BOSS OU BOSS APEX !
         campaignBossPhase = 1;
         spawnEraBossMonster(wave);
     } else if (Array.isArray(wave.members) && wave.members.length > 0) {
@@ -1119,14 +1214,22 @@ function updateAnomalocarisBossAnimations(boss, dt, nowSec) {
 }
 
 function spawnEraBossMonster(bossWave) {
+    // Nettoyer tout ancien boss résiduel avant d'en faire apparaître un nouveau
+    if (fighter2 && typeof fighter2.destroy === 'function') {
+        fighter2.destroy();
+    }
+    fighter2 = null;
+    campaignBossFighter = null;
+
     // Trouver le combattant de base ou boss dragon
     let baseDino = DINO_ROSTER.find(d => d.id === bossWave.baseDino) || DINO_ROSTER[0];
     if (bossWave.baseDino === 'dragon' && typeof DRAGON_BOSS !== 'undefined' && DRAGON_BOSS) {
         baseDino = DRAGON_BOSS;
     }
 
-    // Créer une copie personnalisée du boss avec des PV équilibrés et épiques
-    const scaledMaxHp = Math.max(1250, Math.round((bossWave.hp || 2400) * 0.65));
+    // Créer une copie personnalisée du boss (ou demi-boss) avec des PV équilibrés et épiques
+    const minHp = bossWave.isDemiBoss ? 950 : 1250;
+    const scaledMaxHp = Math.max(minHp, Math.round((bossWave.hp || 2400) * 0.65));
     const hasCustomBossGlb = (typeof CAMPAIGN_BOSS_GLB_IDS !== 'undefined')
         ? CAMPAIGN_BOSS_GLB_IDS.has(bossWave.bossId)
         : ['boss_cameroceras', 'boss_jaekelopterus', 'boss_dunkleosteus', 'boss_dimetrodon', 'boss_pyroclast', 'boss_wendigo'].includes(bossWave.bossId);
@@ -1136,6 +1239,7 @@ function spawnEraBossMonster(bossWave) {
         fullName: bossWave.bossTitle,
         maxHp: scaledMaxHp,
         isBoss: true,
+        isDemiBoss: Boolean(bossWave.isDemiBoss),
         bossGlbId: hasCustomBossGlb ? bossWave.bossId : null,
         primaryColor: bossWave.color,
         accentColor: bossWave.accentColor || 0xf59e0b
@@ -1170,6 +1274,7 @@ function mountCampaignSmashHUD(era) {
     const hazardName = era.hazard ? era.hazard.name : 'Combat Standard';
     const p1Name = (fighter1 && fighter1.dino) ? fighter1.dino.name : 'COMBATTANT';
     const p1MaxHp = (fighter1 && fighter1.maxHp) ? fighter1.maxHp : 1050;
+    const totalWaves = (era && Array.isArray(era.waves) && era.waves.length > 0) ? era.waves.length : 3;
 
     const hudHtml = `
         <div id="campaignSmashHUD" class="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between p-3 select-none">
@@ -1205,7 +1310,7 @@ function mountCampaignSmashHUD(era) {
                             <div class="flex flex-col">
                                 <span class="font-cinzel font-black text-amber-200 text-xs tracking-wider leading-tight">${era.name}</span>
                                 <div class="flex items-center gap-2">
-                                    <span id="smashHudWaveIndicator" class="font-chakra font-bold text-[11px] text-amber-400/90 tracking-widest uppercase">VAGUE 1 / 3</span>
+                                    <span id="smashHudWaveIndicator" class="font-chakra font-bold text-[11px] text-amber-400/90 tracking-widest uppercase">VAGUE 1 / ${totalWaves}</span>
                                     <span id="smashHudObjectiveTimer" class="hidden font-chakra font-black text-[11px] text-cyan-300 bg-cyan-950/80 border border-cyan-500/60 px-1.5 py-0.2 rounded uppercase"></span>
                                 </div>
                                 <span id="smashHudHazardBadge" class="font-chakra font-bold text-[10px] text-stone-300 tracking-wide">⚡ ${hazardName}</span>
@@ -1270,7 +1375,14 @@ function showBossHealthBarUI(bossWave) {
         if (container.style) container.style.display = 'flex';
     }
     const nameEl = document.getElementById('bossBarName');
-    if (nameEl) nameEl.textContent = `👑 BOSS : ${bossWave.bossName}`;
+    const fillEl = document.getElementById('bossBarFill');
+    if (bossWave && bossWave.isDemiBoss) {
+        if (nameEl) nameEl.textContent = `⚔️ DEMI-BOSS : ${bossWave.bossName}`;
+        if (fillEl) fillEl.className = 'h-full bg-gradient-to-r from-amber-700 via-orange-500 to-yellow-400 rounded-full transition-all duration-150';
+    } else {
+        if (nameEl) nameEl.textContent = `👑 BOSS : ${bossWave.bossName}`;
+        if (fillEl) fillEl.className = 'h-full bg-gradient-to-r from-red-700 via-red-500 to-amber-500 rounded-full transition-all duration-150';
+    }
 }
 
 function updateCampaignSmashHUD() {
@@ -1301,15 +1413,20 @@ function updateCampaignSmashHUD() {
     }
 
     // Vague
+    const totalWaves = (activeCampaignEra && Array.isArray(activeCampaignEra.waves) && activeCampaignEra.waves.length > 0)
+        ? activeCampaignEra.waves.length
+        : 3;
+    const curWave = getCurrentCampaignWave();
+    const isBossWave = Boolean(curWave && (curWave.isBoss || curWave.isDemiBoss));
     const waveInd = document.getElementById('smashHudWaveIndicator');
     if (waveInd && activeCampaignEra) {
-        waveInd.textContent = `VAGUE ${currentCampaignWaveIdx + 1} / 3`;
+        waveInd.textContent = `VAGUE ${currentCampaignWaveIdx + 1} / ${totalWaves}`;
     }
 
     // Chronomètre d'objectif (Survie / Time Attack)
     const objTimerEl = document.getElementById('smashHudObjectiveTimer');
     if (objTimerEl) {
-        if ((campaignWaveObjective === 'survive' || campaignWaveObjective === 'time_attack') && currentCampaignWaveIdx < 2) {
+        if ((campaignWaveObjective === 'survive' || campaignWaveObjective === 'time_attack') && !isBossWave) {
             if (objTimerEl.classList) objTimerEl.classList.remove('hidden');
             const sec = Math.max(0, Math.ceil(campaignWaveTimer));
             objTimerEl.textContent = campaignWaveObjective === 'survive' ? `⏱️ SURVIE : ${sec}s` : `⚡ CHRONO : ${sec}s`;
@@ -1461,7 +1578,7 @@ function updateCampaignBossPhases(boss, era) {
         campaignBossPhase = 2;
         boss.speed = (boss.speed || 7.0) * 1.18;
         boss._phase2Cooldown = 1.6;
-        const bossWave = era.waves[2];
+        const bossWave = (era.waves && era.waves[currentCampaignWaveIdx]) || era.waves[era.waves.length - 1];
         campaignWaveBannerTimer = 2.5;
         campaignWaveAnnounceTitle = `🔥 PHASE 2 : ${bossWave.bossName} ENRAGÉ !`;
         campaignWaveAnnounceSub = bossWave.phase2Desc || 'Le Boss déchaîne sa pleine puissance !';
@@ -1499,6 +1616,7 @@ function updateCampaignBossPhases(boss, era) {
             const hazardMap = {
                 boss_pulmonoscorpius: 'acid',
                 boss_dimetrodon: 'meteor',
+                boss_gorgonopsia: 'meteor',
                 boss_fasolasuchus: 'lightning',
                 boss_brontotitan: 'boulder',
                 boss_pyroclast: 'meteor',
@@ -1514,10 +1632,11 @@ function updateCampaignBossPhases(boss, era) {
 }
 
 function updateCampaignBossPhase2Behavior(boss, era, dt) {
-    if (!boss || boss.isDead || !era || !era.waves || !era.waves[2]) return;
+    if (!boss || boss.isDead || !era || !era.waves) return;
+    const bossWave = era.waves[currentCampaignWaveIdx] || era.waves[era.waves.length - 1];
+    if (!bossWave) return;
     if (campaignBossPhase < 2 || !fighter1 || fighter1.isDead) return;
 
-    const bossWave = era.waves[2];
     boss._phase2Cooldown = (boss._phase2Cooldown || 2.2) - dt;
     if (boss._phase2Cooldown > 0) return;
 
@@ -1526,7 +1645,16 @@ function updateCampaignBossPhase2Behavior(boss, era, dt) {
     const dist = Math.abs(fighter1.x - boss.x);
     const color = bossWave.accentColor || 0xf59e0b;
 
-    if (bossWave.bossId === 'boss_pyroclast' || bossWave.bossId === 'boss_dimetrodon' || bossWave.bossId === 'boss_drakzul') {
+    if (bossWave.bossId === 'boss_gorgonopsia') {
+        // Frénésie Sanglante de Gorgonopsia : bond prédateur éclair + salve solaire cramoisie
+        if (dist > 2.4 && typeof boss.vx === 'number') {
+            boss.vx = dir * 14.5;
+        }
+        if (typeof CampaignHazardObject3D === 'function' && campaignActiveHazards.length < 2) {
+            campaignActiveHazards.push(new CampaignHazardObject3D(fighter1.x, 'meteor'));
+        }
+        campaignActiveProjectiles.push(new CampaignProjectile3D(boss.x + dir * 1.4, boss.y + 1.25, dir * 12.2, 0.3, color, 42, 0.48));
+    } else if (bossWave.bossId === 'boss_pyroclast' || bossWave.bossId === 'boss_dimetrodon' || bossWave.bossId === 'boss_drakzul') {
         if (typeof CampaignHazardObject3D === 'function' && campaignActiveHazards.length < 3) {
             campaignActiveHazards.push(new CampaignHazardObject3D(fighter1.x, 'meteor'));
         }
@@ -1625,9 +1753,12 @@ function updateCampaignLevelEngine(dt, nowSec) {
     // Vérification des collisions d'attaques du joueur contre les minions
     checkPlayerAttacksAgainstMinions();
 
-    // Gestion des vagues 1 & 2 (Clear, Survive, Time Attack)
-    if (currentCampaignWaveIdx < 2) {
-        const wave = activeCampaignEra ? activeCampaignEra.waves[currentCampaignWaveIdx] : null;
+    // Gestion des vagues de minions (Clear, Survive, Time Attack) vs Vagues Demi-Boss / Boss
+    const curWave = getCurrentCampaignWave();
+    const isBossWave = Boolean(curWave && (curWave.isBoss || curWave.isDemiBoss));
+
+    if (curWave && !isBossWave) {
+        const wave = curWave;
         if (campaignWaveObjective === 'survive') {
             if (campaignWaveTimer > 0) {
                 campaignWaveTimer -= dt;
@@ -1676,8 +1807,8 @@ function updateCampaignLevelEngine(dt, nowSec) {
         }
     }
 
-    // Vague 3 (Boss) : Surveillance du Boss, Phases & Animation Anomalocaris Titan
-    if (currentCampaignWaveIdx === 2 && campaignBossFighter) {
+    // Vague Demi-Boss ou Boss Apex : Surveillance, Phases & Animation Anomalocaris Titan
+    if (isBossWave && campaignBossFighter) {
         if (campaignBossFighter._isAnomalocaris) {
             updateAnomalocarisBossAnimations(campaignBossFighter, dt, nowSec);
         }
@@ -1685,9 +1816,9 @@ function updateCampaignLevelEngine(dt, nowSec) {
         updateCampaignBossPhase2Behavior(campaignBossFighter, activeCampaignEra, dt);
         updateCampaignSmashHUD();
 
-        // Mort du Boss = VICTOIRE DE L'ÈRE !
+        // Mort du Demi-Boss (vague suivante) ou du Boss Apex (VICTOIRE DE L'ÈRE !)
         if (campaignBossFighter.hp <= 0 || campaignBossFighter.isDead) {
-            finishCampaignEraVictory();
+            handleCampaignBossDefeated();
             return;
         }
     }
@@ -1839,7 +1970,8 @@ function showCampaignGameOverModal(era) {
     const existing = document.getElementById('campaignGameOverModal');
     if (existing) existing.remove();
     const eraTitle = targetEra ? `${targetEra.name} • ${targetEra.subtitle || ''}` : 'NIVEAU CAMPAGNE';
-    const reachedWave = Math.min(3, (typeof currentCampaignWaveIdx === 'number' ? currentCampaignWaveIdx : 0) + 1);
+    const totalWaves = (targetEra && Array.isArray(targetEra.waves) && targetEra.waves.length > 0) ? targetEra.waves.length : 3;
+    const reachedWave = Math.min(totalWaves, (typeof currentCampaignWaveIdx === 'number' ? currentCampaignWaveIdx : 0) + 1);
     const scoreReached = typeof campaignLevelScore === 'number' ? campaignLevelScore : 0;
 
     const modalHtml = `
@@ -1855,7 +1987,7 @@ function showCampaignGameOverModal(era) {
                 <div class="w-full grid grid-cols-2 gap-3 mt-5 bg-stone-950/80 border border-stone-800 rounded-2xl p-3">
                     <div class="flex flex-col">
                         <span class="font-chakra text-[10px] text-stone-400 uppercase font-bold">Vague Atteinte</span>
-                        <span class="font-cinzel text-lg font-black text-amber-300">${reachedWave} / 3</span>
+                        <span class="font-cinzel text-lg font-black text-amber-300">${reachedWave} / ${totalWaves}</span>
                     </div>
                     <div class="flex flex-col">
                         <span class="font-chakra text-[10px] text-stone-400 uppercase font-bold">Score Obtenu</span>
@@ -1983,6 +2115,7 @@ function showEraVictoryRewardsModal(era, summary = null) {
                         </div>
                         <span class="font-cinzel font-black text-base text-amber-100 uppercase">${r.fighterName}</span>
                         <span class="font-chakra text-xs text-stone-300 font-bold mt-0.5">${r.fighterRole}</span>
+                        ${r.extraFighterName ? `<span class="font-chakra text-[11px] text-amber-300 font-bold mt-1">+ Demi-Boss débloqué : ${r.extraFighterName}</span>` : ''}
                     </div>
 
                     <!-- Reward 2: Unlocked Arena -->
@@ -2050,6 +2183,10 @@ if (typeof window !== 'undefined') {
     window.saveEraPerformance = saveEraPerformance;
     window.clearEraProgress = clearEraProgress;
     window.startCampaignEraLevel = startCampaignEraLevel;
+    window.getCurrentCampaignWave = getCurrentCampaignWave;
+    window.isCampaignBossWaveActive = isCampaignBossWaveActive;
+    window.isFinalCampaignWave = isFinalCampaignWave;
+    window.handleCampaignBossDefeated = handleCampaignBossDefeated;
     window.updateCampaignLevelEngine = updateCampaignLevelEngine;
     window.updateCampaignBossPhases = updateCampaignBossPhases;
     window.updateCampaignBossPhase2Behavior = updateCampaignBossPhase2Behavior;

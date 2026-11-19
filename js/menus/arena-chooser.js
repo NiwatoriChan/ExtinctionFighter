@@ -393,6 +393,17 @@ const ARENA_DESCRIPTIONS = {
             { icon: "🧪", name: "Sunken Mire" }
         ]
     },
+    desert: {
+        title: "DÉSERT ROUGE DE LA PANGÉE",
+        enTitle: "PANGAEA RED DESERT",
+        sub: "Dunes Ocres • Mesas du Permien & Trias",
+        desc: "Scorching Permo-Triassic red-bed badlands across supercontinent Pangaea. Wind-sculpted dunes, stratified sandstone mesas, petrified logs, and swirling dust devils frame a brutal arid battlefield.",
+        suitability: "SUITABLE FOR ALL CLASSES",
+        hazards: [
+            { icon: "☀️", name: "Solar Heat" },
+            { icon: "🌪️", name: "Sand Devils" }
+        ]
+    },
     storm: {
         title: "CANYON DE L'ORAGE PRIMORDIAL",
         enTitle: "TEMPEST CANYON",
@@ -509,6 +520,49 @@ function getArenaCardArtwork(arenaId) {
                 <path d="M100 230 L102 275 L118 275 L120 230 Z" fill="#064e3b"/>
                 <rect y="255" width="240" height="65" fill="#022c22"/>
                 <ellipse cx="60" cy="280" rx="35" ry="6" fill="#10b981" opacity="0.7" filter="blur(3px)"/>
+            </svg>
+        `;
+    } else if (arenaId === 'desert') {
+        return `
+            <svg viewBox="0 0 240 320" preserveAspectRatio="xMidYMid slice" class="w-full h-full">
+                <defs>
+                    <linearGradient id="desertSky" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#3b120a"/>
+                        <stop offset="42%" stop-color="#7c2d12"/>
+                        <stop offset="78%" stop-color="#c2410c"/>
+                        <stop offset="100%" stop-color="#ea580c"/>
+                    </linearGradient>
+                    <radialGradient id="desertSunGlow" cx="60%" cy="30%" r="48%">
+                        <stop offset="0%" stop-color="#fef3c7" stop-opacity="1"/>
+                        <stop offset="28%" stop-color="#fbbf24" stop-opacity="0.78"/>
+                        <stop offset="62%" stop-color="#ea580c" stop-opacity="0.32"/>
+                        <stop offset="100%" stop-color="#7c2d12" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+                <rect width="240" height="320" fill="url(#desertSky)"/>
+                <rect width="240" height="240" fill="url(#desertSunGlow)"/>
+                <circle cx="144" cy="96" r="28" fill="#fef3c7"/>
+                <!-- Stratified distant mesas -->
+                <polygon points="-10,215 18,132 68,132 88,215" fill="#5c1d0e"/>
+                <rect x="18" y="152" width="52" height="5" fill="#9a3412" opacity="0.7"/>
+                <rect x="12" y="172" width="66" height="6" fill="#b45309" opacity="0.55"/>
+                <polygon points="154,215 174,124 226,124 252,215" fill="#4c170b"/>
+                <rect x="174" y="146" width="54" height="5" fill="#9a3412" opacity="0.65"/>
+                <!-- Natural sandstone arch -->
+                <path d="M62 222 C66 158 102 140 132 140 C162 140 184 162 188 222 L166 222 C162 178 148 164 132 164 C112 164 90 178 86 222 Z" fill="#7c2d12"/>
+                <!-- Sweeping red-ochre dunes -->
+                <path d="M-10 226 Q55 194 125 224 Q185 246 250 218 L250 320 L-10 320 Z" fill="#9a3412"/>
+                <path d="M-10 256 Q72 226 146 258 Q198 278 250 252 L250 320 L-10 320 Z" fill="#c2410c"/>
+                <path d="M-10 282 Q90 258 175 286 T250 280 L250 320 L-10 320 Z" fill="#7c2d12"/>
+                <!-- Bleached Permian fossil ribs -->
+                <path d="M36 276 Q44 246 58 248" fill="none" stroke="#fef3c7" stroke-width="3.5" stroke-linecap="round" opacity="0.88"/>
+                <path d="M50 280 Q58 252 72 254" fill="none" stroke="#fde68a" stroke-width="3" stroke-linecap="round" opacity="0.82"/>
+                <path d="M64 282 Q70 258 82 260" fill="none" stroke="#fef3c7" stroke-width="2.5" stroke-linecap="round" opacity="0.75"/>
+                <!-- Wind-blown sand streaks -->
+                <line x1="20" y1="196" x2="95" y2="188" stroke="#fde68a" stroke-width="1.4" opacity="0.45"/>
+                <line x1="125" y1="210" x2="215" y2="200" stroke="#fcd34d" stroke-width="1.6" opacity="0.4"/>
+                <circle cx="88" cy="182" r="2" fill="#fef08a" opacity="0.8"/>
+                <circle cx="176" cy="195" r="2.2" fill="#fed7aa" opacity="0.75"/>
             </svg>
         `;
     } else if (arenaId === 'storm') {

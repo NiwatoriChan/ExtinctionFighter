@@ -18,6 +18,7 @@ const EXPECTED_BONES = {
     dragon: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Arm0', 'Bone_Arm1', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Tail0', 'Bone_Tail3', 'Special_LeftWing', 'Special_RightWing'],
     maiasaura: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Arm0', 'Bone_Arm1', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Tail0', 'Bone_Tail3'],
     giantsloth: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Arm0', 'Bone_Arm1', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Tail0', 'Bone_Tail2'],
+    gorgonopsia: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Leg0', 'Bone_Leg1', 'Bone_Leg2', 'Bone_Leg3', 'Bone_Tail0', 'Bone_Tail2', 'Bone_Tail3'],
     postosuchus: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Leg0', 'Bone_Leg3', 'Bone_Tail0', 'Bone_Tail3'],
     pulmonoscorpius: ['Bone_Hips', 'Bone_Torso', 'Bone_Head', 'Bone_Arm0', 'Bone_Arm1', 'Bone_Leg0', 'Bone_Leg7', 'Bone_Tail0', 'Bone_Tail4'],
     smilodon: ['Bone_Hips', 'Bone_Torso', 'Bone_Neck', 'Bone_Head', 'Bone_Jaw', 'Bone_Leg0', 'Bone_Leg3', 'Bone_Tail0', 'Bone_Tail2'],

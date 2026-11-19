@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="512" height="256">
+  <defs>
+    <linearGradient id="emblem_gorgonopsia" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dc2626"/>
+      <stop offset="55%" stop-color="#8c2d19"/>
+      <stop offset="100%" stop-color="#26211e"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, -15)">
+    <path d="M 274,322 C 185,332 108,358 34,386 C 110,378 190,368 276,365 Z" fill="#26211e"/>
+    <path d="M 270,320 C 375,260 565,245 715,272 C 760,295 765,365 718,402 C 585,418 415,405 275,368 Z" fill="url(#emblem_gorgonopsia)"/>
+    <path d="M 702,268 C 765,240 865,244 926,278 C 942,306 930,342 872,356 L 780,358 L 714,352 Z" fill="#8c2d19"/>
+    <path d="M 862,334 L 876,416 L 892,336 Z" fill="#f5e9cf"/>
+    <path d="M 650,388 L 638,496 L 676,500 L 692,388 Z" fill="#5c2116"/>
+    <path d="M 358,365 L 336,494 L 376,498 L 404,368 Z" fill="#5c2116"/>
+  </g>
+</svg>

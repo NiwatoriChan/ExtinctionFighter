@@ -282,6 +282,7 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
         if (defender.hp <= 0) {
             if (matchState === 'campaign_level') {
                 if (defender === fighter1) handlePlayerStockLoss();
+                else if (typeof handleCampaignBossDefeated === 'function') handleCampaignBossDefeated();
                 else finishCampaignEraVictory();
             } else if (matchState === 'fight') {
                 handleKnockout(attacker, defender);
@@ -386,6 +387,7 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
         if (defender.hp <= 0) {
             if (matchState === 'campaign_level') {
                 if (defender === fighter1) handlePlayerStockLoss();
+                else if (typeof handleCampaignBossDefeated === 'function') handleCampaignBossDefeated();
                 else finishCampaignEraVictory();
             } else if (matchState === 'fight') {
                 handleKnockout(attacker, defender);
@@ -402,11 +404,14 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
 
     // Signature Passives & Status Effects
     if (attacker.dino && !defender.isDead) {
-        // Smilodon : Saignement cumulable (jusqu'à 3 stacks)
-        if (attacker.dino.id === 'smilodon') {
+        // Smilodon & Gorgonopsia : Saignement cumulable (jusqu'à 3 stacks)
+        if (attacker.dino.id === 'smilodon' || attacker.dino.id === 'gorgonopsia') {
             defender.bleedStacks = Math.min(3, (defender.bleedStacks || 0) + 1);
             defender.bleedTimer = 4.0;
-            spawnFloatingPopup(defender.x, `🩸 SAIGNEMENT ×${defender.bleedStacks}`, '#dc2626');
+            const bleedLabel = attacker.dino.id === 'gorgonopsia'
+                ? `🩸 DÉCHIRURE SABRE ×${defender.bleedStacks}`
+                : `🩸 SAIGNEMENT ×${defender.bleedStacks}`;
+            spawnFloatingPopup(defender.x, bleedLabel, '#dc2626');
         }
         // Pulmonoscorpius : Neurotoxine paralysante (jusqu'à 3 stacks)
         if (attacker.dino.id === 'pulmonoscorpius') {
@@ -520,6 +525,7 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
     if (defender.hp <= 0 && !isLockedXrayHit) {
         if (matchState === 'campaign_level') {
             if (defender === fighter1) handlePlayerStockLoss();
+            else if (typeof handleCampaignBossDefeated === 'function') handleCampaignBossDefeated();
             else finishCampaignEraVictory();
             return;
         }
@@ -874,7 +880,7 @@ function updateBattle3D(dt, nowSec) {
             handlePlayer2Inputs(dt);
         } else if ((gameMode === 'cpu' || gameMode === 'campaign') && matchState === 'fight' && fighter2) {
             updateAI(fighter2, fighter1, dt);
-        } else if (matchState === 'campaign_level' && fighter2 && typeof currentCampaignWaveIdx !== 'undefined' && currentCampaignWaveIdx === 2) {
+        } else if (matchState === 'campaign_level' && fighter2 && (typeof isCampaignBossWaveActive === 'function' ? isCampaignBossWaveActive() : (typeof currentCampaignWaveIdx !== 'undefined' && currentCampaignWaveIdx === 2))) {
             updateAI(fighter2, fighter1, dt);
         }
         // Appliquer le bloqueur dès la sortie des inputs pour empêcher tout franchissement instantané
