@@ -2,6 +2,13 @@
 
 All notable changes to **Extinction Kombat 3D** (*ExtinctionFighter*) are documented in this file.
 
+## [v0.4.0.1] - 2026-11-22
+
+### Fixed
+- **Controller Super Attack Trigger Normalization (`js/core/input.js`)**: Normalized Linux `evdev`/`joydev` analog trigger axes for Google Stadia Controller (`axes[4]` R2 / `axes[5]` L2) and Xbox Series / Linux `xpad` / Sunshine controllers (`axes[2]` LT / `axes[5]` RT), as well as W3C standard analog `button.value >= 0.22`, into canonical `LT` (`buttons[6]`) and `RT` (`buttons[7]`) triggers.
+- **Multi-Gamepad Slot Merging (`js/core/input.js`)**: Merged inputs across all connected gamepads in 1P modes and prioritized active controllers in PvP so virtual gamepad devices (such as Sunshine `uhid` slots) never block physical controllers on higher gamepad indices.
+- **Super Attack Controller Chords, Dash-Cancel & Cross-Round Rage (`js/core/input.js`, `js/core/combat.js`, `js/core/fighter.js`, `js/core/match.js`, `js/core/ai-behaviortree.js`)**: Added `LB + RB` (`L1 + R1`) and `Y + B` controller chords for Primal Super, enabled immediate Dash-cancel into Super, extended the Super input buffer window to `0.55s`, removed ground friction decay during `super_startup` rush, prevented frame-1 AI auto-blocking on `super_startup`, and preserved Rage meter across rounds and campaign stocks.
+
 ## [v0.4.0] - 2026-11-22
 
 ### Added

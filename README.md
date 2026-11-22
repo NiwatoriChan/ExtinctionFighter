@@ -1,11 +1,11 @@
-# 🦖 EXTINCTION KOMBAT 3D — *Jurassic Blood* (`v0.4.0`)
+# 🦖 EXTINCTION KOMBAT 3D — *Jurassic Blood* (`v0.4.0.1`)
 
 > Jeu de combat 3D d'arcade préhistorique propulsé par Three.js et WebGL.  
 > Affrontez des prédateurs sculptés sous Blender avec textures PBR dans 9 arènes 3D, Super Attaques cinématiques, fatalités et un mode Campagne sur 13 ères géologiques.
 
 ---
 
-## 📸 Aperçu (`v0.4.0`)
+## 📸 Aperçu (`v0.4.0.1`)
 
 | Menu Principal | Sélection des Combattants |
 | :---: | :---: |

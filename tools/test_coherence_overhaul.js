@@ -130,7 +130,7 @@ function testStateAndHtml() {
 
     const ctx = vm.createContext({ window: {}, localStorage: makeStorage(), console, Math });
     loadIntoContext(ctx, 'js/core/state.js');
-    assert.strictEqual(ctx.GAME_VERSION, 'v0.4.0', 'GAME_VERSION should be v0.4.0');
+    assert.strictEqual(ctx.GAME_VERSION, 'v0.4.0.1', 'GAME_VERSION should be v0.4.0.1');
     assert.strictEqual(ctx.superState, null, 'superState should initialize to null');
     assert.strictEqual(ctx.battleTimeScale, 1.0, 'battleTimeScale should initialize to 1.0');
     assert.strictEqual(ctx.koSlowMoTimer, 0, 'koSlowMoTimer should initialize to 0');
