@@ -404,10 +404,15 @@ function createCombatHarness(opts = {}) {
         superFlashOverlay: createMockElement('div', 'superFlashOverlay'),
         postMatchMenu: createMockElement('div', 'postMatchMenu'),
         pauseModal: createMockElement('div', 'pauseModal'),
+        movesModal: createMockElement('div', 'movesModal'),
+        settingsModal: createMockElement('div', 'settingsModal'),
         duelTopHudOverlay: createMockElement('div', 'duelTopHudOverlay'),
         hudTimer: createMockElement('div', 'hudTimer'),
         hudRoundText: createMockElement('div', 'hudRoundText')
     };
+    ['superFlashOverlay', 'postMatchMenu', 'pauseModal', 'movesModal', 'settingsModal'].forEach((id) => {
+        domMap[id].classList.add('hidden');
+    });
 
     const windowListeners = {};
     const winObj = {
@@ -1595,6 +1600,92 @@ function testInvariant8_AudioAndVisualHudIntegration() {
     console.log('[PASS] Invariant 8: Layered Web Audio (18 calls + mute), Camera/Lights, Pooled VFX, Multi-Mat Hit-Flash/Armor/Smoothing & Post-Match mount');
 }
 
+function testInvariant9_ControllerGamepadSuperTriggers() {
+    const h = createCombatHarness({ forbidSetTimeout: true });
+    let activePads = [];
+    h.ctx.navigator = {
+        getGamepads: () => activePads
+    };
+
+    const makeBtns = (n, pressedMap = {}) => {
+        const arr = [];
+        for (let i = 0; i < n; i++) {
+            const v = pressedMap[i];
+            if (typeof v === 'number') arr.push({ pressed: false, value: v });
+            else arr.push({ pressed: Boolean(v), value: v ? 1 : 0 });
+        }
+        return arr;
+    };
+
+    // 9A. Google Stadia Controller rev. A on Linux (raw mapping "", axes[4] = R2/RT, axes[5] = L2/LT) at slot 2 with 2 idle Sunshine pads at slots 0 & 1
+    {
+        const { f1, f2 } = h.spawnDuel('trex', 'spinosaurus');
+        f1.rage = 100;
+        const idleSunshine0 = { id: 'Sunshine X-Box Series Controller (045e:0b13)', index: 0, mapping: '', connected: true, axes: [0, 0, -1, 0, 0, -1, 0, 0], buttons: makeBtns(11) };
+        const idleSunshine1 = { id: 'Sunshine X-Box Series Controller (045e:0b13)', index: 1, mapping: '', connected: true, axes: [0, 0, -1, 0, 0, -1, 0, 0], buttons: makeBtns(11) };
+        const stadiaRest = { id: 'Google LLC Stadia Controller rev. A (18d1:9400)', index: 2, mapping: '', connected: true, axes: [0, 0, 0, 0, -1, -1, 0, 0], buttons: makeBtns(15) };
+        activePads = [idleSunshine0, idleSunshine1, stadiaRest];
+        h.ctx.pollGamepadInputs(0.016, 100);
+        assert.strictEqual(h.ctx.superState, null, 'Resting Stadia & Sunshine triggers must not false-trigger Super');
+
+        // Pull R2 (axes[4] from -1.0 to +0.25) on Stadia Controller at slot 2
+        const stadiaPullR2 = { id: 'Google LLC Stadia Controller rev. A (18d1:9400)', index: 2, mapping: '', connected: true, axes: [0, 0, 0, 0, 0.25, -1, 0, 0], buttons: makeBtns(15) };
+        activePads = [idleSunshine0, idleSunshine1, stadiaPullR2];
+        h.ctx.pollGamepadInputs(0.016, 116);
+        assert(h.ctx.superState && h.ctx.superState.phase === 'flash', 'Stadia Controller R2 analog axis (axes[4]) must trigger Primal Super!');
+        h.ctx.teardownSuperState();
+    }
+
+    // 9B. Sunshine / Linux xpad Xbox Series Controller (raw mapping "", axes[2] = LT, axes[5] = RT)
+    {
+        const { f1, f2 } = h.spawnDuel('trex', 'spinosaurus');
+        f1.rage = 100;
+        const xboxRest = { id: 'Sunshine X-Box Series Controller (045e:0b13)', index: 0, mapping: '', connected: true, axes: [0, 0, -1, 0, 0, -1, 0, 0], buttons: makeBtns(11) };
+        activePads = [xboxRest];
+        h.ctx.pollGamepadInputs(0.016, 200);
+
+        const xboxPullRT = { id: 'Sunshine X-Box Series Controller (045e:0b13)', index: 0, mapping: '', connected: true, axes: [0, 0, -1, 0, 0, 0.35, 0, 0], buttons: makeBtns(11) };
+        activePads = [xboxPullRT];
+        h.ctx.pollGamepadInputs(0.016, 216);
+        assert(h.ctx.superState && h.ctx.superState.phase === 'flash', 'Xbox Series / xpad RT analog axis (axes[5]) must trigger Primal Super!');
+        h.ctx.teardownSuperState();
+    }
+
+    // 9C. Standard W3C Controller with analog trigger value (buttons[7].value = 0.45, pressed = false) & Dash-cancel into Super
+    {
+        const { f1, f2 } = h.spawnDuel('trex', 'spinosaurus');
+        f1.rage = 100;
+        f1.startDash(1);
+        assert(f1.dashTimer > 0, 'Fighter should be mid-dash');
+        const stdRest = { id: 'Standard Gamepad', index: 0, mapping: 'standard', connected: true, axes: [0, 0, 0, 0], buttons: makeBtns(16) };
+        activePads = [stdRest];
+        h.ctx.pollGamepadInputs(0.016, 300);
+
+        const stdHalfRT = { id: 'Standard Gamepad', index: 0, mapping: 'standard', connected: true, axes: [0, 0, 0, 0], buttons: makeBtns(16, { 7: 0.45 }) };
+        activePads = [stdHalfRT];
+        h.ctx.pollGamepadInputs(0.016, 316);
+        assert(h.ctx.superState && h.ctx.superState.phase === 'flash', 'Analog RT (value=0.45, pressed=false) must Dash-cancel into Primal Super!');
+        h.ctx.teardownSuperState();
+    }
+
+    // 9D. Controller LB + RB chord (buttons[4] + buttons[5]) triggers Super
+    {
+        const { f1, f2 } = h.spawnDuel('trex', 'spinosaurus');
+        f1.rage = 100;
+        const stdRest = { id: 'Standard Gamepad', index: 0, mapping: 'standard', connected: true, axes: [0, 0, 0, 0], buttons: makeBtns(16) };
+        activePads = [stdRest];
+        h.ctx.pollGamepadInputs(0.016, 400);
+
+        const stdLbRb = { id: 'Standard Gamepad', index: 0, mapping: 'standard', connected: true, axes: [0, 0, 0, 0], buttons: makeBtns(16, { 4: true, 5: true }) };
+        activePads = [stdLbRb];
+        h.ctx.pollGamepadInputs(0.016, 416);
+        assert(h.ctx.superState && h.ctx.superState.phase === 'flash', 'LB + RB controller chord must trigger Primal Super!');
+        h.ctx.teardownSuperState();
+    }
+
+    console.log('[PASS] Invariant 9: Controller Super triggers (Stadia axes[4..5], Xbox/Sunshine axes[2,5], W3C analog .value, LB+RB chord & Dash-cancel)');
+}
+
 function main() {
     console.log('=== RUNNING EXTINCTION KOMBAT 3D GAME-FEEL & REAL SUPER SUITE ===');
     testInvariant1_MultiFrameHitbox();
@@ -1605,7 +1696,8 @@ function main() {
     testInvariant6_UniversalInputBuffer();
     testInvariant7_All21SupersAndExtinctionFinish();
     testInvariant8_AudioAndVisualHudIntegration();
-    console.log('=== ALL 8 GAME-FEEL & REAL SUPER INVARIANTS PASSED! ===');
+    testInvariant9_ControllerGamepadSuperTriggers();
+    console.log('=== ALL 9 GAME-FEEL & REAL SUPER INVARIANTS PASSED! ===');
 }
 
 main();

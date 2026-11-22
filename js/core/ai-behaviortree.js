@@ -167,6 +167,7 @@ const AICombatBehaviorTree = {
                                 check: (bb) => (
                                     bb.aiActionIdle &&
                                     bb.targetIsAttacking &&
+                                    (!bb.target || bb.target.action !== 'super_startup') &&
                                     bb.dist <= bb.enemyReach + 0.75 &&
                                     bb.guardStamina >= 18 &&
                                     Math.random() < bb.blockChance

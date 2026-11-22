@@ -157,7 +157,7 @@ class Fighter3D extends AnimalPrototype {
         }
     }
 
-    resetForRound() {
+    resetForRound(preserveRage = false) {
         this.x = this.isP1 ? -4.8 : 4.8;
         const initGroundY = typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, this.x, 0) : 0;
         this.groundY = initGroundY;
@@ -168,7 +168,9 @@ class Fighter3D extends AnimalPrototype {
         this._lockedSide = this.isP1 ? -1 : 1;
         this.hp = this.dino.maxHp;
         this.maxHp = this.dino.maxHp;
-        this.rage = 0;
+        if (!preserveRage) {
+            this.rage = 0;
+        }
         this.guardStamina = 100;
         this.maxGuardStamina = 100;
         this.action = 'idle';

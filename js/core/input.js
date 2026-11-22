@@ -566,7 +566,166 @@ function isGpBtnJustPressed(padIndex, btnIndex) {
 }
 
 function isGpBtnDown(pad, btnIndex) {
-    return !!(pad && pad.buttons && pad.buttons[btnIndex] && pad.buttons[btnIndex].pressed);
+    if (!pad || !pad.buttons || !pad.buttons[btnIndex]) return false;
+    const b = pad.buttons[btnIndex];
+    return !!(b.pressed || (typeof b.value === 'number' && b.value >= 0.22));
+}
+
+const _gpTriggerTrackers = {};
+
+function _evalTriggerAxis(trackKey, rawVal) {
+    if (typeof rawVal !== 'number' || Number.isNaN(rawVal)) return false;
+    let tr = _gpTriggerTrackers[trackKey];
+    if (!tr) {
+        tr = {
+            sawNegative: rawVal < -0.25,
+            active: false
+        };
+        _gpTriggerTrackers[trackKey] = tr;
+    }
+    if (rawVal < -0.25) {
+        tr.sawNegative = true;
+    }
+    if (tr.sawNegative) {
+        if (!tr.active && rawVal > -0.45) tr.active = true;
+        else if (tr.active && rawVal < -0.60) tr.active = false;
+    } else {
+        if (!tr.active && rawVal > 0.25) tr.active = true;
+        else if (tr.active && rawVal < 0.15) tr.active = false;
+    }
+    return tr.active;
+}
+
+function normalizeSingleGamepad(rawPad, slotKey = 'p1') {
+    if (!rawPad) return null;
+    const id = String(rawPad.id || '').toLowerCase();
+    const mapping = String(rawPad.mapping || '');
+    const isStandard = mapping === 'standard';
+    const rawAxes = Array.isArray(rawPad.axes) ? rawPad.axes : (rawPad.axes ? Array.from(rawPad.axes) : []);
+    const rawBtns = Array.isArray(rawPad.buttons) ? rawPad.buttons : (rawPad.buttons ? Array.from(rawPad.buttons) : []);
+
+    const isBtnOn = (idx) => {
+        const b = rawBtns[idx];
+        if (!b) return false;
+        if (typeof b === 'boolean') return b;
+        return !!(b.pressed || (typeof b.value === 'number' && b.value >= 0.22));
+    };
+
+    const isStadia = id.includes('stadia') || id.includes('18d1') || id.includes('9400');
+    const hasExtendedAxes = rawAxes.length >= 6;
+
+    const buttons = new Array(16);
+    for (let i = 0; i < 16; i++) {
+        buttons[i] = { pressed: isBtnOn(i), value: isBtnOn(i) ? 1 : 0 };
+    }
+
+    let lx = rawAxes[0] || 0;
+    let ly = rawAxes[1] || 0;
+    let rx = rawAxes[2] || 0;
+    let ry = rawAxes[3] || 0;
+
+    if (!isStandard && isStadia && hasExtendedAxes) {
+        // Google Stadia Controller on Linux raw evdev/joydev (ABS=30627):
+        // axes[0..1]=L-Stick, axes[2..3]=R-Stick, axes[4]=R2(RT), axes[5]=L2(LT), axes[6..7]=D-Pad
+        rx = rawAxes[2] || 0;
+        ry = rawAxes[3] || 0;
+        const rtPressed = _evalTriggerAxis(`${slotKey}:stadia_rt`, rawAxes[4]) || isBtnOn(11) || isBtnOn(12);
+        const ltPressed = _evalTriggerAxis(`${slotKey}:stadia_lt`, rawAxes[5]);
+        buttons[6] = { pressed: ltPressed, value: ltPressed ? 1 : 0 };
+        buttons[7] = { pressed: rtPressed, value: rtPressed ? 1 : 0 };
+        buttons[8] = { pressed: isBtnOn(6), value: isBtnOn(6) ? 1 : 0 };  // Options / Select
+        buttons[9] = { pressed: isBtnOn(7), value: isBtnOn(7) ? 1 : 0 };  // Menu / Start
+        buttons[10] = { pressed: isBtnOn(9), value: isBtnOn(9) ? 1 : 0 }; // L3
+        buttons[11] = { pressed: isBtnOn(10), value: isBtnOn(10) ? 1 : 0 }; // R3
+        const hatX = rawAxes[6] || 0;
+        const hatY = rawAxes[7] || 0;
+        buttons[12] = { pressed: hatY < -0.4, value: hatY < -0.4 ? 1 : 0 };
+        buttons[13] = { pressed: hatY > 0.4, value: hatY > 0.4 ? 1 : 0 };
+        buttons[14] = { pressed: hatX < -0.4, value: hatX < -0.4 ? 1 : 0 };
+        buttons[15] = { pressed: hatX > 0.4, value: hatX > 0.4 ? 1 : 0 };
+    } else if (!isStandard && hasExtendedAxes) {
+        // Linux xpad / Xbox Series / Sunshine / 8-axis raw evdev (ABS=3003f):
+        // axes[0..1]=L-Stick, axes[2]=LT, axes[3..4]=R-Stick, axes[5]=RT, axes[6..7]=D-Pad
+        rx = rawAxes[3] || 0;
+        ry = rawAxes[4] || 0;
+        const ltPressed = _evalTriggerAxis(`${slotKey}:xpad_lt`, rawAxes[2]);
+        const rtPressed = _evalTriggerAxis(`${slotKey}:xpad_rt`, rawAxes[5]);
+        buttons[6] = { pressed: ltPressed, value: ltPressed ? 1 : 0 };
+        buttons[7] = { pressed: rtPressed, value: rtPressed ? 1 : 0 };
+        buttons[8] = { pressed: isBtnOn(6), value: isBtnOn(6) ? 1 : 0 };
+        buttons[9] = { pressed: isBtnOn(7), value: isBtnOn(7) ? 1 : 0 };
+        buttons[10] = { pressed: isBtnOn(9), value: isBtnOn(9) ? 1 : 0 };
+        buttons[11] = { pressed: isBtnOn(10), value: isBtnOn(10) ? 1 : 0 };
+        const hatX = rawAxes[6] || 0;
+        const hatY = rawAxes[7] || 0;
+        buttons[12] = { pressed: hatY < -0.4 || isBtnOn(12), value: (hatY < -0.4 || isBtnOn(12)) ? 1 : 0 };
+        buttons[13] = { pressed: hatY > 0.4 || isBtnOn(13), value: (hatY > 0.4 || isBtnOn(13)) ? 1 : 0 };
+        buttons[14] = { pressed: hatX < -0.4 || isBtnOn(14), value: (hatX < -0.4 || isBtnOn(14)) ? 1 : 0 };
+        buttons[15] = { pressed: hatX > 0.4 || isBtnOn(15), value: (hatX > 0.4 || isBtnOn(15)) ? 1 : 0 };
+    } else if (hasExtendedAxes) {
+        // Standard mapping with extra trigger/hat axes exposed alongside buttons
+        const ax4Trig = isStadia ? _evalTriggerAxis(`${slotKey}:std_ax4`, rawAxes[4]) : false;
+        const ax5Trig = _evalTriggerAxis(`${slotKey}:std_ax5`, rawAxes[5]);
+        if (isStadia) {
+            if (ax4Trig) buttons[7] = { pressed: true, value: 1 };
+            if (ax5Trig) buttons[6] = { pressed: true, value: 1 };
+        } else {
+            if (ax5Trig) buttons[7] = { pressed: true, value: 1 };
+        }
+        if (rawAxes.length >= 8) {
+            const hatX = rawAxes[6] || 0;
+            const hatY = rawAxes[7] || 0;
+            if (hatY < -0.4) buttons[12] = { pressed: true, value: 1 };
+            if (hatY > 0.4) buttons[13] = { pressed: true, value: 1 };
+            if (hatX < -0.4) buttons[14] = { pressed: true, value: 1 };
+            if (hatX > 0.4) buttons[15] = { pressed: true, value: 1 };
+        }
+    }
+
+    return {
+        id: rawPad.id,
+        index: rawPad.index,
+        mapping: 'standard',
+        connected: true,
+        buttons,
+        axes: [lx, ly, rx, ry],
+        vibrationActuator: rawPad.vibrationActuator
+    };
+}
+
+function mergeNormalizedGamepads(normPads) {
+    if (!normPads || normPads.length === 0) return null;
+    if (normPads.length === 1) return normPads[0];
+    const buttons = new Array(16);
+    for (let i = 0; i < 16; i++) {
+        let pressed = false;
+        for (let p = 0; p < normPads.length; p++) {
+            if (normPads[p].buttons[i] && normPads[p].buttons[i].pressed) {
+                pressed = true;
+                break;
+            }
+        }
+        buttons[i] = { pressed, value: pressed ? 1 : 0 };
+    }
+    const axes = [0, 0, 0, 0];
+    for (let a = 0; a < 4; a++) {
+        let best = 0;
+        for (let p = 0; p < normPads.length; p++) {
+            const v = (normPads[p].axes && normPads[p].axes[a]) || 0;
+            if (Math.abs(v) > Math.abs(best)) best = v;
+        }
+        axes[a] = best;
+    }
+    const primary = normPads.find(p => p.vibrationActuator) || normPads[0];
+    return {
+        id: primary.id,
+        index: primary.index,
+        mapping: 'standard',
+        connected: true,
+        buttons,
+        axes,
+        vibrationActuator: primary.vibrationActuator
+    };
 }
 
 
@@ -1204,25 +1363,43 @@ function handleGamepadBattle(pad, pad2, dt) {
             lastTapTime.gp1Right = nowMs;
         }
 
-        // 1. SAUTER : Bouton A (0)
+        // 1. PRIMAL SUPER (100% Rage) : Gâchettes RT (7), LT (6), ou raccourci LB + RB (4 + 5) / Y + B (3 + 1)
+        const lbJust = isGpBtnJustPressed(0, 4);
+        const rbJust = isGpBtnJustPressed(0, 5);
+        const lbDown = isGpBtnDown(pad, 4);
+        const rbDown = isGpBtnDown(pad, 5);
+        const xJust = isGpBtnJustPressed(0, 2);
+        const yJust = isGpBtnJustPressed(0, 3);
+        const bJust = isGpBtnJustPressed(0, 1);
+        const xDown = isGpBtnDown(pad, 2);
+        const yDown = isGpBtnDown(pad, 3);
+        const bDown = isGpBtnDown(pad, 1);
+
+        const isSuperTrigger = isGpBtnJustPressed(0, 7) || isGpBtnJustPressed(0, 6);
+        const isSuperChord = (lbDown && rbDown && (lbJust || rbJust)) || (yDown && bDown && (yJust || bJust));
+
+        if (isSuperTrigger || isSuperChord) {
+            _flashBtn('btnRageSuper', true);
+            _flashBtn('btnRageFatality', true);
+            triggerPlayerAction(fighter1, fighter2, 'super');
+            return;
+        }
+
+        // 2. SAUTER : Bouton A (0)
         if (isGpBtnJustPressed(0, 0)) {
             _flashBtn('uiBtnJump', true);
             triggerPlayerAction(fighter1, fighter2, 'jump');
         }
 
-        // 2. PROTÉGER : Bouton LB (4)
-        const gpGuard = isGpBtnDown(pad, 4);
+        // 3. PROTÉGER : Bouton LB (4)
+        const gpGuard = lbDown;
         touchState.guard = gpGuard;
         _flashBtn('uiBtnGuard', gpGuard);
-        if (isGpBtnJustPressed(0, 4)) {
+        if (lbJust) {
             triggerPlayerAction(fighter1, fighter2, 'guard');
         }
 
-        // 3. CHOPE (LB + X ou X + Y), FRAPPE LÉGÈRE X (2), FRAPPE LOURDE Y (3)
-        const xJust = isGpBtnJustPressed(0, 2);
-        const yJust = isGpBtnJustPressed(0, 3);
-        const xDown = isGpBtnDown(pad, 2);
-        const yDown = isGpBtnDown(pad, 3);
+        // 4. CHOPE (LB + X ou X + Y), FRAPPE LÉGÈRE X (2), FRAPPE LOURDE Y (3)
         const isThrowChord = (gpGuard && xJust) || (xDown && yDown && (xJust || yJust));
 
         if (isThrowChord) {
@@ -1239,23 +1416,16 @@ function handleGamepadBattle(pad, pad2, dt) {
             }
         }
 
-        // 4. SPÉCIAL 1 / SPÉCIAL 2 (Bas + B) : Bouton B (1)
-        if (isGpBtnJustPressed(0, 1)) {
+        // 5. SPÉCIAL 1 / SPÉCIAL 2 (Bas + B) : Bouton B (1)
+        if (bJust) {
             _flashBtn('uiBtnSpecial', true);
             triggerPlayerAction(fighter1, fighter2, 'special');
         }
 
-        // 5. DASHER : Bouton RB (5)
-        if (isGpBtnJustPressed(0, 5)) {
+        // 6. DASHER : Bouton RB (5)
+        if (rbJust) {
             _flashBtn('uiBtnDash', true);
             triggerPlayerAction(fighter1, fighter2, 'dash');
-        }
-
-        // 6. PRIMAL SUPER (100% Rage) : Gâchette RT (7) ou LT (6)
-        if (isGpBtnJustPressed(0, 7) || isGpBtnJustPressed(0, 6)) {
-            _flashBtn('btnRageSuper', true);
-            _flashBtn('btnRageFatality', true);
-            triggerPlayerAction(fighter1, fighter2, 'super');
         }
     }
 
@@ -1285,14 +1455,29 @@ function handleGamepadBattle(pad, pad2, dt) {
             lastTapTime.gp2Right = nowMs2;
         }
 
-        if (isGpBtnJustPressed(1, 0)) triggerPlayerAction(fighter2, fighter1, 'jump');
-        const gpGuard2 = isGpBtnDown(pad2, 4);
-        p2TouchState.guard = gpGuard2;
-        if (isGpBtnJustPressed(1, 4)) triggerPlayerAction(fighter2, fighter1, 'guard');
-
+        const lbJust2 = isGpBtnJustPressed(1, 4);
+        const rbJust2 = isGpBtnJustPressed(1, 5);
+        const lbDown2 = isGpBtnDown(pad2, 4);
+        const rbDown2 = isGpBtnDown(pad2, 5);
         const xJust2 = isGpBtnJustPressed(1, 2);
         const yJust2 = isGpBtnJustPressed(1, 3);
-        const isThrowChord2 = (gpGuard2 && xJust2) || (isGpBtnDown(pad2, 2) && isGpBtnDown(pad2, 3) && (xJust2 || yJust2));
+        const bJust2 = isGpBtnJustPressed(1, 1);
+        const yDown2 = isGpBtnDown(pad2, 3);
+        const bDown2 = isGpBtnDown(pad2, 1);
+
+        const isSuperTrigger2 = isGpBtnJustPressed(1, 7) || isGpBtnJustPressed(1, 6);
+        const isSuperChord2 = (lbDown2 && rbDown2 && (lbJust2 || rbJust2)) || (yDown2 && bDown2 && (yJust2 || bJust2));
+        if (isSuperTrigger2 || isSuperChord2) {
+            triggerPlayerAction(fighter2, fighter1, 'super');
+            return;
+        }
+
+        if (isGpBtnJustPressed(1, 0)) triggerPlayerAction(fighter2, fighter1, 'jump');
+        const gpGuard2 = lbDown2;
+        p2TouchState.guard = gpGuard2;
+        if (lbJust2) triggerPlayerAction(fighter2, fighter1, 'guard');
+
+        const isThrowChord2 = (gpGuard2 && xJust2) || (isGpBtnDown(pad2, 2) && yDown2 && (xJust2 || yJust2));
         if (isThrowChord2) {
             triggerPlayerAction(fighter2, fighter1, 'throw');
         } else {
@@ -1300,9 +1485,8 @@ function handleGamepadBattle(pad, pad2, dt) {
             if (yJust2) triggerPlayerAction(fighter2, fighter1, 'heavy');
         }
 
-        if (isGpBtnJustPressed(1, 1)) triggerPlayerAction(fighter2, fighter1, 'special');
-        if (isGpBtnJustPressed(1, 5)) triggerPlayerAction(fighter2, fighter1, 'dash');
-        if (isGpBtnJustPressed(1, 7) || isGpBtnJustPressed(1, 6)) triggerPlayerAction(fighter2, fighter1, 'super');
+        if (bJust2) triggerPlayerAction(fighter2, fighter1, 'special');
+        if (rbJust2) triggerPlayerAction(fighter2, fighter1, 'dash');
     }
 }
 
@@ -1316,12 +1500,42 @@ function pollGamepadInputs(dt = 0.016, now = performance.now()) {
     lastGamepadPollFrame = now;
 
     const pads = navigator.getGamepads();
-    const pad1 = pads && pads[0];
-    const pad2 = pads && pads[1];
+    const normList = [];
+    if (pads) {
+        for (let i = 0; i < pads.length; i++) {
+            const raw = pads[i];
+            if (raw && raw.connected !== false) {
+                const norm = normalizeSingleGamepad(raw, `slot_${i}`);
+                if (norm) normList.push(norm);
+            }
+        }
+    }
 
-    if (!pad1 && !pad2) {
+    if (normList.length === 0) {
         // Aucune manette connectée
         return;
+    }
+
+    const isPadActive = (np) => {
+        if (!np) return false;
+        if (np.buttons && np.buttons.some(b => b && b.pressed)) return true;
+        if (np.axes && np.axes.some(a => Math.abs(a || 0) > 0.20)) return true;
+        return false;
+    };
+
+    const isPvpMode = (typeof gameMode !== 'undefined' && gameMode === 'pvp');
+    let pad1 = null;
+    let pad2 = null;
+    if (!isPvpMode) {
+        pad1 = mergeNormalizedGamepads(normList);
+    } else if (normList.length <= 2) {
+        pad1 = normList[0] || null;
+        pad2 = normList[1] || null;
+    } else {
+        // When virtual gamepads (e.g. Sunshine) coexist with a physical controller, prioritize active pads
+        const activeFirst = normList.slice().sort((a, b) => (isPadActive(b) ? 1 : 0) - (isPadActive(a) ? 1 : 0));
+        pad1 = activeFirst[0] || null;
+        pad2 = activeFirst[1] || null;
     }
 
     gamepadActive = true;
@@ -1330,7 +1544,7 @@ function pollGamepadInputs(dt = 0.016, now = performance.now()) {
     if (pad1) {
         gpState.p1.prevButtons = gpState.p1.buttons.slice();
         gpState.p1.prevAxes = gpState.p1.axes ? gpState.p1.axes.slice() : [];
-        gpState.p1.buttons = pad1.buttons.map(b => b.pressed);
+        gpState.p1.buttons = pad1.buttons.map(b => !!(b && (b.pressed || (typeof b.value === 'number' && b.value >= 0.22))));
         gpState.p1.axes = pad1.axes.slice();
     }
 
@@ -1338,7 +1552,7 @@ function pollGamepadInputs(dt = 0.016, now = performance.now()) {
     if (pad2) {
         gpState.p2.prevButtons = gpState.p2.buttons.slice();
         gpState.p2.prevAxes = gpState.p2.axes ? gpState.p2.axes.slice() : [];
-        gpState.p2.buttons = pad2.buttons.map(b => b.pressed);
+        gpState.p2.buttons = pad2.buttons.map(b => !!(b && (b.pressed || (typeof b.value === 'number' && b.value >= 0.22))));
         gpState.p2.axes = pad2.axes.slice();
     }
 

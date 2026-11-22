@@ -185,8 +185,9 @@ function startNewRound() {
     if (typeof resetBattleLighting === 'function') {
         resetBattleLighting();
     }
-    fighter1.resetForRound();
-    fighter2.resetForRound();
+    const keepRage = typeof roundNumber === 'number' && roundNumber > 1;
+    fighter1.resetForRound(keepRage);
+    fighter2.resetForRound(keepRage);
     if (typeof AIMacroStatechart !== 'undefined' && AIMacroStatechart.service) {
         AIMacroStatechart.service.send({ type: 'ROUND_RESET' });
     }
@@ -1302,7 +1303,7 @@ function updateBattle3D(dt, nowSec) {
             !f.isFlying &&
             wasGroundedOnFloor
         );
-        if (isActiveGroundWalk) {
+        if (isActiveGroundWalk || f.action === 'super_startup') {
             f.x += f.vx * simDt;
         } else {
             const damp60 = f.dashTimer > 0 ? 0.94 : (wasGroundedOnFloor ? 0.82 : 0.96);

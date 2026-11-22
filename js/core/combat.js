@@ -175,7 +175,7 @@ function triggerPlayerAction(attacker, defender, type) {
         return;
     }
 
-    // PRIMAL SUPER (100% Rage — Combo-cancelable sur Hit-Confirm + Bufferisable !)
+    // PRIMAL SUPER (100% Rage — Combo-cancelable sur Hit-Confirm, Dash-cancelable + Bufferisable !)
     if (normType === 'super') {
         if (attacker.rage < 100) {
             if (attacker.isP1 || gameMode === 'pvp') {
@@ -190,14 +190,19 @@ function triggerPlayerAction(attacker, defender, type) {
         }
         if (typeof superState !== 'undefined' && superState) return;
 
-        if (inLockedState) {
-            if (typeof attacker.queueBufferedInput === 'function') attacker.queueBufferedInput('super', 0.14);
+        const inHardLockedState = (
+            attacker.hitStun > 0 ||
+            attacker.beingThrownTimer > 0 ||
+            (ctrl && (ctrl.isInKnockdownSequence() || ctrl.state === CombatState.BLOCK_DEFLECTED))
+        );
+        if (inHardLockedState) {
+            if (typeof attacker.queueBufferedInput === 'function') attacker.queueBufferedInput('super', 0.55);
             return;
         }
 
         const inActiveAttack = attacker.actionDuration > 0 && attacker.action !== 'idle' && attacker.action !== 'walk' && attacker.action !== 'crouch';
         if (inActiveAttack && !attacker.canCancelInto('super')) {
-            if (typeof attacker.queueBufferedInput === 'function') attacker.queueBufferedInput('super', 0.14);
+            if (typeof attacker.queueBufferedInput === 'function') attacker.queueBufferedInput('super', 0.55);
             return;
         }
 

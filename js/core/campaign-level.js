@@ -1983,7 +1983,7 @@ function handlePlayerStockLoss() {
         if (typeof spawnFloatingPopup === 'function') {
             spawnFloatingPopup(fighter1.x, `💀 VIE PERDUE ! RESTANTES: ${campaignPlayerStocks}`, '#ef4444');
         }
-        fighter1.resetForRound();
+        fighter1.resetForRound(true);
         fighter1.hp = fighter1.maxHp;
         fighter1.x = -5.0;
         fighter1.y = 3.0; // descendra en douceur
