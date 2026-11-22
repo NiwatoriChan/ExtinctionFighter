@@ -1,5 +1,5 @@
 /* ============================================================================
- * MENU : GRIMOIRE DES COMBATTANTS & FATALITÉS (fenêtre modale) — @pmndrs/uikit
+ * MENU : GRIMOIRE DES COMBATTANTS & SUPERS (fenêtre modale) — @pmndrs/uikit
  * ============================================================================ */
 
 const movesModalOpenSignal = UIKit.signal(false);
@@ -23,7 +23,7 @@ const movesModalRoot = new UIKit.Dialog({
                         new UIKit.Text({
                             tag: 'h3',
                             className: 'mk-title text-lg sm:text-xl font-black text-amber-400',
-                            text: 'GRIMOIRE DES COMBATTANTS & FATALITÉS'
+                            text: 'GRIMOIRE DES COMBATTANTS & SUPERS'
                         }),
                         new UIKit.Button({
                             id: 'btnCloseMoves',
@@ -40,25 +40,22 @@ const movesModalRoot = new UIKit.Dialog({
                             children: [
                                 new UIKit.Text({
                                     tag: 'h4',
-                                    className: 'font-black text-amber-400 uppercase mb-1 block',
-                                    text: 'Moteur de Combat Épuré : Commandes Directionnelles & Armures 3D'
+                                    className: 'font-black text-amber-400 uppercase mb-1.5 block',
+                                    text: 'Système de Combat Primal : Palette Complète, Parades & Supers'
                                 }),
                                 new UIKit.Container({
-                                    className: 'space-y-1.5 text-zinc-300 text-xs',
+                                    className: 'space-y-1.5 text-zinc-300 text-xs leading-relaxed',
                                     innerHTML: `
-                                        <p>
-                                            • 💥 <strong>FRAPPER [F / Manette X] (Action Unique Directionnelle) :</strong><br>
-                                            &nbsp;&nbsp;⬆️ <strong>Haut + Frappe (Zone HAUTE) :</strong> Coup de tête / morsure ascendante (perce les gardes Médiane et Basse).<br>
-                                            &nbsp;&nbsp;⏺️ <strong>Neutre ou Avant + Frappe (Zone MILIEU) :</strong> Morsure au torse / coup de mâchoire direct.<br>
-                                            &nbsp;&nbsp;⬇️ <strong>Bas + Frappe (Zone BASSE) :</strong> Balayage des chevilles / frappe au ras du sol.<br>
-                                            • ⭐ <strong>COUP SPÉCIAL UNIQUE [H / Manette Y] :</strong> La signature mortelle propre à chaque espèce.<br>
-                                            • 🛡️ <strong>PROTÉGER & ARMURE DIRECTIONNELLE [SHIFT / S / Manette B ou Arrière] :</strong><br>
-                                            &nbsp;&nbsp;Fait apparaître une <strong>Armure Ostéodermique 3D</strong> à l'endroit protégé (Crâne en Haut, Torse au Milieu, Pattes en Bas). Une garde ajustée dévie l'attaque !<br>
-                                            • 💀 <strong>SUPER ATTAQUE RAGE [R / Manette RT] :</strong> Déclenche le X-Ray anatomique en 3 phases à 100% de Rage.<br>
-                                            • 🦘 <strong>SAUTER [ESPACE / Manette A] :</strong> Action de saut dédiée, découplée de la direction Haut pour frapper en l'air ou en l'air sans sauter au sol.<br>
-                                            • 💨 <strong>DASH DROITE & GAUCHE [E / Double-tap ◀ ▶ / Manette RB] :</strong> Ruée offensive vers l'avant ou esquive de repli vers l'arrière (Droite et Gauche).<br>
-                                            • <strong>Inertie & Anti-Spam :</strong> La vitesse de course multiplie vos dégâts (1 + k · ||v||). Répéter le même coup réduit ses dégâts et sa vitesse (0.85×).
-                                        </p>
+                                        <ul class="space-y-1.5">
+                                            <li>💥 <strong>Frappe Légère [F / X] :</strong> Rapide et directionnelle — <em>Haut</em>, <em>Avant</em>, <em>Neutre</em> (enchaînement <code>F → F</code>), <em>Arrière</em>, <em>Bas</em> et <em>Aérien</em>.</li>
+                                            <li>🔨 <strong>Frappe Lourde [G / Y] :</strong> Coups lourds dévastateurs — <em>Neutre</em>, <em>Avant Bélier</em>, <em>Anti-Air Haut</em>, <em>Balayage Bas</em> (mise au sol) et <em>Piqué Aérien</em>.</li>
+                                            <li>⭐ <strong>Spécial 1 [H / B] &amp; Spécial 2 [T ou Bas+H / Bas+B] :</strong> Les deux attaques signatures uniques propres à chaque espèce.</li>
+                                            <li>🤼 <strong>Chope Inbloquable [V ou Garde+F / LB+X] :</strong> Saisie au corps-à-corps qui brise toute garde et projette l'adversaire.</li>
+                                            <li>🛡️ <strong>Garde 3-Voies &amp; Parade Parfaite [Shift / LB] :</strong> Déploie une <em>Armure Ostéodermique 3D</em> (Haute / Milieu / Basse). <strong>Parade Parfaite</strong> : bloquer au dernier instant = <strong>0 dégât</strong>, <strong>0 usure</strong>, <strong>+15% Rage</strong> et <strong>déviation</strong> !</li>
+                                            <li>🔥 <strong>Counter-Hit &amp; Combos :</strong> Interrompre un coup adverse pendant son amorce inflige <strong>+20% dégâts</strong> et un <strong>combo étendu</strong> ! Enchaînez <code>Légère → Lourde → Spécial → Super</code> sur coup confirmé.</li>
+                                            <li>⚡ <strong>PRIMAL SUPER [R / RT] (100% de Rage) :</strong> Déclenche un <strong>Super Flash</strong> cinématique, <strong>combo-cancelable</strong> sur coup confirmé, et provoque un <strong>☢ EXTINCTION FINISH !</strong> sur K.O. final !</li>
+                                            <li>🦘 <strong>Saut [ESPACE / A] &amp; Dash [E / Double-tap ◀ ▶ / RB] :</strong> Saut dédié et ruée / esquive directionnelle.</li>
+                                        </ul>
                                     `
                                 })
                             ]
@@ -112,6 +109,16 @@ function renderMovesModalList() {
                 text: 'Débloqué'
             }));
         }
+        const superSpec = (typeof getSuperSpec === 'function') ? getSuperSpec(d.id) : null;
+        const sp1Label = (d.special1Name || 'Technique Spéciale 1').replace(/\s*\(H\)\s*$/i, '');
+        const sp2Label = (d.special2Name || 'Technique Spéciale 2').replace(/\s*\(T\)\s*$/i, '');
+        const superName = (superSpec && superSpec.name)
+            ? superSpec.name
+            : (d.fatalityName || 'Primal Super').replace(/\s*\(R\)\s*$/i, '');
+        const superDesc = (superSpec && superSpec.subtitle)
+            ? superSpec.subtitle
+            : (d.fatalityDesc || 'Super attaque signature déclenchant un Extinction Finish sur K.O. final.');
+
         cardChildren.push(
             new UIKit.Container({
                 className: 'flex items-center justify-between',
@@ -127,10 +134,11 @@ function renderMovesModalList() {
             }),
             new UIKit.Container({
                 tag: 'ul',
-                className: 'mt-2 space-y-0.5 text-xs',
+                className: 'mt-2 space-y-1 text-xs',
                 innerHTML: `
-                    <li>⭐ <strong>Coup Spécial Unique [H] :</strong> <span class="text-amber-300 font-bold">${d.special1Name}</span></li>
-                    <li>💀 <strong>Fatalité 3D (${d.fatalityName}) :</strong> <span class="text-red-400">${d.fatalityDesc}</span></li>
+                    <li>⭐ <strong>Spécial 1 [H] :</strong> <span class="text-amber-300 font-bold">${sp1Label}</span></li>
+                    <li>🔥 <strong>Spécial 2 [T / Bas+H] :</strong> <span class="text-orange-300 font-bold">${sp2Label}</span></li>
+                    <li>⚡ <strong>PRIMAL SUPER [R] :</strong> <span class="text-red-400 font-black">${superName}</span> — <span class="text-zinc-300">${superDesc}</span></li>
                 `
             })
         );

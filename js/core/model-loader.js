@@ -358,6 +358,7 @@ function hydrateRigFromGLB(rig, dino, skin, gltf) {
     if (primaryMat) {
         rig.bodyMat = primaryMat;
     }
+    rig.skinMaterials = Array.from(allMats);
 
     // Apply alternate skin tint if non-default skin is selected
     const defaultSkin = dino && dino.skins && dino.skins[0];

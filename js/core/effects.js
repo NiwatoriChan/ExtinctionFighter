@@ -4,8 +4,15 @@
 // de particules actives simultanées pour garantir 60 FPS constants.
 // ============================================================================
 
-const MAX_PARTICLES_3D = 85;
+const MAX_PARTICLES_3D = 110;
 let _fxCache = null;
+
+function getMaxParticles3D() {
+    const q = (typeof graphicsQuality !== 'undefined') ? graphicsQuality : 'high';
+    if (q === 'low') return 50;
+    if (q === 'medium') return 80;
+    return 110;
+}
 
 function getFxCache() {
     if (_fxCache) return _fxCache;
@@ -16,8 +23,17 @@ function getFxCache() {
             spark: new THREE.BoxGeometry(0.14, 0.14, 0.14),
             streak: new THREE.BoxGeometry(2.1, 0.07, 0.07),
             fatigueDrop: new THREE.SphereGeometry(0.11, 6, 6),
+            dustPuff: new THREE.SphereGeometry(0.24, 7, 6),
             rock: new THREE.DodecahedronGeometry(0.20, 0),
             shockwaveRing: new THREE.TorusGeometry(0.85, 0.11, 8, 24),
+            counterRing: new THREE.TorusGeometry(0.90, 0.14, 8, 22),
+            parryHex: new THREE.RingGeometry(0.42, 1.55, 6),
+            parryStar: new THREE.TorusGeometry(1.15, 0.09, 6, 12),
+            superAuraRing: new THREE.TorusGeometry(1.40, 0.14, 8, 24),
+            superPillar: new THREE.CylinderGeometry(0.14, 0.24, 3.8, 7, 1, true),
+            superBeamCore: new THREE.CylinderGeometry(0.42, 0.56, 1.0, 10, 1, true),
+            superBeamOuter: new THREE.CylinderGeometry(0.85, 1.05, 1.0, 10, 1, true),
+            superBeamRing: new THREE.TorusGeometry(0.95, 0.11, 8, 20),
             arcLight: new THREE.TorusGeometry(1.35, 0.08, 8, 18, Math.PI * 0.78),
             arcHeavy: new THREE.TorusGeometry(1.95, 0.13, 8, 18, Math.PI * 1.25),
             arcHigh: new THREE.TorusGeometry(1.45, 0.10, 8, 18, Math.PI * 0.85),
@@ -46,6 +62,9 @@ function getFxCache() {
             fatigue: new THREE.MeshBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.72 }),
             sparkCyan: new THREE.MeshBasicMaterial({ color: 0x38bdf8 }),
             sparkGold: new THREE.MeshBasicMaterial({ color: 0xfbbf24 }),
+            sparkOrange: new THREE.MeshBasicMaterial({ color: 0xf97316 }),
+            sparkWhite: new THREE.MeshBasicMaterial({ color: 0xfefce8 }),
+            sparkParryGold: new THREE.MeshBasicMaterial({ color: 0xfef08a }),
             sparkEmerald: new THREE.MeshBasicMaterial({ color: 0x10b981 }),
             projSonic: new THREE.MeshBasicMaterial({ color: 0xf472b6 }),
             projVenom: new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x16a34a, emissiveIntensity: 0.8 }),
@@ -57,7 +76,8 @@ function getFxCache() {
 }
 
 function pushParticle3D(pt) {
-    if (particles3D.length >= MAX_PARTICLES_3D) {
+    const cap = getMaxParticles3D();
+    while (particles3D.length >= cap) {
         const oldest = particles3D.shift();
         if (oldest && oldest.mesh) {
             if (typeof fxGroup !== 'undefined' && fxGroup) fxGroup.remove(oldest.mesh);
@@ -592,6 +612,396 @@ function spawn3DProjectile(owner, kind) {
     });
 }
 
+// --- POUSSIÈRE & FUMÉE AU SOL (SAUT, ATTERRISSAGE, DASH, PAS LOURDS) ---
+function spawn3DDustPuff(x, y, scale = 1.0, count = 6) {
+    if (typeof fxGroup === 'undefined' || !fxGroup) return;
+    const cache = getFxCache();
+    const qualityMult = (typeof graphicsQuality !== 'undefined' && graphicsQuality === 'low')
+        ? 0.5
+        : ((typeof graphicsQuality !== 'undefined' && graphicsQuality === 'medium') ? 0.75 : 1.0);
+    const puffCount = Math.max(2, Math.round(count * qualityMult));
+    const baseY = (typeof y === 'number' && Number.isFinite(y)) ? y : 0;
+
+    for (let i = 0; i < puffCount; i++) {
+        const dustMat = new THREE.MeshBasicMaterial({
+            color: i % 2 === 0 ? 0xd6c7b2 : 0xa8a29e,
+            transparent: true,
+            opacity: 0.62
+        });
+        const puff = new THREE.Mesh(cache.geo.dustPuff, dustMat);
+        const ang = (i / puffCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+        const spread = (0.35 + Math.random() * 0.45) * scale;
+        puff.position.set(
+            x + Math.cos(ang) * spread,
+            baseY + 0.16 + Math.random() * 0.18,
+            Math.sin(ang) * spread * 0.75
+        );
+        const startScale = (0.55 + Math.random() * 0.45) * scale;
+        puff.scale.setScalar(startScale);
+        fxGroup.add(puff);
+
+        const totalLife = 0.34 + Math.random() * 0.18;
+        pushParticle3D({
+            mesh: puff,
+            ownsMaterial: true,
+            vx: Math.cos(ang) * (1.8 + Math.random() * 2.4) * scale,
+            vy: (0.85 + Math.random() * 1.35) * scale,
+            vz: Math.sin(ang) * (1.2 + Math.random() * 1.6) * scale,
+            life: totalLife,
+            initialLife: totalLife,
+            noGravity: true,
+            onUpdate(pt) {
+                const p = 1 - (pt.life / pt.initialLife);
+                pt.mesh.scale.setScalar(startScale * (1 + p * 1.45));
+                pt.mesh.material.opacity = Math.max(0, (1 - p) * 0.62);
+            }
+        });
+    }
+}
+
+// --- EXPLOSION COUNTER-HIT (ANNEAUX ORANGE-OR + ÉTINCELLES DIRECTIONNELLES) ---
+function spawn3DCounterBurst(x, y) {
+    if (typeof fxGroup === 'undefined' || !fxGroup) return;
+    const cache = getFxCache();
+    const baseY = (typeof y === 'number' && Number.isFinite(y)) ? y : 1.9;
+
+    const ringConfigs = [
+        { color: 0xfef08a, maxS: 2.2, life: 0.26, spin: 10 },
+        { color: 0xf97316, maxS: 3.1, life: 0.34, spin: -7 }
+    ];
+    ringConfigs.forEach((cfg, idx) => {
+        const ringMat = new THREE.MeshBasicMaterial({
+            color: cfg.color,
+            transparent: true,
+            opacity: 0.94
+        });
+        const ring = new THREE.Mesh(cache.geo.counterRing, ringMat);
+        ring.position.set(x, baseY, 0.35 + idx * 0.1);
+        fxGroup.add(ring);
+
+        pushParticle3D({
+            mesh: ring,
+            ownsMaterial: true,
+            vx: 0,
+            vy: 0,
+            vz: 0,
+            life: cfg.life,
+            initialLife: cfg.life,
+            noGravity: true,
+            onUpdate(pt, dt) {
+                const p = 1 - (pt.life / pt.initialLife);
+                pt.mesh.scale.setScalar(0.55 + p * cfg.maxS);
+                pt.mesh.rotation.z += cfg.spin * dt;
+                pt.mesh.material.opacity = Math.max(0, (1 - p) * 0.94);
+            }
+        });
+    });
+
+    const sparkCount = (typeof graphicsQuality !== 'undefined' && graphicsQuality === 'low') ? 6 : 10;
+    for (let i = 0; i < sparkCount; i++) {
+        const mat = i % 3 === 0 ? cache.mat.sparkWhite : (i % 2 === 0 ? cache.mat.sparkOrange : cache.mat.sparkGold);
+        const spark = new THREE.Mesh(cache.geo.spark, mat);
+        spark.position.set(x, baseY, (Math.random() - 0.5) * 0.6);
+        fxGroup.add(spark);
+        const ang = (i / sparkCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+        const spd = 6.5 + Math.random() * 6.5;
+        pushParticle3D({
+            mesh: spark,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd + 1.5,
+            vz: (Math.random() - 0.5) * 4.5,
+            life: 0.28 + Math.random() * 0.12
+        });
+    }
+}
+
+// --- ÉCLAT DE PARADE PARFAITE (HEXAGONE DORÉ + ANNEAU ÉTOILÉ + ÉTINCELLES) ---
+function spawn3DParryBurst(x, y) {
+    if (typeof fxGroup === 'undefined' || !fxGroup) return;
+    const cache = getFxCache();
+    const baseY = (typeof y === 'number' && Number.isFinite(y)) ? y : 2.0;
+
+    const hexMat = new THREE.MeshBasicMaterial({
+        color: 0xfef08a,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.96
+    });
+    const hex = new THREE.Mesh(cache.geo.parryHex, hexMat);
+    hex.position.set(x, baseY, 0.4);
+    fxGroup.add(hex);
+
+    const hexLife = 0.30;
+    pushParticle3D({
+        mesh: hex,
+        ownsMaterial: true,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        life: hexLife,
+        initialLife: hexLife,
+        noGravity: true,
+        onUpdate(pt, dt) {
+            const p = 1 - (pt.life / pt.initialLife);
+            pt.mesh.scale.setScalar(0.65 + p * 1.85);
+            pt.mesh.rotation.z += 9.5 * dt;
+            pt.mesh.material.opacity = Math.max(0, (1 - p) * 0.96);
+        }
+    });
+
+    const starMat = new THREE.MeshBasicMaterial({
+        color: 0xf59e0b,
+        transparent: true,
+        opacity: 0.9
+    });
+    const star = new THREE.Mesh(cache.geo.parryStar, starMat);
+    star.position.set(x, baseY, 0.28);
+    fxGroup.add(star);
+
+    const starLife = 0.34;
+    pushParticle3D({
+        mesh: star,
+        ownsMaterial: true,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        life: starLife,
+        initialLife: starLife,
+        noGravity: true,
+        onUpdate(pt, dt) {
+            const p = 1 - (pt.life / pt.initialLife);
+            pt.mesh.scale.setScalar(0.5 + p * 2.2);
+            pt.mesh.rotation.z -= 7.5 * dt;
+            pt.mesh.material.opacity = Math.max(0, (1 - p) * 0.9);
+        }
+    });
+
+    const sparkCount = (typeof graphicsQuality !== 'undefined' && graphicsQuality === 'low') ? 6 : 10;
+    for (let i = 0; i < sparkCount; i++) {
+        const spark = new THREE.Mesh(cache.geo.spark, i % 2 === 0 ? cache.mat.sparkParryGold : cache.mat.sparkWhite);
+        spark.position.set(x, baseY, (Math.random() - 0.5) * 0.45);
+        fxGroup.add(spark);
+        const ang = (i / sparkCount) * Math.PI * 2;
+        const spd = 5.5 + Math.random() * 5.0;
+        pushParticle3D({
+            mesh: spark,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd + 1.2,
+            vz: (Math.random() - 0.5) * 4.0,
+            life: 0.26 + Math.random() * 0.12
+        });
+    }
+}
+
+// --- AURA DE PRIMAL SUPER (ANNEAU ÉNERGÉTIQUE + PILIERS VERTICAUX ASCENDANTS) ---
+function spawn3DSuperAura(fighter, colorHex = 0xf59e0b) {
+    if (typeof fxGroup === 'undefined' || !fxGroup || !fighter) return;
+    const cache = getFxCache();
+    const fx = fighter.x || 0;
+    const fy = fighter.groundY !== undefined ? fighter.groundY : (fighter.y || 0);
+
+    // Anneau énergétique principal au sol
+    const outerRingMat = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity: 0.92
+    });
+    const outerRing = new THREE.Mesh(cache.geo.superAuraRing, outerRingMat);
+    outerRing.position.set(fx, fy + 0.18, 0);
+    outerRing.rotation.x = Math.PI / 2;
+    fxGroup.add(outerRing);
+
+    const ringLife = 0.48;
+    pushParticle3D({
+        mesh: outerRing,
+        ownsMaterial: true,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        life: ringLife,
+        initialLife: ringLife,
+        noGravity: true,
+        onUpdate(pt, dt) {
+            const p = 1 - (pt.life / pt.initialLife);
+            const s = 0.55 + p * 3.1;
+            pt.mesh.scale.set(s, s, 1 + p * 0.7);
+            pt.mesh.rotation.z += 5.0 * dt;
+            pt.mesh.material.opacity = Math.max(0, (1 - p) * 0.92);
+        }
+    });
+
+    // Anneau interne incandescent ascendant
+    const innerRingMat = new THREE.MeshBasicMaterial({
+        color: 0xfef08a,
+        transparent: true,
+        opacity: 0.88
+    });
+    const innerRing = new THREE.Mesh(cache.geo.superAuraRing, innerRingMat);
+    innerRing.position.set(fx, fy + 0.35, 0);
+    innerRing.rotation.x = Math.PI / 2;
+    fxGroup.add(innerRing);
+
+    const innerLife = 0.42;
+    pushParticle3D({
+        mesh: innerRing,
+        ownsMaterial: true,
+        vx: 0,
+        vy: 5.5,
+        vz: 0,
+        life: innerLife,
+        initialLife: innerLife,
+        noGravity: true,
+        onUpdate(pt) {
+            const p = 1 - (pt.life / pt.initialLife);
+            const s = 0.85 + p * 1.65;
+            pt.mesh.scale.set(s, s, 1);
+            pt.mesh.material.opacity = Math.max(0, (1 - p) * 0.88);
+        }
+    });
+
+    // Piliers verticaux d'énergie autour du combattant
+    const pillarCount = (typeof graphicsQuality !== 'undefined' && graphicsQuality === 'low') ? 4 : 6;
+    for (let i = 0; i < pillarCount; i++) {
+        const ang = (i / pillarCount) * Math.PI * 2;
+        const radius = 1.15 + (i % 2) * 0.35;
+        const pillarMat = new THREE.MeshBasicMaterial({
+            color: i % 2 === 0 ? colorHex : 0xfef08a,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.82
+        });
+        const pillar = new THREE.Mesh(cache.geo.superPillar, pillarMat);
+        pillar.position.set(
+            fx + Math.cos(ang) * radius,
+            fy + 1.45,
+            Math.sin(ang) * radius
+        );
+        fxGroup.add(pillar);
+
+        const pLife = 0.42 + (i % 2) * 0.08;
+        pushParticle3D({
+            mesh: pillar,
+            ownsMaterial: true,
+            vx: Math.cos(ang) * 0.8,
+            vy: 6.2 + Math.random() * 2.4,
+            vz: Math.sin(ang) * 0.8,
+            life: pLife,
+            initialLife: pLife,
+            noGravity: true,
+            onUpdate(pt) {
+                const p = 1 - (pt.life / pt.initialLife);
+                pt.mesh.scale.set(1 - p * 0.45, 0.7 + p * 1.1, 1 - p * 0.45);
+                pt.mesh.material.opacity = Math.max(0, (1 - p) * 0.82);
+            }
+        });
+    }
+}
+
+// --- RAYON / TORRENT PRIMAL SUPER (FAISCEAU HORIZONTAL + ANNEAUX DE CHOC) ---
+function spawn3DSuperBeam(attacker, colorHex = 0xf97316, length = 11.5) {
+    if (typeof fxGroup === 'undefined' || !fxGroup || !attacker) return;
+    const cache = getFxCache();
+    const dir = attacker.facing || 1;
+    const beamLen = Math.max(3.5, Number(length) || 11.5);
+    const originX = (attacker.x || 0) + dir * 1.4;
+    const beamY = (attacker.y || 0) + 2.0;
+    const centerX = originX + dir * (beamLen * 0.5);
+
+    // Enveloppe énergétique externe du faisceau
+    const outerMat = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.78
+    });
+    const outerBeam = new THREE.Mesh(cache.geo.superBeamOuter, outerMat);
+    outerBeam.position.set(centerX, beamY, 0);
+    outerBeam.rotation.z = -dir * (Math.PI / 2);
+    outerBeam.scale.set(1.0, beamLen, 1.0);
+    fxGroup.add(outerBeam);
+
+    const beamLife = 0.42;
+    pushParticle3D({
+        mesh: outerBeam,
+        ownsMaterial: true,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        life: beamLife,
+        initialLife: beamLife,
+        noGravity: true,
+        onUpdate(pt) {
+            const p = 1 - (pt.life / pt.initialLife);
+            const pulse = 1.0 + Math.sin(p * Math.PI * 8) * 0.18;
+            const taper = p > 0.65 ? Math.max(0.05, 1 - (p - 0.65) / 0.35) : 1.0;
+            pt.mesh.scale.set(pulse * taper, beamLen, pulse * taper);
+            pt.mesh.material.opacity = Math.max(0, taper * 0.78);
+        }
+    });
+
+    // Cœur incandescent blanc-doré
+    const coreMat = new THREE.MeshBasicMaterial({
+        color: 0xfefce8,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.94
+    });
+    const coreBeam = new THREE.Mesh(cache.geo.superBeamCore, coreMat);
+    coreBeam.position.set(centerX, beamY, 0);
+    coreBeam.rotation.z = -dir * (Math.PI / 2);
+    coreBeam.scale.set(1.0, beamLen, 1.0);
+    fxGroup.add(coreBeam);
+
+    pushParticle3D({
+        mesh: coreBeam,
+        ownsMaterial: true,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        life: beamLife * 0.92,
+        initialLife: beamLife * 0.92,
+        noGravity: true,
+        onUpdate(pt) {
+            const p = 1 - (pt.life / pt.initialLife);
+            const taper = p > 0.6 ? Math.max(0.05, 1 - (p - 0.6) / 0.4) : 1.0;
+            pt.mesh.scale.set(taper, beamLen, taper);
+            pt.mesh.material.opacity = Math.max(0, taper * 0.94);
+        }
+    });
+
+    // Anneaux de choc pulsants le long de la trajectoire du faisceau
+    const ringCount = (typeof graphicsQuality !== 'undefined' && graphicsQuality === 'low') ? 3 : 4;
+    for (let i = 0; i < ringCount; i++) {
+        const ringMat = new THREE.MeshBasicMaterial({
+            color: i % 2 === 0 ? colorHex : 0xfef08a,
+            transparent: true,
+            opacity: 0.9
+        });
+        const ring = new THREE.Mesh(cache.geo.superBeamRing, ringMat);
+        ring.position.set(originX + dir * (1.1 + i * (beamLen / ringCount) * 0.75), beamY, 0);
+        ring.rotation.y = Math.PI / 2;
+        fxGroup.add(ring);
+
+        const rLife = 0.36;
+        pushParticle3D({
+            mesh: ring,
+            ownsMaterial: true,
+            vx: dir * 13.5,
+            vy: 0,
+            vz: 0,
+            life: rLife,
+            initialLife: rLife,
+            noGravity: true,
+            onUpdate(pt, dt) {
+                const p = 1 - (pt.life / pt.initialLife);
+                pt.mesh.scale.setScalar(0.85 + p * 1.45);
+                pt.mesh.rotation.z += 9 * dt;
+                pt.mesh.material.opacity = Math.max(0, (1 - p) * 0.9);
+            }
+        });
+    }
+}
+
 function spawnBubbleGeyserFx(x, y) {
     if (!battleScene) return;
     const count = 18;
@@ -621,4 +1031,13 @@ function spawnBubbleGeyserFx(x, y) {
         requestAnimationFrame(anim);
     }
 }
-window.spawnBubbleGeyserFx = spawnBubbleGeyserFx;
+
+if (typeof window !== 'undefined') {
+    window.getMaxParticles3D = getMaxParticles3D;
+    window.spawn3DDustPuff = spawn3DDustPuff;
+    window.spawn3DCounterBurst = spawn3DCounterBurst;
+    window.spawn3DParryBurst = spawn3DParryBurst;
+    window.spawn3DSuperAura = spawn3DSuperAura;
+    window.spawn3DSuperBeam = spawn3DSuperBeam;
+    window.spawnBubbleGeyserFx = spawnBubbleGeyserFx;
+}

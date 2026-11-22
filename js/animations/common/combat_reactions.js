@@ -1,70 +1,76 @@
 // ============================================================================
-// js/animations/common/combat_reactions.js — X-Ray, Knockdown, HitStun & Guard Animations
+// js/animations/common/combat_reactions.js — Super Reactions, Knockdown, HitStun & 3D Guard Armor
 // ============================================================================
 
-function animateCombatReactions(fighter, rig, baseHipsY, act, time) {
-    // --- ANIMATION DE L'ATTAQUANT PENDANT LE X-RAY (VERROUILLÉ EN 3 PHASES) ---
-    if (fighter.isXrayAttacker && xrayCinematicTimer > 0) {
-        const phasePulse = Math.sin(time * 24);
-        if (xrayStage === 1) {
-            rig.hips.position.x = 0.55;
-            rig.torso.rotation.z = -0.32 + phasePulse * 0.12;
-            rig.headGroup.rotation.z = -0.35;
-            rig.jaw.rotation.z = -0.75;
-        } else if (xrayStage === 2) {
-            rig.hips.position.x = 0.78;
-            rig.torso.rotation.y = phasePulse * 0.45;
-            rig.torso.rotation.z = 0.22;
-        } else {
-            rig.hips.position.x = 0.92;
-            rig.hips.position.y = baseHipsY + 0.35;
-            rig.torso.rotation.z = 0.45;
-            rig.headGroup.rotation.z = 0.55;
-            rig.jaw.rotation.z = -0.85;
-        }
-        return true;
+function animateCombatReactions(fighter, rig, baseHipsY, act, time, dt) {
+    const safeDt = Math.min(0.05, Math.max(0.001, dt || 0.016));
+
+    if (rig.skeletonGroup) {
+        rig.skeletonGroup.visible = false;
     }
 
-    // --- ANIMATION ANATOMIQUE DU SQUELETTE X-RAY 2.0 EN 3 PHASES (CIBLE VERROUILLÉE) ---
-    if (fighter.isXrayTarget) {
-        rig.skeletonGroup.visible = true;
-        rig.skinMeshes.forEach(m => {
-            m.material.transparent = true;
-            m.material.opacity = 0.14;
-        });
+    // Lissage permanent du flash émissif de l'armure ostéodermique vers 0.85 après une déviation
+    if (rig.armorRig && rig.armorRig.mat && typeof rig.armorRig.mat.emissiveIntensity === 'number') {
+        const curEmissive = rig.armorRig.mat.emissiveIntensity;
+        if (Math.abs(curEmissive - 0.85) > 0.005) {
+            rig.armorRig.mat.emissiveIntensity = curEmissive + (0.85 - curEmissive) * (1 - Math.exp(-9.5 * safeDt));
+        }
+    }
 
-        const xp = rig.xrayParts;
-        if (xp) {
-            xp.heart.scale.setScalar(1 + Math.sin(time * 28) * 0.28);
-            xp.skullMat.color.setHex(xrayStage === 1 ? 0xef4444 : 0xf0f9ff);
-            xp.ribMat.color.setHex(xrayStage === 2 ? 0xef4444 : 0xe0f2fe);
-            xp.spineMat.color.setHex(xrayStage === 3 ? 0xef4444 : 0xe0f2fe);
-
-            if (xrayStage === 1) {
-                xp.skullGroup.rotation.z = Math.sin(time * 55) * 0.28;
-                xp.jawBone.rotation.z = -0.45 + Math.sin(time * 40) * 0.2;
-                rig.headGroup.rotation.z = 0.45;
-            } else if (xrayStage === 2) {
-                xp.ribCageGroup.scale.set(0.82 + Math.sin(time * 50) * 0.15, 0.85, 1.2);
-                rig.torso.rotation.z = -0.25;
-            } else if (xrayStage === 3) {
-                xp.spineGroup.rotation.z = Math.sin(time * 60) * 0.35;
-                rig.hips.position.y = baseHipsY + 0.55;
-                rig.hips.rotation.z = 0.38;
+    // --- RÉACTION DE LA CIBLE PENDANT UN PRIMAL SUPER CINÉMATIQUE (3 BEATS) ---
+    if (fighter.isSuperTarget && typeof superState !== 'undefined' && superState && superState.phase === 'cinematic') {
+        const beat = superState.beat || 1;
+        const vib = Math.sin(time * 58) * 0.14;
+        if (beat <= 1) {
+            // Beat 1 : Impact crânien / projection violente de la tête en arrière
+            rig.hips.position.x = -0.35 + vib * 0.35;
+            rig.hips.position.y = baseHipsY + 0.08;
+            rig.hips.rotation.z = 0.18;
+            rig.torso.rotation.z = 0.38 + vib;
+            rig.neck.rotation.z = 0.48;
+            rig.headGroup.rotation.z = 0.82 + vib * 1.3;
+            rig.headGroup.rotation.y = Math.sin(time * 42) * 0.35;
+            rig.jaw.rotation.z = -0.88;
+        } else if (beat === 2) {
+            // Beat 2 : Écrasement thoracique / torsion viscérale du buste
+            rig.hips.position.x = -0.50 + vib * 0.45;
+            rig.hips.position.y = baseHipsY * 0.78;
+            rig.hips.rotation.z = -0.22;
+            rig.torso.rotation.z = -0.52 + vib;
+            rig.torso.rotation.y = Math.sin(time * 48) * 0.42;
+            rig.neck.rotation.z = -0.36;
+            rig.headGroup.rotation.z = -0.45;
+            rig.jaw.rotation.z = -0.76;
+            if (rig.legs) {
+                if (rig.legs[0]) rig.legs[0].rotation.z = 0.58;
+                if (rig.legs[1]) rig.legs[1].rotation.z = -0.52;
+            }
+        } else {
+            // Beat 3 : Projection ascendante finale (launch recoil)
+            rig.hips.position.x = -0.68;
+            rig.hips.position.y = baseHipsY + 0.62;
+            rig.hips.rotation.z = 0.46;
+            rig.torso.rotation.z = 0.56 + vib;
+            rig.neck.rotation.z = 0.48;
+            rig.headGroup.rotation.z = 0.68;
+            rig.jaw.rotation.z = -0.95;
+            if (rig.legs) {
+                if (rig.legs[0]) rig.legs[0].rotation.z = -0.62;
+                if (rig.legs[1]) rig.legs[1].rotation.z = 0.52;
             }
         }
-        return true;
-    } else {
-        rig.skeletonGroup.visible = false;
-        if (rig.xrayParts) {
-            rig.xrayParts.ribCageGroup.scale.set(1, 1, 1);
-            rig.xrayParts.skullGroup.rotation.set(0, 0, 0);
-            rig.xrayParts.spineGroup.rotation.set(0, 0, 0);
+        if (rig.arms) {
+            if (rig.arms[0]) rig.arms[0].rotation.z = -0.92 + vib;
+            if (rig.arms[1]) rig.arms[1].rotation.z = 0.92 - vib;
         }
-        rig.skinMeshes.forEach(m => {
-            m.material.transparent = false;
-            m.material.opacity = 1.0;
-        });
+        if (rig.tailSegments) {
+            rig.tailSegments.forEach((s, i) => {
+                if (!s) return;
+                s.rotation.z = beat >= 3 ? -0.45 : 0.30;
+                s.rotation.y = Math.sin(time * 38 + i * 0.5) * 0.30;
+            });
+        }
+        return true;
     }
 
     // État mort / aplati / décapité
@@ -80,6 +86,26 @@ function animateCombatReactions(fighter, rig, baseHipsY, act, time) {
 
     if (fighter.isDead) {
         const currentScale = fighter.scale !== undefined ? fighter.scale : ((fighter.dino && fighter.dino.scale) || 1.0);
+        const airHeight = (fighter.y || 0) - (fighter.groundY || 0);
+        if (airHeight > 0.35) {
+            // Projection aérienne dramatique pendant le Slow-Mo K.O. / Extinction Finish
+            const tumble = Math.min(1.0, airHeight * 0.45);
+            rig.hips.position.y = baseHipsY;
+            rig.hips.rotation.z = 0.48 + tumble * 0.35;
+            rig.torso.rotation.z = 0.38;
+            rig.neck.rotation.z = 0.32;
+            rig.headGroup.rotation.z = 0.52;
+            rig.jaw.rotation.z = -0.82;
+            if (rig.legs) {
+                if (rig.legs[0]) rig.legs[0].rotation.z = -0.58;
+                if (rig.legs[1]) rig.legs[1].rotation.z = 0.48;
+            }
+            if (rig.arms) {
+                if (rig.arms[0]) rig.arms[0].rotation.z = -0.85;
+                if (rig.arms[1]) rig.arms[1].rotation.z = 0.78;
+            }
+            return true;
+        }
         const groundY = Math.max(0.62 * currentScale, baseHipsY * 0.38);
         const rollDir = fighter.facing === 1 ? -1 : 1;
         rig.hips.position.y = groundY;
@@ -317,18 +343,53 @@ function animateCombatReactions(fighter, rig, baseHipsY, act, time) {
 
     // --- POSTURES DE GARDE DIRECTIONNELLES 3-VOIES (GUARD_HIGH / GUARD_MID / GUARD_LOW) ---
     if (fighter.isBlocking) {
-        rig.shieldMesh.visible = true;
-        const bType = fighter.blockType || 'mid';
+        const rawType = fighter.blockType || 'mid';
+        const bType = (rawType === 'low' || act === 'crouch') ? 'low' : (rawType === 'high' ? 'high' : 'mid');
+        const guardStamina = (fighter.guardStamina !== undefined && fighter.guardStamina !== null) ? fighter.guardStamina : 100;
+        const isLowGuard = guardStamina < 30;
+        const lowPulse = Math.sin(time * 24);
+        const zoneColor = isLowGuard
+            ? (lowPulse > 0 ? 0xef4444 : 0xb91c1c)
+            : (bType === 'high' ? 0x38bdf8 : (bType === 'low' ? 0x10b981 : 0xf59e0b));
+        const runeColor = isLowGuard
+            ? 0xfca5a5
+            : (bType === 'high' ? 0xbae6fd : (bType === 'low' ? 0xa7f3d0 : 0xfef08a));
+
+        // Restauration de l'Armure Ostéodermique 3D par zone défendue
+        if (rig.armorRig) {
+            if (rig.armorRig.high) rig.armorRig.high.visible = (bType === 'high');
+            if (rig.armorRig.mid) rig.armorRig.mid.visible = (bType === 'mid');
+            if (rig.armorRig.low) rig.armorRig.low.visible = (bType === 'low');
+
+            if (rig.armorRig.mat) {
+                if (rig.armorRig.mat.color) rig.armorRig.mat.color.setHex(zoneColor);
+                if (rig.armorRig.mat.emissive) rig.armorRig.mat.emissive.setHex(zoneColor);
+                if (isLowGuard) {
+                    const targetCrit = 1.15 + Math.abs(lowPulse) * 0.55;
+                    const curI = typeof rig.armorRig.mat.emissiveIntensity === 'number' ? rig.armorRig.mat.emissiveIntensity : 0.85;
+                    rig.armorRig.mat.emissiveIntensity = Math.max(curI, targetCrit);
+                }
+            }
+            if (rig.armorRig.runeMat && rig.armorRig.runeMat.color) {
+                rig.armorRig.runeMat.color.setHex(runeColor);
+            }
+        }
+
+        if (rig.shieldMesh) {
+            rig.shieldMesh.visible = true;
+        }
         const shieldPulse = 1 + Math.sin(time * 18) * 0.05;
         if (typeof fighter.playGuard === 'function' && act !== 'walk') {
             fighter.playGuard(bType, 0.08);
         }
 
-        if (bType === 'low' || act === 'crouch') {
+        if (bType === 'low') {
             // Garde Basse (Guard_Low) : Accroupi au ras du sol, bouclier émeraude élargi protégeant les pattes
-            rig.shieldMesh.position.set(0.65, 1.05, 0);
-            rig.shieldMesh.scale.set(1.15 * shieldPulse, 0.62 * shieldPulse, 1.15 * shieldPulse);
-            rig.shieldMesh.material.color.setHex(0x10b981); // Émeraude pour Garde Basse
+            if (rig.shieldMesh) {
+                rig.shieldMesh.position.set(0.65, 1.05, 0);
+                rig.shieldMesh.scale.set(1.15 * shieldPulse, 0.62 * shieldPulse, 1.15 * shieldPulse);
+                if (rig.shieldMesh.material && rig.shieldMesh.material.color) rig.shieldMesh.material.color.setHex(zoneColor);
+            }
             rig.hips.position.y = baseHipsY * 0.54;
             rig.hips.position.x = -0.15;
             rig.torso.rotation.z = -0.38;
@@ -346,10 +407,12 @@ function animateCombatReactions(fighter, rig, baseHipsY, act, time) {
             return true;
         } else if (bType === 'high') {
             // Garde Haute (Guard_High) : Buste cabré vers le haut, dôme cyan protégeant le crâne et les airs
-            rig.shieldMesh.position.set(0.70, 2.75, 0);
-            rig.shieldMesh.scale.set(1.05 * shieldPulse, 0.92 * shieldPulse, 1.05 * shieldPulse);
-            rig.shieldMesh.rotation.z = 0.35;
-            rig.shieldMesh.material.color.setHex(0x38bdf8); // Cyan pour Garde Haute
+            if (rig.shieldMesh) {
+                rig.shieldMesh.position.set(0.70, 2.75, 0);
+                rig.shieldMesh.scale.set(1.05 * shieldPulse, 0.92 * shieldPulse, 1.05 * shieldPulse);
+                rig.shieldMesh.rotation.z = 0.35;
+                if (rig.shieldMesh.material && rig.shieldMesh.material.color) rig.shieldMesh.material.color.setHex(zoneColor);
+            }
             rig.hips.position.x = -0.22;
             rig.hips.position.y = baseHipsY * (act === 'walk' ? 1.0 : 1.08);
             rig.torso.rotation.z = 0.28;
@@ -369,9 +432,11 @@ function animateCombatReactions(fighter, rig, baseHipsY, act, time) {
             }
         } else {
             // Garde Médiane (Guard_Mid) : Ancrage défensif central, rempart doré vertical devant le torse
-            rig.shieldMesh.position.set(0.65, 1.95, 0);
-            rig.shieldMesh.scale.set(0.92 * shieldPulse, 1.05 * shieldPulse, 1.05 * shieldPulse);
-            rig.shieldMesh.material.color.setHex(0xf59e0b); // Or pour Garde Médiane
+            if (rig.shieldMesh) {
+                rig.shieldMesh.position.set(0.65, 1.95, 0);
+                rig.shieldMesh.scale.set(0.92 * shieldPulse, 1.05 * shieldPulse, 1.05 * shieldPulse);
+                if (rig.shieldMesh.material && rig.shieldMesh.material.color) rig.shieldMesh.material.color.setHex(zoneColor);
+            }
             rig.hips.position.x = -0.28;
             rig.hips.position.y = baseHipsY * (act === 'walk' ? 1.0 : 0.92);
             rig.torso.rotation.z = -0.25;

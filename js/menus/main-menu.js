@@ -142,7 +142,7 @@ const mainMenuRoot = new UIKit.Fullscreen({
                         new UIKit.Text({
                             tag: 'span',
                             className: 'text-stone-400 font-chakra text-xs font-bold tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]',
-                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.5'
+                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.4.0'
                         })
                     ]
                 })

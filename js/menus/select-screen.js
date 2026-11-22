@@ -644,7 +644,7 @@ const selectScreenRoot = new UIKit.Fullscreen({
                         }),
                         new UIKit.Badge({
                             className: 'px-2 py-0.5 rounded bg-stone-900 border border-amber-600/60 text-amber-300 font-black text-[10px] tracking-wider',
-                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.5'
+                            text: typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.4.0'
                         })
                     ]
                 }),

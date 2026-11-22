@@ -61,12 +61,32 @@ global.sfx = {
 const vm = require('vm');
 global.window = global;
 
-// Load registry.js, all js/arenas/*.js files, all js/campaign/*.js level files, and campaign-level.js
+// Load registry.js, all js/arenas/*.js files, all js/minions/*.js files, all js/campaign/*.js level files, and campaign-level.js
 vm.runInThisContext(fs.readFileSync(path.join(__dirname, '../js/core/registry.js'), 'utf8'));
 const arenasDir = path.join(__dirname, '../js/arenas');
 fs.readdirSync(arenasDir).filter(f => f.endsWith('.js')).sort().forEach(file => {
     vm.runInThisContext(fs.readFileSync(path.join(arenasDir, file), 'utf8'));
 });
+const minionsDir = path.join(__dirname, '../js/minions');
+const minionFiles = fs.readdirSync(minionsDir).filter(f => f.endsWith('.js')).sort();
+minionFiles.forEach(file => {
+    vm.runInThisContext(fs.readFileSync(path.join(minionsDir, file), 'utf8'));
+});
+if (minionFiles.length !== 19 || !CAMPAIGN_MINION_LIST || CAMPAIGN_MINION_LIST.length !== 19) {
+    throw new Error(`Expected 19 separated campaign minion files and 19 registered minions, got files=${minionFiles.length}, registered=${CAMPAIGN_MINION_LIST ? CAMPAIGN_MINION_LIST.length : 0}`);
+}
+console.log(`[PASS] Verified 19 separated campaign minion files in js/minions/ registered in CAMPAIGN_MINIONS.`);
+const fightersDir = path.join(__dirname, '../js/fighters');
+const fighterFiles = fs.readdirSync(fightersDir).filter(f => f.endsWith('.js')).sort();
+if (fighterFiles.length !== 21 || fighterFiles.includes('paleozoic-titans.js')) {
+    throw new Error(`Expected 21 individual fighter files in js/fighters/ (with paleozoic fighters separated), got ${fighterFiles.length}: ${fighterFiles.join(', ')}`);
+}
+['cameroceras.js', 'jaekelopterus.js', 'dunkleosteus.js', 'dimetrodon.js'].forEach(reqFile => {
+    if (!fighterFiles.includes(reqFile)) {
+        throw new Error(`Missing separated Paleozoic fighter file: js/fighters/${reqFile}`);
+    }
+});
+console.log(`[PASS] Verified 21 individual fighter files in js/fighters/ (including separated cameroceras, jaekelopterus, dunkleosteus, dimetrodon).`);
 const campaignDir = path.join(__dirname, '../js/campaign');
 fs.readdirSync(campaignDir).filter(f => f.endsWith('.js')).sort().forEach(file => {
     vm.runInThisContext(fs.readFileSync(path.join(campaignDir, file), 'utf8'));

@@ -1,5 +1,5 @@
 // 3. ÉTAT GLOBAL DE L'APPLICATION
-var GAME_VERSION = 'v0.3.5';
+var GAME_VERSION = 'v0.4.0';
 var gameMode = 'cpu'; // 'campaign', 'cpu', 'pvp', 'practice'
 var aiDifficulty = 'normal';
 var currentArena = 'volcano';
@@ -35,13 +35,15 @@ var roundTimerAccum = 0;
 var roundIntroAnnounced = false;
 var projectiles3D = [];
 var particles3D = [];
-var xrayCinematicTimer = 0;
-var xrayElapsed = 0;
-var xrayPhaseApplied = 0;
-var xrayContext = null;
-var xrayStage = 0;
-var xrayLockPositions = null;
-var fatalityFocusFighter = null;
+// Real Super Attack & Dramatic Finish state
+var superState = null; // null | { phase, timer, elapsed, beatApplied, beat, attacker, defender, spec, lockPositions, hasConnected, aoeTicks, isExtinctionFinish }
+var battleTimeScale = 1.0;
+var koSlowMoTimer = 0;
+var koPendingData = null; // { winner, loser, isExtinctionFinish }
 var stateTimer = 0;
 var hitstopTimer = 0;
+var hitstopTarget = null;
 var screenShake = 0;
+var camRecoilX = 0;
+var camRecoilY = 0;
+var camFovKick = 0;

@@ -9,7 +9,7 @@ const postMatchNextHiddenSignal = UIKit.signal(false);
 
 const postMatchMenuNode = new UIKit.Container({
     id: 'postMatchMenu',
-    className: 'hidden absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex flex-wrap items-center justify-center gap-3 pointer-events-auto',
+    className: 'hidden absolute bottom-5 left-1/2 -translate-x-1/2 z-40 flex flex-wrap items-center justify-center gap-3 pointer-events-auto',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -40,9 +40,15 @@ const postMatchMenuNode = new UIKit.Container({
 });
 
 function mountPostMatchMenu() {
-    const anchor = document.getElementById('fatalityPromptBox');
-    if (anchor && !document.getElementById('postMatchMenu')) {
-        postMatchMenuNode.mount(anchor, 'afterend');
+    if (document.getElementById('postMatchMenu')) return;
+    const superOverlay = document.getElementById('superFlashOverlay');
+    if (superOverlay && superOverlay.parentNode) {
+        postMatchMenuNode.mount(superOverlay, 'afterend');
+        return;
+    }
+    const canvasWrapper = document.querySelector('#battleScreen > div') || document.getElementById('battleScreen');
+    if (canvasWrapper) {
+        postMatchMenuNode.mount(canvasWrapper, 'beforeend');
     }
 }
 
@@ -89,34 +95,43 @@ window.updatePostMatchMenuUI = updatePostMatchMenuUI;
 function initPostMatchMenu() {
     mountPostMatchMenu();
 
-    document.getElementById('btnReturnRoster').addEventListener('click', returnToSelect);
+    const btnReturnRoster = document.getElementById('btnReturnRoster');
+    if (btnReturnRoster) {
+        btnReturnRoster.addEventListener('click', returnToSelect);
+    }
 
     const btnMainMenu = document.getElementById('btnPostMatchMainMenu');
     if (btnMainMenu) {
         btnMainMenu.addEventListener('click', goToMainMenu);
     }
 
-    document.getElementById('btnRematch').addEventListener('click', startMatch);
+    const btnRematch = document.getElementById('btnRematch');
+    if (btnRematch) {
+        btnRematch.addEventListener('click', startMatch);
+    }
 
-    document.getElementById('btnNextOpponent').addEventListener('click', () => {
-        if (gameMode === 'campaign') {
-            if (campaignStage < 6) {
-                campaignStage++;
-                startMatch();
-            } else if (typeof openCampaignMap === 'function') {
-                if (typeof teardownActiveBattle === 'function') teardownActiveBattle();
-                openCampaignMap();
+    const btnNextOpponent = document.getElementById('btnNextOpponent');
+    if (btnNextOpponent) {
+        btnNextOpponent.addEventListener('click', () => {
+            if (gameMode === 'campaign') {
+                if (campaignStage < 6) {
+                    campaignStage++;
+                    startMatch();
+                } else if (typeof openCampaignMap === 'function') {
+                    if (typeof teardownActiveBattle === 'function') teardownActiveBattle();
+                    openCampaignMap();
+                } else {
+                    returnToSelect();
+                }
             } else {
-                returnToSelect();
+                const unlocked = DINO_ROSTER.map((d, i) => (!d.isUnlockable || isFighterUnlocked(d.id)) ? i : -1).filter(i => i !== -1);
+                let nextIdx = (p2ChoiceIndex + 1) % DINO_ROSTER.length;
+                while (!unlocked.includes(nextIdx) || nextIdx === p1ChoiceIndex) {
+                    nextIdx = (nextIdx + 1) % DINO_ROSTER.length;
+                }
+                p2ChoiceIndex = nextIdx;
+                startMatch();
             }
-        } else {
-            const unlocked = DINO_ROSTER.map((d, i) => (!d.isUnlockable || isFighterUnlocked(d.id)) ? i : -1).filter(i => i !== -1);
-            let nextIdx = (p2ChoiceIndex + 1) % DINO_ROSTER.length;
-            while (!unlocked.includes(nextIdx) || nextIdx === p1ChoiceIndex) {
-                nextIdx = (nextIdx + 1) % DINO_ROSTER.length;
-            }
-            p2ChoiceIndex = nextIdx;
-            startMatch();
-        }
-    });
+        });
+    }
 }

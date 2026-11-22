@@ -1,7 +1,7 @@
 /* ============================================================================
  * js/core/ai-statechart.js — XState Deterministic AI Statecharts
  * Formalizes NPC Macro-Combat States (PATROL_STALK -> ALERT_FOOTSIES ->
- * ENGAGE_PRESSURE -> DEFENSIVE_TURTLE -> EVADE_RECOVER -> FINISH_HIM_EXEC)
+ * ENGAGE_PRESSURE -> DEFENSIVE_TURTLE -> EVADE_RECOVER -> SUPER_PRESSURE)
  * and synchronizes with DinosaurCombatController states.
  * ============================================================================ */
 
@@ -25,7 +25,7 @@ const AIMacroStatechart = {
                 isCornered: false
             },
             on: {
-                OPPONENT_DIZZY: 'FINISH_HIM_EXEC',
+                SUPER_READY: 'SUPER_PRESSURE',
                 EMERGENCY_EVADE: 'EVADE_RECOVER',
                 INCOMING_THREAT: 'DEFENSIVE_TURTLE'
             },
@@ -63,10 +63,13 @@ const AIMacroStatechart = {
                         TARGET_FAR: 'PATROL_STALK'
                     }
                 },
-                FINISH_HIM_EXEC: {
+                SUPER_PRESSURE: {
                     on: {
+                        SUPER_SPENT: 'ALERT_FOOTSIES',
                         ROUND_RESET: 'PATROL_STALK',
-                        ENTER_FOOTSIES: 'ALERT_FOOTSIES'
+                        ENTER_FOOTSIES: 'ALERT_FOOTSIES',
+                        ENTER_CLOSE_RANGE: 'ENGAGE_PRESSURE',
+                        TARGET_FAR: 'PATROL_STALK'
                     }
                 }
             }
@@ -85,11 +88,6 @@ const AIMacroStatechart = {
         this.init();
         if (!this.service || !bb) return this.currentState;
 
-        if (bb.targetIsDizzy || (typeof matchState !== 'undefined' && matchState === 'finish_him')) {
-            this.service.send({ type: 'OPPONENT_DIZZY' });
-            return this.currentState;
-        }
-
         if (bb.unblockableThreat || bb.projectileThreat || (bb.targetIsAttacking && bb.dist <= bb.enemyReach + 0.85)) {
             if (bb.guardStamina < 22) {
                 this.service.send({ type: 'EMERGENCY_EVADE' });
@@ -97,6 +95,19 @@ const AIMacroStatechart = {
                 this.service.send({ type: 'INCOMING_THREAT' });
             }
             return this.currentState;
+        }
+
+        const aiRage = (bb.ai && typeof bb.ai.rage === 'number')
+            ? bb.ai.rage
+            : (typeof bb.rage === 'number' ? bb.rage : 0);
+        const noActiveSuper = (typeof superState === 'undefined' || !superState);
+        if (aiRage >= 100 && !bb.isBoss && noActiveSuper) {
+            this.service.send({ type: 'SUPER_READY' });
+            return this.currentState;
+        }
+
+        if (this.currentState === 'SUPER_PRESSURE' && (aiRage < 100 || !noActiveSuper)) {
+            this.service.send({ type: 'SUPER_SPENT' });
         }
 
         if (bb.guardStamina < 25 || (bb.isCornered && bb.hpRatio < 0.35 && bb.dist < 2.6)) {

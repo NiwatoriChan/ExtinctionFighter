@@ -175,8 +175,11 @@ window.applyDamageToPlayer = applyDamageToPlayer;
 // 4. CLASSE MINION 3D : ADVERSAIRE DE STYLE SMASH MELEE & ARCHÉTYPES
 class EraMinion3D {
     constructor(def, spawnX, arenaGroundY = 0) {
-        this.def = def;
-        this.archetype = def.archetype || 'brawler';
+        const resolvedDef = (typeof getCampaignMinionDef === 'function' && def && def.enemyType)
+            ? getCampaignMinionDef(def.enemyType, def)
+            : (def || {});
+        this.def = resolvedDef;
+        this.archetype = resolvedDef.archetype || 'brawler';
         this.x = spawnX;
         this.groundY = arenaGroundY;
         this.floatHeight = this.archetype === 'aerial' ? (2.1 + Math.random() * 0.7) : 0;
@@ -184,10 +187,11 @@ class EraMinion3D {
         this.vx = 0;
         this.vy = 0;
         this.facing = -1;
-        this.hp = def.hp;
-        this.maxHp = def.hp;
-        this.scale = def.scale || 0.6;
-        this.speed = def.speed || 6.0;
+        this.hp = resolvedDef.hp || 200;
+        this.maxHp = this.hp;
+        this.scale = resolvedDef.scale || 0.6;
+        this.speed = resolvedDef.speed || 6.0;
+        this.radius = resolvedDef.radius || 0.75;
         this.action = 'idle';
         this.actionTimer = 0;
         this.hitStun = 0;
@@ -243,7 +247,7 @@ class EraMinion3D {
         let finalDmg = damage;
         if (this.archetype === 'armored' && typeof fighter1 !== 'undefined' && fighter1) {
             const hitFromFront = ((fighter1.x - this.x) * this.facing) > 0;
-            const isSpecialOrAir = (attackAction && (attackAction.includes('special') || attackAction === 'anti_air')) || (fighter1.y - this.y > 0.8);
+            const isSpecialOrAir = (attackAction && (attackAction.includes('special') || attackAction === 'anti_air' || attackAction === 'throw' || attackAction.startsWith('super'))) || (fighter1.y - this.y > 0.8);
             if (hitFromFront && !isSpecialOrAir) {
                 finalDmg = Math.max(15, Math.round(damage * 0.55));
                 knockbackX *= 0.45;
@@ -1405,7 +1409,7 @@ function updateCampaignSmashHUD() {
         const rageVal = Math.max(0, Math.min(100, fighter1.rage || 0));
         if (rageBar) rageBar.style.width = `${rageVal.toFixed(1)}%`;
         if (rageBadge) {
-            rageBadge.textContent = rageVal >= 100 ? '💀 X-RAY PRÊT !' : `RAGE ${Math.floor(rageVal)}%`;
+            rageBadge.textContent = rageVal >= 100 ? '⚡ SUPER PRÊT !' : `RAGE ${Math.floor(rageVal)}%`;
             rageBadge.className = rageVal >= 100
                 ? 'font-chakra font-black text-[9px] text-amber-300 uppercase animate-pulse'
                 : 'font-chakra font-black text-[9px] text-cyan-300 uppercase';
@@ -1690,6 +1694,7 @@ function updateCampaignBossPhase2Behavior(boss, era, dt) {
 // 8. BOUCLE DE MISE À JOUR DU NIVEAU CAMPAGNE (APPELÉE DANS MATCH.JS)
 function updateCampaignLevelEngine(dt, nowSec) {
     if (matchState !== 'campaign_level') return;
+    if (typeof superState !== 'undefined' && superState && superState.phase === 'flash') return;
 
     // Décompte de la bannière d'annonce de vague
     if (campaignWaveBannerTimer > 0) {
@@ -1832,11 +1837,17 @@ function updateCampaignLevelEngine(dt, nowSec) {
 function checkPlayerAttacksAgainstMinions() {
     if (!fighter1 || fighter1.isDead || fighter1.actionDuration <= 0) return;
     const a = fighter1.action;
-    const isAttacking = a.includes('light') || a.includes('heavy') || a.includes('special') || a === 'anti_air' || a === 'dash_attack' || a.startsWith('attack_') || a === 'strike';
-    if (!isAttacking || fighter1.hasHitCurrentAttack) return;
+    if (!a || a === 'throw_whiff' || a === 'super_whiff') return;
+    const isSuperStartup = a === 'super_startup';
+    const isHeavyMove = a === 'heavy' || a === 'fwd_heavy' || a === 'low_heavy' || a === 'air_heavy' || a === 'anti_air' || a.includes('heavy');
+    const isThrowMove = a === 'throw';
+    const isSpecialMove = a === 'special' || a === 'special2' || a.includes('special');
+    const isAttacking = a.includes('light') || isHeavyMove || isSpecialMove || isThrowMove || isSuperStartup || a === 'dash_attack' || a.startsWith('attack_') || a === 'strike';
+    if (!isAttacking) return;
+    if (!isSuperStartup && fighter1.hasHitCurrentAttack) return;
 
     const progress = fighter1.actionTimer / Math.max(0.01, fighter1.actionDuration);
-    if (progress < 0.12) return;
+    if (progress < 0.12 || progress > 0.88) return;
 
     // Déclencher aussi les effets spéciaux propres au combattant (projectiles, dash, séisme) contre les vagues de minions
     const impl = typeof FIGHTER_IMPLS !== 'undefined' ? FIGHTER_IMPLS[fighter1.dino.id] : null;
@@ -1862,17 +1873,44 @@ function checkPlayerAttacksAgainstMinions() {
     let knockX = fighter1.facing * 6.5;
     let knockY = 4.5;
     let range = ((impl && impl.attackReach) || 3.2);
+    let hitstopVal = 0.045;
+    let rageGain = 7;
+    let scoreMult = 2;
 
-    if (a.includes('heavy') || a === 'anti_air') {
-        dmg = Math.max(165, Math.round(basePow * 1.25));
-        knockX = fighter1.facing * 10.5;
-        knockY = 6.5;
-        range += 0.55;
-    } else if (a.includes('special')) {
+    if (isSuperStartup) {
+        const spec = typeof getSuperSpec === 'function' ? getSuperSpec(fighter1.dino && fighter1.dino.id) : null;
+        dmg = Math.max(320, Math.round(basePow * ((spec && spec.baseDmgMult) || 2.50) * 0.95));
+        knockX = fighter1.facing * 16.0;
+        knockY = 10.0;
+        range = Math.max(range + 1.8, ((spec && spec.reach) || 4.4) + 1.4);
+        hitstopVal = 0.085;
+        rageGain = 0;
+        scoreMult = 4;
+    } else if (isSpecialMove) {
         dmg = Math.max(220, Math.round(basePow * 1.60));
         knockX = fighter1.facing * 13.5;
         knockY = 8.5;
         range += 0.95;
+        hitstopVal = 0.085;
+        rageGain = 12;
+        scoreMult = 3;
+    } else if (isThrowMove) {
+        dmg = Math.max(150, Math.round(basePow * 1.18));
+        knockX = fighter1.facing * 13.0;
+        knockY = 7.5;
+        range = Math.max(range, 3.4);
+        hitstopVal = 0.085;
+        rageGain = 10;
+        scoreMult = 2.5;
+    } else if (isHeavyMove) {
+        const mult = a === 'fwd_heavy' ? 1.38 : (a === 'air_heavy' ? 1.32 : (a === 'low_heavy' ? 1.28 : 1.25));
+        dmg = Math.max(165, Math.round(basePow * mult));
+        knockX = fighter1.facing * (a === 'fwd_heavy' ? 12.5 : 10.5);
+        knockY = a === 'anti_air' ? 9.5 : (a === 'low_heavy' ? 5.2 : 6.8);
+        range += (a === 'fwd_heavy' ? 0.85 : 0.60);
+        hitstopVal = 0.085;
+        rageGain = 11;
+        scoreMult = 2.5;
     }
 
     // Bonus Rayon Solaire du Permien
@@ -1880,29 +1918,57 @@ function checkPlayerAttacksAgainstMinions() {
         dmg = Math.round(dmg * 1.35);
     }
 
-    let hitAny = false;
+    // Tracking des minions déjà touchés lors d'une ruée super_startup (évite le double-hit)
+    let superHitSet = null;
+    if (isSuperStartup) {
+        if (typeof superState !== 'undefined' && superState && superState.phase === 'startup') {
+            if (!superState._hitMinions) superState._hitMinions = new Set();
+            superHitSet = superState._hitMinions;
+        } else {
+            if (!fighter1._superHitMinions || fighter1.actionTimer < 0.05) {
+                fighter1._superHitMinions = new Set();
+            }
+            superHitSet = fighter1._superHitMinions;
+        }
+    }
+
+    let hitCount = 0;
     campaignActiveMinions.forEach(minion => {
         if (!minion || minion.isDead) return;
+        if (superHitSet && superHitSet.has(minion)) return;
         const dx = minion.x - fighter1.x;
         const dist = Math.abs(dx);
         const effRange = range + (minion.radius || 0.75);
-        const inFront = (dx * fighter1.facing) >= -0.9;
-        const verticalReach = (minion.archetype === 'aerial' || a === 'up_light' || a === 'anti_air' || a.includes('air')) ? 3.8 : 2.3;
+        const backMargin = (isSuperStartup || a === 'low_heavy' || isThrowMove) ? -1.2 : -0.9;
+        const inFront = (dx * fighter1.facing) >= backMargin;
+        const verticalReach = (minion.archetype === 'aerial' || a === 'up_light' || a === 'anti_air' || a.includes('air') || isSuperStartup) ? 3.8 : 2.3;
         const floorDiff = Math.abs((fighter1.groundY || 0) - (minion.groundY || 0));
         const sameBand = Math.abs(minion.y - fighter1.y) <= verticalReach && (floorDiff < 2.2 || minion.archetype === 'aerial' || Math.abs(fighter1.y - minion.y) <= 2.4);
         if (dist <= effRange && inFront && sameBand) {
+            if (superHitSet) superHitSet.add(minion);
             minion.takeDamage(dmg, knockX, knockY, a);
-            hitAny = true;
+            hitCount++;
         }
     });
 
-    if (hitAny) {
+    if (hitCount > 0) {
         fighter1.hasHitCurrentAttack = true;
         fighter1.hasHitConfirmed = true;
-        fighter1.rage = Math.min(100, (fighter1.rage || 0) + (a.includes('heavy') ? 9 : 6));
-        sfx.playHit(a.includes('heavy') || a.includes('special'));
-        campaignComboCount++;
-        campaignLevelScore += dmg * 2;
+        if (rageGain > 0) {
+            fighter1.rage = Math.min(100, (fighter1.rage || 0) + rageGain);
+        }
+        const isHeavyFeel = isHeavyMove || isSpecialMove || isThrowMove || isSuperStartup;
+        if (typeof hitstopTimer !== 'undefined') {
+            hitstopTimer = Math.max(hitstopTimer, hitstopVal);
+        }
+        if (typeof screenShake !== 'undefined' && isHeavyFeel) {
+            screenShake = Math.max(screenShake, isSuperStartup ? 0.55 : 0.28);
+        }
+        if (typeof sfx !== 'undefined' && typeof sfx.playHit === 'function') {
+            sfx.playHit(isHeavyFeel, { comboCount: campaignComboCount + 1 });
+        }
+        campaignComboCount += hitCount;
+        campaignLevelScore += Math.round(dmg * scoreMult * hitCount);
         updateCampaignSmashHUD();
     }
 }

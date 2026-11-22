@@ -17,6 +17,8 @@ function formatHudTimer(seconds) {
  * ============================================================================ */
 const hudP1HpPctSignal = UIKit.signal(100);
 const hudP2HpPctSignal = UIKit.signal(100);
+const hudP1GuardSignal = UIKit.signal(100);
+const hudP2GuardSignal = UIKit.signal(100);
 const hudP1RageSignal = UIKit.signal(0);
 const hudP2RageSignal = UIKit.signal(0);
 const hudP1NameSignal = UIKit.signal('T-REX');
@@ -334,6 +336,29 @@ function buildBattleScreenUIKit() {
                         ]
                     }),
                     new UIKit.Container({
+                        className: 'w-full flex items-center gap-1.5',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        title: 'Endurance de Garde J1',
+                        children: [
+                            new UIKit.Text({
+                                tag: 'span',
+                                text: '🛡️',
+                                className: 'text-[9px] leading-none opacity-85 shrink-0'
+                            }),
+                            new UIKit.Container({
+                                className: 'flex-1 h-1.5 sm:h-2 rounded-full overflow-hidden bg-stone-950/95 border border-stone-700/80 relative shadow-inner',
+                                children: [
+                                    new UIKit.Container({
+                                        id: 'hudP1GuardBar',
+                                        className: 'h-full guard-bar-fill rounded-full transition-all duration-100',
+                                        style: { width: '100%' }
+                                    })
+                                ]
+                            })
+                        ]
+                    }),
+                    new UIKit.Container({
                         className: 'w-full flex items-center gap-2',
                         flexDirection: 'row',
                         alignItems: 'center',
@@ -457,6 +482,29 @@ function buildBattleScreenUIKit() {
                         ]
                     }),
                     new UIKit.Container({
+                        className: 'w-full flex items-center gap-1.5 flex-row-reverse',
+                        flexDirection: 'row-reverse',
+                        alignItems: 'center',
+                        title: 'Endurance de Garde J2',
+                        children: [
+                            new UIKit.Text({
+                                tag: 'span',
+                                text: '🛡️',
+                                className: 'text-[9px] leading-none opacity-85 shrink-0'
+                            }),
+                            new UIKit.Container({
+                                className: 'flex-1 h-1.5 sm:h-2 rounded-full overflow-hidden bg-stone-950/95 border border-stone-700/80 relative shadow-inner',
+                                children: [
+                                    new UIKit.Container({
+                                        id: 'hudP2GuardBar',
+                                        className: 'h-full guard-bar-fill ml-auto rounded-full transition-all duration-100',
+                                        style: { width: '100%' }
+                                    })
+                                ]
+                            })
+                        ]
+                    }),
+                    new UIKit.Container({
                         className: 'w-full flex items-center gap-2 flex-row-reverse',
                         flexDirection: 'row-reverse',
                         alignItems: 'center',
@@ -518,11 +566,17 @@ function buildBattleScreenUIKit() {
     // Mid-Screen Overlays
     const comboContainer = new UIKit.Container({
         id: 'hudComboContainer',
-        className: 'hidden absolute top-28 sm:top-36 left-4 sm:left-8 z-20 pointer-events-none transform -rotate-6 transition-all duration-150',
+        className: 'hidden absolute top-28 sm:top-36 left-4 sm:left-8 z-20 pointer-events-none transform -rotate-6 transition-all duration-150 flex flex-col items-start',
         children: [
             new UIKit.Svg({
                 className: 'relative',
                 svg: COMBO_SPLATTER_SVG
+            }),
+            new UIKit.Text({
+                id: 'hudComboDmgText',
+                tag: 'div',
+                text: '',
+                className: 'hidden combo-dmg-badge ml-6 -mt-3'
             })
         ]
     });
@@ -549,58 +603,65 @@ function buildBattleScreenUIKit() {
         ]
     });
 
-    const xrayOverlayHud = new UIKit.Container({
-        id: 'xrayOverlayHud',
-        className: 'hidden absolute inset-0 pointer-events-none z-20 flex flex-col justify-between p-4',
-        style: {
-            background: 'radial-gradient(circle at center, rgba(6, 182, 212, 0.12) 0%, rgba(2, 6, 23, 0.88) 85%)',
-            boxShadow: 'inset 0 0 70px rgba(34, 211, 238, 0.55)'
-        },
+    const superFlashOverlay = new UIKit.Container({
+        id: 'superFlashOverlay',
+        className: 'hidden super-flash-overlay absolute inset-0 pointer-events-none z-30 flex items-center justify-center overflow-hidden',
         children: [
             new UIKit.Container({
-                className: 'mt-16 flex items-center justify-between border-b border-cyan-400/50 pb-1',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                children: [
-                    new UIKit.Container({
-                        className: 'flex items-center gap-2',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        children: [
-                            new UIKit.Badge({ text: '☢ SCANNER X-RAY ACTIF', className: 'px-2 py-0.5 rounded bg-cyan-500 text-slate-950 font-black text-xs uppercase tracking-widest animate-pulse' }),
-                            new UIKit.Text({ id: 'xrayTargetLabel', tag: 'span', text: 'ANALYSE SQUELETTIQUE', className: 'text-cyan-300 font-bold text-xs uppercase tracking-wider font-chakra' })
-                        ]
-                    }),
-                    new UIKit.Text({ id: 'xrayPhaseCounter', tag: 'span', text: 'PHASE 1 / 3', className: 'text-amber-300 font-black text-xs uppercase tracking-widest font-chakra' })
-                ]
+                className: 'super-flash-backdrop absolute inset-0'
             }),
             new UIKit.Container({
-                className: 'my-auto flex flex-col items-center',
-                flexDirection: 'column',
+                className: 'super-flash-band relative w-full py-3 sm:py-5 px-4 sm:px-10 flex items-center justify-center overflow-hidden',
+                flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'center',
                 children: [
-                    new UIKit.Card({
-                        id: 'xrayAnatomyBanner',
-                        className: 'px-5 py-2 rounded-xl bg-slate-950/90 border-2 border-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.7)] text-center transform transition-all duration-150',
+                    new UIKit.Container({
+                        className: 'super-flash-speedlines absolute inset-0 pointer-events-none'
+                    }),
+                    new UIKit.Container({
+                        className: 'relative z-10 flex items-center justify-center gap-4 sm:gap-7 max-w-5xl w-full',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         children: [
-                            new UIKit.Text({ id: 'xrayBoneTitle', tag: 'div', text: 'FRACTURE CRÂNIENNE', className: 'mk-title text-lg sm:text-2xl font-black text-cyan-300 tracking-wider' }),
-                            new UIKit.Text({ id: 'xrayPsiDetail', tag: 'div', text: 'TRAUMA INTERNE : 4 800 PSI • OS BROYÉ', className: 'text-xs font-extrabold text-red-400 uppercase tracking-widest font-chakra' })
+                            new UIKit.Container({
+                                className: 'super-flash-portrait-frame relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 shrink-0 overflow-hidden',
+                                children: [
+                                    new UIKit.Container({
+                                        id: 'superFlashPortrait',
+                                        className: 'w-full h-full flex items-center justify-center overflow-hidden bg-stone-950'
+                                    })
+                                ]
+                            }),
+                            new UIKit.Container({
+                                className: 'flex flex-col items-start justify-center min-w-0',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                                justifyContent: 'center',
+                                children: [
+                                    new UIKit.Badge({
+                                        id: 'superFlashBadge',
+                                        text: '⚡ PRIMAL SUPER',
+                                        className: 'super-flash-badge px-3 py-0.5 rounded font-chakra font-black text-[11px] sm:text-xs md:text-sm uppercase tracking-[0.22em] mb-1 shadow-lg'
+                                    }),
+                                    new UIKit.Text({
+                                        id: 'superFlashTitle',
+                                        tag: 'h2',
+                                        text: 'PRIMAL SUPER',
+                                        className: 'super-flash-title font-cinzel font-black text-2xl sm:text-4xl md:text-5xl uppercase tracking-wider leading-tight'
+                                    }),
+                                    new UIKit.Text({
+                                        id: 'superFlashSubtitle',
+                                        tag: 'p',
+                                        text: '',
+                                        className: 'super-flash-subtitle font-chakra font-extrabold text-xs sm:text-sm md:text-base uppercase tracking-[0.16em] text-amber-200/95 mt-0.5'
+                                    })
+                                ]
+                            })
                         ]
                     })
                 ]
-            })
-        ]
-    });
-
-    const fatalityPromptBox = new UIKit.Container({
-        id: 'fatalityPromptBox',
-        className: 'hidden absolute bottom-16 left-1/2 -translate-x-1/2 z-20 pointer-events-auto',
-        children: [
-            new UIKit.Button({
-                id: 'btnTriggerFatalityNow',
-                text: '💀 EXÉCUTER LA FATALITÉ ! (Touche R)',
-                className: 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-800 via-red-600 to-amber-500 text-white font-black text-sm sm:text-lg uppercase tracking-wider border-2 border-amber-300 shadow-2xl finish-pulse'
             })
         ]
     });
@@ -625,7 +686,7 @@ function buildBattleScreenUIKit() {
             new UIKit.Container({
                 id: 'hudFrenzyGauge',
                 className: 'relative w-14 h-14 sm:w-18 sm:h-18 flex items-center justify-center cursor-pointer transform hover:scale-105 active:scale-95 transition-all',
-                attrs: { title: "Cliquer pour déclencher l'Attaque X-Ray / Fatalité" },
+                title: 'Cliquer pour déclencher le PRIMAL SUPER [R]',
                 children: [
                     new UIKit.Svg({
                         id: 'hudFrenzyCorona',
@@ -650,10 +711,10 @@ function buildBattleScreenUIKit() {
                     new UIKit.Container({
                         id: 'hudFrenzyText',
                         className: 'frenzy-text-blood text-base sm:text-xl md:text-2xl font-black leading-tight uppercase',
-                        html: 'FRENZY<br>READY'
+                        innerHTML: 'PRIMAL<br>SUPER'
                     }),
                     new UIKit.Badge({
-                        text: '[R / ESPACE]',
+                        text: '[R / RT]',
                         className: 'text-[9px] text-amber-300 font-extrabold uppercase tracking-wider bg-black/75 backdrop-blur-sm px-1.5 py-0.2 rounded border border-amber-500/40'
                     })
                 ]
@@ -770,60 +831,74 @@ function buildBattleScreenUIKit() {
                 ]
             }),
 
-            // Circular Action Medallions (4 Controls)
+            // Circular Action Medallions (5 Controls: Light, Heavy, Special, Guard, Primal Super)
             new UIKit.Container({
-                className: 'flex items-center gap-1.5 sm:gap-2',
+                className: 'flex items-center gap-1 sm:gap-1.5',
                 flexDirection: 'row',
                 alignItems: 'center',
                 children: [
                     new UIKit.Button({
                         id: 'uiBtnStrike',
                         dataset: { action: 'strike' },
-                        className: 'act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative border-amber-400 group p-1.5 shadow-xl backdrop-blur-sm',
-                        attrs: { title: 'Frapper (Haut, Milieu, Bas selon orientation)' },
+                        className: 'act-btn action-medallion w-11 h-11 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative border-amber-400 group p-1 shadow-xl backdrop-blur-sm',
+                        title: 'Frappe Légère [F] (Haut, Avant, Neutre, Arrière, Bas, Aérien)',
                         children: [
                             new UIKit.Svg({
-                                className: 'w-5 h-5 sm:w-6 sm:h-6',
+                                className: 'w-4 h-4 sm:w-5 sm:h-5',
                                 svg: `<svg viewBox="0 0 24 24" class="w-full h-full fill-amber-300"><path d="M4 18 C6 20 10 20 14 18 C18 16 20 12 20 8 C18 6 14 6 10 8 C6 10 4 14 4 18 Z M8 12 L11 11 L10 14 Z M13 11 L16 10 L15 13 Z"/></svg>`
                             }),
-                            new UIKit.Text({ tag: 'span', text: 'FRAPPE [F]', className: 'text-[7.5px] sm:text-[8px] font-black text-amber-200' }),
+                            new UIKit.Text({ tag: 'span', text: 'LÉGÈRE [F]', className: 'text-[6.5px] sm:text-[7.5px] font-black text-amber-200 leading-tight whitespace-nowrap' }),
                             new UIKit.Badge({ text: 'X', className: 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-amber-400 text-[9px] font-black text-amber-200 flex items-center justify-center shadow' })
+                        ]
+                    }),
+                    new UIKit.Button({
+                        id: 'uiBtnHeavy',
+                        dataset: { action: 'heavy' },
+                        className: 'act-btn action-medallion w-11 h-11 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative border-orange-500 group p-1 shadow-xl backdrop-blur-sm',
+                        title: 'Frappe Lourde [G] (Neutre, Avant Bélier, Haut Anti-Air, Bas Balayage, Aérien)',
+                        children: [
+                            new UIKit.Svg({
+                                className: 'w-4 h-4 sm:w-5 sm:h-5',
+                                svg: `<svg viewBox="0 0 24 24" class="w-full h-full fill-orange-400"><path d="M13 2 L3 14 H11 L9 22 L21 10 H13 L15 2 Z"/></svg>`
+                            }),
+                            new UIKit.Text({ tag: 'span', text: 'LOURDE [G]', className: 'text-[6.5px] sm:text-[7.5px] font-black text-orange-200 leading-tight whitespace-nowrap' }),
+                            new UIKit.Badge({ text: 'Y', className: 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-orange-400 text-[9px] font-black text-orange-300 flex items-center justify-center shadow' })
                         ]
                     }),
                     new UIKit.Button({
                         id: 'uiBtnSpecial',
                         dataset: { action: 'special' },
-                        className: 'act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-purple-400 shadow-xl backdrop-blur-sm',
-                        attrs: { title: "Coup Spécial Unique de l'animal" },
+                        className: 'act-btn action-medallion w-11 h-11 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1 border-purple-400 shadow-xl backdrop-blur-sm',
+                        title: 'Spécial 1 [H] / Spécial 2 [T ou Bas+H]',
                         children: [
                             new UIKit.Svg({
-                                className: 'w-5 h-5 sm:w-6 sm:h-6',
+                                className: 'w-4 h-4 sm:w-5 sm:h-5',
                                 svg: `<svg viewBox="0 0 24 24" class="w-full h-full fill-purple-400"><path d="M12 2 C8 7 6 10 6 14 C6 18.4 9.6 22 14 22 C18.4 22 22 18.4 22 14 C22 10 18 5 15 3 C15 6 13 8 11 8 C11 5 12 3 12 2 Z"/></svg>`
                             }),
-                            new UIKit.Text({ tag: 'span', text: 'SPÉCIAL [H]', className: 'text-[7.5px] sm:text-[8px] font-black text-purple-200' }),
-                            new UIKit.Badge({ text: 'Y', className: 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-purple-400 text-[9px] font-black text-purple-300 flex items-center justify-center shadow' })
+                            new UIKit.Text({ id: 'uiBtnSpecialLabel', tag: 'span', text: 'SPÉCIAL [H]', className: 'text-[6.5px] sm:text-[7.5px] font-black text-purple-200 leading-tight whitespace-nowrap' }),
+                            new UIKit.Badge({ text: 'B', className: 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-purple-400 text-[9px] font-black text-purple-300 flex items-center justify-center shadow' })
                         ]
                     }),
                     new UIKit.Button({
                         id: 'uiBtnGuard',
                         dataset: { action: 'guard' },
-                        className: 'act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-sky-400 shadow-xl backdrop-blur-sm',
-                        attrs: { title: "Protéger (Armure 3D à l'endroit protégé)" },
+                        className: 'act-btn action-medallion w-11 h-11 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1 border-sky-400 shadow-xl backdrop-blur-sm',
+                        title: 'Garde 3-Voies & Parade Parfaite [Shift] (Bloquer au dernier instant = 0 dégât, +15% Rage)',
                         children: [
-                            new UIKit.Text({ tag: 'span', text: '🛡️', className: 'text-base sm:text-lg leading-none' }),
-                            new UIKit.Text({ tag: 'span', text: 'GARDE [S]', className: 'text-[7.5px] sm:text-[8px] font-black text-sky-200' }),
-                            new UIKit.Badge({ text: 'B', className: 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-sky-400 text-[9px] font-black text-sky-300 flex items-center justify-center shadow' })
+                            new UIKit.Text({ tag: 'span', text: '🛡️', className: 'text-sm sm:text-base leading-none' }),
+                            new UIKit.Text({ tag: 'span', text: 'GARDE [SHIFT]', className: 'text-[6px] sm:text-[7px] font-black text-sky-200 leading-tight whitespace-nowrap' }),
+                            new UIKit.Badge({ text: 'LB', className: 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-sky-400 text-[8px] font-black text-sky-300 flex items-center justify-center shadow' })
                         ]
                     }),
                     new UIKit.Button({
-                        id: 'btnRageFatality',
-                        dataset: { action: 'xray' },
-                        className: 'act-btn action-medallion w-12 h-12 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1.5 border-red-500 shadow-2xl backdrop-blur-sm',
-                        attrs: { title: 'Super Attaque X-Ray (Rage 100%)' },
+                        id: 'btnRageSuper',
+                        dataset: { action: 'super' },
+                        className: 'act-btn action-medallion w-11 h-11 sm:w-14 sm:h-14 rounded-full flex flex-col items-center justify-center relative group p-1 border-red-500 shadow-2xl backdrop-blur-sm',
+                        title: 'PRIMAL SUPER [R] (100% Rage — Combo-cancelable & Extinction Finish)',
                         children: [
-                            new UIKit.Text({ tag: 'span', text: '💀', className: 'text-base leading-none' }),
-                            new UIKit.Text({ tag: 'span', text: 'RAGE [R]', className: 'text-[7.5px] font-black text-amber-200' }),
-                            new UIKit.Badge({ text: 'RT', className: 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-red-400 text-[9px] font-black text-red-300 flex items-center justify-center shadow' })
+                            new UIKit.Text({ tag: 'span', text: '⚡', className: 'text-sm sm:text-base leading-none text-amber-300' }),
+                            new UIKit.Text({ tag: 'span', text: 'SUPER [R]', className: 'text-[6.5px] sm:text-[7.5px] font-black text-amber-200 leading-tight whitespace-nowrap' }),
+                            new UIKit.Badge({ text: 'RT', className: 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-stone-900 border border-red-400 text-[8.5px] font-black text-red-300 flex items-center justify-center shadow' })
                         ]
                     })
                 ]
@@ -848,8 +923,7 @@ function buildBattleScreenUIKit() {
             topHudOverlay,
             comboContainer,
             announcerOverlay,
-            xrayOverlayHud,
-            fatalityPromptBox,
+            superFlashOverlay,
             damagePopupLayer,
             battleCanvasEl,
             bottomArcadeBar
@@ -876,88 +950,133 @@ const _arcadeBtnCache = {};
 const _arcadeBtnState = {};
 
 function flashArcadeButton(btnId, active) {
+    const resolvedId = btnId === 'btnRageFatality' ? 'btnRageSuper' : btnId;
     const isPressed = !!active;
-    if (_arcadeBtnState[btnId] === isPressed) return;
-    _arcadeBtnState[btnId] = isPressed;
-    const el = _arcadeBtnCache[btnId] || (_arcadeBtnCache[btnId] = document.getElementById(btnId));
+    if (_arcadeBtnState[resolvedId] === isPressed) return;
+    _arcadeBtnState[resolvedId] = isPressed;
+    const el = _arcadeBtnCache[resolvedId] || (_arcadeBtnCache[resolvedId] = document.getElementById(resolvedId));
     if (!el) return;
     el.classList.toggle('active-press', isPressed);
 }
 
-function spawnFloatingPopup(worldX, text, colorHex = '#fde047') {
-    const layer = document.getElementById('damagePopupLayer');
-    if (layer) {
-        const pctLeft = Math.max(12, Math.min(88, 50 + (worldX / 12) * 42));
-        const popupEl = new UIKit.Text({
-            tag: 'div',
-            text: text,
-            className: 'mk-title absolute -translate-x-1/2 font-black text-base sm:text-2xl drop-shadow-[0_3px_3px_rgba(0,0,0,0.95)] transition-all duration-700',
-            style: {
-                left: pctLeft + '%',
-                top: '32%',
-                color: colorHex
-            }
-        });
-        popupEl.mount(layer);
-        const dom = popupEl.domElement;
-        if (dom) {
-            requestAnimationFrame(() => {
-                dom.style.top = '18%';
-                dom.style.opacity = '0';
-            });
-            setTimeout(() => {
-                popupEl.dispose();
-                if (dom.parentNode) dom.parentNode.removeChild(dom);
-            }, 700);
+function showSuperFlashOverlay(attacker, spec, isExtinction = false) {
+    const overlay = document.getElementById('superFlashOverlay');
+    if (!overlay) return;
+
+    const dino = attacker && attacker.dino ? attacker.dino : null;
+    const resolvedSpec = spec || (dino && typeof getSuperSpec === 'function' ? getSuperSpec(dino.id) : null) || {};
+    const speciesName = dino && dino.name ? dino.name : '';
+
+    const portraitEl = document.getElementById('superFlashPortrait');
+    if (portraitEl && dino) {
+        const art = getHudPortrait(dino, attacker ? (attacker.skinIndex || 0) : 0);
+        if (art && (art.startsWith('<svg') || art.startsWith('<div'))) {
+            portraitEl.innerHTML = art;
+        } else if (art) {
+            const flipCls = (attacker && attacker.isP1 === false) ? ' -scale-x-100' : '';
+            portraitEl.innerHTML = `<img src="${art}" alt="${speciesName}" class="w-full h-full object-cover${flipCls}" />`;
+        } else {
+            portraitEl.innerHTML = '';
         }
     }
 
-    // Also spawn a 3D @pmndrs/uikit spatial billboard plane in the Three.js combat scene
-    if (typeof fxGroup !== 'undefined' && fxGroup && typeof UIKit !== 'undefined' && UIKit.create3DTextPlane) {
-        try {
-            const plane3D = UIKit.create3DTextPlane(text, {
-                color: colorHex,
-                width: 2.1,
-                height: 0.52,
-                fontSize: 40,
-                backgroundColor: 'rgba(12, 10, 9, 0.55)',
-                borderColor: colorHex
-            });
-            plane3D.position.set(worldX, 3.6, 1.2);
-            fxGroup.add(plane3D);
-            const startTime = performance.now();
-            const animate3DPopup = (now) => {
-                const t = (now - startTime) / 680;
-                if (t >= 1 || !plane3D.parent) {
-                    if (plane3D.parent) plane3D.parent.remove(plane3D);
-                    if (plane3D.geometry) plane3D.geometry.dispose();
-                    if (plane3D.material) {
-                        if (plane3D.material.map) plane3D.material.map.dispose();
-                        plane3D.material.dispose();
-                    }
-                    return;
-                }
-                plane3D.position.y = 3.6 + t * 1.35;
-                if (typeof battleCamera !== 'undefined' && battleCamera) {
-                    plane3D.quaternion.copy(battleCamera.quaternion);
-                }
-                if (plane3D.material) {
-                    plane3D.material.opacity = 1 - Math.pow(t, 1.6);
-                }
-                requestAnimationFrame(animate3DPopup);
-            };
-            requestAnimationFrame(animate3DPopup);
-        } catch (e) {}
+    const badgeEl = document.getElementById('superFlashBadge');
+    if (badgeEl) {
+        const modeLabel = isExtinction ? '☢ EXTINCTION FINISH !' : '⚡ PRIMAL SUPER';
+        badgeEl.textContent = speciesName ? `${modeLabel} • ${speciesName}` : modeLabel;
+    }
+
+    const titleEl = document.getElementById('superFlashTitle');
+    if (titleEl) {
+        const rawTitle = resolvedSpec.name || (dino && dino.fatalityName) || 'PRIMAL SUPER';
+        titleEl.textContent = String(rawTitle).replace(/\s*\(R\)\s*$/i, '').toUpperCase();
+    }
+
+    const subEl = document.getElementById('superFlashSubtitle');
+    if (subEl) {
+        const rawSub = resolvedSpec.subtitle || (dino && dino.title) || '';
+        subEl.textContent = rawSub;
+    }
+
+    if (overlay.style && typeof overlay.style.setProperty === 'function') {
+        overlay.style.setProperty('--super-accent', resolvedSpec.cssColor || (isExtinction ? '#f59e0b' : '#ef4444'));
+    }
+
+    overlay.classList.remove('hidden', 'super-flash-active', 'extinction-finish-active');
+    if (overlay.offsetWidth !== undefined) {
+        void overlay.offsetWidth;
+    }
+    overlay.classList.add(isExtinction ? 'extinction-finish-active' : 'super-flash-active');
+}
+
+function hideSuperFlashOverlay() {
+    const overlay = document.getElementById('superFlashOverlay');
+    if (!overlay) return;
+    overlay.classList.add('hidden');
+    overlay.classList.remove('super-flash-active', 'extinction-finish-active');
+}
+
+if (typeof window !== 'undefined') {
+    window.showSuperFlashOverlay = showSuperFlashOverlay;
+    window.hideSuperFlashOverlay = hideSuperFlashOverlay;
+}
+
+function spawnFloatingPopup(worldX, text, colorHex = '#fde047') {
+    const layer = document.getElementById('damagePopupLayer');
+    if (!layer) return;
+
+    const jitterX = (Math.random() - 0.5) * 6.5;
+    const jitterY = (Math.random() - 0.5) * 7.0;
+    const pctLeft = Math.max(10, Math.min(90, 50 + (worldX / 12) * 42 + jitterX));
+    const startTop = Math.max(18, Math.min(44, 31 + jitterY));
+    const endTop = Math.max(6, startTop - 13);
+
+    const popupEl = new UIKit.Text({
+        tag: 'div',
+        text: text,
+        className: 'mk-title absolute -translate-x-1/2 font-black text-base sm:text-2xl drop-shadow-[0_3px_4px_rgba(0,0,0,0.98)] transition-all duration-500 ease-out pointer-events-none whitespace-nowrap',
+        style: {
+            left: pctLeft.toFixed(1) + '%',
+            top: startTop.toFixed(1) + '%',
+            color: colorHex,
+            transform: 'translate(-50%, 0) scale(1.12)'
+        }
+    });
+    popupEl.mount(layer);
+    const dom = popupEl.domElement;
+    if (dom) {
+        requestAnimationFrame(() => {
+            dom.style.top = endTop.toFixed(1) + '%';
+            dom.style.opacity = '0';
+            dom.style.transform = 'translate(-50%, 0) scale(0.95)';
+        });
+        setTimeout(() => {
+            popupEl.dispose();
+            if (dom.parentNode) dom.parentNode.removeChild(dom);
+        }, 560);
     }
 }
 
 let comboHideTimer = null;
-function showComboHUD(count) {
+function showComboHUD(count, totalDmg = 0) {
     const comboCont = document.getElementById('hudComboContainer');
     const comboText = document.getElementById('hudComboText');
     if (!comboCont || !comboText) return;
 
     comboText.textContent = `COMBO x${count}`;
+
+    const comboDmgEl = document.getElementById('hudComboDmgText');
+    if (comboDmgEl) {
+        const dmgVal = Math.round(Number(totalDmg) || 0);
+        if (dmgVal > 0) {
+            comboDmgEl.textContent = `${dmgVal} DMG`;
+            comboDmgEl.classList.remove('hidden');
+        } else {
+            comboDmgEl.textContent = '';
+            comboDmgEl.classList.add('hidden');
+        }
+    }
+
     comboCont.classList.remove('hidden');
     comboCont.classList.remove('combo-pop-animate');
     void comboCont.offsetWidth;
@@ -973,6 +1092,10 @@ function hideComboHUD() {
     const comboCont = document.getElementById('hudComboContainer');
     if (comboCont) {
         comboCont.classList.add('hidden');
+    }
+    const comboDmgEl = document.getElementById('hudComboDmgText');
+    if (comboDmgEl) {
+        comboDmgEl.classList.add('hidden');
     }
 }
 
@@ -1091,14 +1214,27 @@ function renderFighterStatusBadges(fighter) {
     return html;
 }
 
+function updateGuardStaminaBar(barId, fighter) {
+    const el = document.getElementById(barId);
+    if (!el) return;
+    const rawStam = (fighter && fighter.guardStamina !== undefined) ? Number(fighter.guardStamina) : 100;
+    const stam = Math.max(0, Math.min(100, Number.isFinite(rawStam) ? rawStam : 100));
+    el.style.width = stam + '%';
+    el.classList.toggle('guard-low-pulse', stam < 30);
+}
+
 function updateBattleHUD() {
     if (!fighter1) return;
     const p1Pct = Math.max(0, Math.round((fighter1.hp / fighter1.maxHp) * 100));
     const p2Pct = fighter2 ? Math.max(0, Math.round((fighter2.hp / fighter2.maxHp) * 100)) : 0;
+    const p1Guard = fighter1.guardStamina !== undefined ? fighter1.guardStamina : 100;
+    const p2Guard = (fighter2 && fighter2.guardStamina !== undefined) ? fighter2.guardStamina : 100;
 
     UIKit.batch(() => {
         hudP1HpPctSignal.value = p1Pct;
         hudP2HpPctSignal.value = p2Pct;
+        hudP1GuardSignal.value = p1Guard;
+        hudP2GuardSignal.value = p2Guard;
         hudP1RageSignal.value = fighter1.rage;
         hudP2RageSignal.value = fighter2 ? fighter2.rage : 0;
     });
@@ -1117,13 +1253,16 @@ function updateBattleHUD() {
     const p2HpTextEl = document.getElementById('hudP2HpText');
     if (p2HpTextEl) p2HpTextEl.textContent = p2Pct + '%';
 
+    updateGuardStaminaBar('hudP1GuardBar', fighter1);
+    if (fighter2) updateGuardStaminaBar('hudP2GuardBar', fighter2);
+
     const p1RageEl = document.getElementById('hudP1RageBar');
     if (p1RageEl) p1RageEl.style.width = fighter1.rage + '%';
     const r1Badge = document.getElementById('hudP1RageBadge');
     if (r1Badge) {
-        r1Badge.textContent = fighter1.rage >= 100 ? '💀 FRENZY 100%' : `RAGE ${Math.floor(fighter1.rage)}%`;
+        r1Badge.textContent = fighter1.rage >= 100 ? '⚡ SUPER PRÊT' : `RAGE ${Math.floor(fighter1.rage)}%`;
         r1Badge.className = fighter1.rage >= 100
-            ? 'text-[9px] font-black uppercase px-2 py-0.2 rounded bg-red-600 text-white border border-amber-300 animate-pulse shadow'
+            ? 'text-[9px] font-black uppercase px-2 py-0.2 rounded bg-red-600 text-amber-200 border border-amber-300 animate-pulse shadow'
             : 'text-[9px] font-black uppercase px-2 py-0.2 rounded bg-stone-900 text-cyan-300 border border-cyan-700 shadow';
     }
 
@@ -1131,7 +1270,10 @@ function updateBattleHUD() {
     if (p2RageEl && fighter2) p2RageEl.style.width = fighter2.rage + '%';
     const r2Badge = document.getElementById('hudP2RageBadge');
     if (r2Badge && fighter2) {
-        r2Badge.textContent = fighter2.rage >= 100 ? '💀 X-RAY PRÊT' : `RAGE ${Math.floor(fighter2.rage)}%`;
+        r2Badge.textContent = fighter2.rage >= 100 ? '⚡ SUPER PRÊT' : `RAGE ${Math.floor(fighter2.rage)}%`;
+        r2Badge.className = fighter2.rage >= 100
+            ? 'text-[9px] font-black uppercase px-2 py-0.2 rounded bg-red-600 text-amber-200 border border-amber-300 animate-pulse shadow shrink-0'
+            : 'text-[9px] font-black uppercase px-2 py-0.2 rounded bg-stone-900 text-cyan-300 border border-cyan-700 shrink-0 shadow';
     }
 
     const p1RoundsEl = document.getElementById('hudP1Rounds');
@@ -1145,12 +1287,12 @@ function updateBattleHUD() {
         if (fighter1.rage >= 100) {
             frenzyCorona.classList.add('frenzy-active-surge');
             frenzyCorona.style.opacity = '1';
-            frenzyText.innerHTML = `FRENZY<br>READY`;
+            frenzyText.innerHTML = `SUPER<br>PRÊT !`;
             frenzyText.className = 'frenzy-text-blood text-lg sm:text-2xl font-black leading-tight uppercase animate-pulse';
         } else {
             frenzyCorona.classList.remove('frenzy-active-surge');
             frenzyCorona.style.opacity = Math.max(0.25, (fighter1.rage / 100)).toString();
-            frenzyText.innerHTML = `FRENZY<br>${Math.floor(fighter1.rage)}%`;
+            frenzyText.innerHTML = `RAGE<br>${Math.floor(fighter1.rage)}%`;
             frenzyText.className = 'frenzy-text-blood text-lg sm:text-2xl font-black leading-tight uppercase opacity-80';
         }
     }
@@ -1163,6 +1305,9 @@ function updateBattleHUD() {
 
 function updateBattleHUDCooldowns() {
     if (!fighter1 || !fighter1.cooldowns) return;
+
+    updateGuardStaminaBar('hudP1GuardBar', fighter1);
+    if (fighter2) updateGuardStaminaBar('hudP2GuardBar', fighter2);
 
     const p1Badges = document.getElementById('hudP1StatusBadges');
     if (p1Badges) {
@@ -1178,9 +1323,9 @@ function updateBattleHUDCooldowns() {
     const cdSpecial = fighter1.cooldowns['special'] || 0;
     const btnSpecial = document.getElementById('uiBtnSpecial');
     if (btnSpecial) {
+        const cdSpan = document.getElementById('uiBtnSpecialLabel') || btnSpecial.querySelector('span');
         if (cdSpecial > 0.05) {
             btnSpecial.classList.add('btn-on-cooldown');
-            const cdSpan = btnSpecial.querySelector('span');
             if (cdSpan) cdSpan.textContent = `${cdSpecial.toFixed(1)}s`;
         } else {
             if (btnSpecial.classList.contains('btn-on-cooldown')) {
@@ -1188,24 +1333,19 @@ function updateBattleHUDCooldowns() {
                 btnSpecial.classList.add('cooldown-ready-flash');
                 setTimeout(() => btnSpecial.classList.remove('cooldown-ready-flash'), 350);
             }
-            const cdSpan = btnSpecial.querySelector('span');
             if (cdSpan) cdSpan.textContent = 'SPÉCIAL [H]';
         }
     }
 
-    const xrayBtn = document.getElementById('btnRageFatality');
-    if (xrayBtn) {
-        const xrayCd = (fighter1.cooldowns && fighter1.cooldowns['xray']) || 0;
+    const superBtn = document.getElementById('btnRageSuper');
+    if (superBtn) {
         const rage = fighter1.rage || 0;
-
         if (rage < 100) {
-            xrayBtn.classList.add('btn-rage-locked');
-            xrayBtn.classList.remove('finish-pulse', 'border-amber-300');
-        } else if (xrayCd > 0.05) {
-            xrayBtn.classList.remove('btn-rage-locked', 'finish-pulse');
+            superBtn.classList.add('btn-rage-locked');
+            superBtn.classList.remove('finish-pulse', 'border-amber-300', 'super-ready-medallion');
         } else {
-            xrayBtn.classList.remove('btn-rage-locked');
-            xrayBtn.classList.add('finish-pulse', 'border-amber-300');
+            superBtn.classList.remove('btn-rage-locked');
+            superBtn.classList.add('finish-pulse', 'border-amber-300', 'super-ready-medallion');
         }
     }
 
@@ -1222,19 +1362,11 @@ function updateBattleHUDCooldowns() {
 }
 
 function initBattleScreenMenu() {
-    document.getElementById('btnTriggerFatalityNow').addEventListener('click', () => {
-        if (matchState === 'finish_him' && fighter1 && fighter2) {
-            const winner = fighter1.roundsWon >= 2 ? fighter1 : fighter2;
-            const loser = winner === fighter1 ? fighter2 : fighter1;
-            executeUnique3DFatality(winner, loser);
-        }
-    });
-
     const frenzyGauge = document.getElementById('hudFrenzyGauge');
     if (frenzyGauge) {
         frenzyGauge.addEventListener('click', () => {
-            if (fighter1 && (fighter2 && matchState === 'fight' || matchState === 'campaign_level')) {
-                triggerPlayerAction(fighter1, fighter2, 'xray');
+            if (fighter1 && ((fighter2 && matchState === 'fight') || matchState === 'campaign_level')) {
+                triggerPlayerAction(fighter1, fighter2, 'super');
             }
         });
     }
@@ -1248,12 +1380,12 @@ function initBattleScreenMenu() {
             btn.classList.add('active-press');
             const now = performance.now();
             if (dir === 'left') {
-                if (now - lastTouchDirTap.left < 300 && fighter1 && (matchState === 'fight' || matchState === 'finish_him' || matchState === 'campaign_level')) {
+                if (now - lastTouchDirTap.left < 300 && fighter1 && (matchState === 'fight' || matchState === 'campaign_level')) {
                     fighter1.startDash(-1);
                 }
                 lastTouchDirTap.left = now;
             } else if (dir === 'right') {
-                if (now - lastTouchDirTap.right < 300 && fighter1 && (matchState === 'fight' || matchState === 'finish_him' || matchState === 'campaign_level')) {
+                if (now - lastTouchDirTap.right < 300 && fighter1 && (matchState === 'fight' || matchState === 'campaign_level')) {
                     fighter1.startDash(1);
                 }
                 lastTouchDirTap.right = now;

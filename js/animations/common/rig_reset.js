@@ -12,9 +12,7 @@ function resetDino3DRig(fighter, rig, baseHipsY, time, dt) {
 
     rig.torso.scale.set(1, 1, 1);
     rig.neck.scale.set(1, 1, 1);
-    if (!fighter.isXrayTarget && matchState !== 'fatality_anim') {
-        rig.headGroup.scale.set(1, 1, 1);
-    }
+    rig.headGroup.scale.set(1, 1, 1);
     rig.jaw.scale.set(1, 1, 1);
 
     if (rig.restPose) {
@@ -63,7 +61,7 @@ function resetDino3DRig(fighter, rig, baseHipsY, time, dt) {
                 }
             });
         }
-        if (rig.specialParts.sonicCrest && matchState !== 'fatality_anim') {
+        if (rig.specialParts.sonicCrest) {
             rig.specialParts.sonicCrest.scale.set(1, 1, 1);
         }
         if (rig.specialParts.stinger) {
@@ -81,22 +79,24 @@ function resetDino3DRig(fighter, rig, baseHipsY, time, dt) {
     const bType = fighter.blockType || 'mid';
 
     if (rig.armorRig) {
-        rig.armorRig.high.visible = false;
-        rig.armorRig.mid.visible = false;
-        rig.armorRig.low.visible = false;
+        if (rig.armorRig.high) rig.armorRig.high.visible = false;
+        if (rig.armorRig.mid) rig.armorRig.mid.visible = false;
+        if (rig.armorRig.low) rig.armorRig.low.visible = false;
     }
 
-    rig.shieldMesh.visible = isBlocking;
-    if (isBlocking) {
-        if (bType === 'high') {
-            rig.shieldMesh.position.set(0.8, 2.5, 0);
-            rig.shieldMesh.scale.set(1.15, 1.15, 1.15);
-        } else if (bType === 'low') {
-            rig.shieldMesh.position.set(0.4, 0.9, 0);
-            rig.shieldMesh.scale.set(1.35, 0.85, 1.25);
-        } else {
-            rig.shieldMesh.position.set(0.6, 1.9, 0);
-            rig.shieldMesh.scale.set(1.35, 1.35, 1.25);
+    if (rig.shieldMesh) {
+        rig.shieldMesh.visible = isBlocking;
+        if (isBlocking) {
+            if (bType === 'high') {
+                rig.shieldMesh.position.set(0.8, 2.5, 0);
+                rig.shieldMesh.scale.set(1.15, 1.15, 1.15);
+            } else if (bType === 'low') {
+                rig.shieldMesh.position.set(0.4, 0.9, 0);
+                rig.shieldMesh.scale.set(1.35, 0.85, 1.25);
+            } else {
+                rig.shieldMesh.position.set(0.6, 1.9, 0);
+                rig.shieldMesh.scale.set(1.35, 1.35, 1.25);
+            }
         }
     }
 
@@ -107,16 +107,32 @@ function resetDino3DRig(fighter, rig, baseHipsY, time, dt) {
         fighter.combatController.update(dt);
     }
 
-    // Flash lumineux d'impact (blanc sur coup reçu, cyan sur relevé invulnérable)
-    const isWakeUpInvuln = fighter.combatController && fighter.combatController.state === CombatState.WAKE_UP_STAND;
-    if (fighter.hitStun > 0.08) {
-        rig.bodyMat.emissive.setHex(0xffffff);
-        rig.bodyMat.emissiveIntensity = 0.75;
+    // Flash lumineux multi-matériaux (hit-flash, relevé invulnérable cyan, Super Flash doré)
+    const mats = (rig.skinMaterials && rig.skinMaterials.length)
+        ? rig.skinMaterials
+        : (rig.bodyMat ? [rig.bodyMat] : []);
+
+    const isWakeUpInvuln = (typeof CombatState !== 'undefined') && fighter.combatController && fighter.combatController.state === CombatState.WAKE_UP_STAND;
+    const isSuperFlashAttacker = Boolean(fighter.isSuperAttacker && typeof superState !== 'undefined' && superState && superState.phase === 'flash');
+
+    let emissiveHex = 0x000000;
+    let emissiveIntensity = 0;
+
+    if (fighter.hitFlashTimer > 0) {
+        emissiveHex = fighter.hitFlashColor || 0xffffff;
+        emissiveIntensity = Math.min(0.95, fighter.hitFlashTimer * 8.5);
     } else if (isWakeUpInvuln) {
-        rig.bodyMat.emissive.setHex(0x38bdf8);
-        rig.bodyMat.emissiveIntensity = 0.35 + Math.sin(time * 28) * 0.2;
-    } else {
-        rig.bodyMat.emissive.setHex(0x000000);
-        rig.bodyMat.emissiveIntensity = 0;
+        emissiveHex = 0x38bdf8;
+        emissiveIntensity = 0.35 + Math.sin(time * 28) * 0.2;
+    } else if (isSuperFlashAttacker) {
+        emissiveHex = 0xfbbf24;
+        emissiveIntensity = 0.55 + Math.sin(time * 32) * 0.2;
+    }
+
+    for (let i = 0; i < mats.length; i++) {
+        const mat = mats[i];
+        if (!mat || !mat.emissive) continue;
+        mat.emissive.setHex(emissiveHex);
+        mat.emissiveIntensity = emissiveIntensity;
     }
 }

@@ -2,6 +2,24 @@
 
 All notable changes to **Extinction Kombat 3D** (*ExtinctionFighter*) are documented in this file.
 
+## [v0.4.0] - 2026-11-22
+
+### Added
+- **Real Super Attack System (`js/core/super-attack.js`)**: Full 21-fighter Super Attack engine featuring 0.36s Super Flash, startup rush/sweep, whiff/block/perfect-parry resolution, 15 species-authentic 3-beat cinematic rushes and 6 multi-pulse AoE/Beam/Dive supers, campaign minion wave sweeping, Extinction Finish on lethal final-round supers, and Slow-Mo KO presentation (`koSlowMoTimer`, `battleTimeScale`).
+- **Complete Combat & Game Feel Overhaul**: Added directional attacks (`up_light`, `low_light`, `fwd_heavy`, `low_heavy`, `anti_air`, `air_light`, `air_heavy`, `dash_attack`), throw (`G` / `U` with tech window and whiff recovery), Perfect Parry (`isParrying` with freeze, spark burst, and +18 Rage), juggle gravity scaling, wall-bounce, hitstop (`hitstopTimer`), camera recoil/FOV kick (`camRecoilX`, `camRecoilY`, `camFovKick`), procedural hit/super audio (`js/core/sound.js`), and callout banners (`js/menus/battle-screen.js`, `css/style.css`).
+- **Apatosaurus Sculpt & PBR Overhaul**: Rebuilt `assets/models/fighters/apato.glb` with a dedicated Blender sculptor (`tools/blender/apato_sculptor.py`) and PBR texture generator (`tools/blender/generate_apato_pbr_textures.py`) producing dedicated albedo, normal, and bump maps (`apato_*.png`) for body, cranium, cervical spines, teeth, claws, and iris.
+- **Megatherium (Giant Sloth) Sculpt & PBR Overhaul**: Rebuilt `assets/models/fighters/giantsloth.glb` with a dedicated Blender sculptor (`tools/blender/giantsloth_sculptor.py`) and PBR texture generator (`tools/blender/generate_giantsloth_pbr_textures.py`) producing dedicated albedo, normal, and bump maps (`giantsloth_*.png`) for shaggy fur, cranium, nose, mucosa, teeth, sickle claws, and iris.
+- **Modular Campaign Minion Files (`js/minions/*.js`)**: Separated all 19 campaign minion definitions into individual species files under `js/minions/` (`cambrian-trilobite.js`, `opabinia-radiodont-elite.js`, `orthoceras.js`, `eurypterid.js`, `jawless-fish.js`, `shark-placoderm.js`, `bothriolepis.js`, `meganeura.js`, `arthropleura.js`, `synapsid.js`, `scutosaurus.js`, `raptor.js`, `triassic-hound.js`, `dino-tank.js`, `magma-ceratopsian.js`, `mammal.js`, `serpent.js`, `bird-pterosaur.js`, `glacier-panther.js`), registered via `registerCampaignMinion()` in `js/core/registry.js` and hydrated by `EraMinion3D` (`js/core/campaign-level.js`).
+
+### Changed
+- **Separated Paleozoic Fighter Files (`js/fighters/*.js`)**: Split `js/fighters/paleozoic-titans.js` into 4 individual fighter files (`js/fighters/cameroceras.js`, `js/fighters/jaekelopterus.js`, `js/fighters/dunkleosteus.js`, and `js/fighters/dimetrodon.js`) and updated `index.html` so all 21 fighters follow a strict one-file-per-fighter structure.
+- **Ankylosaurus V2 Sculpt & PBR Refinement**: Upgraded `tools/blender/ankylo_sculptor.py` and `tools/blender/generate_ankylo_pbr_textures.py` (`assets/models/fighters/ankylo.glb`, `ankylo_club_albedo.png`, `ankylo_club_normal.png`, and refined osteoderm/tail-club geometry).
+- **Tests & Versioning**: Added `tools/test_game_feel_and_super.js`, updated `tools/test_coherence_overhaul.js`, `tools/test_campaign_system.js`, `tools/play_campaign_levels.js`, and bumped `GAME_VERSION` to `v0.4.0`.
+
+### Removed
+- Removed legacy `js/fighters/paleozoic-titans.js` combined file (replaced by individual Paleozoic fighter modules).
+- Removed legacy X-Ray (`xrayCinematicTimer`, `triggerXRayMove`) and `finish_him` state machine paths in favor of the unified Super Attack & Extinction Finish lifecycle.
+
 ## [v0.3.5] - 2026-11-18
 
 ### Added

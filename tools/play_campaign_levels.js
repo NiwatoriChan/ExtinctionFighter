@@ -185,6 +185,10 @@ allFighters.forEach(f => registerFighter(f));
 global.DINO_ROSTER = allFighters;
 global.p1ChoiceIndex = 0; // T-Rex
 
+const minionsDir = path.join(__dirname, '../js/minions');
+fs.readdirSync(minionsDir).filter(f => f.endsWith('.js')).sort().forEach(file => {
+    vm.runInThisContext(fs.readFileSync(path.join(minionsDir, file), 'utf8'));
+});
 const campaignDir = path.join(__dirname, '../js/campaign');
 fs.readdirSync(campaignDir).filter(f => f.endsWith('.js')).sort().forEach(file => {
     vm.runInThisContext(fs.readFileSync(path.join(campaignDir, file), 'utf8'));

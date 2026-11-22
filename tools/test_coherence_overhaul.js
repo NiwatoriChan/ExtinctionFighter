@@ -123,13 +123,30 @@ function testStateAndHtml() {
     assert(indexHtml.includes('__isTestMode'), 'index.html should gate telemetry behind __isTestMode');
     assert(!indexHtml.includes('Jurassic Blood — 1v1'), 'index.html should not carry old subtitle');
 
+    const combatTagIdx = indexHtml.indexOf('js/core/combat.js');
+    const superTagIdx = indexHtml.indexOf('js/core/super-attack.js');
+    assert(combatTagIdx !== -1 && superTagIdx > combatTagIdx,
+        'index.html should load js/core/super-attack.js immediately after js/core/combat.js');
+
     const ctx = vm.createContext({ window: {}, localStorage: makeStorage(), console, Math });
     loadIntoContext(ctx, 'js/core/state.js');
-    assert.strictEqual(ctx.GAME_VERSION, 'v0.3.5', 'GAME_VERSION should be v0.3.5');
-    assert.strictEqual(ctx.xrayElapsed, 0, 'xrayElapsed should initialize to 0');
-    assert.strictEqual(ctx.xrayPhaseApplied, 0, 'xrayPhaseApplied should initialize to 0');
-    assert.strictEqual(ctx.xrayContext, null, 'xrayContext should initialize to null');
+    assert.strictEqual(ctx.GAME_VERSION, 'v0.4.0', 'GAME_VERSION should be v0.4.0');
+    assert.strictEqual(ctx.superState, null, 'superState should initialize to null');
+    assert.strictEqual(ctx.battleTimeScale, 1.0, 'battleTimeScale should initialize to 1.0');
+    assert.strictEqual(ctx.koSlowMoTimer, 0, 'koSlowMoTimer should initialize to 0');
+    assert.strictEqual(ctx.koPendingData, null, 'koPendingData should initialize to null');
+    assert.strictEqual(ctx.hitstopTimer, 0, 'hitstopTimer should initialize to 0');
+    assert.strictEqual(ctx.hitstopTarget, null, 'hitstopTarget should initialize to null');
+    assert.strictEqual(ctx.screenShake, 0, 'screenShake should initialize to 0');
+    assert.strictEqual(ctx.camRecoilX, 0, 'camRecoilX should initialize to 0');
+    assert.strictEqual(ctx.camRecoilY, 0, 'camRecoilY should initialize to 0');
+    assert.strictEqual(ctx.camFovKick, 0, 'camFovKick should initialize to 0');
     assert.strictEqual(ctx.roundIntroAnnounced, false, 'roundIntroAnnounced should initialize to false');
+    assert.strictEqual(typeof ctx.xrayCinematicTimer, 'undefined', 'legacy xrayCinematicTimer must be removed');
+    assert.strictEqual(typeof ctx.xrayElapsed, 'undefined', 'legacy xrayElapsed must be removed');
+    assert.strictEqual(typeof ctx.xrayPhaseApplied, 'undefined', 'legacy xrayPhaseApplied must be removed');
+    assert.strictEqual(typeof ctx.xrayContext, 'undefined', 'legacy xrayContext must be removed');
+    assert.strictEqual(typeof ctx.fatalityFocusFighter, 'undefined', 'legacy fatalityFocusFighter must be removed');
     console.log('[PASS] index.html & js/core/state.js coherence');
 }
 
@@ -220,7 +237,7 @@ function testSoundEngine() {
     console.log('[PASS] SoundEngine settings, toggle preservation & music loop');
 }
 
-function testEffectsAndXRayAndTeardown() {
+function testEffectsAndSuperAndTeardown() {
     const THREE = makeThreeStub();
     const addedToScene = [];
     const scene = {
@@ -228,11 +245,20 @@ function testEffectsAndXRayAndTeardown() {
         remove() {}
     };
     const bodyEl = createMockElement('body');
+    const domById = {
+        superFlashOverlay: createMockElement('div'),
+        pauseModal: createMockElement('div'),
+        postMatchMenu: createMockElement('div'),
+        duelTopHudOverlay: createMockElement('div')
+    };
     const document = {
         body: bodyEl,
-        getElementById: () => createMockElement('div')
+        getElementById: (id) => domById[id] || createMockElement('div')
     };
 
+    let superOverlayShown = 0;
+    let superOverlayHidden = 0;
+    let lightsResetCalled = 0;
     const ctx = vm.createContext({
         THREE,
         localStorage: makeStorage(),
@@ -247,8 +273,16 @@ function testEffectsAndXRayAndTeardown() {
         console,
         Math,
         particles3D: [],
-        STAGE_LEFT_3D: -18,
-        STAGE_RIGHT_3D: 18,
+        STAGE_LEFT_3D: -11,
+        STAGE_RIGHT_3D: 11,
+        CombatState: {
+            IDLE: 'IDLE',
+            ATTACK_WINDUP: 'ATTACK_WINDUP',
+            ATTACK_ACTIVE: 'ATTACK_ACTIVE',
+            ATTACK_RECOVERY: 'ATTACK_RECOVERY',
+            BLOCK_DEFLECTED: 'BLOCK_DEFLECTED',
+            WAKE_UP_STAND: 'WAKE_UP_STAND'
+        },
         camera3D: { position: { set() {} }, lookAt() {} },
         scene3D: scene,
         renderer3D: null,
@@ -258,21 +292,42 @@ function testEffectsAndXRayAndTeardown() {
             playBoneCrack() {},
             playRoar() {},
             playKO() {},
+            playSuperFlash() {},
+            playKoFinish() {},
+            playDash() {},
+            playParry() {},
+            playBlock() {},
+            playGuardBreak() {},
+            playCooldownWarning() {},
             startMusicLoop() {},
             stopMusicLoop() {}
         },
         showAnnouncer() {},
+        clearAnnouncer() {},
         spawnFloatingPopup() {},
-        triggerHitstop() {},
+        showSuperFlashOverlay() {
+            superOverlayShown++;
+            domById.superFlashOverlay.classList.remove('hidden');
+        },
+        hideSuperFlashOverlay() {
+            superOverlayHidden++;
+            domById.superFlashOverlay.classList.add('hidden');
+        },
+        resetBattleLighting() { lightsResetCalled++; },
         triggerGamepadRumble() {},
-        triggerXRaySkeletonFlash() {},
         applyFighterTextures() {},
         updateFighterHudDOM() {},
         updateHealthBars() {},
         updateBattleHUD() {},
+        updateBattleHUDCooldowns() {},
+        showComboHUD() {},
+        hideComboHUD() {},
+        handlePlayer1Inputs() {},
+        handlePlayer2Inputs() {},
+        updateAI() {},
         animateDino3DRig() {},
         performance: { now: () => 1000 },
-        setTimeout: () => { throw new Error('executeXRayMove must not rely on setTimeout'); },
+        setTimeout: () => { throw new Error('executeSuperAttack / updateSuperAttack must not rely on setTimeout'); },
         clearTimeout: () => {},
         clearInterval: () => {}
     });
@@ -283,6 +338,7 @@ function testEffectsAndXRayAndTeardown() {
     ctx.particles3D = [];
     loadIntoContext(ctx, 'js/core/effects.js');
     loadIntoContext(ctx, 'js/core/combat.js');
+    loadIntoContext(ctx, 'js/core/super-attack.js');
     loadIntoContext(ctx, 'js/core/match.js');
 
     // 1) Gore toggle in spawn3DBloodAndBones
@@ -301,88 +357,129 @@ function testEffectsAndXRayAndTeardown() {
     assert(goreColors.some(c => c === 0x7f1d1d || c === 0xdc2626 || c === 0xfef3c7),
         'goreAndBloodEnabled=true should spawn blood/bone particles');
 
-    // 2) Pause-safe X-Ray execution & teardown
-    let damageDealt = 0;
-    let takeHitCalls = 0;
+    // 2) Pause-safe Real Super Attack lifecycle (Flash -> Startup -> 3-Beat Cinematic -> Cleanup)
     let f1Destroyed = false;
     let f2Destroyed = false;
     const f1 = {
-        x: -2, y: 0, facing: 1, rage: 100, hp: 500, maxHp: 1000, isDead: false,
-        vx: 0, vy: 0, onGround: true, state: 'idle', isBlocking: false, comboCount: 0, comboTimer: 0,
-        hitstun: 0, blockstun: 0, stunTimer: 0, attackTimer: 0, specialCooldown: 0,
-        mesh: new THREE.Group(),
-        group: new THREE.Group(),
+        isP1: true, x: -1.5, y: 0, groundY: 0, facing: 1, rage: 100, hp: 900, maxHp: 1000, roundsWon: 0,
+        isDead: false, isDizzy: false, vx: 0, vy: 0, isBlocking: false, blockType: 'none', guardStamina: 100,
+        comboCount: 0, comboDamage: 0, hitStun: 0, action: 'idle', actionTimer: 0, actionDuration: 0,
+        hasHitCurrentAttack: false, hasHitConfirmed: false, dashTimer: 0, dashCooldown: 0,
+        superInvulnTimer: 0, isSuperAttacker: false, isSuperTarget: false, superBeatStage: 0,
+        hitFlashTimer: 0, hitFlashColor: 0xffffff, hitShakeOffset: 0, landingSquashTimer: 0,
+        bodyRadius: 1.32, weightClass: 'brawler', gravityScale: 1.0, knockbackMult: 1.0,
         rig: { root: new THREE.Group() },
-        dino: { name: 'T-REX', fullName: 'Tyrannosaurus Rex', fatality: 'MORSURE', xrayTarget: 'CRÂNE', color: '#ef4444', stats: { pow: 100, speed: 60 } },
-        update() {},
-        triggerFlash() {},
-        takeHit() {},
-        takeDamage(dmg) {},
-        destroy() { f1Destroyed = true; },
-        enterPose() {}, setScale() {},
-        setAction() {}
+        dino: { id: 'trex', name: 'T-REX', fullName: 'Tyrannosaurus Rex', color: '#ef4444', stats: { pow: 100, spd: 60 } },
+        destroy() { f1Destroyed = true; }
     };
     const f2 = {
-        x: 0.5, y: 0, facing: -1, rage: 0, hp: 1000, maxHp: 1000, isDead: false,
-        vx: 0, vy: 0, onGround: true, state: 'idle', isBlocking: false, comboCount: 0, comboTimer: 0,
-        hitstun: 0, blockstun: 0, stunTimer: 0, attackTimer: 0, specialCooldown: 0,
-        mesh: new THREE.Group(),
-        group: new THREE.Group(),
+        isP1: false, x: 1.2, y: 0, groundY: 0, facing: -1, rage: 0, hp: 1000, maxHp: 1000, roundsWon: 0,
+        isDead: false, isDizzy: false, vx: 0, vy: 0, isBlocking: false, blockType: 'none', guardStamina: 100,
+        comboCount: 0, comboDamage: 0, hitStun: 0, action: 'idle', actionTimer: 0, actionDuration: 0,
+        hasHitCurrentAttack: false, hasHitConfirmed: false, dashTimer: 0, dashCooldown: 0,
+        superInvulnTimer: 0, isSuperAttacker: false, isSuperTarget: false, superBeatStage: 0,
+        hitFlashTimer: 0, hitFlashColor: 0xffffff, hitShakeOffset: 0, landingSquashTimer: 0,
+        bodyRadius: 1.32, weightClass: 'brawler', gravityScale: 1.0, knockbackMult: 1.0,
         rig: { root: new THREE.Group() },
-        dino: { name: 'SPINOSAURE', fullName: 'Spinosaurus Aegyptiacus', color: '#38bdf8', stats: { pow: 95, speed: 65 } },
-        update() {},
-        triggerFlash() {},
-        takeHit(dmg) { takeHitCalls++; damageDealt += dmg; this.hp = Math.max(0, this.hp - dmg); },
-        takeDamage(dmg) { takeHitCalls++; damageDealt += dmg; this.hp = Math.max(0, this.hp - dmg); },
-        destroy() { f2Destroyed = true; },
-        enterPose() {},
-        setAction() {}
+        dino: { id: 'spinosaurus', name: 'SPINOSAURE', fullName: 'Spinosaurus Aegyptiacus', color: '#38bdf8', stats: { pow: 95, spd: 65 } },
+        destroy() { f2Destroyed = true; }
     };
     ctx.fighter1 = f1;
     ctx.fighter2 = f2;
-    ctx.roundOver = false;
-    ctx.ROUND_OVER = false;
-
-    ctx.executeXRayMove(f1, f2);
-    assert.strictEqual(f1.rage, 0, 'X-Ray should consume rage');
-    assert(ctx.xrayCinematicTimer > 0, 'X-Ray timer should be active');
-    assert.strictEqual(ctx.xrayPhaseApplied, 1, 'Phase 1 triggers on initiation');
-    assert(ctx.xrayContext !== null, 'xrayContext should be populated');
-    const hpAfterHit1 = f2.hp;
-    assert(hpAfterHit1 < 1000, 'Phase 1 should deal initial X-Ray hit');
-
-    // Ensure pause blocks X-Ray timer progress
-    ctx.isMatchPaused = true;
-    ctx.updateBattle3D(0.9);
-    assert.strictEqual(ctx.xrayPhaseApplied, 1, 'Paused updateBattle3D must not advance X-Ray phases');
-    assert.strictEqual(f2.hp, hpAfterHit1, 'Paused X-Ray must not deal delayed hits');
-
-    // Unpause and advance through phases 2 (>=0.75s) and 3 (>=1.50s) at ~50fps (accounts for hitstop)
+    ctx.matchState = 'fight';
     ctx.isMatchPaused = false;
-    ctx.matchState = 'battle';
-    ctx.roundIntroTimer = 0;
-    for (let i = 0; i < 48; i++) ctx.updateBattle3D(0.02);
-    assert.strictEqual(ctx.xrayPhaseApplied, 2, 'X-Ray phase 2 should trigger at xrayElapsed >= 0.75s');
-    const hpAfterHit2 = f2.hp;
-    assert(hpAfterHit2 < hpAfterHit1, 'Phase 2 should apply second X-Ray impact');
 
-    for (let i = 0; i < 48; i++) ctx.updateBattle3D(0.02);
-    assert.strictEqual(ctx.xrayPhaseApplied, 3, 'X-Ray phase 3 should trigger at xrayElapsed >= 1.50s');
-    assert(f2.hp < hpAfterHit2, 'Unpaused X-Ray should apply phase 3 damage deterministically');
+    const started = ctx.executeSuperAttack(f1, f2);
+    assert.strictEqual(started, true, 'executeSuperAttack should succeed at 100% Rage');
+    assert.strictEqual(f1.rage, 0, 'Super Attack should consume 100% Rage');
+    assert(ctx.superState !== null, 'superState should be populated');
+    assert.strictEqual(ctx.superState.phase, 'flash', 'Super Attack should start in flash phase');
+    assert(f1.superInvulnTimer > 0, 'Super Attack should grant startup invulnerability');
+    assert(superOverlayShown >= 1, 'Super Flash should show #superFlashOverlay');
 
-    // 3) teardownActiveBattle resets X-Ray + pause state
-    ctx.xrayCinematicTimer = 1.5;
-    ctx.xrayElapsed = 0.4;
-    ctx.xrayPhaseApplied = 1;
+    // Ensure pause blocks Super Flash & updateBattle3D completely
+    ctx.isMatchPaused = true;
+    const flashTimerBeforePause = ctx.superState.timer;
+    ctx.updateBattle3D(0.9, 10);
+    assert.strictEqual(ctx.superState.phase, 'flash', 'Paused updateBattle3D must not exit Super Flash');
+    assert.strictEqual(ctx.superState.timer, flashTimerBeforePause, 'Paused updateBattle3D must not decrement superState.timer');
+    assert.strictEqual(f2.hp, 1000, 'Paused Super must not deal damage');
+
+    // Unpause and step past 0.45s Flash -> Startup -> Connect into Cinematic
+    ctx.isMatchPaused = false;
+    let simT = 10;
+    for (let i = 0; i < 40 && ctx.superState && ctx.superState.phase !== 'cinematic'; i++) {
+        simT += 0.02;
+        ctx.updateBattle3D(0.02, simT);
+    }
+    assert(ctx.superState && ctx.superState.phase === 'cinematic',
+        `Super should connect into cinematic phase, got: ${ctx.superState && ctx.superState.phase}`);
+    assert.strictEqual(ctx.superState.hasConnected, true, 'superState.hasConnected should be true');
+
+    // Step to Beat 1 (>= 0.35s)
+    for (let i = 0; i < 30 && ctx.superState && ctx.superState.beatApplied < 1; i++) {
+        simT += 0.02;
+        ctx.updateBattle3D(0.02, simT);
+    }
+    assert.strictEqual(ctx.superState.beatApplied, 1, 'Beat 1 should trigger deterministically');
+    const hpAfterBeat1 = f2.hp;
+    assert(hpAfterBeat1 < 1000, 'Beat 1 should deal Super damage');
+
+    // Ensure pause mid-cinematic freezes beats and HP
+    ctx.isMatchPaused = true;
+    ctx.updateBattle3D(1.0, simT + 1.0);
+    assert.strictEqual(ctx.superState.beatApplied, 1, 'Paused cinematic must not advance to Beat 2');
+    assert.strictEqual(f2.hp, hpAfterBeat1, 'Paused cinematic must not deal Beat 2 damage');
+
+    // Unpause and advance through Beats 2 & 3 until Super finishes cleanly
+    ctx.isMatchPaused = false;
+    let sawBeat2 = false;
+    let sawBeat3 = false;
+    let hpAfterBeat2 = hpAfterBeat1;
+    for (let i = 0; i < 160 && ctx.superState; i++) {
+        simT += 0.02;
+        ctx.updateBattle3D(0.02, simT);
+        if (ctx.superState && ctx.superState.beatApplied === 2 && !sawBeat2) {
+            sawBeat2 = true;
+            hpAfterBeat2 = f2.hp;
+        }
+        if (ctx.superState && ctx.superState.beatApplied === 3) {
+            sawBeat3 = true;
+        }
+    }
+    assert(sawBeat2, 'Unpaused Super should trigger Beat 2');
+    assert(hpAfterBeat2 < hpAfterBeat1, 'Beat 2 should deal incremental damage');
+    assert(sawBeat3, 'Unpaused Super should trigger Beat 3');
+    assert(f2.hp < hpAfterBeat2, 'Beat 3 should deal climax damage');
+    assert.strictEqual(ctx.superState, null, 'superState should clean up to null after 3-beat cinematic');
+    assert.strictEqual(f1.isSuperAttacker, false, 'Attacker isSuperAttacker flag should clear');
+    assert.strictEqual(f2.isSuperTarget, false, 'Defender isSuperTarget flag should clear');
+
+    // 3) teardownActiveBattle resets Super + Slow-Mo + Recoil + Pause state cleanly
+    ctx.superState = { phase: 'flash', timer: 0.3, attacker: f1, defender: f2 };
+    ctx.battleTimeScale = 0.18;
+    ctx.koSlowMoTimer = 0.85;
+    ctx.koPendingData = { winner: f1, loser: f2, isExtinctionFinish: true };
+    ctx.hitstopTimer = 0.12;
+    ctx.hitstopTarget = f2;
+    ctx.camRecoilX = 0.5;
+    ctx.camRecoilY = -0.2;
+    ctx.camFovKick = 3.2;
     ctx.isMatchPaused = true;
     ctx.teardownActiveBattle();
     assert.strictEqual(f1Destroyed && f2Destroyed, true, 'teardownActiveBattle should destroy both fighters');
-    assert.strictEqual(ctx.xrayCinematicTimer, 0, 'teardownActiveBattle should zero xrayCinematicTimer');
-    assert.strictEqual(ctx.xrayElapsed, 0, 'teardownActiveBattle should zero xrayElapsed');
-    assert.strictEqual(ctx.xrayPhaseApplied, 0, 'teardownActiveBattle should zero xrayPhaseApplied');
-    assert.strictEqual(ctx.xrayContext, null, 'teardownActiveBattle should clear xrayContext');
+    assert.strictEqual(ctx.superState, null, 'teardownActiveBattle should clear superState');
+    assert.strictEqual(ctx.battleTimeScale, 1.0, 'teardownActiveBattle should reset battleTimeScale to 1.0');
+    assert.strictEqual(ctx.koSlowMoTimer, 0, 'teardownActiveBattle should zero koSlowMoTimer');
+    assert.strictEqual(ctx.koPendingData, null, 'teardownActiveBattle should clear koPendingData');
+    assert.strictEqual(ctx.hitstopTimer, 0, 'teardownActiveBattle should zero hitstopTimer');
+    assert.strictEqual(ctx.hitstopTarget, null, 'teardownActiveBattle should clear hitstopTarget');
+    assert.strictEqual(ctx.camRecoilX, 0, 'teardownActiveBattle should zero camRecoilX');
+    assert.strictEqual(ctx.camRecoilY, 0, 'teardownActiveBattle should zero camRecoilY');
+    assert.strictEqual(ctx.camFovKick, 0, 'teardownActiveBattle should zero camFovKick');
     assert.strictEqual(ctx.isMatchPaused, false, 'teardownActiveBattle should reset isMatchPaused');
-    console.log('[PASS] Effects gore toggle, pause-safe X-Ray timing & teardownActiveBattle');
+    assert(domById.superFlashOverlay.classList.contains('hidden'), 'teardownActiveBattle should hide #superFlashOverlay');
+    console.log('[PASS] Effects gore toggle, pause-safe Real Super lifecycle & teardownActiveBattle');
 }
 
 function testMovesModalAndVictoryModal() {
@@ -638,7 +735,7 @@ function main() {
     console.log('=== RUNNING EXTINCTION KOMBAT 3D COHERENCE OVERHAUL SUITE ===');
     testStateAndHtml();
     testSoundEngine();
-    testEffectsAndXRayAndTeardown();
+    testEffectsAndSuperAndTeardown();
     testMovesModalAndVictoryModal();
     testAiDifficultyTiers();
     console.log('=== ALL COHERENCE OVERHAUL TESTS PASSED! ===');

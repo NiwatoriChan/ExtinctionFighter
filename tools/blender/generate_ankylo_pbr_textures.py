@@ -1,485 +1,651 @@
 """
 tools/blender/generate_ankylo_pbr_textures.py
 Generates high-resolution 1024x1024 / 512x512 / 256x256 PBR textures for the
-Ankylosaurus magniventris GLB model in assets/textures/fighters/, matching the
-reference portrait (assets/portraits/ankylo.png) and js/fighters/ankylosaurus.js.
+Ankylosaurus magniventris GLB model in assets/textures/fighters/, harmonizing:
+  - Game portrait palette & details (assets/portraits/ankylo.png):
+    deep charcoal-olive & moss-slate armored cobblestone hide, warm pale
+    sandstone-taupe pebbled throat/jowl/belly scales, heavily cobbled cranial
+    caputegulae with dark mortar crevices, weathered honey-ochre fluted cranial
+    horns, compact dark charcoal-umber turtle-like keratinous beak, weathered
+    olive-stone keeled osteoderm scutes, and fierce golden-amber reptile iris.
+  - Paleontological life reconstruction of Ankylosaurus magniventris:
+    interlocking polygonal armored hide, transverse dark olive-slate carapace
+    banding, weathered mineral-taupe osteoderm ridges, and a heavily pitted,
+    battle-scarred ossified boulder tail club.
+
+Pure numpy + stdlib zlib PNG writer so it runs seamlessly inside Blender's bundled
+Python (no external PIL dependency) as well as standalone Python.
 """
 
 import math
 import os
+import struct
+import zlib
 import numpy as np
-from PIL import Image, ImageDraw
-
-from generate_trex_pbr_textures import (
-    FastRNG,
-    _make_horizontal_gradient,
-    _make_vertical_gradient,
-    _quad_bezier_pts,
-    _composite_layer,
-    _height_to_normal_rgb,
-    _hex_to_rgb,
-)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 TEX_DIR = os.path.join(ROOT, "assets", "textures", "fighters")
 os.makedirs(TEX_DIR, exist_ok=True)
 
 
-def _draw_polygonal_scutes(color_img, b_draw, size, grid_cols, grid_rows, rng, palette_fn, is_cranium=False):
-    """Draw irregular cobblestone polygonal scutes onto albedo and heightmap."""
-    cw, ch = size / grid_cols, size / grid_rows
-    buckets = {}
+def _save_png_rgb(filepath, rgb_top_down):
+    """Write an (H, W, 3) uint8 RGB array (row 0 = top / UV v=1.0) using PNG Sub filter."""
+    arr = np.ascontiguousarray(rgb_top_down, dtype=np.uint8)
+    h, w, c = arr.shape
+    assert c == 3
+    sub = np.empty_like(arr)
+    sub[:, 0, :] = arr[:, 0, :]
+    sub[:, 1:, :] = (arr[:, 1:, :].astype(np.int16) - arr[:, :-1, :].astype(np.int16)) & 0xFF
+    raw = np.empty((h, w * 3 + 1), dtype=np.uint8)
+    raw[:, 0] = 1
+    raw[:, 1:] = sub.reshape(h, w * 3)
+    compressed = zlib.compress(raw.tobytes(), level=9)
 
-    for gy in range(grid_rows):
-        for gx in range(grid_cols):
-            cx = (gx + 0.18 + rng.rand() * 0.64) * cw
-            cy = (gy + 0.18 + rng.rand() * 0.64) * ch
-            u = cx / size
-            is_ventral = (not is_cranium) and (0.36 < u < 0.64)
-            scale_mult = 0.66 if is_ventral else (1.06 if (u < 0.22 or u > 0.78) else 0.92)
-            rx = cw * (0.40 + rng.rand() * 0.24) * scale_mult
-            ry = ch * (0.40 + rng.rand() * 0.24) * scale_mult
-            sides = 5 + int(rng.rand() * 3)
-            rot = rng.rand() * math.pi * 2.0
-            pts = [
-                (
-                    cx + math.cos(rot + (k / sides) * math.pi * 2.0) * rx * (0.82 + rng.rand() * 0.30),
-                    cy + math.sin(rot + (k / sides) * math.pi * 2.0) * ry * (0.82 + rng.rand() * 0.30),
-                )
-                for k in range(sides)
-            ]
-            key, fill_rgba = palette_fn(rng, u)
-            buckets.setdefault(key, (fill_rgba, []))[1].append(pts)
-            b_lum = int((154 if is_cranium else 142) + rng.rand() * 68)
-            b_draw.polygon(pts, fill=b_lum, outline=24 if is_cranium else 38)
+    def _chunk(tag, data):
+        crc = zlib.crc32(tag + data) & 0xFFFFFFFF
+        return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", crc)
 
-    outline_col = (20, 22, 18, 138) if is_cranium else (24, 26, 20, 112)
+    ihdr = struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)
+    png = b"\x89PNG\r\n\x1a\n" + _chunk(b"IHDR", ihdr) + _chunk(b"IDAT", compressed) + _chunk(b"IEND", b"")
+    with open(filepath, "wb") as f:
+        f.write(png)
 
-    def _paint(d):
-        for fill_rgba, polys in buckets.values():
-            for pts in polys:
-                d.polygon(pts, fill=fill_rgba, outline=outline_col)
 
-    return _composite_layer(color_img, _paint)
+def _hex_to_rgb(h):
+    h = h.lstrip("#")
+    return np.array([int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)], dtype=np.float32)
+
+
+def _gradient_1d(coords, stops):
+    """Evaluate multi-stop RGB gradient at coords in [0, 1]; returns (..., 3) float32 in [0, 255]."""
+    pos = np.array([s[0] for s in stops], dtype=np.float32)
+    cols = np.stack([_hex_to_rgb(s[1]) for s in stops], axis=0)
+    out = np.empty(coords.shape + (3,), dtype=np.float32)
+    for ch in range(3):
+        out[..., ch] = np.interp(coords, pos, cols[:, ch])
+    return out
+
+
+def _tileable_value_noise(size, freq, seed=42):
+    """Smooth tileable 2D value noise in [0, 1] at resolution size x size."""
+    rng = np.random.default_rng(seed)
+    grid = rng.random((freq, freq), dtype=np.float32)
+    ys = np.linspace(0.0, freq, size, endpoint=False, dtype=np.float32)
+    xs = np.linspace(0.0, freq, size, endpoint=False, dtype=np.float32)
+    iy = np.floor(ys).astype(np.int32)
+    ix = np.floor(xs).astype(np.int32)
+    fy = ys - iy
+    fx = xs - ix
+    sy = fy * fy * fy * (fy * (fy * 6.0 - 15.0) + 10.0)
+    sx = fx * fx * fx * (fx * (fx * 6.0 - 15.0) + 10.0)
+    iy1 = (iy + 1) % freq
+    ix1 = (ix + 1) % freq
+    c00 = grid[iy[:, None], ix[None, :]]
+    c10 = grid[iy[:, None], ix1[None, :]]
+    c01 = grid[iy1[:, None], ix[None, :]]
+    c11 = grid[iy1[:, None], ix1[None, :]]
+    top = c00 + (c10 - c00) * sx[None, :]
+    bot = c01 + (c11 - c01) * sx[None, :]
+    return top + (bot - top) * sy[:, None]
+
+
+def _tileable_fbm(size, base_freq=4, octaves=4, seed=101):
+    """Multi-octave tileable fBm noise normalized to [0, 1]."""
+    acc = np.zeros((size, size), dtype=np.float32)
+    amp = 1.0
+    total = 0.0
+    freq = base_freq
+    for oct_i in range(octaves):
+        acc += amp * _tileable_value_noise(size, freq, seed=seed + oct_i * 73)
+        total += amp
+        amp *= 0.5
+        freq *= 2
+    return acc / total
+
+
+def _voronoi_scales(size, nx, ny, seed=7, jitter=0.68, warp_u=None, warp_v=None):
+    """
+    Tileable cellular Voronoi generator for true snug-fitting reptilian cobblestone scales.
+    Returns (edge_dist, d1, cell_val).
+    """
+    rng = np.random.default_rng(seed)
+    off_x = 0.5 + (rng.random((ny, nx)).astype(np.float32) - 0.5) * jitter
+    off_y = 0.5 + (rng.random((ny, nx)).astype(np.float32) - 0.5) * jitter
+    cell_hash = rng.random((ny, nx)).astype(np.float32)
+
+    u = np.linspace(0.0, 1.0, size, endpoint=False, dtype=np.float32)[None, :]
+    v = np.linspace(0.0, 1.0, size, endpoint=False, dtype=np.float32)[:, None]
+    if warp_u is not None:
+        u = (u + warp_u) % 1.0
+    if warp_v is not None:
+        v = (v + warp_v) % 1.0
+
+    gx = u * nx
+    gy = v * ny
+    ix = np.floor(gx).astype(np.int32) % nx
+    iy = np.floor(gy).astype(np.int32) % ny
+    fx = gx - np.floor(gx)
+    fy = gy - np.floor(gy)
+
+    d1 = np.full((size, size), 1e6, dtype=np.float32)
+    d2 = np.full((size, size), 1e6, dtype=np.float32)
+    cval = np.zeros((size, size), dtype=np.float32)
+
+    for dy in (-1, 0, 1):
+        ny_idx = (iy + dy) % ny
+        for dx in (-1, 0, 1):
+            nx_idx = (ix + dx) % nx
+            rx = (dx + off_x[ny_idx, nx_idx]) - fx
+            ry = (dy + off_y[ny_idx, nx_idx]) - fy
+            dist = np.sqrt(rx * rx + ry * ry)
+
+            closer1 = dist < d1
+            d2 = np.where(closer1, d1, np.minimum(d2, dist))
+            d1 = np.where(closer1, dist, d1)
+            cval = np.where(closer1, cell_hash[ny_idx, nx_idx], cval)
+
+    edge_dist = d2 - d1
+    return edge_dist, d1, cval
+
+
+def _height_to_normal_top_down(height_01, strength=3.8):
+    """
+    Convert a top-down [0, 1] heightmap (row 0 = top / UV v=1.0) to OpenGL/glTF 2.0
+    tangent-space RGB normal map.
+    """
+    h = height_01.astype(np.float32)
+    dz_dx = (
+        (np.roll(h, -1, axis=1) - np.roll(h, 1, axis=1)) * 0.50
+        + (np.roll(np.roll(h, -1, axis=1), -1, axis=0) - np.roll(np.roll(h, 1, axis=1), -1, axis=0)) * 0.25
+        + (np.roll(np.roll(h, -1, axis=1), 1, axis=0) - np.roll(np.roll(h, 1, axis=1), 1, axis=0)) * 0.25
+    ) * strength
+    dz_dy = (
+        (np.roll(h, 1, axis=0) - np.roll(h, -1, axis=0)) * 0.50
+        + (np.roll(np.roll(h, 1, axis=0), -1, axis=1) - np.roll(np.roll(h, -1, axis=0), -1, axis=1)) * 0.25
+        + (np.roll(np.roll(h, 1, axis=0), 1, axis=1) - np.roll(np.roll(h, -1, axis=0), 1, axis=1)) * 0.25
+    ) * strength
+
+    nx = -dz_dx
+    ny = -dz_dy
+    nz = np.ones_like(h)
+    inv_len = 1.0 / np.sqrt(nx * nx + ny * ny + nz * nz)
+    nx *= inv_len
+    ny *= inv_len
+    nz *= inv_len
+
+    rgb = np.empty(h.shape + (3,), dtype=np.uint8)
+    rgb[..., 0] = np.clip((nx * 0.5 + 0.5) * 255.0, 0.0, 255.0).astype(np.uint8)
+    rgb[..., 1] = np.clip((ny * 0.5 + 0.5) * 255.0, 0.0, 255.0).astype(np.uint8)
+    rgb[..., 2] = np.clip((nz * 0.5 + 0.5) * 255.0, 0.0, 255.0).astype(np.uint8)
+    return rgb
 
 
 def generate_body_hide_maps():
-    """Generate 1024x1024 armored carapace hide albedo, grayscale bump, and tangent normal map."""
+    """
+    1024x1024 Ankylosaurus magniventris armored carapace hide albedo, grayscale bump
+    (preserved for build_minions_glb.py / build_campaign_bosses_glb.py), and tangent normal.
+    UV u=0/1 -> dorsal carapace (deep weathered charcoal-olive & slate-moss),
+    u=0.25/0.75 -> armored flanks (weathered olive-stone & warm taupe),
+    u=0.50 -> ventral throat/chest/belly (warm pale sandstone-buff pebble scales).
+    """
     size = 1024
-    rng = FastRNG(2041)
+    u_row = np.linspace(0.0, 1.0, size, endpoint=False, dtype=np.float32)
+    v_col = np.linspace(1.0, 0.0, size, endpoint=False, dtype=np.float32)
+    uu, vv = np.meshgrid(u_row, v_col)
 
+    # 1. Portrait-faithful dorsal-to-ventral gradient matching assets/portraits/ankylo.png
+    # Broad warm sandstone-taupe throat/chest/belly zone (u=0.32..0.68) so pebbled jowl flows seamlessly into neck!
     stops = [
-        (0.00, "#252a22"),  # Dorsal deep charcoal-moss ridge
-        (0.14, "#3b4335"),  # Upper back weathered slate-olive armor
-        (0.28, "#58614f"),  # Mid flanks slate-moss with warm taupe undertones
-        (0.40, "#7d7766"),  # Lower flank stone-taupe transition
-        (0.50, "#a69e8b"),  # Ventral warm pale stone-buff pebble hide
-        (0.60, "#7d7766"),
-        (0.72, "#58614f"),
-        (0.86, "#3b4335"),
-        (1.00, "#252a22"),
+        (0.00, "#2f3628"),  # Deep dorsal weathered charcoal-olive carapace
+        (0.14, "#444c3a"),  # Upper carapace weathered slate-moss
+        (0.25, "#5d624c"),  # Mid-flank olive-stone with warm mineral undertones
+        (0.34, "#7f7960"),  # Lower flank & side-neck stone-taupe transition
+        (0.42, "#9c9176"),  # Sub-ventral warm weathered sandstone-taupe
+        (0.50, "#aea286"),  # Ventral chest, throat & belly warm stone-buff pebbles
+        (0.58, "#9c9176"),
+        (0.66, "#7f7960"),
+        (0.75, "#5d624c"),
+        (0.86, "#444c3a"),
+        (1.00, "#2f3628"),
     ]
-    col_arr = _make_horizontal_gradient(size, stops)
-    color_img = Image.fromarray(col_arr, mode="RGB").convert("RGBA")
-    bump_img = Image.new("L", (size, size), 114)
-    b_draw = ImageDraw.Draw(bump_img, "L")
+    base_rgb = _gradient_1d(uu, stops)
 
-    # 1. Transverse inter-band armor folds & gular/pectoral skin creases
-    fold_lines = []
-    for y in range(0, size, 14):
-        jitter = (rng.rand() - 0.5) * 5.0
-        pts = _quad_bezier_pts(
-            (size * 0.14, y + jitter),
-            (size * 0.50, y + 10.0 + jitter),
-            (size * 0.86, y - jitter),
-            steps=18,
-        )
-        fold_lines.append(pts)
-        b_draw.line(pts, fill=62, width=3)
+    # 2. Organic weathered armor mottling & subtle dark transverse carapace bands
+    fbm_macro = _tileable_fbm(size, base_freq=4, octaves=4, seed=2041)
+    fbm_mid = _tileable_fbm(size, base_freq=8, octaves=4, seed=2089)
+    fbm_fine = _tileable_fbm(size, base_freq=24, octaves=3, seed=2153)
 
-    color_img = _composite_layer(
-        color_img,
-        lambda d: [d.line(pts, fill=(22, 24, 18, 68), width=2) for pts in fold_lines],
+    dorsal_mask = np.clip((np.abs(uu - 0.5) - 0.12) / 0.24, 0.0, 1.0)
+    band_wave = np.sin((vv * 8.0 + fbm_macro * 2.4) * math.pi * 2.0)
+    dark_band = np.clip((band_wave + 0.12) * 0.72 + (fbm_mid - 0.48) * 0.85, 0.0, 1.0) * dorsal_mask
+    dark_col = np.array([24.0, 28.0, 20.0], dtype=np.float32)
+    mineral_col = np.array([152.0, 142.0, 114.0], dtype=np.float32)
+
+    col = base_rgb * (1.0 - 0.42 * dark_band[..., None]) + dark_col * (0.42 * dark_band[..., None])
+    mineral_dust = np.clip((fbm_mid - 0.46) * 2.2, 0.0, 1.0) * (1.0 - dark_band * 0.55) * dorsal_mask
+    col = col * (1.0 - 0.28 * mineral_dust[..., None]) + mineral_col * (0.28 * mineral_dust[..., None])
+
+    # 3. Dual-scale snug Voronoi cobblestone osteoderm hide!
+    # Bold armored mosaic scutes on back & shoulders, snug rounded pebbles on chest/belly/legs
+    warp_u = (fbm_mid - 0.5) * 0.016
+    warp_v = (_tileable_fbm(size, base_freq=8, octaves=3, seed=2213) - 0.5) * 0.016
+    edge_armor, d1_armor, cv_armor = _voronoi_scales(size, 52, 52, seed=3109, jitter=0.72, warp_u=warp_u, warp_v=warp_v)
+    edge_peb, d1_peb, cv_peb = _voronoi_scales(size, 98, 98, seed=3301, jitter=0.68, warp_u=warp_u * 0.7, warp_v=warp_v * 0.7)
+
+    ventral_blend = np.exp(-((uu - 0.5) / 0.16) ** 2)
+    # Chunkier, flatter-topped beveled polygonal armor tiles dorsally; rounder snug pebbles ventrally
+    dome_armor = np.clip(edge_armor / 0.14, 0.0, 1.0) ** 0.44 * (1.0 - 0.18 * np.clip(d1_armor, 0.0, 1.0) ** 2)
+    dome_peb = np.clip(edge_peb / 0.18, 0.0, 1.0) ** 0.54 * (1.0 - 0.22 * np.clip(d1_peb, 0.0, 1.0) ** 2)
+
+    scale_height = dome_armor * (1.0 - 0.72 * ventral_blend) + dome_peb * (0.28 + 0.72 * ventral_blend)
+    mortar_armor = 1.0 - np.clip(edge_armor / 0.095, 0.0, 1.0)
+    mortar_peb = 1.0 - np.clip(edge_peb / 0.110, 0.0, 1.0)
+    mortar = mortar_armor * (1.0 - 0.65 * ventral_blend) + mortar_peb * (0.35 + 0.65 * ventral_blend)
+    cell_var = cv_armor * (1.0 - ventral_blend) + cv_peb * ventral_blend
+
+    # 4. Scattered small raised ossified dermal rosettes embedded between carapace scutes
+    _, d1_ros, cv_ros = _voronoi_scales(size, 20, 20, seed=4111, jitter=0.78)
+    ros_active = (cv_ros > 0.70).astype(np.float32) * dorsal_mask
+    ros_bump = np.clip(1.0 - d1_ros / 0.28, 0.0, 1.0) ** 1.35 * ros_active
+
+    # 5. Subtle organic transverse dermal flex creases across neck/flanks
+    fold_wave = 0.5 + 0.5 * np.cos((vv * 14.0 + fbm_macro * 2.6 + np.abs(uu - 0.5) * 0.9) * math.pi * 2.0)
+    fold_groove = (np.clip((0.22 - fold_wave) / 0.22, 0.0, 1.0) ** 1.8) * (0.35 + 0.65 * fbm_mid)
+
+    # Shade albedo with per-scale tonal diversity, crisp dark AO mortar seams & sunlit crowns
+    scale_tint = (cell_var - 0.5) * 32.0
+    col = col + scale_tint[..., None] * np.array([1.0, 0.96, 0.80], dtype=np.float32)
+
+    mortar_col = np.array([15.0, 17.0, 12.0], dtype=np.float32)
+    col = col * (1.0 - 0.66 * mortar[..., None]) + mortar_col * (0.66 * mortar[..., None])
+
+    crown_hi = np.clip((scale_height - 0.60) / 0.40, 0.0, 1.0) * 0.24 + ros_bump * 0.30
+    hi_col = np.array([178.0, 168.0, 138.0], dtype=np.float32)
+    col = col * (1.0 - crown_hi[..., None]) + hi_col * crown_hi[..., None]
+
+    # Micro stone-grain patina across each scale surface
+    col = col + ((fbm_fine - 0.5) * 16.0)[..., None] * np.array([1.0, 0.96, 0.86], dtype=np.float32)
+    col = col * (1.0 - 0.16 * fold_groove[..., None])
+
+    height = np.clip(
+        0.34
+        + 0.46 * scale_height
+        - 0.24 * mortar
+        + 0.26 * ros_bump
+        - 0.12 * fold_groove
+        + (fbm_fine - 0.5) * 0.08,
+        0.0,
+        1.0,
     )
 
-    # 2. 80x80 multi-scale polygonal cobblestone scales & pebbled ventral ossicles
-    def body_palette(r, u):
-        s = r.rand()
-        is_ventral = 0.36 < u < 0.64
-        if is_ventral:
-            if s > 0.64:
-                return ("v_light", (184, 176, 156, 52))
-            if s < 0.28:
-                return ("v_dark", (94, 88, 74, 54))
-            return ("v_mid", (152, 144, 126, 46))
-        if s > 0.68:
-            return ("d_light", (134, 130, 108, 48))
-        if s < 0.30:
-            return ("d_dark", (28, 32, 24, 62))
-        return ("d_mid", (84, 92, 74, 46))
+    albedo_u8 = np.clip(col, 0.0, 255.0).astype(np.uint8)
+    bump_gray = np.clip(height * 255.0, 0.0, 255.0).astype(np.uint8)
+    bump_rgb = np.stack([bump_gray, bump_gray, bump_gray], axis=-1)
+    normal_rgb = _height_to_normal_top_down(height, strength=4.6)
 
-    color_img = _draw_polygonal_scutes(color_img, b_draw, size, 108, 108, rng, body_palette, is_cranium=False)
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_albedo.png"), albedo_u8)
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_bump.png"), bump_rgb)
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_normal.png"), normal_rgb)
+    print("[TEX OK] ankylo_albedo/bump/normal.png")
 
-    # 3. 1,600 polygonal dermal osteoderm rosettes & raised mineral-taupe tubercles on dorsum/flanks
-    rosettes = []
-    for i in range(1600):
-        side = rng.rand() * 0.36 if (i % 2 == 0) else (1.0 - rng.rand() * 0.36)
-        x = side * size
-        y = rng.rand() * size
-        is_dorsal = side < 0.16 or side > 0.84
-        r = (2.8 + rng.rand() * 1.8) if is_dorsal else (2.2 + rng.rand() * 1.5)
-        sides = 6 + (1 if rng.rand() > 0.5 else 0)
-        rot = rng.rand() * math.pi * 2.0
-        pts = [
-            (
-                x + math.cos(rot + (k / sides) * math.pi * 2.0) * r * (0.78 + rng.rand() * 0.36),
-                y + math.sin(rot + (k / sides) * math.pi * 2.0) * r * (0.78 + rng.rand() * 0.36),
-            )
-            for k in range(sides)
-        ]
-        b_draw.polygon(pts, fill=234 if is_dorsal else 208, outline=32)
-        rosettes.append((pts, is_dorsal))
 
-    def draw_rosettes(d):
-        for pts, is_dorsal in rosettes:
-            fill_col = (146, 138, 114, 74) if is_dorsal else (118, 114, 94, 60)
-            d.polygon(pts, fill=fill_col, outline=(22, 24, 18, 132))
-
-    color_img = _composite_layer(color_img, draw_rosettes)
-
-    # 4. Subtle weathered mineral-moss highlight flecks in dorsal scute centers
-    moss_flecks = []
-    for i in range(1800):
-        d = (rng.rand() ** 1.4) * 0.28
-        u = d if (i % 2 == 0) else (1.0 - d)
-        fx = u * size
-        fy = rng.rand() * size
-        fr = 1.0 + rng.rand() * 2.2
-        moss_flecks.append((fx - fr, fy - fr, fx + fr, fy + fr, int(24 + rng.rand() * 34)))
-
-    color_img = _composite_layer(
-        color_img,
-        lambda d: [d.ellipse((x0, y0, x1, y1), fill=(138, 134, 108, a)) for x0, y0, x1, y1, a in moss_flecks],
-    )
-
-    color_out = os.path.join(TEX_DIR, "ankylo_albedo.png")
-    bump_out = os.path.join(TEX_DIR, "ankylo_bump.png")
-    normal_out = os.path.join(TEX_DIR, "ankylo_normal.png")
-    color_img.convert("RGB").save(color_out, "PNG", optimize=True)
-    # Preserve grayscale heightmap for build_minions_glb.py & build_campaign_bosses_glb.py
-    bump_img.convert("RGB").save(bump_out, "PNG", optimize=True)
-    _height_to_normal_rgb(bump_img, strength=3.5).save(normal_out, "PNG", optimize=True)
-    print(f"[TEX OK] {color_out}, {bump_out}, {normal_out}")
+def _draw_sdf_scratches(size, uu, vv, n_scratches, seed, min_len=0.08, max_len=0.28, width_range=(0.0025, 0.0055), v_min=0.18):
+    """Vectorized SDF battle-scar scratches (short linear/gently arched gouges, no contour loops)."""
+    rng = np.random.default_rng(seed)
+    mask = np.zeros((size, size), dtype=np.float32)
+    for _ in range(n_scratches):
+        x0 = rng.uniform(0.05, 0.95)
+        y0 = rng.uniform(v_min, 0.94)
+        length = rng.uniform(min_len, max_len)
+        ang = rng.uniform(-math.pi, math.pi)
+        x1 = x0 + math.cos(ang) * length
+        y1 = y0 + math.sin(ang) * length
+        w = rng.uniform(width_range[0], width_range[1])
+        dx = x1 - x0
+        dy = y1 - y0
+        len2 = dx * dx + dy * dy + 1e-10
+        # Periodic delta in U for seamless wrap
+        du = ((uu - x0 + 0.5) % 1.0) - 0.5
+        dv = vv - y0
+        t = np.clip((du * dx + dv * dy) / len2, 0.0, 1.0)
+        dist = np.sqrt((du - t * dx) ** 2 + (dv - t * dy) ** 2)
+        taper = np.maximum(0.0, np.sin(t * math.pi)) ** 0.6
+        w_eff = np.maximum(1e-4, w * taper)
+        s_val = np.clip(1.0 - (dist / w_eff) ** 1.6, 0.0, 1.0) * taper
+        mask = np.maximum(mask, s_val)
+    return mask
 
 
 def generate_cranium_armor_maps():
-    """Generate 1024x1024 fused cranial caputegulae & pebbled jowl albedo + tangent normal map."""
-    size = 1024
-    rng = FastRNG(6391)
+    """
+    640x640 portrait-faithful fused cranial caputegulae & pebbled jowl albedo + normal.
+    UV u=0/1 -> armored polygonal cranial mosaic tiles on crown/nasal bridge/brow,
+    u=0.25/0.75 -> cheek/orbital scales,
+    u=0.50 -> warm sandstone-taupe pebbled mandible/jowl/chin (matching portrait!).
+    """
+    size = 640
+    u_row = np.linspace(0.0, 1.0, size, endpoint=False, dtype=np.float32)
+    v_col = np.linspace(1.0, 0.0, size, endpoint=False, dtype=np.float32)
+    uu, vv = np.meshgrid(u_row, v_col)
 
     stops = [
-        (0.00, "#2a3026"),  # Dorsal fused caputegulae crown
-        (0.20, "#495241"),  # Upper supraorbital & temporal mosaic
-        (0.34, "#686452"),  # Cheek armor transition
-        (0.50, "#9e9582"),  # Warm pale stone-buff pebbled jowl & chin ossicles
-        (0.66, "#686452"),
-        (0.80, "#495241"),
-        (1.00, "#2a3026"),
+        (0.00, "#384032"),  # Dorsal fused caputegulae olive-slate crown
+        (0.18, "#525845"),  # Supraorbital & temporal mosaic olive-taupe
+        (0.32, "#6e6c56"),  # Cheek armor warm stone-olive transition
+        (0.42, "#92886f"),  # Lower jaw warm weathered taupe pebbles
+        (0.50, "#a89c80"),  # Chin & jowl warm sandstone-buff pebbles (harmonized with throat!)
+        (0.58, "#92886f"),
+        (0.68, "#6e6c56"),
+        (0.82, "#525845"),
+        (1.00, "#384032"),
     ]
-    col_arr = _make_horizontal_gradient(size, stops)
-    color_img = Image.fromarray(col_arr, mode="RGB").convert("RGBA")
-    bump_img = Image.new("L", (size, size), 112)
-    b_draw = ImageDraw.Draw(bump_img, "L")
+    col = _gradient_1d(uu, stops)
+    fbm_macro = _tileable_fbm(size, base_freq=6, octaves=4, seed=6391)
+    fbm_fine = _tileable_fbm(size, base_freq=28, octaves=3, seed=6449)
 
-    def cranium_palette(r, u):
-        s = r.rand()
-        is_jowl = 0.36 < u < 0.64
-        if is_jowl:
-            if s > 0.64:
-                return ("j_light", (184, 174, 152, 66))
-            if s < 0.28:
-                return ("j_dark", (82, 76, 64, 62))
-            return ("j_mid", (146, 136, 118, 56))
-        if s > 0.66:
-            return ("c_light", (138, 134, 112, 64))
-        if s < 0.30:
-            return ("c_dark", (30, 34, 26, 78))
-        return ("c_mid", (82, 88, 70, 56))
+    warp_u = (fbm_macro - 0.5) * 0.014
+    warp_v = (_tileable_fbm(size, base_freq=6, octaves=3, seed=6521) - 0.5) * 0.014
 
-    color_img = _draw_polygonal_scutes(color_img, b_draw, size, 64, 64, rng, cranium_palette, is_cranium=True)
+    # Large bold armored polygonal caputegulae tiles on skull roof & snout bridge (matching portrait!)
+    edge_cap, d1_cap, cv_cap = _voronoi_scales(size, 26, 28, seed=6607, jitter=0.66, warp_u=warp_u, warp_v=warp_v)
+    # Tighter cobblestone cheek & jowl pebbles
+    edge_chk, d1_chk, cv_chk = _voronoi_scales(size, 62, 64, seed=6719, jitter=0.68, warp_u=warp_u * 0.6, warp_v=warp_v * 0.6)
+    # Fine micro-pebbles around lips/orbit
+    edge_mic, d1_mic, cv_mic = _voronoi_scales(size, 112, 112, seed=6823, jitter=0.65)
 
-    # 2,600 neurovascular grooves and combat scratches across cranial mosaic plates
-    dark_grooves, light_scratches = [], []
-    for _ in range(2600):
-        x = rng.rand() * size
-        y = rng.rand() * size
-        length = 10 + rng.rand() * 34
-        ang = (rng.rand() - 0.5) * 0.75
-        ex = x + math.cos(ang) * length
-        ey = y + math.sin(ang) * length
-        w = max(1, int(1.0 + rng.rand() * 1.5))
-        if rng.rand() > 0.42:
-            dark_grooves.append(((x, y), (ex, ey), w))
-            b_draw.line([(x, y), (ex, ey)], fill=48, width=w)
-        else:
-            light_scratches.append(((x, y), (ex, ey), w))
+    crown_mask = np.clip((np.abs(uu - 0.5) - 0.17) / 0.21, 0.0, 1.0)
+    jowl_mask = np.exp(-((uu - 0.5) / 0.15) ** 2)
 
-    color_img = _composite_layer(
-        color_img,
-        lambda d: [d.line([p0, p1], fill=(18, 20, 15, 76), width=w) for p0, p1, w in dark_grooves],
+    dome_cap = np.clip(edge_cap / 0.13, 0.0, 1.0) ** 0.38 * (1.0 - 0.14 * np.clip(d1_cap, 0.0, 1.0) ** 2)
+    dome_chk = np.clip(edge_chk / 0.16, 0.0, 1.0) ** 0.48 * (1.0 - 0.20 * np.clip(d1_chk, 0.0, 1.0) ** 2)
+    dome_mic = np.clip(edge_mic / 0.20, 0.0, 1.0) ** 0.55
+
+    scale_h = dome_cap * crown_mask + dome_chk * (1.0 - crown_mask) * (0.78 + 0.22 * jowl_mask) + dome_mic * 0.12 * (1.0 - crown_mask)
+
+    mortar_cap = 1.0 - np.clip(edge_cap / 0.088, 0.0, 1.0)
+    mortar_chk = 1.0 - np.clip(edge_chk / 0.105, 0.0, 1.0)
+    mortar = mortar_cap * crown_mask + mortar_chk * (1.0 - crown_mask)
+    cval = cv_cap * crown_mask + cv_chk * (1.0 - crown_mask)
+
+    # Rich mineral-olive / warm stone variation per cranial plate
+    col = col + ((cval - 0.5) * 34.0)[..., None] * np.array([1.0, 0.96, 0.80], dtype=np.float32)
+    # Deep dark bony suture grooves between cranial caputegulae & cheek pebbles
+    mortar_col = np.array([14.0, 16.0, 12.0], dtype=np.float32)
+    col = col * (1.0 - 0.72 * mortar[..., None]) + mortar_col * (0.72 * mortar[..., None])
+
+    # Warm sunlit mineral patina on raised caputegulae crowns (portrait signature!)
+    crown_hi = np.clip((scale_h - 0.58) / 0.42, 0.0, 1.0) * (0.28 * crown_mask + 0.18 * (1.0 - crown_mask))
+    col = col * (1.0 - crown_hi[..., None]) + np.array([186.0, 176.0, 146.0], dtype=np.float32) * crown_hi[..., None]
+
+    # Subtle weathered neurovascular micro-pitting & bone grain
+    pits = np.clip((0.24 - fbm_fine) / 0.24, 0.0, 1.0) * crown_mask
+    col = col * (1.0 - 0.22 * pits[..., None]) + ((fbm_fine - 0.5) * 16.0)[..., None]
+
+    height = np.clip(
+        0.34 + 0.52 * scale_h - 0.28 * mortar - 0.10 * pits + (fbm_fine - 0.5) * 0.08,
+        0.0,
+        1.0,
     )
-    color_img = _composite_layer(
-        color_img,
-        lambda d: [d.line([p0, p1], fill=(168, 160, 140, 44), width=w) for p0, p1, w in light_scratches],
-    )
 
-    color_out = os.path.join(TEX_DIR, "ankylo_cranium_albedo.png")
-    normal_out = os.path.join(TEX_DIR, "ankylo_cranium_normal.png")
-    color_img.convert("RGB").save(color_out, "PNG", optimize=True)
-    _height_to_normal_rgb(bump_img, strength=3.6).save(normal_out, "PNG", optimize=True)
-    print(f"[TEX OK] {color_out}, {normal_out}")
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_cranium_albedo.png"), np.clip(col, 0.0, 255.0).astype(np.uint8))
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_cranium_normal.png"), _height_to_normal_top_down(height, strength=4.8))
+    print("[TEX OK] ankylo_cranium_albedo/normal.png")
 
 
-def generate_scute_club_maps():
-    """Generate 512x512 osteoderm keel & tail-club boulder albedo + normal map."""
-    size = 512
-    rng = FastRNG(7741)
+def generate_scute_maps():
+    """
+    384x384 weathered osteoderm shield & marginal carapace flange spike albedo + normal.
+    UV v=0 (bottom) = dark charcoal-olive dermal root collar seamlessly merging with hide,
+    v=0.45..0.82 = striated weathered olive-stone & warm taupe osteoderm slope,
+    v=0.90..1.00 = sunlit worn mineral-taupe keel crest & darkened weathered spike tip.
+    Matches the earthy olive-stone back & flank armor of assets/portraits/ankylo.png!
+    """
+    size = 384
+    u_row = np.linspace(0.0, 1.0, size, endpoint=False, dtype=np.float32)
+    v_col = np.linspace(1.0, 0.0, size, endpoint=False, dtype=np.float32)
+    uu, vv = np.meshgrid(u_row, v_col)
 
     stops = [
-        (0.00, "#2c3227"),  # Dark weathered slate-moss collar
-        (0.28, "#5a614e"),  # Olive-slate scute slope
-        (0.50, "#8a7e66"),  # Raised mineral-taupe apex keel highlight
-        (0.72, "#5a614e"),
-        (1.00, "#2c3227"),
+        (0.00, "#2f3529"),  # Weathered charcoal-moss dermal root collar (v=0)
+        (0.14, "#4b513f"),  # Basal weathered slate-olive rim
+        (0.42, "#6d6c55"),  # Mid-slope weathered olive-stone bone
+        (0.74, "#94886c"),  # Warm weathered mineral-taupe upper keel slope
+        (0.92, "#aba080"),  # Sunlit worn pale stone-bone crest highlight
+        (1.00, "#85765a"),  # Slightly worn darkened apex tip (v=1)
     ]
-    col_arr = _make_horizontal_gradient(size, stops)
-    color_img = Image.fromarray(col_arr, mode="RGB").convert("RGBA")
-    bump_img = Image.new("L", (size, size), 118)
-    b_draw = ImageDraw.Draw(bump_img, "L")
+    col = _gradient_1d(vv, stops)
 
-    # 1. Coarse 28x28 osteoderm bone lobules
-    def scute_palette(r, _u):
-        s = r.rand()
-        if s > 0.62:
-            return ("pale", (162, 150, 124, 68))
-        if s < 0.32:
-            return ("deep", (34, 38, 28, 80))
-        return ("stone", (102, 106, 86, 58))
+    fbm_macro = _tileable_fbm(size, base_freq=6, octaves=4, seed=7741)
+    fbm_mid = _tileable_fbm(size, base_freq=14, octaves=3, seed=7817)
+    fbm_fine = _tileable_fbm(size, base_freq=32, octaves=3, seed=7901)
 
-    color_img = _draw_polygonal_scutes(color_img, b_draw, size, 28, 28, rng, scute_palette, is_cranium=True)
+    # Organic radiating bony osteoderm striations running base -> keel (along V)
+    flute_a = 0.5 + 0.5 * np.sin((uu * 24.0 + (fbm_macro - 0.5) * 1.8) * math.pi * 2.0) * (0.55 + 0.45 * fbm_mid)
+    flute_b = 0.5 + 0.5 * np.sin((uu * 64.0 + (fbm_mid - 0.5) * 2.2) * math.pi * 2.0)
 
-    # 2. 3,800 fine vascular pits & ossified bone nodules
-    pits, nodules = [], []
-    for _ in range(3800):
-        x = rng.rand() * size
-        y = rng.rand() * size
-        r = 1.2 + rng.rand() * 3.0
-        bbox = (x - r, y - r, x + r, y + r)
-        if rng.rand() < 0.38:
-            b_draw.ellipse(bbox, fill=24)
-            pits.append(bbox)
-        else:
-            b_draw.ellipse(bbox, fill=int(182 + rng.rand() * 64), outline=48)
-            nodules.append(bbox)
+    # Subtle basal polygonal collar scales where skin meets osteoderm root (v < 0.25)
+    edge_root, _, _ = _voronoi_scales(size, 36, 36, seed=7993, jitter=0.68)
+    root_mask = np.clip((0.28 - vv) / 0.28, 0.0, 1.0)
+    root_mortar = (1.0 - np.clip(edge_root / 0.14, 0.0, 1.0)) * root_mask
 
-    color_img = _composite_layer(
-        color_img,
-        lambda d: (
-            [d.ellipse(b, fill=(22, 24, 18, 122)) for b in pits]
-            + [d.ellipse(b, fill=(156, 146, 122, 54), outline=(28, 30, 22, 88)) for b in nodules]
-        ),
+    # Fine vascular bone pitting & mineral wear across exposed osteoderm faces
+    pits = np.clip((0.26 - fbm_fine) / 0.26, 0.0, 1.0) * (1.0 - root_mask * 0.7)
+    wear = np.clip((fbm_macro - 0.52) * 2.4, 0.0, 1.0) * np.clip((vv - 0.35) / 0.65, 0.0, 1.0)
+
+    # Authentic linear battle scratches across upper osteoderm face
+    scratches = _draw_sdf_scratches(size, uu, vv, n_scratches=24, seed=7933, min_len=0.06, max_len=0.22, width_range=(0.003, 0.006), v_min=0.28)
+
+    col = col + ((flute_a - 0.5) * 26.0 + (flute_b - 0.5) * 12.0 + (fbm_mid - 0.5) * 20.0)[..., None] * np.array([1.0, 0.95, 0.80], dtype=np.float32)
+    col = col + wear[..., None] * np.array([34.0, 30.0, 20.0], dtype=np.float32)
+    col = col * (1.0 - 0.42 * pits[..., None])
+    col = col * (1.0 - 0.52 * root_mortar[..., None])
+    col = col * (1.0 - 0.35 * scratches[..., None]) + np.array([172.0, 162.0, 134.0], dtype=np.float32) * (0.35 * scratches[..., None])
+
+    height = np.clip(
+        0.50
+        + (flute_a - 0.5) * 0.24
+        + (flute_b - 0.5) * 0.10
+        - 0.20 * pits
+        - 0.18 * root_mortar
+        - 0.18 * scratches
+        + (fbm_fine - 0.5) * 0.10,
+        0.0,
+        1.0,
     )
 
-    # 3. Battle gouges & mineral wear across armored plates
-    scars = []
-    for _ in range(32):
-        sx = rng.rand() * size
-        sy = rng.rand() * size
-        ang = (rng.rand() - 0.5) * 1.4
-        length = 26 + rng.rand() * 68
-        ex = sx + math.cos(ang) * length
-        ey = sy + math.sin(ang) * length
-        scars.append((sx, sy, ex, ey))
-        b_draw.line([(sx, sy), (ex, ey)], fill=20, width=3)
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_scute_albedo.png"), np.clip(col, 0.0, 255.0).astype(np.uint8))
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_scute_normal.png"), _height_to_normal_top_down(height, strength=4.2))
+    print("[TEX OK] ankylo_scute_albedo/normal.png")
 
-    color_img = _composite_layer(
-        color_img,
-        lambda d: [d.line([(sx, sy), (ex, ey)], fill=(32, 30, 24, 132), width=2) for sx, sy, ex, ey in scars],
+
+def generate_club_maps():
+    """
+    384x384 dedicated monumental ossified tail-club boulder albedo + normal.
+    Weathered dark slate-olive & mineral-stone dermal bone with deep osteoderm sutures,
+    dense vascular pitting, and pale battle-worn bone-taupe impact ridges along the
+    outer smashing faces (u near 0.25 & 0.75) — zero blurry polka-dots!
+    """
+    size = 384
+    u_row = np.linspace(0.0, 1.0, size, endpoint=False, dtype=np.float32)
+    v_col = np.linspace(1.0, 0.0, size, endpoint=False, dtype=np.float32)
+    uu, vv = np.meshgrid(u_row, v_col)
+
+    # Impact-wear along outer lateral keel equator (u=0.25 and u=0.75) & heavy bone body
+    lat_keel = np.abs(np.sin(uu * math.pi * 2.0)) ** 1.6
+    stops = [
+        (0.00, "#2b3126"),  # Deep charcoal-moss ossified crevice tone
+        (0.35, "#4d5241"),  # Rugged weathered slate-olive boulder bone
+        (0.72, "#7d765e"),  # Warm weathered mineral-taupe osteoderm dome
+        (1.00, "#aba084"),  # Impact-worn pale stone-bone smashing keel
+    ]
+    col = _gradient_1d(lat_keel, stops)
+
+    fbm_macro = _tileable_fbm(size, base_freq=5, octaves=4, seed=8209)
+    fbm_mid = _tileable_fbm(size, base_freq=12, octaves=4, seed=8291)
+    fbm_fine = _tileable_fbm(size, base_freq=32, octaves=3, seed=8387)
+
+    # Tightly fused irregular bony osteoderm plates welded across the boulder club
+    warp_u = (fbm_mid - 0.5) * 0.022
+    warp_v = (_tileable_fbm(size, base_freq=10, octaves=3, seed=8461) - 0.5) * 0.022
+    edge_b, d1_b, cv_b = _voronoi_scales(size, 18, 18, seed=8527, jitter=0.74, warp_u=warp_u, warp_v=warp_v)
+    dome_b = np.clip(edge_b / 0.15, 0.0, 1.0) ** 0.45 * (1.0 - 0.16 * np.clip(d1_b, 0.0, 1.0) ** 2)
+    suture_b = 1.0 - np.clip(edge_b / 0.085, 0.0, 1.0)
+
+    # Longitudinal ossification striations & heavy bone pores
+    fibers = 0.5 + 0.5 * np.sin((vv * 22.0 + fbm_macro * 4.5 + uu * 4.0) * math.pi * 2.0)
+    pits = np.clip((0.28 - fbm_fine) / 0.28, 0.0, 1.0)
+
+    # Authentic linear battle gouges & impact chip scars across smashing zones
+    gouges = _draw_sdf_scratches(size, uu, vv, n_scratches=32, seed=8609, min_len=0.07, max_len=0.25, width_range=(0.003, 0.0075), v_min=0.08) * (0.40 + 0.60 * lat_keel)
+
+    col = col + ((cv_b - 0.5) * 28.0 + (fbm_macro - 0.5) * 24.0 + (fibers - 0.5) * 14.0)[..., None] * np.array([1.0, 0.96, 0.84], dtype=np.float32)
+    col = col * (1.0 - 0.62 * suture_b[..., None]) + np.array([16.0, 18.0, 13.0], dtype=np.float32) * (0.62 * suture_b[..., None])
+    col = col * (1.0 - 0.34 * pits[..., None])
+    # Dark incised groove with subtle pale scraped-bone rim highlight
+    col = col * (1.0 - 0.42 * gouges[..., None]) + np.array([196.0, 186.0, 156.0], dtype=np.float32) * (0.42 * gouges[..., None])
+
+    height = np.clip(
+        0.42
+        + 0.34 * dome_b
+        - 0.24 * suture_b
+        - 0.18 * pits
+        - 0.24 * gouges
+        + (fibers - 0.5) * 0.08
+        + (fbm_fine - 0.5) * 0.10,
+        0.0,
+        1.0,
     )
 
-    color_out = os.path.join(TEX_DIR, "ankylo_scute_albedo.png")
-    normal_out = os.path.join(TEX_DIR, "ankylo_scute_normal.png")
-    color_img.convert("RGB").save(color_out, "PNG", optimize=True)
-    _height_to_normal_rgb(bump_img, strength=3.8).save(normal_out, "PNG", optimize=True)
-    print(f"[TEX OK] {color_out}, {normal_out}")
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_club_albedo.png"), np.clip(col, 0.0, 255.0).astype(np.uint8))
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_club_normal.png"), _height_to_normal_top_down(height, strength=4.8))
+    print("[TEX OK] ankylo_club_albedo/normal.png")
 
 
 def generate_horn_spike_maps():
-    """Generate 512x512 striated golden-amber keratin horn, spike & hoof albedo + normal map."""
-    size = 512
-    rng = FastRNG(5583)
+    """
+    384x384 portrait-faithful warm honey-ochre / weathered golden-amber cranial horn
+    (squamosal & jugal horns, cheek boss, and blunt hooves) albedo + normal.
+    UV v=0 (bottom) = dark weathered olive-umber keratin root collar ->
+       v=0.45..0.82 = rich warm honey-ochre / aged amber-bone mid-shaft ->
+       v=1.00 (top) = worn weathered dark-amber keratin tip.
+    """
+    size = 384
+    u_row = np.linspace(0.0, 1.0, size, endpoint=False, dtype=np.float32)
+    v_col = np.linspace(1.0, 0.0, size, endpoint=False, dtype=np.float32)
+    uu, vv = np.meshgrid(u_row, v_col)
 
-    # PIL y=0 maps to Blender UV v=1.0 (tip), y=size maps to v=0.0 (base)
+    # Exact honey-ochre keratin gradient sampled from assets/portraits/ankylo.png!
     stops = [
-        (0.00, "#221b15"),  # Dark weathered keratin tip (v=1.0)
-        (0.14, "#4a3c2e"),  # Transitional dark horn
-        (0.42, "#c8ad84"),  # Warm golden-amber / bone-ivory mid-shaft
-        (0.76, "#9e825c"),  # Striated warm amber lower shaft
-        (0.92, "#4f4232"),  # Basal horn collar
-        (1.00, "#2d261e"),  # Dark charcoal-moss root (v=0.0)
+        (0.00, "#2f2a1f"),  # Dark dermal-keratin root collar (v=0)
+        (0.12, "#56432b"),  # Deep weathered umber horn base
+        (0.32, "#927045"),  # Rich warm ochre-amber lower horn
+        (0.62, "#ba9560"),  # Warm golden honey-ochre mid-shaft
+        (0.84, "#c9a876"),  # Sunlit pale weathered bone-amber upper horn
+        (0.94, "#8a6d49"),  # Weathered upper taper
+        (1.00, "#4f3d29"),  # Worn dark-amber blunt tip (v=1)
     ]
-    col_arr = _make_vertical_gradient(size, stops)
-    color_img = Image.fromarray(col_arr, mode="RGB").convert("RGBA")
-    bump_img = Image.new("L", (size, size), 128)
-    b_draw = ImageDraw.Draw(bump_img, "L")
+    col = _gradient_1d(vv, stops)
+    fbm_macro = _tileable_fbm(size, base_freq=6, octaves=4, seed=5583)
+    fbm_mid = _tileable_fbm(size, base_freq=14, octaves=3, seed=5641)
+    fbm_fine = _tileable_fbm(size, base_freq=32, octaves=3, seed=5717)
 
-    # Deep longitudinal keratin sulci flutes
-    flutes = []
-    for x in range(0, size, 3):
-        w = 1 if rng.rand() > 0.28 else 2
-        is_dark = rng.rand() > 0.44
-        pts = [
-            (x + (rng.rand() - 0.5) * 1.8, y)
-            for y in range(0, size + 32, 32)
-        ]
-        b_draw.line(pts, fill=66 if is_dark else 186, width=w)
-        flutes.append((pts, w, is_dark))
+    # Natural organic longitudinal keratin sulci (broken by fBm — zero synthetic wood-stripe look!)
+    flute_a = 0.5 + 0.5 * np.sin((uu * 28.0 + (fbm_macro - 0.5) * 1.6) * math.pi * 2.0) * (0.50 + 0.50 * fbm_mid)
+    flute_b = 0.5 + 0.5 * np.sin((uu * 76.0 + (fbm_mid - 0.5) * 2.0) * math.pi * 2.0)
 
-    # Wavy transverse keratin growth rings (stronger near base y > 0.50*size)
-    rings = []
-    y_cur = 48.0
-    while y_cur < size - 10:
-        step = 9.0 + rng.rand() * 16.0
-        pts = [
-            (x, y_cur + math.sin(x * 0.04 + y_cur) * 2.5 + (rng.rand() - 0.5) * 2.0)
-            for x in range(0, size + 32, 32)
-        ]
-        strength = 0.4 + 0.6 * (y_cur / size)
-        b_draw.line(pts, fill=int(128 - 36 * strength), width=2)
-        rings.append((pts, int(36 + 44 * strength)))
-        y_cur += step
+    # Organic wavy keratin growth rings near base (v < 0.45)
+    ring_env = np.clip(1.0 - vv / 0.48, 0.0, 1.0) ** 1.3
+    rings = (0.5 + 0.5 * np.sin((vv * 16.0 + fbm_macro * 2.0 + np.sin(uu * math.pi * 6.0) * 0.16) * math.pi * 2.0)) * ring_env
 
-    color_img = _composite_layer(
-        color_img,
-        lambda d: (
-            [
-                d.line(
-                    pts,
-                    fill=(26, 20, 14, 78) if is_dark else (228, 212, 184, 42),
-                    width=w,
-                )
-                for pts, w, is_dark in flutes
-            ]
-            + [d.line(pts, fill=(32, 24, 16, alpha), width=2) for pts, alpha in rings]
-        ),
+    # Subtle dark weathered fissures & pale scraped wear marks
+    col = col + ((flute_a - 0.5) * 24.0 + (flute_b - 0.5) * 10.0 + (fbm_macro - 0.5) * 22.0 - rings * 20.0)[..., None] * np.array([1.0, 0.90, 0.72], dtype=np.float32)
+
+    height = np.clip(
+        0.50
+        + (flute_a - 0.5) * 0.24
+        + (flute_b - 0.5) * 0.10
+        - rings * 0.20
+        + (fbm_fine - 0.5) * 0.08,
+        0.0,
+        1.0,
     )
 
-    color_out = os.path.join(TEX_DIR, "ankylo_horn_albedo.png")
-    normal_out = os.path.join(TEX_DIR, "ankylo_horn_normal.png")
-    color_img.convert("RGB").save(color_out, "PNG", optimize=True)
-    _height_to_normal_rgb(bump_img, strength=3.2).save(normal_out, "PNG", optimize=True)
-    print(f"[TEX OK] {color_out}, {normal_out}")
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_horn_albedo.png"), np.clip(col, 0.0, 255.0).astype(np.uint8))
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_horn_normal.png"), _height_to_normal_top_down(height, strength=3.4))
+    print("[TEX OK] ankylo_horn_albedo/normal.png")
 
 
 def generate_beak_maps():
-    """Generate 512x512 dark charcoal-slate keratinous beak albedo + normal map."""
-    size = 512
-    rng = FastRNG(3917)
+    """
+    384x384 dark charcoal-umber striated keratinous turtle-like cropping beak
+    matching assets/portraits/ankylo.png.
+    UV v=0 (bottom) = nasal base sheath -> v=1 (top) = dark worn cutting rim.
+    """
+    size = 384
+    u_row = np.linspace(0.0, 1.0, size, endpoint=False, dtype=np.float32)
+    v_col = np.linspace(1.0, 0.0, size, endpoint=False, dtype=np.float32)
+    uu, vv = np.meshgrid(u_row, v_col)
 
-    # PIL y=0 maps to UV v=1.0 (hooked cutting tip), y=size maps to v=0.0 (nasal collar)
     stops = [
-        (0.00, "#181916"),  # Dark slate-black worn cutting tip (v=1.0)
-        (0.32, "#35362f"),  # Charcoal-horn mid sheath
-        (0.75, "#524f44"),  # Weathered mineral-taupe basal sheath
-        (1.00, "#3b3c33"),  # Rostral collar (v=0.0)
+        (0.00, "#4b4538"),  # Warm weathered olive-taupe rostral sheath border (v=0)
+        (0.24, "#3b342b"),  # Weathered dark walnut-charcoal keratin
+        (0.58, "#29241e"),  # Deep charcoal-umber mid beak
+        (0.84, "#1d1915"),  # Worn cutting tomium
+        (1.00, "#14110e"),  # Darkest slate-obsidian cropping tip (v=1)
     ]
-    col_arr = _make_vertical_gradient(size, stops)
-    color_img = Image.fromarray(col_arr, mode="RGB").convert("RGBA")
-    bump_img = Image.new("L", (size, size), 128)
-    b_draw = ImageDraw.Draw(bump_img, "L")
+    col = _gradient_1d(vv, stops)
+    fbm = _tileable_fbm(size, base_freq=8, octaves=3, seed=3917)
+    fbm_fine = _tileable_fbm(size, base_freq=28, octaves=3, seed=3989)
 
-    flutes = []
-    for x in range(0, size, 3):
-        w = 1 if rng.rand() > 0.32 else 2
-        is_dark = rng.rand() > 0.45
-        pts = [(x + (rng.rand() - 0.5) * 1.5, y) for y in range(0, size + 32, 32)]
-        b_draw.line(pts, fill=74 if is_dark else 178, width=w)
-        flutes.append((pts, w, is_dark))
+    flutes = 0.5 + 0.5 * np.sin((uu * 56.0 + (fbm - 0.5) * 1.1) * math.pi * 2.0)
+    fine_lines = 0.5 + 0.5 * np.sin((uu * 136.0 + fbm * 2.0) * math.pi * 2.0)
+    wear = np.clip((fbm - 0.56) * 2.4, 0.0, 1.0) * np.clip(vv * 1.4, 0.0, 1.0)
 
-    wear_marks = []
-    for _ in range(180):
-        wx = rng.rand() * size
-        wy = rng.rand() * size * 0.55
-        ang = (rng.rand() - 0.5) * 0.8
-        length = 12 + rng.rand() * 28
-        p0 = (wx, wy)
-        p1 = (wx + math.sin(ang) * length, wy + math.cos(ang) * length)
-        wear_marks.append((p0, p1))
-        b_draw.line([p0, p1], fill=168, width=1)
-
-    color_img = _composite_layer(
-        color_img,
-        lambda d: (
-            [
-                d.line(
-                    pts,
-                    fill=(14, 15, 12, 82) if is_dark else (112, 108, 96, 44),
-                    width=w,
-                )
-                for pts, w, is_dark in flutes
-            ]
-            + [d.line([p0, p1], fill=(138, 132, 114, 48), width=1) for p0, p1 in wear_marks]
-        ),
+    col = col + ((flutes - 0.5) * 22.0 + (fine_lines - 0.5) * 10.0)[..., None] * np.array([1.0, 0.92, 0.80], dtype=np.float32)
+    col = col + wear[..., None] * np.array([34.0, 28.0, 20.0], dtype=np.float32)
+    height = np.clip(
+        0.50 + (flutes - 0.5) * 0.26 + (fine_lines - 0.5) * 0.12 + (fbm_fine - 0.5) * 0.08,
+        0.0,
+        1.0,
     )
 
-    color_out = os.path.join(TEX_DIR, "ankylo_beak_albedo.png")
-    normal_out = os.path.join(TEX_DIR, "ankylo_beak_normal.png")
-    color_img.convert("RGB").save(color_out, "PNG", optimize=True)
-    _height_to_normal_rgb(bump_img, strength=3.0).save(normal_out, "PNG", optimize=True)
-    print(f"[TEX OK] {color_out}, {normal_out}")
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_beak_albedo.png"), np.clip(col, 0.0, 255.0).astype(np.uint8))
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_beak_normal.png"), _height_to_normal_top_down(height, strength=3.4))
+    print("[TEX OK] ankylo_beak_albedo/normal.png")
 
 
 def generate_eye_iris_map():
-    """Generate 256x256 fierce golden-amber reptile iris texture."""
+    """256x256 fierce deep golden-amber reptile iris matching assets/portraits/ankylo.png."""
     size = 256
-    cx = cy = size * 0.5
-    yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
-    dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
-    r_norm = np.clip((dist - size * 0.08) / (size * 0.42), 0.0, 1.0)
+    coords = np.linspace(-1.0, 1.0, size, dtype=np.float32)
+    xx, yy = np.meshgrid(coords, coords)
+    r = np.sqrt(xx * xx + yy * yy)
+    ang = np.arctan2(yy, xx)
+    r_norm = np.clip((r - 0.18) / 0.78, 0.0, 1.0)
 
     stops = [
-        (0.00, "#fef08a"),
-        (0.28, "#f59e0b"),
-        (0.62, "#d97706"),
-        (0.86, "#78350f"),
-        (1.00, "#1c0a05"),
+        (0.00, "#fde68a"),  # Luminous golden inner pupillary ring
+        (0.24, "#ea8c16"),  # Rich vivid warm amber
+        (0.58, "#b45309"),  # Deep burnt-honey amber iris body
+        (0.84, "#5c2508"),  # Dark umber limbal ring
+        (1.00, "#140803"),  # Deep orbital sclera shadow
     ]
-    positions = [s[0] for s in stops]
-    colors = [_hex_to_rgb(s[1]) for s in stops]
-    r = np.interp(r_norm, positions, [c[0] for c in colors])
-    g = np.interp(r_norm, positions, [c[1] for c in colors])
-    b = np.interp(r_norm, positions, [c[2] for c in colors])
-    arr = np.stack([r, g, b], axis=-1).astype(np.uint8)
-    img = Image.fromarray(arr, mode="RGB").convert("RGBA")
+    col = _gradient_1d(r_norm, stops)
 
-    def draw_fibers(d):
-        for i in range(160):
-            a = (i / 160.0) * math.pi * 2.0
-            col = (254, 240, 138, 76) if (i % 2 == 0) else (69, 18, 10, 86)
-            p0 = (cx + math.cos(a) * size * 0.10, cy + math.sin(a) * size * 0.10)
-            p1 = (cx + math.cos(a) * size * 0.46, cy + math.sin(a) * size * 0.46)
-            d.line([p0, p1], fill=col, width=2)
+    fibers = 0.5 + 0.5 * np.sin(ang * 40.0 + np.sin(r * 16.0) * 1.1)
+    fibers2 = 0.5 + 0.5 * np.cos(ang * 84.0 - r * 10.0)
+    fiber_mask = np.clip(1.0 - np.abs(r_norm - 0.44) * 1.85, 0.0, 1.0)
+    col = col + ((fibers - 0.5) * 42.0 + (fibers2 - 0.5) * 20.0)[..., None] * fiber_mask[..., None] * np.array([1.0, 0.76, 0.34], dtype=np.float32)
 
-    img = _composite_layer(img, draw_fibers)
-    out = os.path.join(TEX_DIR, "ankylo_iris_albedo.png")
-    img.convert("RGB").save(out, "PNG", optimize=True)
-    print(f"[TEX OK] {out}")
+    _save_png_rgb(os.path.join(TEX_DIR, "ankylo_iris_albedo.png"), np.clip(col, 0.0, 255.0).astype(np.uint8))
+    print("[TEX OK] ankylo_iris_albedo.png")
 
 
 def main():
     generate_body_hide_maps()
     generate_cranium_armor_maps()
-    generate_scute_club_maps()
+    generate_scute_maps()
+    generate_club_maps()
     generate_horn_spike_maps()
     generate_beak_maps()
     generate_eye_iris_map()

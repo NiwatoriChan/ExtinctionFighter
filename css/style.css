@@ -1755,6 +1755,301 @@ canvas {
     color: #52525b;
 }
 
+/* ==================== 8. PHASE 4: SUPER FLASH, EXTINCTION FINISH, GUARD & COMBO HUD ==================== */
+
+/* Guard Stamina Mini-Bar (Cyan normal -> Glowing Crimson Pulse when < 30%) */
+.guard-bar-fill {
+    background: linear-gradient(90deg, #0284c7 0%, #38bdf8 65%, #bae6fd 100%);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.75);
+}
+
+@keyframes guardLowPulse {
+    0%, 100% {
+        filter: brightness(1);
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.85), 0 0 16px rgba(220, 38, 38, 0.65);
+    }
+    50% {
+        filter: brightness(1.45);
+        box-shadow: 0 0 16px rgba(248, 113, 113, 1), 0 0 28px rgba(239, 68, 68, 0.95);
+    }
+}
+
+.guard-low-pulse {
+    background: linear-gradient(90deg, #991b1b 0%, #ef4444 60%, #fca5a5 100%) !important;
+    animation: guardLowPulse 0.52s infinite ease-in-out;
+}
+
+/* Combo Total Damage Sub-Line Badge */
+.combo-dmg-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.12rem 0.65rem;
+    border-radius: 0.35rem;
+    background: linear-gradient(135deg, rgba(24, 10, 10, 0.94) 0%, rgba(127, 29, 29, 0.88) 100%);
+    border: 1.5px solid #f59e0b;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9), 0 0 12px rgba(245, 158, 11, 0.55);
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 900;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fef08a;
+    text-shadow: 0 1px 3px #000, 0 0 10px rgba(245, 158, 11, 0.9);
+    transform: skewX(-10deg);
+}
+
+/* Pulsing Gold/Crimson Medallion Corona when Primal Super Ready (Rage >= 100%) */
+@keyframes superMedallionReady {
+    0%, 100% {
+        border-color: #f59e0b;
+        box-shadow: 0 0 14px rgba(245, 158, 11, 0.9), 0 0 26px rgba(220, 38, 38, 0.75), inset 0 0 10px rgba(254, 240, 138, 0.45);
+    }
+    50% {
+        border-color: #fef08a;
+        box-shadow: 0 0 24px rgba(254, 240, 138, 1), 0 0 42px rgba(239, 68, 68, 0.95), inset 0 0 16px rgba(251, 191, 36, 0.75);
+    }
+}
+
+.super-ready-medallion {
+    background: radial-gradient(circle at 35% 30%, #991b1b 0%, #450a0a 60%, #1c0505 100%) !important;
+    animation: superMedallionReady 0.85s infinite ease-in-out;
+}
+
+/* Cinematic Primal Super Flash & Extinction Finish Overlay */
+.super-flash-overlay {
+    --super-accent: #ef4444;
+    isolation: isolate;
+}
+
+.super-flash-overlay.hidden {
+    display: none !important;
+}
+
+.super-flash-backdrop {
+    background: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.22) 0%, rgba(127, 29, 29, 0.48) 45%, rgba(5, 5, 8, 0.88) 100%);
+}
+
+.super-flash-band {
+    background: linear-gradient(
+        105deg,
+        rgba(12, 8, 10, 0.96) 0%,
+        rgba(127, 29, 29, 0.94) 24%,
+        rgba(185, 28, 28, 0.9) 52%,
+        rgba(217, 119, 6, 0.85) 82%,
+        rgba(12, 8, 10, 0.96) 100%
+    );
+    border-top: 3px solid #fef08a;
+    border-bottom: 3px solid #f59e0b;
+    box-shadow:
+        0 0 45px rgba(239, 68, 68, 0.85),
+        0 0 90px rgba(245, 158, 11, 0.45),
+        inset 0 0 36px rgba(0, 0, 0, 0.75);
+    transform: skewY(-2.5deg);
+    will-change: transform, opacity, filter;
+}
+
+.super-flash-speedlines {
+    background-image: repeating-linear-gradient(
+        -22deg,
+        rgba(254, 240, 138, 0.18) 0px,
+        rgba(254, 240, 138, 0.18) 3px,
+        transparent 3px,
+        transparent 16px,
+        rgba(239, 68, 68, 0.22) 16px,
+        rgba(239, 68, 68, 0.22) 20px,
+        transparent 20px,
+        transparent 38px
+    );
+    background-size: 240px 240px;
+    mix-blend-mode: screen;
+    opacity: 0.85;
+}
+
+.super-flash-portrait-frame {
+    border: 3px solid #fef08a;
+    border-radius: 0.75rem;
+    box-shadow:
+        0 0 24px rgba(245, 158, 11, 0.95),
+        0 0 48px var(--super-accent, #ef4444),
+        inset 0 0 14px rgba(0, 0, 0, 0.9);
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    transform: skewY(2.5deg);
+}
+
+.super-flash-badge {
+    background: linear-gradient(90deg, #f59e0b 0%, #fef08a 55%, #f59e0b 100%);
+    color: #180808;
+    border: 1px solid #fffbeb;
+    transform: skewY(2.5deg) skewX(-8deg);
+}
+
+.super-flash-title {
+    color: #fffbeb;
+    background: linear-gradient(180deg, #ffffff 0%, #fef08a 38%, #f59e0b 75%, #ef4444 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 3px 0 #09090b) drop-shadow(0 0 18px rgba(245, 158, 11, 0.95)) drop-shadow(0 0 32px rgba(220, 38, 38, 0.9));
+    transform: skewY(2.5deg);
+}
+
+.super-flash-subtitle {
+    text-shadow: 0 2px 5px #000, 0 0 10px rgba(245, 158, 11, 0.75);
+    transform: skewY(2.5deg);
+}
+
+@keyframes superSlashSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-38%) skewY(-6deg) scaleY(0.25);
+        filter: brightness(2.4);
+    }
+    45% {
+        opacity: 1;
+        transform: translateX(3%) skewY(-2deg) scaleY(1.08);
+        filter: brightness(1.45);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) skewY(-2.5deg) scaleY(1);
+        filter: brightness(1);
+    }
+}
+
+@keyframes superSpeedLinesMove {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 480px 0;
+    }
+}
+
+@keyframes superBackdropFlash {
+    0% {
+        opacity: 0;
+        filter: brightness(2.6);
+    }
+    25% {
+        opacity: 1;
+        filter: brightness(1.4);
+    }
+    100% {
+        opacity: 0.92;
+        filter: brightness(1);
+    }
+}
+
+@keyframes superPortraitPunch {
+    0% {
+        opacity: 0;
+        transform: skewY(2.5deg) scale(1.45) translateX(-24px);
+    }
+    100% {
+        opacity: 1;
+        transform: skewY(2.5deg) scale(1) translateX(0);
+    }
+}
+
+.super-flash-active .super-flash-backdrop {
+    animation: superBackdropFlash 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.super-flash-active .super-flash-band {
+    animation: superSlashSlideIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.super-flash-active .super-flash-speedlines {
+    animation: superSpeedLinesMove 0.32s linear infinite;
+}
+
+.super-flash-active .super-flash-portrait-frame {
+    animation: superPortraitPunch 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Extinction Finish Climax — Golden-Crimson Strobe & Zoom Burst */
+@keyframes extinctionStrobe {
+    0% {
+        background: radial-gradient(circle at 50% 50%, rgba(254, 240, 138, 0.9) 0%, rgba(239, 68, 68, 0.8) 55%, rgba(10, 4, 4, 0.92) 100%);
+    }
+    22% {
+        background: radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.72) 0%, rgba(127, 29, 29, 0.85) 55%, rgba(5, 2, 2, 0.95) 100%);
+    }
+    45% {
+        background: radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.65) 0%, rgba(185, 28, 28, 0.78) 55%, rgba(8, 3, 3, 0.94) 100%);
+    }
+    100% {
+        background: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.34) 0%, rgba(153, 27, 27, 0.62) 50%, rgba(5, 2, 2, 0.92) 100%);
+    }
+}
+
+@keyframes extinctionZoomBurst {
+    0% {
+        opacity: 0;
+        transform: scale(1.65) skewY(-5deg);
+        filter: brightness(2.8) saturate(1.8);
+    }
+    35% {
+        opacity: 1;
+        transform: scale(0.96) skewY(-1.8deg);
+        filter: brightness(1.55) saturate(1.45);
+    }
+    65% {
+        transform: scale(1.04) skewY(-2.5deg);
+        filter: brightness(1.25) saturate(1.25);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) skewY(-2.5deg);
+        filter: brightness(1.1) saturate(1.15);
+    }
+}
+
+@keyframes extinctionBandPulse {
+    0%, 100% {
+        box-shadow: 0 0 55px rgba(245, 158, 11, 0.95), 0 0 110px rgba(220, 38, 38, 0.9), inset 0 0 40px rgba(254, 240, 138, 0.35);
+        border-top-color: #ffffff;
+        border-bottom-color: #fef08a;
+    }
+    50% {
+        box-shadow: 0 0 80px rgba(239, 68, 68, 1), 0 0 140px rgba(245, 158, 11, 0.95), inset 0 0 50px rgba(220, 38, 38, 0.55);
+        border-top-color: #f59e0b;
+        border-bottom-color: #ef4444;
+    }
+}
+
+.extinction-finish-active .super-flash-backdrop {
+    animation: extinctionStrobe 0.65s ease-out forwards;
+}
+
+.extinction-finish-active .super-flash-band {
+    background: linear-gradient(
+        105deg,
+        rgba(24, 6, 6, 0.96) 0%,
+        rgba(185, 28, 28, 0.96) 22%,
+        rgba(245, 158, 11, 0.92) 50%,
+        rgba(185, 28, 28, 0.96) 78%,
+        rgba(24, 6, 6, 0.96) 100%
+    );
+    animation: extinctionZoomBurst 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards, extinctionBandPulse 0.48s 0.36s infinite ease-in-out;
+}
+
+.extinction-finish-active .super-flash-speedlines {
+    opacity: 1;
+    animation: superSpeedLinesMove 0.22s linear infinite;
+}
+
+.extinction-finish-active .super-flash-badge {
+    background: linear-gradient(90deg, #dc2626 0%, #f59e0b 50%, #fef08a 100%);
+    color: #09090b;
+    box-shadow: 0 0 20px rgba(254, 240, 138, 0.95);
+}
+
+.extinction-finish-active .super-flash-portrait-frame {
+    border-color: #ffffff;
+    box-shadow: 0 0 36px rgba(254, 240, 138, 1), 0 0 65px rgba(239, 68, 68, 0.95);
+    animation: superPortraitPunch 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 
 
 

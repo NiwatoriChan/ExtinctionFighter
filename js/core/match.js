@@ -1,14 +1,21 @@
 function teardownActiveBattle() {
     isMatchPaused = false;
-    xrayCinematicTimer = 0;
-    xrayElapsed = 0;
-    xrayPhaseApplied = 0;
-    xrayContext = null;
-    xrayStage = 0;
-    xrayLockPositions = null;
-    fatalityFocusFighter = null;
+    if (typeof teardownSuperState === 'function') {
+        teardownSuperState();
+    }
+    if (typeof resetBattleLighting === 'function') {
+        resetBattleLighting();
+    }
+    superState = null;
+    battleTimeScale = 1.0;
+    koSlowMoTimer = 0;
+    koPendingData = null;
     hitstopTimer = 0;
+    hitstopTarget = null;
     screenShake = 0;
+    camRecoilX = 0;
+    camRecoilY = 0;
+    camFovKick = 0;
     roundIntroAnnounced = false;
 
     if (typeof cleanupCampaignTransientEntities === 'function') {
@@ -43,14 +50,19 @@ function teardownActiveBattle() {
     projectiles3D = [];
     particles3D = [];
 
-    ['pauseModal', 'postMatchMenu', 'xrayOverlayHud', 'fatalityPromptBox', 'duelTopHudOverlay'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-    });
-    ['campaignSmashHUD', 'eraVictoryModal', 'campaignGameOverModal'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.remove();
-    });
+    if (typeof hideSuperFlashOverlay === 'function') {
+        hideSuperFlashOverlay();
+    }
+    if (typeof document !== 'undefined') {
+        ['pauseModal', 'postMatchMenu', 'superFlashOverlay', 'duelTopHudOverlay'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+        ['campaignSmashHUD', 'eraVictoryModal', 'campaignGameOverModal'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        });
+    }
 
     if (typeof sfx !== 'undefined' && typeof sfx.startMusicLoop === 'function' && sfx.enabled) {
         sfx.startMusicLoop('menu');
@@ -167,15 +179,23 @@ function startMatch() {
 }
 
 function startNewRound() {
+    if (typeof teardownSuperState === 'function') {
+        teardownSuperState();
+    }
+    if (typeof resetBattleLighting === 'function') {
+        resetBattleLighting();
+    }
     fighter1.resetForRound();
     fighter2.resetForRound();
     if (typeof AIMacroStatechart !== 'undefined' && AIMacroStatechart.service) {
         AIMacroStatechart.service.send({ type: 'ROUND_RESET' });
     }
 
-    while (fxGroup.children.length > 0) {
-        const child = fxGroup.children[0];
-        fxGroup.remove(child);
+    if (typeof fxGroup !== 'undefined' && fxGroup) {
+        while (fxGroup.children.length > 0) {
+            const child = fxGroup.children[0];
+            fxGroup.remove(child);
+        }
     }
     for (let i = 0; i < particles3D.length; i++) {
         const pt = particles3D[i];
@@ -187,50 +207,88 @@ function startNewRound() {
     particles3D = [];
     roundTimer = 99;
     roundTimerAccum = 0;
-    xrayCinematicTimer = 0;
-    xrayElapsed = 0;
-    xrayPhaseApplied = 0;
-    xrayContext = null;
-    xrayStage = 0;
-    xrayLockPositions = null;
-    fatalityFocusFighter = null;
+    superState = null;
+    battleTimeScale = 1.0;
+    koSlowMoTimer = 0;
+    koPendingData = null;
+    hitstopTimer = 0;
+    hitstopTarget = null;
+    screenShake = 0;
+    camRecoilX = 0;
+    camRecoilY = 0;
+    camFovKick = 0;
     roundIntroAnnounced = false;
 
-    const roundTextEl = document.getElementById('hudRoundText');
-    if (roundTextEl) roundTextEl.textContent = `ROUND ${roundNumber}`;
-    const timerEl = document.getElementById('hudTimer');
-    if (timerEl) {
-        timerEl.textContent = typeof formatHudTimer === 'function' ? formatHudTimer(roundTimer) : roundTimer;
+    if (typeof hideSuperFlashOverlay === 'function') {
+        hideSuperFlashOverlay();
     }
-    const xrayOverlay = document.getElementById('xrayOverlayHud');
-    if (xrayOverlay) xrayOverlay.classList.add('hidden');
-    const fatalityBox = document.getElementById('fatalityPromptBox');
-    if (fatalityBox) fatalityBox.classList.add('hidden');
-    const postMatchEl = document.getElementById('postMatchMenu');
-    if (postMatchEl) postMatchEl.classList.add('hidden');
+    if (typeof document !== 'undefined') {
+        const roundTextEl = document.getElementById('hudRoundText');
+        if (roundTextEl) roundTextEl.textContent = `ROUND ${roundNumber}`;
+        const timerEl = document.getElementById('hudTimer');
+        if (timerEl) {
+            timerEl.textContent = typeof formatHudTimer === 'function' ? formatHudTimer(roundTimer) : roundTimer;
+        }
+        const sfOverlay = document.getElementById('superFlashOverlay');
+        if (sfOverlay) sfOverlay.classList.add('hidden');
+        const postMatchEl = document.getElementById('postMatchMenu');
+        if (postMatchEl) postMatchEl.classList.add('hidden');
+    }
     if (typeof hideComboHUD === 'function') hideComboHUD();
 
     matchState = 'intro';
     stateTimer = 1.6;
-    showAnnouncer(`ROUND ${roundNumber}`, `${fighter1.dino.name} VS ${fighter2.dino.name}`);
-    updateBattleHUD();
+    if (typeof showAnnouncer === 'function') {
+        showAnnouncer(`ROUND ${roundNumber}`, `${fighter1.dino.name} VS ${fighter2.dino.name}`);
+    }
+    if (typeof updateBattleHUD === 'function') updateBattleHUD();
     if (typeof updateGamepadHelperHUD === 'function') {
         updateGamepadHelperHUD();
     }
 }
 
-function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLockedXrayHit = false, attackCategory = 'mid') {
-    if (defender.isDead) return;
+function _handlePostDamageZeroHp(attacker, defender, isExtinction = false) {
+    if (matchState === 'campaign_level') {
+        if (defender === fighter1) {
+            if (typeof handlePlayerStockLoss === 'function') handlePlayerStockLoss();
+        } else if (typeof handleCampaignBossDefeated === 'function') {
+            handleCampaignBossDefeated();
+        } else if (typeof finishCampaignEraVictory === 'function') {
+            finishCampaignEraVictory();
+        }
+        return;
+    }
+    if (matchState === 'fight') {
+        handleKnockout(attacker, defender, isExtinction);
+    }
+}
+
+function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isSuperLockedHit = false, attackCategory = 'mid', options = {}) {
+    if (!defender || defender.isDead) return 'none';
+    const opts = options || {};
+
+    // Invulnérabilité de démarrage Primal Super (Reversal)
+    if (!isSuperLockedHit && defender.superInvulnTimer > 0) {
+        return 'invuln';
+    }
 
     // Invulnérabilité pendant l'animation de relevé (Wake_Up_Stand)
-    if (!isLockedXrayHit && defender.combatController && defender.combatController.state === CombatState.WAKE_UP_STAND) {
-        spawnFloatingPopup(defender.x, '🛡️ INVULNÉRABLE (RELEVÉ) !', '#38bdf8');
-        return;
+    const hasCombatState = typeof CombatState !== 'undefined';
+    if (!isSuperLockedHit && hasCombatState && defender.combatController && defender.combatController.state === CombatState.WAKE_UP_STAND) {
+        if (typeof spawnFloatingPopup === 'function') {
+            spawnFloatingPopup(defender.x, '🛡️ INVULNÉRABLE (RELEVÉ) !', '#38bdf8');
+        }
+        return 'invuln';
     }
 
     const attackZone = typeof DinosaurCombatController !== 'undefined'
         ? DinosaurCombatController.resolveAttackZoneFromAction(attackCategory)
         : 'mid';
+
+    // Détection Counter-Hit (interruption du Windup) & Punish (pendant Recovery) avant modification d'état
+    const defCtrlState = defender.combatController ? defender.combatController.state : null;
+    const isCounter = !isSuperLockedHit && !defender.isBlocking && hasCombatState && defCtrlState === CombatState.ATTACK_WINDUP;
+    const isPunish = !isSuperLockedHit && !defender.isBlocking && !isCounter && hasCombatState && defCtrlState === CombatState.ATTACK_RECOVERY;
 
     let finalDamage = rawDamage;
     let momentumMult = 1.0;
@@ -238,7 +296,7 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
 
     // --- ÉQUATION UPDATE 2.0 : MOMENTUM DAMAGE & STALE-MOVE NEGATION ---
     // Total Damage = Base Damage * (1 + k * ||v||) * StaleMultiplier
-    if (!isLockedXrayHit && attacker.combatController) {
+    if (!isSuperLockedHit && attackCategory !== 'super' && attacker && attacker.combatController) {
         const dmgEval = attacker.combatController.evaluateScaledDamage(rawDamage);
         finalDamage = dmgEval.scaledDamage;
         momentumMult = dmgEval.momentumMultiplier;
@@ -248,20 +306,22 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
     }
 
     // Modificateur de puissance d'attaque de l'attaquant (débuff d'intimidation du T-Rex, etc.)
-    if (attacker.atkPowerMod !== undefined && attacker.atkPowerMod !== 1.0) {
+    if (attacker && attacker.atkPowerMod !== undefined && attacker.atkPowerMod !== 1.0) {
         finalDamage = Math.round(finalDamage * attacker.atkPowerMod);
     }
 
-    // Avantage joueur contre le boss en campagne pour rendre le combat palpitant et accessible
-    if (attacker.isP1 && gameMode === 'campaign' && defender.dino && defender.dino.isBoss) {
+    // Avantage joueur contre le boss en campagne
+    if (attacker && attacker.isP1 && gameMode === 'campaign' && defender.dino && defender.dino.isBoss) {
         finalDamage = Math.round(finalDamage * 1.35);
     }
 
-    attacker.hasHitConfirmed = true;
+    if (attacker) {
+        attacker.hasHitConfirmed = true;
+    }
 
     // --- DAMAGE SCALING (PRORATION DÉGRESSIVE DU COMBO) ---
-    // Chaque coup consécutif inflige des dégâts dégressifs pour éviter les one-shots abusifs
-    if (!isLockedXrayHit && attacker.comboCount > 0) {
+    // Les coups de Primal Super gèrent leur propre plancher de proration à 55% dans super-attack.js
+    if (!isSuperLockedHit && attackCategory !== 'super' && attacker && attacker.comboCount > 0) {
         let scale = 1.0;
         if (attacker.comboCount === 1) scale = 0.82;
         else if (attacker.comboCount === 2) scale = 0.68;
@@ -271,29 +331,32 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
     }
 
     // --- HYPER-ARMURE DE L'ANKYLOSAURE ---
-    if (defender.hasHyperArmor && !isHeavy && attackCategory !== 'throw' && !isLockedXrayHit) {
+    if (defender.hasHyperArmor && !isHeavy && attackCategory !== 'throw' && attackCategory !== 'super' && !isSuperLockedHit) {
         finalDamage = Math.max(8, Math.round(finalDamage * 0.5));
         defender.hp = Math.max(0, defender.hp - finalDamage);
-        defender.rage = Math.min(100, defender.rage + 4.5);
-        sfx.playHit(false);
-        spawnFloatingPopup(defender.x, '🛡️ HYPER ARMURE !', '#38bdf8');
-        spawn3DBloodAndBones(defender.x, 1.8, 6, false);
-        updateBattleHUD();
-        if (defender.hp <= 0) {
-            if (matchState === 'campaign_level') {
-                if (defender === fighter1) handlePlayerStockLoss();
-                else if (typeof handleCampaignBossDefeated === 'function') handleCampaignBossDefeated();
-                else finishCampaignEraVictory();
-            } else if (matchState === 'fight') {
-                handleKnockout(attacker, defender);
-            }
+        defender.rage = Math.min(100, (defender.rage || 0) + 4.5);
+        defender.hitFlashTimer = 0.08;
+        defender.hitFlashColor = 0x38bdf8;
+        hitstopTimer = Math.max(hitstopTimer, 0.045);
+        hitstopTarget = defender;
+        if (typeof sfx !== 'undefined') {
+            if (typeof sfx.playBlock === 'function') sfx.playBlock(false);
+            else if (typeof sfx.playHit === 'function') sfx.playHit(false);
         }
-        return;
+        if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(defender.x, '🛡️ HYPER ARMURE !', '#38bdf8');
+        if (typeof spawn3DBloodAndBones === 'function') spawn3DBloodAndBones(defender.x, (defender.y || 0) + 1.8, 6, false);
+        if (typeof updateBattleHUD === 'function') updateBattleHUD();
+        if (defender.hp <= 0) {
+            _handlePostDamageZeroHp(attacker, defender, false);
+        }
+        return 'armor';
     }
 
-    // --- MATRICE DIRECTIONNELLE 3-VOIES : ATTAQUE (HIGH / MID / LOW) VS GARDE (HIGH / MID / LOW) ---
-    const isBlocking = defender.isBlocking && !defender.isDizzy && !isLockedXrayHit && !defender.isXrayTarget;
+    // --- MATRICE DIRECTIONNELLE 3-VOIES + PARADE PARFAITE (130ms) ---
+    const isBlocking = defender.isBlocking && !defender.isDizzy && !isSuperLockedHit && !defender.isSuperTarget;
     let guardBroken = false;
+    let isPerfectParry = false;
+    const nowSecParry = (typeof performance !== 'undefined' ? performance.now() : Date.now()) * 0.001;
 
     if (isBlocking) {
         if (attackCategory === 'throw' || attackCategory === 'seismic') {
@@ -305,37 +368,96 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
                 : (defender.blockType === attackZone);
 
             if (!isMatchedGuard) {
-                // Garde directionnelle non correspondante -> Coup net traversant la défense !
                 guardBroken = true;
                 const zoneLabels = {
                     high: '👆 FRAPPE HAUTE (GARDE PERCÉE) !',
                     mid: '👉 FRAPPE MÉDIANE (GARDE PERCÉE) !',
                     low: '🦶 FRAPPE BASSE (GARDE PERCÉE) !'
                 };
-                spawnFloatingPopup(defender.x, zoneLabels[attackZone] || '💥 GARDE PERCÉE !', '#ef4444');
+                if (typeof spawnFloatingPopup === 'function') {
+                    spawnFloatingPopup(defender.x, zoneLabels[attackZone] || '💥 GARDE PERCÉE !', '#ef4444');
+                }
             } else {
-                // Garde correspondante : consomme l'endurance de garde du défenseur
-                const staminaCost = isHeavy ? 28 : 14;
-                defender.guardStamina = Math.max(0, (defender.guardStamina !== undefined ? defender.guardStamina : 100) - staminaCost);
-                if (defender.guardStamina <= 0) {
-                    guardBroken = true;
-                    defender.guardStamina = 50;
-                    spawnFloatingPopup(defender.x, '💥 GARDE BRISÉE (ENDURANCE ÉPUISÉE) !', '#ef4444');
+                // Fenêtre de Parade Parfaite : <= 130ms depuis la prise de garde ou le changement de zone
+                const guardAge = nowSecParry - (defender.guardStartTime !== undefined ? defender.guardStartTime : -999);
+                if (guardAge >= 0 && guardAge <= 0.13) {
+                    isPerfectParry = true;
+                } else {
+                    const staminaCost = opts.guardStaminaCost !== undefined
+                        ? opts.guardStaminaCost
+                        : (attackCategory === 'super' ? 55 : (isHeavy ? 28 : 14));
+                    defender.guardStamina = Math.max(0, (defender.guardStamina !== undefined ? defender.guardStamina : 100) - staminaCost);
+                    if (defender.guardStamina <= 0) {
+                        guardBroken = true;
+                        defender.guardStamina = 50;
+                        defender.isBlocking = false;
+                        defender.blockType = 'none';
+                        defender._prevBlockType = 'none';
+                        hitstopTimer = Math.max(hitstopTimer, 0.16);
+                        hitstopTarget = defender;
+                        camFovKick = Math.max(camFovKick, 3.0);
+                        if (typeof sfx !== 'undefined') {
+                            if (typeof sfx.playGuardBreak === 'function') sfx.playGuardBreak();
+                            else if (typeof sfx.playBoneCrack === 'function') sfx.playBoneCrack();
+                        }
+                        if (typeof spawnFloatingPopup === 'function') {
+                            spawnFloatingPopup(defender.x, '💥 GARDE BRISÉE !', '#ef4444');
+                        }
+                    }
                 }
             }
         }
     }
 
     if (isBlocking && !guardBroken) {
-        // --- PARADE DIRECTIONNELLE RÉUSSIE : DÉVIATION (BLOCK_DEFLECT_[ZONE]) & DÉSAVANTAGE DE FRAMES ---
         const bnds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: STAGE_LEFT_3D, right: STAGE_RIGHT_3D };
         const isCorner = Math.abs(defender.x) >= bnds.right - 1.2;
-        const staleBlockstunMult = attacker.combatController
+        const attFacing = attacker ? (attacker.facing || 1) : 1;
+
+        // A. PARADE PARFAITE (<= 130ms) : 0 dégât, 0 endurance, +15 Rage, déviation étendue (0.48s) !
+        if (isPerfectParry) {
+            if (attacker && attacker.combatController) {
+                attacker.combatController.triggerAttackerBlockDeflect(attackZone);
+                attacker.combatController.deflectTimer = 0.48;
+                attacker.actionDuration = 0;
+                attacker.actionTimer = 0;
+                attacker.action = 'idle';
+                attacker.hitStun = 0.36;
+                attacker.vx = -attFacing * 7.2;
+            }
+            defender.hitStun = 0;
+            defender.rage = Math.min(100, (defender.rage || 0) + 15);
+            defender.hitFlashTimer = 0.14;
+            defender.hitFlashColor = 0xfef08a;
+            hitstopTimer = 0.11;
+            hitstopTarget = attacker || defender;
+            screenShake = Math.max(screenShake, 0.28);
+            camFovKick = Math.max(camFovKick, 1.8);
+
+            if (typeof sfx !== 'undefined') {
+                if (typeof sfx.playParry === 'function') sfx.playParry();
+                else if (typeof sfx.playBlock === 'function') sfx.playBlock(true);
+                else if (typeof sfx.playGong === 'function') sfx.playGong();
+            }
+            if (typeof spawn3DParryBurst === 'function') {
+                spawn3DParryBurst(defender.x, (defender.y || 0) + 1.8);
+            }
+            if (typeof spawn3DGuardDeflectEffect === 'function') {
+                spawn3DGuardDeflectEffect(defender, defender.blockType || attackZone);
+            }
+            if (typeof spawnFloatingPopup === 'function') {
+                spawnFloatingPopup(defender.x, '⚡ PARADE PARFAITE !', '#fef08a');
+            }
+            if (typeof updateBattleHUD === 'function') updateBattleHUD();
+            return 'parry';
+        }
+
+        // B. GARDE DIRECTIONNELLE NORMALE : Déviation, chip éventuel (Thérizinosaure / Super) & blockstun
+        const staleBlockstunMult = (attacker && attacker.combatController)
             ? attacker.combatController.calculateStaleBlockstunMultiplier(attacker.lastStaleCount || 0)
             : 1.0;
 
-        // Déclencher Block_Deflect_[Zone] sur l'attaquant (recul & désavantage de recovery)
-        if (attacker.combatController) {
+        if (attacker && attacker.combatController && !opts.noDeflect) {
             attacker.combatController.triggerAttackerBlockDeflect(attackZone);
             attacker.actionDuration = 0;
             attacker.actionTimer = 0;
@@ -343,139 +465,242 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
             attacker.hitStun = 0.24;
         }
 
-        if (attacker.dino && attacker.dino.id === 'therizinosaurus') {
-            // Thérizinosaure : Griffes déchiqueteuses qui traversent la garde (40% de dégâts)
+        const isTherizino = attacker && attacker.dino && (attacker.dino.id === 'therizino' || attacker.dino.id === 'therizinosaurus');
+        if (isTherizino) {
+            // Thérizinosaure : Griffes déchiqueteuses traversant la garde (40% de dégâts)
             finalDamage = Math.max(14, Math.round(rawDamage * 0.40));
             defender.hitStun = 0.22 * staleBlockstunMult;
-            if (isCorner) {
-                attacker.vx = -attacker.facing * 5.2;
+            if (isCorner && attacker) {
+                attacker.vx = -attFacing * 5.2;
                 defender.vx = 0;
             } else {
-                defender.vx = attacker.facing * 5.5;
+                defender.vx = attFacing * 5.5;
             }
-            sfx.playHit(true);
-            screenShake = 0.25;
-            spawnFloatingPopup(defender.x, '⚔️ GRIFFES DÉCHIQUETEUSES (CHIP 40%) !', '#f97316');
-            if (typeof spawn3DGuardDeflectEffect === 'function') {
-                spawn3DGuardDeflectEffect(defender, defender.blockType || attackZone);
+            screenShake = Math.max(screenShake, 0.25);
+            if (typeof spawnFloatingPopup === 'function') {
+                spawnFloatingPopup(defender.x, '⚔️ GRIFFES DÉCHIQUETEUSES (CHIP 40%) !', '#f97316');
             }
-            spawn3DBloodAndBones(defender.x, 1.8, 8, false);
+            if (typeof spawn3DBloodAndBones === 'function') {
+                spawn3DBloodAndBones(defender.x, (defender.y || 0) + 1.8, 8, false);
+            }
+        } else if (attackCategory === 'super') {
+            // Primal Super bloquée : 18% de chip damage + gros recul
+            finalDamage = opts.chipDamage !== undefined ? opts.chipDamage : Math.max(12, Math.round(rawDamage * 0.18));
+            defender.hitStun = 0.26;
+            if (attacker) attacker.vx = -attFacing * 7.0;
+            if (!isCorner) defender.vx = attFacing * 5.2;
+            screenShake = Math.max(screenShake, 0.30);
+            if (typeof spawnFloatingPopup === 'function') {
+                spawnFloatingPopup(defender.x, `🛡️ SUPER BLOQUÉE ! -${finalDamage}`, '#fbbf24');
+            }
         } else {
-            // Garde directionnelle parfaite (High/Mid/Low) : 0 dégât subi & déviation de l'attaquant !
+            // Garde directionnelle standard : 0 dégât & déviation
             finalDamage = 0;
             defender.hitStun = (isHeavy ? 0.22 : 0.11) * staleBlockstunMult;
-            attacker.vx = -attacker.facing * (isHeavy ? 6.2 : 4.5);
+            if (attacker) attacker.vx = -attFacing * (isHeavy ? 6.2 : 4.5);
             if (!isCorner) {
-                defender.vx = attacker.facing * (isHeavy ? 4.2 : 2.5);
+                defender.vx = attFacing * (isHeavy ? 4.2 : 2.5);
             }
-            sfx.playHit(false);
             const deflectLabels = {
                 high: '🛡️ DÉVIATION HAUTE !',
                 mid: '🛡️ DÉVIATION MÉDIANE !',
                 low: '🛡️ DÉVIATION BASSE !'
             };
-            spawnFloatingPopup(defender.x, deflectLabels[defender.blockType] || '🛡️ DÉVIATION !', '#fbbf24');
-            if (typeof spawn3DGuardDeflectEffect === 'function') {
-                spawn3DGuardDeflectEffect(defender, defender.blockType || attackZone);
+            if (typeof spawnFloatingPopup === 'function') {
+                spawnFloatingPopup(defender.x, deflectLabels[defender.blockType] || '🛡️ DÉVIATION !', '#fbbf24');
             }
-            spawn3DBloodAndBones(defender.x, 1.8, 4, false);
+        }
+
+        if (typeof sfx !== 'undefined') {
+            if (typeof sfx.playBlock === 'function') sfx.playBlock(Boolean(isHeavy));
+            else if (typeof sfx.playHit === 'function') sfx.playHit(false);
+        }
+        hitstopTimer = Math.max(hitstopTimer, isHeavy ? 0.065 : 0.035);
+        hitstopTarget = defender;
+        camRecoilX += attFacing * (isHeavy ? 0.25 : 0.10);
+
+        if (typeof spawn3DGuardDeflectEffect === 'function') {
+            spawn3DGuardDeflectEffect(defender, defender.blockType || attackZone);
         }
 
         defender.hp = Math.max(0, defender.hp - finalDamage);
-        defender.rage = Math.min(100, defender.rage + (isHeavy ? 5 : 2.5));
-        updateBattleHUD();
+        defender.rage = Math.min(100, (defender.rage || 0) + (isHeavy ? 5 : 2.5));
+        if (typeof updateBattleHUD === 'function') updateBattleHUD();
         if (defender.hp <= 0) {
-            if (matchState === 'campaign_level') {
-                if (defender === fighter1) handlePlayerStockLoss();
-                else if (typeof handleCampaignBossDefeated === 'function') handleCampaignBossDefeated();
-                else finishCampaignEraVictory();
-            } else if (matchState === 'fight') {
-                handleKnockout(attacker, defender);
-            }
+            _handlePostDamageZeroHp(attacker, defender, false);
         }
-        return;
+        return 'block';
     }
 
-    // --- IMPACT DIRECT RÉUSSI (COUP NET / GARDE PERCÉE) ---
-    sfx.playHit(isHeavy);
+    // --- IMPACT DIRECT RÉUSSI (COUP NET / COUNTER-HIT / PUNISH / GARDE PERCÉE) ---
+    let hitStunMult = 1.0;
+    let extraHitstop = 0;
 
-    // Hitstop : Impact Freeze pour un ressenti percutant et viscéral
-    hitstopTimer = isHeavy ? 0.065 : 0.035;
+    if (isCounter) {
+        finalDamage = Math.round(finalDamage * 1.20);
+        hitStunMult = 1.35;
+        extraHitstop = 0.055;
+        camFovKick = Math.max(camFovKick, 3.2);
+        if (typeof sfx !== 'undefined' && typeof sfx.playCounterHit === 'function') {
+            sfx.playCounterHit();
+        }
+        if (typeof spawn3DCounterBurst === 'function') {
+            spawn3DCounterBurst(defender.x, (defender.y || 0) + 1.9);
+        }
+        if (typeof spawnFloatingPopup === 'function') {
+            spawnFloatingPopup(defender.x, '🔥 COUNTER !', '#f97316');
+        }
+    } else if (isPunish) {
+        finalDamage = Math.round(finalDamage * 1.15);
+        hitStunMult = 1.20;
+        extraHitstop = 0.035;
+        camFovKick = Math.max(camFovKick, 2.2);
+        if (typeof spawnFloatingPopup === 'function') {
+            spawnFloatingPopup(defender.x, '⚡ PUNISH !', '#fbbf24');
+        }
+    }
 
-    // Signature Passives & Status Effects
-    if (attacker.dino && !defender.isDead) {
-        // Smilodon & Gorgonopsia : Saignement cumulable (jusqu'à 3 stacks)
+    // Incrémenter Combo & Dégâts cumulés avant audio & HUD
+    if (attacker) {
+        attacker.comboCount = (attacker.comboCount || 0) + 1;
+        attacker.comboDamage = (attacker.comboDamage || 0) + finalDamage;
+    }
+
+    // Audio impact avec pitch combo progressif
+    if (typeof sfx !== 'undefined' && typeof sfx.playHit === 'function') {
+        sfx.playHit(Boolean(isHeavy), { comboCount: attacker ? attacker.comboCount : 1 });
+    }
+
+    // Hitstop hiérarchisé : Light 0.055s, Heavy 0.115s, Special 0.13s, Super 0.15s (+ Counter/GuardBreak)
+    const attAct = attacker ? attacker.action : '';
+    let baseHitstop = 0.055;
+    if (attackCategory === 'super') {
+        baseHitstop = isSuperLockedHit ? 0.08 : 0.15;
+    } else if (attAct === 'special' || attAct === 'special2' || attackCategory === 'seismic') {
+        baseHitstop = 0.13;
+    } else if (isHeavy) {
+        baseHitstop = 0.115;
+    }
+    hitstopTimer = Math.max(hitstopTimer, baseHitstop + extraHitstop);
+    hitstopTarget = defender;
+
+    // Full-Body Hit-Flash multi-matériaux
+    defender.hitFlashTimer = Math.max(defender.hitFlashTimer || 0, isHeavy ? 0.11 : 0.075);
+    defender.hitFlashColor = isCounter
+        ? 0xf97316
+        : ((opts.isSuperBeat && opts.beatNum >= 3) ? 0xf97316 : (isPunish ? 0xfbbf24 : 0xffffff));
+
+    // Recul caméra directionnel + FOV Kick
+    const attFacing = attacker ? (attacker.facing || 1) : 1;
+    camRecoilX += attFacing * (isHeavy ? 0.55 : 0.22);
+    camRecoilY += (attackZone === 'high' ? 0.25 : -0.15);
+    camFovKick = Math.max(camFovKick, attackCategory === 'super' ? 3.6 : (isHeavy ? 2.6 : 0.9));
+
+    // Passifs de signature & statuts
+    if (attacker && attacker.dino && !defender.isDead) {
         if (attacker.dino.id === 'smilodon' || attacker.dino.id === 'gorgonopsia') {
             defender.bleedStacks = Math.min(3, (defender.bleedStacks || 0) + 1);
             defender.bleedTimer = 4.0;
             const bleedLabel = attacker.dino.id === 'gorgonopsia'
                 ? `🩸 DÉCHIRURE SABRE ×${defender.bleedStacks}`
                 : `🩸 SAIGNEMENT ×${defender.bleedStacks}`;
-            spawnFloatingPopup(defender.x, bleedLabel, '#dc2626');
+            if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(defender.x, bleedLabel, '#dc2626');
         }
-        // Pulmonoscorpius : Neurotoxine paralysante (jusqu'à 3 stacks)
         if (attacker.dino.id === 'pulmonoscorpius') {
             defender.poisonStacks = Math.min(3, (defender.poisonStacks || 0) + 1);
             defender.poisonTimer = 5.0;
-            spawnFloatingPopup(defender.x, `🧪 VENIN ×${defender.poisonStacks}`, '#22c55e');
+            if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(defender.x, `🧪 VENIN ×${defender.poisonStacks}`, '#22c55e');
         }
-        // T-Rex : Intimidation par morsure ou rugissement (-25% attaque adverse)
         if (attacker.dino.id === 'trex' && (attacker.action === 'special' || attackCategory === 'throw')) {
             defender.atkPowerMod = 0.75;
             defender.atkPowerModTimer = 4.5;
-            spawnFloatingPopup(defender.x, '🦖 INTIMIDATION (-25% ATQ) !', '#eab308');
+            if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(defender.x, '🦖 INTIMIDATION (-25% ATQ) !', '#eab308');
         }
     }
 
     const kbMult = defender.knockbackMult || 1.0;
     const isBossDef = defender.dino && defender.dino.isBoss;
-    const stunDecay = Math.max(0.55, 1.0 - (attacker.comboCount || 0) * 0.14);
-    defender.hitStun = (isLockedXrayHit ? 1.2 : (isHeavy ? (isBossDef ? 0.46 : 0.35) : (isBossDef ? 0.30 : 0.20))) * stunDecay;
+    const stunDecay = Math.max(0.55, 1.0 - Math.max(0, (attacker ? attacker.comboCount : 1) - 1) * 0.12);
+    const baseHitStun = isSuperLockedHit
+        ? 1.2
+        : (isHeavy ? (isBossDef ? 0.46 : 0.36) : (isBossDef ? 0.30 : 0.22));
+    defender.hitStun = baseHitStun * stunDecay * hitStunMult;
     defender.lastHitZone = attackZone;
 
-    // --- DÉCLENCHEMENT DE LA SÉQUENCE KNOCKDOWN -> GROUNDED_IDLE -> WAKE_UP_STAND ---
-    const causesKnockdown = !isLockedXrayHit && !isBossDef && (
-        isHeavy ||
+    // Interrompre proprement l'attaque adverse lors d'un impact net (Counter / Hit)
+    if (!isSuperLockedHit && defender.actionDuration > 0 && !defender.isSuperAttacker) {
+        defender.actionDuration = 0;
+        defender.actionTimer = 0;
+        defender.action = 'hit';
+        defender.hasHyperArmor = false;
+    }
+
+    // --- KNOCKDOWN COMBO-FRIENDLY & SUIVI DE JUGGLE AÉRIEN ---
+    // Knockdown UNIQUEMENT sur low_heavy, throw, seismic, special, special2, air_heavy, super, ou combo >= 4 (PAS sur heavy neutre!)
+    const isKnockdownMove = (
+        attAct === 'low_heavy' ||
+        attAct === 'air_heavy' ||
+        attAct === 'special' ||
+        attAct === 'special2' ||
+        attAct === 'throw' ||
         attackCategory === 'throw' ||
         attackCategory === 'seismic' ||
-        momentumMult >= 1.28
+        attackCategory === 'super'
     );
-    if (defender.combatController && !isLockedXrayHit) {
+    const causesKnockdown = !isSuperLockedHit && !isBossDef && (
+        isKnockdownMove ||
+        (attacker && attacker.comboCount >= 4)
+    );
+    if (defender.combatController && !isSuperLockedHit) {
         defender.combatController.triggerDefenderHitOrKnockdown(attackZone, causesKnockdown, 1.15);
     }
 
-    // Ne pas repousser les personnages pendant que le X-Ray verrouille leurs positions
-    if (!isLockedXrayHit && !xrayLockPositions) {
+    // Suivi du juggle si la cible est touchée en l'air
+    const defAirH = (defender.y || 0) - (defender.groundY || 0);
+    const isDefenderAirborne = defAirH > 0.20 || Boolean(defender.isFlying);
+    if (isDefenderAirborne && !isSuperLockedHit) {
+        defender.juggleCount = (defender.juggleCount || 0) + 1;
+    }
+
+    const isSuperPosLocked = typeof superState !== 'undefined' && superState && Boolean(superState.lockPositions);
+    if (!isSuperLockedHit && !isSuperPosLocked) {
         const bnds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: STAGE_LEFT_3D, right: STAGE_RIGHT_3D };
         const isCorner = Math.abs(defender.x) >= bnds.right - 1.2;
-        const pushbackBonus = (attacker.comboCount || 0) * 1.5;
+        const pushbackBonus = Math.max(0, (attacker ? attacker.comboCount : 1) - 1) * 1.1;
 
-        if (attackCategory === 'antiair') {
-            defender.vx = attacker.facing * 3.5 * kbMult;
-            defender.vy = 8.5;
+        if (attackCategory === 'throw') {
+            defender.vx = attFacing * 11.5 * kbMult;
+            defender.vy = 6.2;
+        } else if (attackCategory === 'antiair') {
+            defender.vx = attFacing * 3.5 * kbMult;
+            defender.vy = Math.max(4.5, 8.6 - (defender.juggleCount || 0) * 1.1);
         } else if (attackCategory === 'low') {
-            if (isCorner) {
-                attacker.vx = -attacker.facing * 4.2;
+            if (isCorner && attacker) {
+                attacker.vx = -attFacing * 4.2;
                 defender.vx = 0;
             } else {
-                defender.vx = attacker.facing * (5.5 + pushbackBonus) * kbMult;
+                defender.vx = attFacing * (5.5 + pushbackBonus) * kbMult;
             }
-            defender.vy = 2.4;
+            defender.vy = causesKnockdown ? 3.2 : 1.6;
         } else {
-            if (isCorner) {
-                // Au coin : Reversal pushback pour empêcher l'attaquant de coller indéfiniment
-                attacker.vx = -attacker.facing * (isHeavy ? 5.8 : 4.0);
+            if (isCorner && attacker) {
+                attacker.vx = -attFacing * (isHeavy ? 5.6 : 3.8);
                 defender.vx = 0;
             } else {
-                defender.vx = attacker.facing * ((isHeavy ? 9.2 : 5.8) + pushbackBonus) * kbMult;
+                defender.vx = attFacing * ((isHeavy ? 8.6 : 5.4) + pushbackBonus) * kbMult;
             }
-            if (isHeavy) defender.vy = 4.2;
+            if (isDefenderAirborne) {
+                defender.vy = Math.max(1.5, (isHeavy ? 5.2 : 4.2) - (defender.juggleCount || 0) * 1.15);
+            } else if (causesKnockdown) {
+                defender.vy = 4.4;
+            }
         }
     } else {
         defender.vx = 0;
         defender.vy = 0;
     }
-    screenShake = isHeavy ? 0.38 : 0.16;
+
+    screenShake = Math.max(screenShake, isHeavy ? 0.38 : 0.16);
     if (isHeavy && typeof triggerGamepadRumble === 'function') {
         triggerGamepadRumble(defender.isP1 ? 0 : 1, 0.35, 0.75, 160);
     }
@@ -485,16 +710,16 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
     if (causesKnockdown && typeof spawn3DGroundShockwave === 'function') {
         spawn3DGroundShockwave(defender.x, 0xef4444, 2.4, true);
     }
-    spawn3DBloodAndBones(defender.x, 2.0, isHeavy ? 18 : 8, isHeavy);
-
-    attacker.comboCount++;
-    if (attacker.isP1 && attacker.comboCount >= 2 && typeof showComboHUD === 'function') {
-        showComboHUD(attacker.comboCount);
+    if (typeof spawn3DBloodAndBones === 'function') {
+        spawn3DBloodAndBones(defender.x, (defender.y || 0) + 2.0, isHeavy ? 18 : 8, isHeavy);
     }
 
-    // Feedback visuel pour Momentum Damage et Stale-Move Negation
+    if (attacker && attacker.isP1 && attacker.comboCount >= 2 && typeof showComboHUD === 'function') {
+        showComboHUD(attacker.comboCount, attacker.comboDamage || 0);
+    }
+
     let extraTag = '';
-    if (!isLockedXrayHit) {
+    if (!isSuperLockedHit && attackCategory !== 'super') {
         if (momentumMult >= 1.12) {
             extraTag += ` ⚡+${Math.round((momentumMult - 1) * 100)}%`;
         }
@@ -502,100 +727,108 @@ function applyDamage(attacker, defender, rawDamage, isHeavy, label = '', isLocke
             extraTag += ` ⚠️USÉ ${Math.round(staleMult * 100)}%`;
         }
     }
-    const textLabel = (label || (attacker.comboCount > 1 ? `${attacker.comboCount} HITS ! -${finalDamage}` : `-${finalDamage}`)) + extraTag;
-    spawnFloatingPopup(defender.x, textLabel, isHeavy ? '#ef4444' : '#fde047');
+    const textLabel = (label || (attacker && attacker.comboCount > 1 ? `${attacker.comboCount} HITS ! -${finalDamage}` : `-${finalDamage}`)) + extraTag;
+    if (typeof spawnFloatingPopup === 'function') {
+        spawnFloatingPopup(defender.x, textLabel, isCounter ? '#f97316' : (isHeavy ? '#ef4444' : '#fde047'));
+    }
 
     if (gameMode === 'practice' && !defender.isP1) {
         defender.hp = Math.max(150, defender.hp - finalDamage);
         defender._practiceRegenDelay = 1.8;
-    } else if (isLockedXrayHit) {
-        // Garder au moins 1 PV pendant les phases 1 et 2 du X-Ray pour que l'animation complète se joue
+    } else if (isSuperLockedHit) {
+        // Garder au moins 1 PV pendant les beats intermédiaires de la Primal Super pour jouer tout le final
         defender.hp = Math.max(1, defender.hp - finalDamage);
     } else {
         defender.hp = Math.max(0, defender.hp - finalDamage);
     }
 
-    if (!attacker.isXrayAttacker) {
-        attacker.rage = Math.min(100, attacker.rage + (isHeavy ? 6 : 3.5));
+    if (attacker && !attacker.isSuperAttacker && attackCategory !== 'super') {
+        attacker.rage = Math.min(100, (attacker.rage || 0) + (isHeavy ? 6.5 : 4.0));
     }
-    defender.rage = Math.min(100, defender.rage + (isHeavy ? 7.5 : 4.5));
-
-    updateBattleHUD();
-
-    if (defender.hp <= 0 && !isLockedXrayHit) {
-        if (matchState === 'campaign_level') {
-            if (defender === fighter1) handlePlayerStockLoss();
-            else if (typeof handleCampaignBossDefeated === 'function') handleCampaignBossDefeated();
-            else finishCampaignEraVictory();
-            return;
-        }
-        if (matchState === 'fight') {
-            xrayCinematicTimer = 0;
-            xrayElapsed = 0;
-            xrayPhaseApplied = 0;
-            xrayContext = null;
-            xrayStage = 0;
-            xrayLockPositions = null;
-            fighter1.isXrayTarget = false;
-            fighter2.isXrayTarget = false;
-            fighter1.isXrayAttacker = false;
-            fighter2.isXrayAttacker = false;
-            const xHud = document.getElementById('xrayOverlayHud');
-            if (xHud) xHud.classList.add('hidden');
-            handleKnockout(attacker, defender);
-        }
+    if (!defender.isSuperTarget) {
+        defender.rage = Math.min(100, (defender.rage || 0) + (isHeavy ? 7.5 : 4.5));
     }
+
+    if (typeof updateBattleHUD === 'function') updateBattleHUD();
+
+    if (defender.hp <= 0 && !isSuperLockedHit && !opts.deferKnockout) {
+        const isExtinction = (attackCategory === 'super' || Boolean(opts.isExtinctionFinish)) && Boolean(attacker && attacker.roundsWon >= 1);
+        _handlePostDamageZeroHp(attacker, defender, isExtinction);
+    }
+
+    return 'hit';
 }
 
-function handleKnockout(winner, loser) {
-    if (matchState !== 'fight') return;
+function handleKnockout(winner, loser, isExtinctionFinish = false) {
+    if (matchState !== 'fight' || koSlowMoTimer > 0) return;
 
     winner.roundsWon++;
-    winner.action = 'idle';
-    winner.actionDuration = 0;
-    winner.actionTimer = 0;
+    if (!winner.isSuperAttacker) {
+        winner.action = 'idle';
+        winner.actionDuration = 0;
+        winner.actionTimer = 0;
+    }
+    winner.bufferedInput = null;
     winner.bufferedAction = null;
 
-    loser.action = 'idle';
+    loser.hp = 0;
+    loser.isDead = true;
+    loser.isDizzy = false;
+    loser.isBlocking = false;
+    loser.blockType = 'none';
+    loser._prevBlockType = 'none';
+    loser.bufferedInput = null;
+    loser.bufferedAction = null;
+    loser.action = 'ko';
     loser.actionDuration = 0;
     loser.actionTimer = 0;
-    loser.bufferedAction = null;
-    loser.isBlocking = false;
     loser.hitStun = 0;
 
-    sfx.playGong();
-    sfx.playRoar(70, 0.65);
-    if (typeof triggerGamepadRumble === 'function') {
-        triggerGamepadRumble(loser.isP1 ? 0 : 1, 0.7, 1.0, 360);
+    // Préserver la trajectoire d'éjection du coup fatal (ou appliquer une projection dramatique par défaut)
+    if (Math.abs(loser.vx || 0) < 0.5 && Math.abs(loser.vy || 0) < 0.5) {
+        const launchDir = winner ? (winner.facing || (loser.x >= winner.x ? 1 : -1)) : 1;
+        loser.vx = launchDir * (isExtinctionFinish ? 13.5 : 9.5);
+        loser.vy = isExtinctionFinish ? 7.2 : 5.4;
     }
-    updateBattleHUD();
 
-    if (winner.roundsWon >= 2) {
-        // Balle de match : Déclenche la séquence "ACHEVEZ-LE !" pour la Fatalité
-        matchState = 'finish_him';
-        stateTimer = 6.5;
-        loser.hp = 1;
-        loser.isDizzy = true;
-        loser.vx = 0;
-        loser.vy = 0;
+    // Slow-Mo K.O. cinématique (remplace définitivement finish_him / fatality_anim)
+    koSlowMoTimer = isExtinctionFinish ? 1.15 : 0.95;
+    battleTimeScale = isExtinctionFinish ? 0.18 : 0.22;
+    koPendingData = { winner, loser, isExtinctionFinish: Boolean(isExtinctionFinish) };
 
-        showAnnouncer('ACHEVEZ-LE !', `APPUYEZ SUR [R] OU [ESPACE] POUR LA FATALITÉ DE ${winner.dino.name}`);
-        if (winner.isP1 || gameMode === 'pvp') {
-            const fatBtn = document.getElementById('btnTriggerFatalityNow');
-            if (fatBtn) {
-                fatBtn.className = 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-800 via-red-600 to-amber-500 text-white font-black text-sm sm:text-lg uppercase tracking-wider border-2 border-amber-300 shadow-2xl finish-pulse cursor-pointer';
-                fatBtn.innerHTML = `💀 EXÉCUTER LA FATALITÉ ! (Touche R ou Espace)`;
-            }
-            document.getElementById('fatalityPromptBox').classList.remove('hidden');
+    if (typeof sfx !== 'undefined') {
+        if (typeof sfx.playKoFinish === 'function') {
+            sfx.playKoFinish(Boolean(isExtinctionFinish));
+        } else {
+            if (typeof sfx.playGong === 'function') sfx.playGong();
+            if (typeof sfx.playRoar === 'function') sfx.playRoar(70, 0.65);
         }
-    } else {
-        // Fin du 1er round : l'adversaire tombe K.O. et le round suivant se lance
-        matchState = 'round_over';
-        stateTimer = 2.6;
-        loser.hp = 0;
-        loser.isDead = true;
-        showAnnouncer('K.O. !', `${winner.dino.name} REMPORTE LE ROUND ${roundNumber}`);
     }
+
+    screenShake = Math.max(screenShake, isExtinctionFinish ? 0.95 : 0.65);
+    camFovKick = Math.max(camFovKick, isExtinctionFinish ? 4.5 : 3.2);
+    if (typeof triggerGamepadRumble === 'function') {
+        triggerGamepadRumble(loser.isP1 ? 0 : 1, 0.75, 1.0, isExtinctionFinish ? 480 : 360);
+    }
+
+    if (isExtinctionFinish) {
+        if (typeof showAnnouncer === 'function') {
+            showAnnouncer('☢ EXTINCTION FINISH !', `${winner.dino.name} ANÉANTIT ${loser.dino.name} !`);
+        }
+        if (typeof showSuperFlashOverlay === 'function' && typeof getSuperSpec === 'function') {
+            const spec = getSuperSpec(winner.dino && winner.dino.id);
+            if (spec) showSuperFlashOverlay(winner, spec, true);
+        }
+    } else if (typeof showAnnouncer === 'function') {
+        showAnnouncer(
+            'K.O. !',
+            winner.roundsWon >= 2
+                ? `${winner.dino.name} REMPORTE LE KOMBAT !`
+                : `${winner.dino.name} REMPORTE LE ROUND ${roundNumber}`
+        );
+    }
+
+    if (typeof updateBattleHUD === 'function') updateBattleHUD();
 }
 
 // ============================================================================
@@ -604,7 +837,7 @@ function handleKnockout(winner, loser) {
 // lors des attaques spéciales ou contre les bords de l'arène.
 // ============================================================================
 function resolveFighterBodyBlocker(f1, f2) {
-    if (!f1 || !f2 || matchState === 'fatality_anim' || xrayLockPositions) return;
+    if (!f1 || !f2 || (typeof superState !== 'undefined' && superState && superState.lockPositions)) return;
 
     const minSep = (f1.bodyRadius || 1.32) + (f2.bodyRadius || 1.32);
 
@@ -700,7 +933,46 @@ function resolveFighterBodyBlocker(f1, f2) {
 
 let _hudCooldownThrottle = 0;
 
+function updateParticles3D(pDt) {
+    if (!Array.isArray(particles3D) || particles3D.length === 0) return;
+    for (let i = particles3D.length - 1; i >= 0; i--) {
+        const pt = particles3D[i];
+        if (!pt || !pt.mesh) {
+            particles3D.splice(i, 1);
+            continue;
+        }
+        pt.mesh.position.x += (pt.vx || 0) * pDt;
+        pt.mesh.position.y += (pt.vy || 0) * pDt;
+        pt.mesh.position.z += (pt.vz || 0) * pDt;
+        if (pt.onUpdate) {
+            pt.onUpdate(pt, pDt);
+        } else {
+            pt.mesh.rotation.x += 6 * pDt;
+            pt.mesh.rotation.y += 6 * pDt;
+        }
+        if (!pt.noGravity) {
+            pt.vy -= 22 * pDt;
+            const ptFloorY = (typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, pt.mesh.position.x, pt.mesh.position.z) : 0) + 0.15;
+            if (pt.mesh.position.y < ptFloorY) {
+                pt.mesh.position.y = ptFloorY;
+                pt.vx *= Math.pow(0.6, pDt * 60);
+                pt.vy = 0;
+            }
+        }
+        pt.life -= pDt;
+        if (pt.life <= 0) {
+            if (typeof fxGroup !== 'undefined' && fxGroup) fxGroup.remove(pt.mesh);
+            if (pt.ownsMaterial && pt.mesh && pt.mesh.material) {
+                pt.mesh.material.dispose();
+            }
+            particles3D.splice(i, 1);
+        }
+    }
+}
+
 function updateBattle3D(dt, nowSec) {
+    if (typeof isMatchPaused !== 'undefined' && isMatchPaused) return;
+
     // Mode Campagne Smash Melee : mise à jour des vagues, minions et objets
     if (matchState === 'campaign_level') {
         if (typeof updateCampaignLevelEngine === 'function') {
@@ -708,122 +980,104 @@ function updateBattle3D(dt, nowSec) {
         }
     }
 
-    // Hitstop (Impact Freeze) : Fige temporairement la physique et les animations pour le punch
+    // 1. Hitstop (Impact Freeze) : fige la physique tout en vibrant la cible et en animant les particules
     if (hitstopTimer > 0) {
         hitstopTimer = Math.max(0, hitstopTimer - dt);
+        if (hitstopTarget) {
+            if (hitstopTimer > 0) {
+                const shakeAmp = Math.min(0.22, 0.08 + hitstopTimer * 1.1);
+                hitstopTarget.hitShakeOffset = Math.sin((nowSec || 0) * 145) * shakeAmp;
+            } else {
+                hitstopTarget.hitShakeOffset = 0;
+                hitstopTarget = null;
+            }
+        }
+        [fighter1, fighter2].forEach(f => {
+            if (!f) return;
+            if (f.hitFlashTimer > 0) f.hitFlashTimer = Math.max(0, f.hitFlashTimer - dt * 0.45);
+            if (f.rig && f.rig.root) {
+                f.rig.root.position.set(f.x + (f.hitShakeOffset || 0), f.y, 0);
+            }
+        });
+        if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 0.65);
+        const hitstopRecoilDecay = Math.exp(-5.0 * dt);
+        camRecoilX *= hitstopRecoilDecay;
+        camRecoilY *= hitstopRecoilDecay;
+        updateParticles3D(dt * 0.65);
+        return;
+    }
+    if (hitstopTarget) {
+        hitstopTarget.hitShakeOffset = 0;
+        hitstopTarget = null;
+    }
+
+    // 2. Compte à rebours du Slow-Mo K.O. (temps réel dt)
+    if (koSlowMoTimer > 0) {
+        koSlowMoTimer = Math.max(0, koSlowMoTimer - dt);
+        if (koSlowMoTimer <= 0) {
+            battleTimeScale = 1.0;
+            const pending = koPendingData;
+            koPendingData = null;
+            if (typeof teardownSuperState === 'function') teardownSuperState();
+            if (typeof hideSuperFlashOverlay === 'function') hideSuperFlashOverlay();
+            if (pending && pending.winner && pending.loser) {
+                if (pending.winner.roundsWon >= 2) {
+                    finishMatch(pending.winner, pending.loser);
+                } else {
+                    matchState = 'round_over';
+                    stateTimer = 2.0;
+                    if (typeof showAnnouncer === 'function') {
+                        showAnnouncer('K.O. !', `${pending.winner.dino.name} REMPORTE LE ROUND ${roundNumber}`);
+                    }
+                }
+            }
+        }
+    }
+
+    const simDt = dt * (typeof battleTimeScale === 'number' ? battleTimeScale : 1.0);
+
+    // 3. Moteur Primal Super (piloté par dt réel, 100% pause-safe)
+    if (typeof updateSuperAttack === 'function') {
+        updateSuperAttack(dt, nowSec);
+    }
+
+    // Super Flash Freeze : figer la simulation des combattants tout en animant l'aura, le flash et la caméra
+    if (superState && superState.phase === 'flash') {
+        if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 1.2);
+        [fighter1, fighter2].forEach(f => {
+            if (!f) return;
+            if (f.hitFlashTimer > 0) f.hitFlashTimer = Math.max(0, f.hitFlashTimer - dt);
+            if (f.rig && f.rig.root) {
+                f.rig.root.position.set(f.x, f.y, 0);
+            }
+            if (typeof animateDino3DRig === 'function') {
+                animateDino3DRig(f, nowSec, dt * 0.15);
+            }
+        });
+        updateParticles3D(dt);
         return;
     }
 
     // Dynamisme en temps réel du décor de l'arène 3D
     if (typeof updateArenaDynamics === 'function') {
-        updateArenaDynamics(currentArena, arenaGroup, battleScene, nowSec, dt);
+        updateArenaDynamics(currentArena, arenaGroup, battleScene, nowSec, simDt);
     }
 
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 1.5);
-    if (xrayCinematicTimer > 0) {
-        xrayCinematicTimer -= dt;
-        xrayElapsed += dt;
-
-        // Phases 2 et 3 pilotées par dt (s'arrêtent proprement si le jeu est en pause)
-        if (xrayContext && xrayContext.attacker && xrayContext.defender) {
-            const { attacker, defender, totalDmg, hit2, hit3 } = xrayContext;
-            const titleEl = document.getElementById('xrayBoneTitle');
-            const psiEl = document.getElementById('xrayPsiDetail');
-            const phaseEl = document.getElementById('xrayPhaseCounter');
-
-            if (xrayPhaseApplied === 1 && xrayElapsed >= 0.75) {
-                xrayPhaseApplied = 2;
-                xrayStage = 2;
-                if (phaseEl) phaseEl.textContent = 'IMPACT 2 / 3 • THORAX';
-                if (titleEl) titleEl.textContent = '🫀 PERFORATION DE LA CAGE THORACIQUE';
-                if (psiEl) psiEl.textContent = 'PRESSION : 6 400 PSI • 6 CÔTES BRISÉES & HÉMORRAGIE';
-                sfx.playBoneCrack();
-                sfx.playHit(true);
-                screenShake = 0.7;
-                if (typeof triggerGamepadRumble === 'function') triggerGamepadRumble(0, 0.6, 0.9, 240);
-                spawn3DBloodAndBones(defender.x, 2.1, 28, true);
-                applyDamage(attacker, defender, hit2, true, '☢ X-RAY : CÔTES PULVÉRISÉES !', true);
-            } else if (xrayPhaseApplied === 2 && xrayElapsed >= 1.50) {
-                xrayPhaseApplied = 3;
-                xrayStage = 3;
-                if (phaseEl) phaseEl.textContent = 'IMPACT 3 / 3 • VERTÈBRES';
-                if (titleEl) titleEl.textContent = '⚡ RUPTURE VERTÉBRALE CRITIQUE';
-                if (psiEl) psiEl.textContent = 'PRESSION : 8 900 PSI • DISLOCATION CERVICALE TOTALE';
-                sfx.playBoneCrack();
-                sfx.playRoar(62, 0.65);
-                screenShake = 0.95;
-                if (typeof triggerGamepadRumble === 'function') triggerGamepadRumble(0, 0.85, 1.0, 320);
-                spawn3DBloodAndBones(defender.x, 2.3, 38, true);
-                xrayLockPositions = null;
-                applyDamage(attacker, defender, hit3, true, `💥 TOTAL X-RAY : -${totalDmg} PV !`, false);
-                defender.vx = attacker.facing * 13.5;
-                defender.vy = 6.8;
-            }
-        }
-
-        // Tant que la cinématique X-Ray est active, figer les positions des 2 combattants
-        if (xrayLockPositions) {
-            const { attacker, defender, attX, defX, attY, defY, attFacing, defFacing } = xrayLockPositions;
-            attacker.x = attX;
-            attacker.y = attY !== undefined ? attY : 0;
-            attacker.groundY = attacker.y;
-            attacker.vx = 0;
-            attacker.vy = 0;
-            attacker.facing = attFacing;
-
-            defender.x = defX;
-            defender.y = defY !== undefined ? defY : 0;
-            defender.groundY = defender.y;
-            defender.vx = 0;
-            defender.vy = 0;
-            defender.facing = defFacing;
-        }
-        if (xrayCinematicTimer <= 0) {
-            xrayStage = 0;
-            xrayElapsed = 0;
-            xrayPhaseApplied = 0;
-            xrayContext = null;
-            xrayLockPositions = null;
-            if (fighter1) { fighter1.isXrayTarget = false; fighter1.isXrayAttacker = false; }
-            if (fighter2) { fighter2.isXrayTarget = false; fighter2.isXrayAttacker = false; }
-            if (fighter1 && fighter1.action === 'xray') { fighter1.action = 'idle'; fighter1.actionDuration = 0; }
-            if (fighter2 && fighter2.action === 'xray') { fighter2.action = 'idle'; fighter2.actionDuration = 0; }
-            const xHud = document.getElementById('xrayOverlayHud');
-            if (xHud) xHud.classList.add('hidden');
-        }
-    }
 
     if (matchState === 'intro') {
         stateTimer -= dt;
         if (!roundIntroAnnounced && stateTimer <= 0.70) {
             roundIntroAnnounced = true;
-            showAnnouncer('KOMBAT !', 'AFFRONTEZ-VOUS EN 3D !');
-            sfx.playRoar(90, 0.35);
+            if (typeof showAnnouncer === 'function') showAnnouncer('KOMBAT !', 'AFFRONTEZ-VOUS EN 3D !');
+            if (typeof sfx !== 'undefined' && typeof sfx.playRoar === 'function') sfx.playRoar(90, 0.35);
         }
         if (stateTimer <= 0) {
             matchState = 'fight';
-            clearAnnouncer();
+            if (typeof clearAnnouncer === 'function') clearAnnouncer();
             if (typeof updateGamepadHelperHUD === 'function') {
                 updateGamepadHelperHUD();
             }
-        }
-    } else if (matchState === 'finish_him') {
-        stateTimer -= dt;
-        if (fighter2.roundsWon >= 2 && (gameMode === 'cpu' || gameMode === 'campaign') && stateTimer < 4.8) {
-            executeUnique3DFatality(fighter2, fighter1);
-            return;
-        }
-        if (stateTimer <= 0) {
-            const winner = fighter1.roundsWon >= 2 ? fighter1 : fighter2;
-            const loser = winner === fighter1 ? fighter2 : fighter1;
-            finishMatch(winner, loser);
-        }
-    } else if (matchState === 'fatality_anim') {
-        stateTimer -= dt;
-        if (stateTimer <= 0) {
-            const winner = fighter1.roundsWon >= 2 ? fighter1 : fighter2;
-            const loser = winner === fighter1 ? fighter2 : fighter1;
-            finishMatch(winner, loser);
         }
     } else if (matchState === 'round_over') {
         stateTimer -= dt;
@@ -833,32 +1087,42 @@ function updateBattle3D(dt, nowSec) {
         }
     }
 
-    // Pause du chronomètre pendant la cinématique X-Ray
-    if (matchState === 'fight' && gameMode !== 'practice' && xrayCinematicTimer <= 0) {
+    const isCinematicLock = Boolean(
+        (superState && (superState.phase === 'flash' || superState.phase === 'cinematic')) ||
+        koSlowMoTimer > 0
+    );
+
+    // Pause du chronomètre pendant les Super Flash/Cinématiques et le Slow-Mo K.O.
+    if (matchState === 'fight' && gameMode !== 'practice' && !isCinematicLock) {
         roundTimerAccum += dt;
         if (roundTimerAccum >= 1) {
             roundTimerAccum = 0;
             roundTimer = Math.max(0, roundTimer - 1);
-            document.getElementById('hudTimer').textContent = typeof formatHudTimer === 'function' ? formatHudTimer(roundTimer) : roundTimer;
+            const hudTimerEl = typeof document !== 'undefined' ? document.getElementById('hudTimer') : null;
+            if (hudTimerEl) {
+                hudTimerEl.textContent = typeof formatHudTimer === 'function' ? formatHudTimer(roundTimer) : roundTimer;
+            }
             if (roundTimer === 0) {
                 const winner = fighter1.hp >= fighter2.hp ? fighter1 : fighter2;
                 const loser = winner === fighter1 ? fighter2 : fighter1;
-                handleKnockout(winner, loser);
+                handleKnockout(winner, loser, false);
             }
         }
     }
 
+    const isSuperPosLocked = Boolean(superState && superState.lockPositions);
+
     // Verrouiller l'ordre gauche/droite initial avant les déplacements d'inputs et d'IA
-    if (fighter1 && fighter2 && !xrayLockPositions && matchState !== 'fatality_anim') {
+    if (fighter1 && fighter2 && !isSuperPosLocked) {
         const isHighAir = Math.abs(fighter1.y - fighter2.y) >= 1.48;
         if (!isHighAir && fighter1._lockedSide === undefined) {
             fighter1._lockedSide = fighter1.x <= fighter2.x ? -1 : 1;
         }
     }
 
-    // Bloquer tous les inputs de déplacement et d'IA pendant le X-Ray
-    if ((matchState === 'fight' || matchState === 'finish_him' || matchState === 'campaign_level') && xrayCinematicTimer <= 0) {
-        handlePlayer1Inputs(dt);
+    // Inputs de déplacement & IA (verrouillés pendant Super Flash/Cinématique & Slow-Mo K.O.)
+    if ((matchState === 'fight' || matchState === 'campaign_level') && !isCinematicLock) {
+        handlePlayer1Inputs(simDt);
 
         // Assistance Auto-Block optionnelle (Paramètres -> Contrôles)
         if (typeof window !== 'undefined' && window.autoBlockEnabled && fighter1 && fighter2 &&
@@ -877,13 +1141,12 @@ function updateBattle3D(dt, nowSec) {
         }
 
         if (gameMode === 'pvp') {
-            handlePlayer2Inputs(dt);
+            handlePlayer2Inputs(simDt);
         } else if ((gameMode === 'cpu' || gameMode === 'campaign') && matchState === 'fight' && fighter2) {
-            updateAI(fighter2, fighter1, dt);
+            updateAI(fighter2, fighter1, simDt);
         } else if (matchState === 'campaign_level' && fighter2 && (typeof isCampaignBossWaveActive === 'function' ? isCampaignBossWaveActive() : (typeof currentCampaignWaveIdx !== 'undefined' && currentCampaignWaveIdx === 2))) {
-            updateAI(fighter2, fighter1, dt);
+            updateAI(fighter2, fighter1, simDt);
         }
-        // Appliquer le bloqueur dès la sortie des inputs pour empêcher tout franchissement instantané
         if (fighter1 && fighter2) {
             resolveFighterBodyBlocker(fighter1, fighter2);
         }
@@ -912,68 +1175,83 @@ function updateBattle3D(dt, nowSec) {
         if (!f) return;
         const other = f === fighter1 ? fighter2 : fighter1;
 
-        if (f.dashCooldown > 0) f.dashCooldown = Math.max(0, f.dashCooldown - dt);
-        if (f.dashTimer > 0) f.dashTimer = Math.max(0, f.dashTimer - dt);
-        if (f.beingThrownTimer > 0) f.beingThrownTimer = Math.max(0, f.beingThrownTimer - dt);
+        if (f.dashCooldown > 0) f.dashCooldown = Math.max(0, f.dashCooldown - simDt);
+        if (f.dashTimer > 0) f.dashTimer = Math.max(0, f.dashTimer - simDt);
+        if (f.beingThrownTimer > 0) f.beingThrownTimer = Math.max(0, f.beingThrownTimer - simDt);
+        if (f.hitFlashTimer > 0) f.hitFlashTimer = Math.max(0, f.hitFlashTimer - dt);
+        if (f.landingSquashTimer > 0) f.landingSquashTimer = Math.max(0, f.landingSquashTimer - simDt);
+        if (f.superInvulnTimer > 0) f.superInvulnTimer = Math.max(0, f.superInvulnTimer - simDt);
+        f.hitShakeOffset = 0;
+
+        // Décrémentation du Buffer Universel 140ms
+        if (f.bufferedInput) {
+            f.bufferedInput.ttl -= simDt;
+            if (f.bufferedInput.ttl <= 0) {
+                f.bufferedInput = null;
+            }
+        }
         if (f.bufferTimer > 0) {
-            f.bufferTimer -= dt;
+            f.bufferTimer -= simDt;
             if (f.bufferTimer <= 0) f.bufferedAction = null;
         }
 
-        // Tics du Saignement (Passif Smilodon)
+        // Tics du Saignement (Smilodon / Gorgonopsia)
         if (f.bleedTimer > 0 && !f.isDead) {
-            f.bleedTimer -= dt;
-            f.bleedTickTimer = (f.bleedTickTimer || 0) + dt;
+            f.bleedTimer -= simDt;
+            f.bleedTickTimer = (f.bleedTickTimer || 0) + simDt;
             if (f.bleedTickTimer >= 0.8) {
                 f.bleedTickTimer = 0;
                 const bleedDmg = Math.max(1, Math.round(f.bleedStacks * (f.maxHp * 0.012)));
                 f.hp = Math.max(1, f.hp - bleedDmg);
-                spawn3DBloodAndBones(f.x, f.y + 1.8, 6, false);
-                spawnFloatingPopup(f.x, `🩸 -${bleedDmg}`, '#dc2626');
-                updateBattleHUD();
+                if (typeof spawn3DBloodAndBones === 'function') spawn3DBloodAndBones(f.x, f.y + 1.8, 6, false);
+                if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(f.x, `🩸 -${bleedDmg}`, '#dc2626');
+                if (typeof updateBattleHUD === 'function') updateBattleHUD();
             }
         }
 
-        // Tics de la Neurotoxine (Passif Pulmonoscorpius)
+        // Tics de la Neurotoxine (Pulmonoscorpius)
         if (f.poisonTimer > 0 && !f.isDead) {
-            f.poisonTimer -= dt;
-            f.poisonTickTimer = (f.poisonTickTimer || 0) + dt;
+            f.poisonTimer -= simDt;
+            f.poisonTickTimer = (f.poisonTickTimer || 0) + simDt;
             if (f.poisonTickTimer >= 1.0) {
                 f.poisonTickTimer = 0;
                 const poisonDmg = Math.max(1, Math.round(f.poisonStacks * (f.maxHp * 0.010)));
                 f.hp = Math.max(1, f.hp - poisonDmg);
-                spawnFloatingPopup(f.x, `🧪 -${poisonDmg}`, '#22c55e');
-                updateBattleHUD();
+                if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(f.x, `🧪 -${poisonDmg}`, '#22c55e');
+                if (typeof updateBattleHUD === 'function') updateBattleHUD();
             }
         }
 
         // Décrémentation du débuff d'attaque (T-Rex)
         if (f.atkPowerModTimer > 0) {
-            f.atkPowerModTimer -= dt;
+            f.atkPowerModTimer -= simDt;
             if (f.atkPowerModTimer <= 0) f.atkPowerMod = 1.0;
         }
 
-        // Régénération de l'endurance de garde hors blocage (Update 2.0)
+        // Régénération de l'endurance de garde hors blocage
         if (!f.isBlocking && f.guardStamina !== undefined && f.guardStamina < 100) {
-            f.guardStamina = Math.min(100, f.guardStamina + 14 * dt);
+            f.guardStamina = Math.min(100, f.guardStamina + 14 * simDt);
         }
 
         // Décrémenter les cooldowns d'attaque
         if (f.cooldowns) {
             for (const key in f.cooldowns) {
                 if (f.cooldowns[key] > 0) {
-                    f.cooldowns[key] = Math.max(0, f.cooldowns[key] - dt);
+                    f.cooldowns[key] = Math.max(0, f.cooldowns[key] - simDt);
                 }
             }
         }
 
-        // Si les positions sont verrouillées par le X-Ray, on ne déplace pas les combattants
-        if (xrayLockPositions) {
-            f.rig.root.position.set(f.x, f.y, 0);
-            f.rig.root.rotation.z = 0;
-            const targetRotY = f.facing === 1 ? 0 : Math.PI;
-            f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * 0.35;
-            animateDino3DRig(f, nowSec, dt);
+        // Si les positions sont verrouillées par une cinématique Primal Super
+        if (isSuperPosLocked) {
+            if (f.rig && f.rig.root) {
+                f.rig.root.position.set(f.x, f.y, 0);
+                f.rig.root.rotation.z = 0;
+                const targetRotY = f.facing === 1 ? 0 : Math.PI;
+                const rotAlpha = 1 - Math.exp(-16 * simDt);
+                f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * rotAlpha;
+            }
+            if (typeof animateDino3DRig === 'function') animateDino3DRig(f, nowSec, simDt);
             return;
         }
 
@@ -991,25 +1269,61 @@ function updateBattle3D(dt, nowSec) {
                 }
             }
         }
-        if (!f.isDead && f.action !== 'special' && f.action !== 'fatality' && f.dashTimer <= 0) {
+        const isLockedFacingAct = f.action === 'special' || (f.action && f.action.startsWith('super_'));
+        if (!f.isDead && !isLockedFacingAct && f.dashTimer <= 0) {
             f.facing = f.x <= otherX ? 1 : -1;
         }
 
+        // Gestion de la fin du hitstun (réinitialise le compteur combo de l'adversaire!)
         if (f.hitStun > 0) {
-            f.hitStun -= dt;
+            f.hitStun -= simDt;
             if (f.hitStun <= 0) {
-                if (f.isP1 && f.comboCount > 0 && typeof hideComboHUD === 'function') {
-                    hideComboHUD();
+                f.hitStun = 0;
+                if (other) {
+                    if (other.isP1 && other.comboCount > 0 && typeof hideComboHUD === 'function') {
+                        hideComboHUD();
+                    }
+                    other.comboCount = 0;
+                    other.comboDamage = 0;
                 }
-                f.comboCount = 0;
             }
         }
 
-        const wasGroundedOnFloor = !f.isFlying && f.vy <= 0.05 && (f.y - (f.groundY || 0)) <= 0.09;
+        const prevAirHeight = (f.y || 0) - (f.groundY || 0);
+        const wasAirborneNow = Boolean(f._wasAirborne) || prevAirHeight > 0.12 || Boolean(f.isFlying);
+        const wasGroundedOnFloor = !f.isFlying && f.vy <= 0.05 && prevAirHeight <= 0.09;
 
-        f.x += f.vx * dt;
-        f.y += f.vy * dt;
-        f.vx *= f.dashTimer > 0 ? 0.94 : 0.82;
+        // Intégration horizontale unique & amortissement exponentiel exact (100% dt-indépendant)
+        const isActiveGroundWalk = (
+            (f._moveInputDir || 0) !== 0 &&
+            f.actionDuration <= 0 &&
+            f.dashTimer <= 0 &&
+            f.hitStun <= 0 &&
+            !f.isFlying &&
+            wasGroundedOnFloor
+        );
+        if (isActiveGroundWalk) {
+            f.x += f.vx * simDt;
+        } else {
+            const damp60 = f.dashTimer > 0 ? 0.94 : (wasGroundedOnFloor ? 0.82 : 0.96);
+            const lambda = -60 * Math.log(damp60);
+            const decay = Math.exp(-lambda * simDt);
+            if (lambda > 1e-6 && simDt > 0) {
+                f.x += f.vx * ((1 - decay) / lambda);
+            } else {
+                f.x += f.vx * simDt;
+            }
+            f.vx *= decay;
+            if (Math.abs(f.vx) < 0.02) f.vx = 0;
+        }
+
+        // Intégration verticale cinématique exacte (gravité + bonus progressif anti-infini juggle)
+        const grav = 26 * (f.gravityScale || 1.0) * (1 + (f.hitStun > 0 ? (f.juggleCount || 0) * 0.14 : 0));
+        if (!f.isFlying && (!wasGroundedOnFloor || f.vy > 0.05)) {
+            f.y += f.vy * simDt - 0.5 * grav * simDt * simDt;
+        } else {
+            f.y += f.vy * simDt;
+        }
 
         // Rebond mural dynamique (Wall Splat) en bordure d'arène
         const bounds = typeof getStageBounds3D === 'function' ? getStageBounds3D() : { left: STAGE_LEFT_3D, right: STAGE_RIGHT_3D };
@@ -1017,10 +1331,10 @@ function updateBattle3D(dt, nowSec) {
         if ((f.x >= wallBound || f.x <= -wallBound) && Math.abs(f.vx) > 6.4 && f.hitStun > 0.08) {
             f.vx = -f.vx * 0.45;
             f.vy = 5.2;
-            screenShake = 0.48;
-            sfx.playBoneCrack();
-            spawnFloatingPopup(f.x, '💥 REBOND MURAL !', '#ef4444');
-            spawn3DBloodAndBones(f.x, f.y + 2.0, 16, true);
+            screenShake = Math.max(screenShake, 0.48);
+            if (typeof sfx !== 'undefined' && typeof sfx.playBoneCrack === 'function') sfx.playBoneCrack();
+            if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(f.x, '💥 REBOND MURAL !', '#ef4444');
+            if (typeof spawn3DBloodAndBones === 'function') spawn3DBloodAndBones(f.x, f.y + 2.0, 16, true);
         }
 
         f.x = Math.max(bounds.left, Math.min(bounds.right, f.x));
@@ -1032,7 +1346,7 @@ function updateBattle3D(dt, nowSec) {
 
         // Gestion de la traversée descendante des plateformes semi-solides (Drop Through)
         if (f._dropThroughTimer > 0) {
-            f._dropThroughTimer -= dt;
+            f._dropThroughTimer -= simDt;
         } else {
             f._dropThroughTimer = 0;
         }
@@ -1043,9 +1357,7 @@ function updateBattle3D(dt, nowSec) {
                 const platY = plat.y;
                 if (!f._dropThroughTimer || f._dropThroughTimer <= 0) {
                     const prevY = f._prevY !== undefined ? f._prevY : f.y;
-                    // Détection one-way platform robuste : si le combattant était au-dessus ou proche du niveau
-                    // de la plateforme et tombe ou s'y déplace (ou était déjà dessus)
-                    const fallSpeedTolerance = Math.max(0.48, Math.abs(f.vy || 0) * dt * 2.2);
+                    const fallSpeedTolerance = Math.max(0.48, Math.abs(f.vy || 0) * simDt * 2.2);
                     const wasAboveOrOn = (prevY >= platY - 0.20) || (f.groundY !== undefined && Math.abs(f.groundY - platY) < 0.05);
                     const isWithinLatchingZone = f.y >= platY - fallSpeedTolerance;
 
@@ -1060,7 +1372,7 @@ function updateBattle3D(dt, nowSec) {
 
         // Détection et activation des Cheminées Hydrothermales (Geyser Jump Pads)
         if (f._geyserCooldown > 0) {
-            f._geyserCooldown -= dt;
+            f._geyserCooldown -= simDt;
         } else {
             for (const plat of platforms) {
                 if (plat.isJumpPad) {
@@ -1095,11 +1407,10 @@ function updateBattle3D(dt, nowSec) {
                 f.isFlying = false;
             }
         } else if (wasGroundedOnFloor && f.vy <= 0) {
-            // Adhérence fluide aux pentes montantes et descendantes du terrain
             f.y = floorY;
             f.vy = 0;
         } else if (f.y > floorY) {
-            f.vy -= 26 * (f.gravityScale || 1.0) * dt;
+            f.vy -= grav * simDt;
             if (f.y <= floorY) {
                 f.y = floorY;
                 f.vy = 0;
@@ -1109,116 +1420,159 @@ function updateBattle3D(dt, nowSec) {
             f.vy = 0;
         }
 
-        if (!f.isDead && f.action !== 'special' && f.action !== 'fatality' && f.dashTimer <= 0) {
-            f.facing = f.x <= otherX ? 1 : -1;
-        }
-
-        if (f.actionDuration > 0) {
-            f.actionTimer += dt;
-            const progress = f.actionTimer / f.actionDuration;
-
-            // Synchronisation des phases Windup -> Active -> Recovery du DinosaurCombatController
-            if (f.combatController && f.action !== 'fatality' && f.action !== 'xray') {
-                if (progress < 0.32) {
-                    f.combatController.state = CombatState.ATTACK_WINDUP;
-                } else if (progress <= 0.70) {
-                    f.combatController.state = CombatState.ATTACK_ACTIVE;
-                } else {
-                    f.combatController.state = CombatState.ATTACK_RECOVERY;
-                }
-            }
-
-            if (f.action !== 'fatality' && f.action !== 'xray' && f.action !== 'throw_whiff' && !f.hasSpawnedAttackFx && progress >= 0.24) {
-                f.hasSpawnedAttackFx = true;
-                if (typeof spawn3DAttackEffect === 'function') {
-                    spawn3DAttackEffect(f, f.action);
-                }
-            }
-
-            if (f.action !== 'fatality' && f.action !== 'xray' && !f.hasHitCurrentAttack && progress >= 0.16 && progress <= 0.78) {
-                if (other) {
-                    if (progress >= 0.32 && progress <= 0.70) {
-                        f.hasHitCurrentAttack = true;
-                        checkAttackCollision3D(f, other);
-                    }
-                } else if (matchState === 'campaign_level' && typeof checkPlayerAttacksAgainstMinions === 'function') {
-                    // En campagne vagues 1 & 2, laisser checkPlayerAttacksAgainstMinions poser hasHitCurrentAttack quand un ennemi est touché
-                    checkPlayerAttacksAgainstMinions();
-                }
-            }
-
-            // Exécuter automatiquement l'action mise en mémoire tampon (Input Buffer) dès la fenêtre de cancel
-            if (f.bufferedAction && f.canCancelInto(f.bufferedAction)) {
-                const nextAct = f.bufferedAction;
-                f.bufferedAction = null;
-                triggerPlayerAction(f, other, nextAct);
-            } else if (f.actionTimer >= f.actionDuration && f.action !== 'fatality') {
-                const hadHit = f.hasHitConfirmed;
+        // Détection d'atterrissage (airborne -> grounded) : squash, audio, poussière, reset juggle & flush buffer
+        const isGroundedNow = !f.isFlying && f.vy <= 0.05 && (f.y - floorY) <= 0.08;
+        if (wasAirborneNow && isGroundedNow) {
+            f.landingSquashTimer = 0.14;
+            f.juggleCount = 0;
+            if (f.action === 'jump') {
+                f.action = 'idle';
+            } else if (f.action === 'air_light' || f.action === 'air_heavy') {
+                // Landing cancel des attaques aériennes pour combos fluides
                 f.action = 'idle';
                 f.actionTimer = 0;
                 f.actionDuration = 0;
                 f.hasHyperArmor = false;
-                f.hasHitConfirmed = false;
-                f.lastAttackType = null;
-                if (f.combatController && (
+                if (f.combatController && typeof CombatState !== 'undefined' && (
                     f.combatController.state === CombatState.ATTACK_WINDUP ||
                     f.combatController.state === CombatState.ATTACK_ACTIVE ||
                     f.combatController.state === CombatState.ATTACK_RECOVERY
                 )) {
                     f.combatController.state = CombatState.IDLE;
                 }
-                // Si le coup a manqué dans le vide (Whiff), punition : annuler toute action mise en tampon pendant le recovery
-                if (!hadHit) {
-                    f.bufferedAction = null;
-                } else if (f.bufferedAction) {
-                    const nextAct = f.bufferedAction;
-                    f.bufferedAction = null;
-                    triggerPlayerAction(f, other, nextAct);
+            }
+            if (typeof sfx !== 'undefined') {
+                if (typeof sfx.playLand === 'function') sfx.playLand(f.weightClass === 'heavy');
+                else if (typeof sfx.playFootstep === 'function') sfx.playFootstep(f.weightClass === 'heavy');
+            }
+            if (typeof spawn3DDustPuff === 'function') {
+                spawn3DDustPuff(f.x, floorY, f.weightClass === 'heavy' ? 1.35 : 0.9, f.weightClass === 'heavy' ? 8 : 5);
+            }
+            if (f.weightClass === 'heavy') {
+                screenShake = Math.max(screenShake, 0.10);
+            }
+        }
+        f._wasAirborne = !isGroundedNow;
+
+        if (!f.isDead && !isLockedFacingAct && f.dashTimer <= 0) {
+            f.facing = f.x <= otherX ? 1 : -1;
+        }
+
+        if (f.actionDuration > 0) {
+            f.actionTimer += simDt;
+            const progress = f.actionTimer / f.actionDuration;
+            const profile = typeof f.getAttackFrameProfile === 'function'
+                ? f.getAttackFrameProfile(f.action)
+                : (typeof getAttackFrameProfile === 'function' ? getAttackFrameProfile(f.action) : { activeStart: 0.28, activeEnd: 0.68 });
+            const isSuperCinematicOrAoe = f.action === 'super_cinematic' || f.action === 'super_aoe';
+
+            // Synchronisation des phases Windup -> Active -> Recovery avec activeStart..activeEnd par coup
+            if (f.combatController && typeof CombatState !== 'undefined' && !isSuperCinematicOrAoe) {
+                if (progress < profile.activeStart) {
+                    f.combatController.state = CombatState.ATTACK_WINDUP;
+                } else if (progress <= profile.activeEnd) {
+                    f.combatController.state = CombatState.ATTACK_ACTIVE;
+                } else {
+                    f.combatController.state = CombatState.ATTACK_RECOVERY;
                 }
             }
+
+            if (!isSuperCinematicOrAoe && f.action !== 'throw_whiff' && f.action !== 'super_whiff' && !f.hasSpawnedAttackFx && progress >= Math.max(0.18, profile.activeStart - 0.06)) {
+                f.hasSpawnedAttackFx = true;
+                if (typeof spawn3DAttackEffect === 'function') {
+                    spawn3DAttackEffect(f, f.action);
+                }
+            }
+
+            // CORRECTIF MULTI-FRAMES : on ne verrouille hasHitCurrentAttack QUE lorsque checkAttackCollision3D retourne TRUE !
+            if (!isSuperCinematicOrAoe && f.action !== 'throw_whiff' && f.action !== 'super_whiff' && !f.hasHitCurrentAttack) {
+                if (other) {
+                    if (progress >= profile.activeStart && progress <= profile.activeEnd) {
+                        const didConnect = checkAttackCollision3D(f, other);
+                        if (didConnect) {
+                            f.hasHitCurrentAttack = true;
+                        }
+                    }
+                } else if (matchState === 'campaign_level' && progress >= profile.activeStart && progress <= profile.activeEnd && typeof checkPlayerAttacksAgainstMinions === 'function') {
+                    checkPlayerAttacksAgainstMinions();
+                }
+            }
+
+            // Consommer le buffer si la fenêtre de cancel sur Hit-Confirm s'est ouverte
+            if (f.bufferedInput && typeof f.consumeBufferedInput === 'function') {
+                f.consumeBufferedInput(other);
+            }
+
+            // Fin naturelle de l'attaque (sauf actions super_* pilotées par super-attack.js)
+            if (f.actionDuration > 0 && f.actionTimer >= f.actionDuration && !isSuperCinematicOrAoe && f.action !== 'super_startup' && f.action !== 'super_whiff') {
+                f.action = 'idle';
+                f.actionTimer = 0;
+                f.actionDuration = 0;
+                f.hasHyperArmor = false;
+                f.hasHitConfirmed = false;
+                f.lastAttackType = null;
+                if (f.combatController && typeof CombatState !== 'undefined' && (
+                    f.combatController.state === CombatState.ATTACK_WINDUP ||
+                    f.combatController.state === CombatState.ATTACK_ACTIVE ||
+                    f.combatController.state === CombatState.ATTACK_RECOVERY
+                )) {
+                    f.combatController.state = CombatState.IDLE;
+                }
+            }
+        }
+
+        // Flush immédiat du buffer universel 140ms dès que le combattant redevient actionnable (fin recovery / landing / fin hitstun / fin dash)
+        if (f.bufferedInput && typeof f.consumeBufferedInput === 'function') {
+            f.consumeBufferedInput(other);
         }
     });
 
     // Résolution stricte du bloqueur physique (Body Blocker) AVANT la mise à jour des matrices 3D et animations
     resolveFighterBodyBlocker(fighter1, fighter2);
 
-    // Synchroniser l'orientation, l'inclinaison sur pente, la position 3D et l'animation
-    if (!xrayLockPositions) {
+    // Synchroniser l'orientation, l'inclinaison sur pente, la position 3D et l'animation (lerps dt-indépendants)
+    const isSuperPosLockedAfterStep = Boolean(superState && superState.lockPositions);
+    if (!isSuperPosLockedAfterStep) {
+        const facingAlpha = 1 - Math.exp(-16 * simDt);
+        const slopeAlpha = 1 - Math.exp(-14 * simDt);
         [fighter1, fighter2].forEach(f => {
             if (!f) return;
             const other = f === fighter1 ? fighter2 : fighter1;
             const otherX = other ? other.x : (typeof campaignActiveMinions !== 'undefined' && campaignActiveMinions && campaignActiveMinions[0] ? campaignActiveMinions[0].x : f.x + (f.facing || 1));
-            if (!f.isDead && f.action !== 'special' && f.action !== 'fatality' && f.dashTimer <= 0) {
+            const isLockedFacingAct = f.action === 'special' || (f.action && f.action.startsWith('super_'));
+            if (!f.isDead && !isLockedFacingAct && f.dashTimer <= 0) {
                 f.facing = f.x <= otherX ? 1 : -1;
             }
-            // Recaler groundY et y si le bloqueur physique a déplacé le personnage au sol / sur plateforme
             const isGroundedNow = !f.isFlying && f.vy <= 0.05 && (f.y - (f.groundY || 0)) <= 0.09;
             if (isGroundedNow) {
                 const supportY = typeof getFighterSupportHeight === 'function' ? getFighterSupportHeight(f, currentArena) : 0;
                 f.groundY = supportY;
                 f.y = supportY;
             }
-            f.rig.root.position.set(f.x, f.y, 0);
-            const targetRotY = f.facing === 1 ? 0 : Math.PI;
-            f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * 0.25;
+            if (f.rig && f.rig.root) {
+                f.rig.root.position.set(f.x + (f.hitShakeOffset || 0), f.y, 0);
+                const targetRotY = f.facing === 1 ? 0 : Math.PI;
+                f.rig.root.rotation.y += (targetRotY - f.rig.root.rotation.y) * facingAlpha;
 
-            // Inclinaison naturelle suivant la pente du sol ou de la branche
-            const slope = (isGroundedNow && typeof getFighterSurfaceSlope === 'function')
-                ? getFighterSurfaceSlope(f, currentArena)
-                : 0;
-            const targetPitchZ = isGroundedNow ? Math.max(-0.26, Math.min(0.26, slope * f.facing * 0.72)) : 0;
-            f.rig.root.rotation.z += (targetPitchZ - f.rig.root.rotation.z) * 0.22;
+                const slope = (isGroundedNow && typeof getFighterSurfaceSlope === 'function')
+                    ? getFighterSurfaceSlope(f, currentArena)
+                    : 0;
+                const targetPitchZ = isGroundedNow ? Math.max(-0.26, Math.min(0.26, slope * f.facing * 0.72)) : 0;
+                f.rig.root.rotation.z += (targetPitchZ - f.rig.root.rotation.z) * slopeAlpha;
+            }
 
-            animateDino3DRig(f, nowSec, dt);
+            if (typeof animateDino3DRig === 'function') {
+                animateDino3DRig(f, nowSec, simDt);
+            }
         });
     }
 
-    // Mise à jour des projectiles 3D
+    // Mise à jour des projectiles 3D (avec simDt pour suivre le slow-mo)
     for (let i = projectiles3D.length - 1; i >= 0; i--) {
         const p = projectiles3D[i];
-        p.mesh.position.x += p.vx * dt;
-        p.mesh.rotation.z += 8 * dt;
-        p.life -= dt;
+        p.mesh.position.x += p.vx * simDt;
+        p.mesh.rotation.z += 8 * simDt;
+        p.life -= simDt;
         const target = p.owner === fighter1 ? fighter2 : fighter1;
         let hitHandled = false;
 
@@ -1236,7 +1590,7 @@ function updateBattle3D(dt, nowSec) {
                         spawnHitSparks3D(minion.x, minion.y + 0.9, true);
                     }
                     if (typeof updateCampaignSmashHUD === 'function') updateCampaignSmashHUD();
-                    fxGroup.remove(p.mesh);
+                    if (typeof fxGroup !== 'undefined' && fxGroup) fxGroup.remove(p.mesh);
                     projectiles3D.splice(i, 1);
                     hitHandled = true;
                     break;
@@ -1245,59 +1599,35 @@ function updateBattle3D(dt, nowSec) {
             if (hitHandled) continue;
         }
 
-        // Renvoi de projectile si l'Ankylosaure tournoie ou possède l'hyper-armure
-        if (target && target.dino && target.dino.id === 'ankylosaurus' && (target.action === 'special' || target.hasHyperArmor) && Math.abs(p.mesh.position.x - target.x) < 2.6 && Math.abs(p.mesh.position.y - (target.y + 1.8)) < 2.2) {
+        // Renvoi de projectile de l'Ankylosaure (ID canonique 'ankylo' + alias 'ankylosaurus')
+        const targetIsAnkylo = target && target.dino && (target.dino.id === 'ankylo' || target.dino.id === 'ankylosaurus');
+        if (targetIsAnkylo && (target.action === 'special' || target.hasHyperArmor) && Math.abs(p.mesh.position.x - target.x) < 2.6 && Math.abs(p.mesh.position.y - (target.y + 1.8)) < 2.2) {
             p.owner = target;
             p.vx = -p.vx * 1.35;
-            sfx.playBoneCrack();
-            spawnFloatingPopup(target.x, '🛡️ RENVOI DE PROJECTILE !', '#38bdf8');
-            screenShake = 0.35;
+            if (typeof sfx !== 'undefined') {
+                if (typeof sfx.playParry === 'function') sfx.playParry();
+                else if (typeof sfx.playBoneCrack === 'function') sfx.playBoneCrack();
+            }
+            if (typeof spawnFloatingPopup === 'function') spawnFloatingPopup(target.x, '🛡️ RENVOI DE PROJECTILE !', '#38bdf8');
+            screenShake = Math.max(screenShake, 0.35);
             continue;
         }
 
         if (target && !target.isDead && (matchState === 'fight' || matchState === 'campaign_level') &&
             Math.abs(p.mesh.position.x - target.x) < 1.75 && Math.abs(p.mesh.position.y - (target.y + 1.8)) < 2.2) {
-            applyDamage(p.owner, target, p.damage, true, '🔥 IMPACT SPÉCIAL !');
-            fxGroup.remove(p.mesh);
+            applyDamage(p.owner, target, p.damage, true, '🔥 IMPACT SPÉCIAL !', false, 'mid');
+            if (typeof fxGroup !== 'undefined' && fxGroup) fxGroup.remove(p.mesh);
             projectiles3D.splice(i, 1);
             continue;
         }
         if (p.life <= 0) {
-            fxGroup.remove(p.mesh);
+            if (typeof fxGroup !== 'undefined' && fxGroup) fxGroup.remove(p.mesh);
             projectiles3D.splice(i, 1);
         }
     }
 
-    // Mise à jour des particules 3D et des effets visuels d'attaques (arcs, ondes de choc, sillages)
-    for (let i = particles3D.length - 1; i >= 0; i--) {
-        const pt = particles3D[i];
-        pt.mesh.position.x += pt.vx * dt;
-        pt.mesh.position.y += pt.vy * dt;
-        pt.mesh.position.z += pt.vz * dt;
-        if (pt.onUpdate) {
-            pt.onUpdate(pt, dt);
-        } else {
-            pt.mesh.rotation.x += 6 * dt;
-            pt.mesh.rotation.y += 6 * dt;
-        }
-        if (!pt.noGravity) {
-            pt.vy -= 22 * dt;
-            const ptFloorY = (typeof getArenaGroundHeight === 'function' ? getArenaGroundHeight(currentArena, pt.mesh.position.x, pt.mesh.position.z) : 0) + 0.15;
-            if (pt.mesh.position.y < ptFloorY) {
-                pt.mesh.position.y = ptFloorY;
-                pt.vx *= 0.6;
-                pt.vy = 0;
-            }
-        }
-        pt.life -= dt;
-        if (pt.life <= 0) {
-            fxGroup.remove(pt.mesh);
-            if (pt.ownsMaterial && pt.mesh && pt.mesh.material) {
-                pt.mesh.material.dispose();
-            }
-            particles3D.splice(i, 1);
-        }
-    }
+    // Mise à jour des particules 3D
+    updateParticles3D(simDt);
 
     _hudCooldownThrottle += dt;
     if (_hudCooldownThrottle >= 0.08 && typeof updateBattleHUDCooldowns === 'function') {
@@ -1307,26 +1637,37 @@ function updateBattle3D(dt, nowSec) {
 }
 
 function finishMatch(winner, loser) {
+    battleTimeScale = 1.0;
+    koSlowMoTimer = 0;
+    koPendingData = null;
+    if (typeof teardownSuperState === 'function') teardownSuperState();
+    if (typeof hideSuperFlashOverlay === 'function') hideSuperFlashOverlay();
+
     if (loser) {
         loser.isDizzy = false;
         loser.isDead = true;
         loser.hp = 0;
     }
-    document.getElementById('fatalityPromptBox').classList.add('hidden');
+    if (typeof document !== 'undefined') {
+        const sfOverlay = document.getElementById('superFlashOverlay');
+        if (sfOverlay) sfOverlay.classList.add('hidden');
+    }
     matchState = 'match_over';
 
-    if (gameMode === 'campaign') {
-        if (winner && winner.isP1) {
-            if (campaignStage < 6) {
-                showAnnouncer('ÉTAPE REMPORTÉE !', `${winner.dino.name} ACCÈDE À L'ÉTAPE ${campaignStage + 1} / 6`);
+    if (typeof showAnnouncer === 'function') {
+        if (gameMode === 'campaign') {
+            if (winner && winner.isP1) {
+                if (campaignStage < 6) {
+                    showAnnouncer('ÉTAPE REMPORTÉE !', `${winner.dino.name} ACCÈDE À L'ÉTAPE ${campaignStage + 1} / 6`);
+                } else {
+                    showAnnouncer('👑 VICTOIRE DE LA TOUR ARCADE !', "VOUS AVEZ TERRASSÉ DRAK'ZUL LE DRAGON SUPRÊME !");
+                }
             } else {
-                showAnnouncer('👑 VICTOIRE DE LA TOUR ARCADE !', "VOUS AVEZ TERRASSÉ DRAK'ZUL LE DRAGON SUPRÊME !");
+                showAnnouncer('DÉFAITE...', `ÉCHEC À L'ÉTAPE ${campaignStage} / 6`);
             }
         } else {
-            showAnnouncer('DÉFAITE...', `ÉCHEC À L'ÉTAPE ${campaignStage} / 6`);
+            showAnnouncer(`${winner ? winner.dino.name : 'VAINQUEUR'} VICTORIEUX`, 'VICTOIRE TOTALE !');
         }
-    } else {
-        showAnnouncer(`${winner ? winner.dino.name : 'VAINQUEUR'} VICTORIEUX`, 'VICTOIRE TOTALE !');
     }
 
     if (typeof showPostMatchMenu === 'function') {
@@ -1335,7 +1676,9 @@ function finishMatch(winner, loser) {
         if (typeof updatePostMatchMenuUI === 'function') {
             updatePostMatchMenuUI(winner);
         }
-        const pmm = document.getElementById('postMatchMenu');
-        if (pmm) pmm.classList.remove('hidden');
+        if (typeof document !== 'undefined') {
+            const pmm = document.getElementById('postMatchMenu');
+            if (pmm) pmm.classList.remove('hidden');
+        }
     }
 }

@@ -66,11 +66,33 @@ const AICombatBehaviorTree = {
                                     const ai = bb.ai;
                                     let nextMove = null;
                                     const isVeryHard = bb.difficulty === 'very_hard' || bb.difficulty === 'brutal';
+                                    const noActiveSuper = (typeof superState === 'undefined' || !superState) &&
+                                        (typeof koSlowMoTimer === 'undefined' || koSlowMoTimer <= 0);
+                                    const canComboSuper = isVeryHard && !bb.isBoss && noActiveSuper &&
+                                        (ai.rage || 0) >= 100 && typeof executeSuperAttack === 'function' &&
+                                        typeof ai.canCancelInto === 'function' && ai.canCancelInto('super');
+
+                                    if (canComboSuper && (ai.action === 'special' || ai.action === 'special2')) {
+                                        if (executeSuperAttack(ai, bb.target)) {
+                                            bb.resetDecisionCooldown(1.2);
+                                            bb.decisionIntent = 'COMBO CANCEL -> PRIMAL SUPER';
+                                            return Status.SUCCESS;
+                                        }
+                                    }
+
+                                    if (canComboSuper && (ai.action.includes('heavy') || ai.action === 'anti_air') && Math.random() < 0.72) {
+                                        if (executeSuperAttack(ai, bb.target)) {
+                                            bb.resetDecisionCooldown(1.2);
+                                            bb.decisionIntent = 'COMBO CANCEL -> PRIMAL SUPER';
+                                            return Status.SUCCESS;
+                                        }
+                                    }
+
                                     if (ai.action === 'light') {
                                         nextMove = 'light2';
                                     } else if ((ai.action === 'light2' || ai.action.endsWith('_light')) && isVeryHard) {
                                         nextMove = this.selectFreshMove(ai, ['heavy', 'fwd_heavy', 'low_heavy']);
-                                    } else if (ai.action.includes('heavy') && isVeryHard) {
+                                    } else if ((ai.action.includes('heavy') || ai.action === 'anti_air') && isVeryHard) {
                                         if (!ai.cooldowns || ai.cooldowns['special'] <= 0) {
                                             nextMove = 'special';
                                         }
@@ -157,7 +179,7 @@ const AICombatBehaviorTree = {
                                     const target = bb.target;
                                     // Ankylosaurus hyper-armor counter scaled by difficulty
                                     const armorProb = bb.hyperArmorCounterProb || 0;
-                                    if (ai.dino && ai.dino.id === 'ankylosaurus' && armorProb > 0 && Math.random() < armorProb && bb.dist <= bb.myReach) {
+                                    if (ai.dino && (ai.dino.id === 'ankylo' || ai.dino.id === 'ankylosaurus') && armorProb > 0 && Math.random() < armorProb && bb.dist <= bb.myReach) {
                                         ai.startAttack('heavy');
                                         bb.decisionIntent = 'HYPER-ARMOR COUNTER';
                                         return Status.SUCCESS;
@@ -297,7 +319,7 @@ const AICombatBehaviorTree = {
                     }),
 
                     // =========================================================
-                    // 7. CLOSE-RANGE OFFENSE: X-RAY, GUARD-BREAK MIX-UPS & ARCHETYPES
+                    // 7. CLOSE-RANGE OFFENSE: PRIMAL SUPER, GUARD-BREAK MIX-UPS & ARCHETYPES
                     // =========================================================
                     new Sequence({
                         name: 'CloseRangeOffenseSequence',
@@ -319,13 +341,16 @@ const AICombatBehaviorTree = {
                                     ai.isBlocking = false;
                                     ai.blockType = 'none';
 
-                                    // A. Ultimate X-Ray Execution (Non-Boss at 100% Rage)
-                                    if (!bb.isBoss && ai.rage >= 100 && (!ai.cooldowns || ai.cooldowns['xray'] <= 0) && Math.random() < 0.62) {
-                                        executeXRayMove(ai, target);
-                                        if (ai.cooldowns && ai.maxCooldowns) ai.cooldowns['xray'] = ai.maxCooldowns['xray'];
-                                        bb.resetDecisionCooldown(1.2);
-                                        bb.decisionIntent = 'EXECUTE X-RAY ULTIMATE';
-                                        return Status.SUCCESS;
+                                    // A. Primal Super Execution (Non-Boss at 100% Rage)
+                                    const noActiveSuper = (typeof superState === 'undefined' || !superState) &&
+                                        (typeof koSlowMoTimer === 'undefined' || koSlowMoTimer <= 0);
+                                    const superChance = bb.macroState === 'SUPER_PRESSURE' ? 0.78 : 0.62;
+                                    if (!bb.isBoss && noActiveSuper && (ai.rage || 0) >= 100 && typeof executeSuperAttack === 'function' && Math.random() < superChance) {
+                                        if (executeSuperAttack(ai, target)) {
+                                            bb.resetDecisionCooldown(1.2);
+                                            bb.decisionIntent = 'EXECUTE PRIMAL SUPER';
+                                            return Status.SUCCESS;
+                                        }
                                     }
 
                                     // B. Directional Guard-Break Mix-up if Player is Blocking
@@ -381,11 +406,26 @@ const AICombatBehaviorTree = {
                             ai.isBlocking = false;
                             ai.blockType = 'none';
 
+                            // Mid/Long-range Beam / AoE Primal Super opportunity when at 100% Rage
+                            const noActiveSuper = (typeof superState === 'undefined' || !superState) &&
+                                (typeof koSlowMoTimer === 'undefined' || koSlowMoTimer <= 0);
+                            if (!bb.isBoss && noActiveSuper && (ai.rage || 0) >= 100 && bb.canDecideOffense &&
+                                typeof getSuperSpec === 'function' && typeof executeSuperAttack === 'function') {
+                                const spec = getSuperSpec(ai.dino && ai.dino.id);
+                                if (spec && spec.archetype !== 'cinematic_rush' && bb.dist <= (spec.reach || 10.0) * 0.92 && Math.random() < 0.12) {
+                                    if (executeSuperAttack(ai, target)) {
+                                        bb.resetDecisionCooldown(1.3);
+                                        bb.decisionIntent = 'EXECUTE RANGED PRIMAL SUPER';
+                                        return Status.SUCCESS;
+                                    }
+                                }
+                            }
+
                             // Long-range Special / Seismic Zoning check
                             if (bb.dist > 4.6 && bb.canDecideOffense && Math.random() < bb.rangedProb) {
                                 const id = ai.dino && ai.dino.id;
                                 const targetGrounded = !target.isAirborne(0.2);
-                                if (targetGrounded && (id === 'apatosaurus' || id === 'pachyrhinosaurus' || id === 'megatherium' || id === 'stegosaurus') &&
+                                if (targetGrounded && ['apato', 'apatosaurus', 'pachyrhino', 'pachyrhinosaurus', 'giantsloth', 'megatherium', 'stegosaurus'].includes(id) &&
                                     (!ai.cooldowns || ai.cooldowns['special2'] <= 0) && bb.dist < 8.2) {
                                     ai.startAttack('special2');
                                     bb.resetDecisionCooldown(1.45);

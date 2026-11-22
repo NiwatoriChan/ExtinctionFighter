@@ -150,7 +150,7 @@ const pauseModalRoot = new UIKit.Dialog({
                         <span>NAVIGUER</span>
                     </div>
                 </div>
-                <span class="pause-footer-version">${typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.3.5'}</span>
+                <span class="pause-footer-version">${typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'v0.4.0'}</span>
             </div>
         </div>
     `

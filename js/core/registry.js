@@ -138,6 +138,39 @@ function registerArena(def) {
     ARENAS[def.id] = def;
 }
 
+// Chaque minion de campagne est déclaré dans son propre fichier (js/minions/*.js) via registerCampaignMinion().
+const CAMPAIGN_MINION_LIST = [];
+const CAMPAIGN_MINIONS = {};
+
+function registerCampaignMinion(def) {
+    if (!def || !def.id) return;
+    const normalized = Object.assign({ enemyType: def.id, glbId: def.glbId || def.id }, def);
+    const existingIdx = CAMPAIGN_MINION_LIST.findIndex(m => m.id === normalized.id);
+    if (existingIdx >= 0) {
+        CAMPAIGN_MINION_LIST[existingIdx] = normalized;
+    } else {
+        CAMPAIGN_MINION_LIST.push(normalized);
+    }
+    CAMPAIGN_MINIONS[normalized.id] = normalized;
+    if (typeof MINION_GLB_IDS !== 'undefined' && MINION_GLB_IDS && typeof MINION_GLB_IDS.add === 'function') {
+        MINION_GLB_IDS.add(normalized.glbId || normalized.id);
+    }
+}
+
+function getCampaignMinionDef(enemyType, overrides = null) {
+    const base = (enemyType && CAMPAIGN_MINIONS[enemyType]) ? CAMPAIGN_MINIONS[enemyType] : {};
+    if (!overrides) return Object.assign({}, base);
+    const variantKey = overrides.variant || overrides.enemyDisplayName;
+    const variantDef = (variantKey && base.variants && base.variants[variantKey]) ? base.variants[variantKey] : {};
+    return Object.assign({}, base, variantDef, overrides);
+}
+if (typeof window !== 'undefined') {
+    window.CAMPAIGN_MINION_LIST = CAMPAIGN_MINION_LIST;
+    window.CAMPAIGN_MINIONS = CAMPAIGN_MINIONS;
+    window.registerCampaignMinion = registerCampaignMinion;
+    window.getCampaignMinionDef = getCampaignMinionDef;
+}
+
 // Chaque niveau de campagne (Ère / Sous-Ère) est déclaré dans js/campaign/*.js via registerCampaignEra().
 const CAMPAIGN_ERAS = [];
 
